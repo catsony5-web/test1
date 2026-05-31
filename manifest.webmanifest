@@ -1,0 +1,18 @@
+{
+  "name": "소비 분석",
+  "short_name": "소비 분석",
+  "description": "카드, 이체, 직접 입력 기록을 각자 브라우저에만 저장해 소비 흐름을 분석하는 개인 대시보드",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#24476b",
+  "icons": [
+    {
+      "src": "./app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

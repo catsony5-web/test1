@@ -1,0 +1,2438 @@
+/* v27 minimal theme and responsive polish */
+.btn-primary,
+.btn-secondary,
+.btn-ghost,
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  border-radius: var(--radius-control);
+  font-weight: 800;
+}
+
+.btn-primary {
+  border-color: var(--accent-primary);
+  background: var(--accent-primary);
+  color: var(--bg-surface);
+}
+
+.btn-secondary {
+  border-color: var(--border-subtle);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.btn-ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.btn-danger {
+  border-color: var(--sector-unknown-border);
+  background: var(--sector-unknown-bg);
+  color: var(--sector-unknown-text);
+}
+
+.topbar,
+.privacy-note,
+.tabs,
+.section-head,
+.monthly-filterbar,
+.manual-entry-panel,
+.product-form,
+.rule-form,
+.board-metric,
+.monthly-kpi,
+.board-sector-summary-panel,
+.board-filter-panel,
+.board-side-summary,
+.board-top-panel,
+.detail-results-panel,
+.detail-filter-panel,
+.detail-bulk-panel,
+.category-card,
+.board-sector-accordion,
+.table-wrap,
+.transaction-list,
+.monthly-chart-panel,
+.sector-trend-panel,
+.sector-analysis-card,
+.food-analysis-card,
+.panel,
+.day-panel,
+.summary-metric-card,
+.selected-sector-card,
+.income-entry-card,
+.recurring-form,
+.recurring-bulk-panel,
+.recurring-list-panel,
+.product-card,
+.final-summary-card,
+.admin-menu {
+  background: color-mix(in srgb, var(--bg-card) 94%, transparent);
+  border-color: var(--border-subtle);
+  box-shadow: var(--shadow-card);
+}
+
+button,
+.file-button,
+.ghost-file-button,
+input[type="text"],
+input[type="date"],
+input[type="time"],
+input[type="file"],
+select,
+textarea {
+  border-radius: var(--radius-control);
+}
+
+button:hover,
+.file-button:hover,
+.ghost-file-button:hover,
+.tab:hover,
+button.summary-metric-card:hover,
+.category-card:hover,
+.board-sector-card:hover,
+.board-sector-card:focus-visible {
+  background: color-mix(in srgb, var(--bg-muted) 84%, var(--bg-surface));
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-control);
+}
+
+.primary-action,
+.file-button,
+.tab.active,
+.board-map-top-button {
+  border-color: var(--accent-primary);
+  background: var(--accent-primary);
+  color: var(--text-on-primary);
+}
+
+.primary-action:hover,
+.file-button:hover,
+.board-map-top-button:hover {
+  border-color: color-mix(in srgb, var(--accent-primary) 76%, var(--accent-blue));
+  background: color-mix(in srgb, var(--accent-primary) 84%, var(--accent-blue));
+}
+
+input[type="text"],
+input[type="date"],
+input[type="time"],
+input[type="file"],
+select,
+textarea,
+.admin-menu-button,
+.secondary-action {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+}
+
+.theme-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.theme-choice {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  min-height: 68px;
+  padding: 11px;
+  text-align: left;
+  white-space: normal;
+  background: var(--bg-surface);
+}
+
+.theme-choice strong,
+.theme-choice span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.theme-choice strong {
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.theme-choice span {
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.theme-choice.active {
+  border-color: var(--accent-blue);
+  background: color-mix(in srgb, var(--bg-muted) 68%, var(--bg-surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-blue) 32%, transparent);
+}
+
+.background-settings {
+  display: grid;
+  gap: 10px;
+}
+
+.background-preview {
+  min-height: 86px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--bg-muted) 70%, transparent), transparent),
+    var(--bg-muted);
+  background-position: center;
+  background-size: cover;
+}
+
+.background-preview:not(.has-image)::before {
+  content: "이미지 미리보기";
+  display: grid;
+  place-items: center;
+  height: 86px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.background-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.background-actions button,
+.background-actions .ghost-file-button {
+  justify-content: center;
+  min-width: 0;
+  min-height: 36px;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.background-control-grid {
+  display: grid;
+  gap: 9px;
+}
+
+.background-control-grid label {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 10px;
+  align-items: center;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.background-control-grid input[type="range"] {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-height: 24px;
+  padding: 0;
+  accent-color: var(--accent-primary);
+}
+
+.background-control-grid b {
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.background-settings-status {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.sector-tile.fixed,
+.board-sector-card.fixed,
+.board-top-item.fixed,
+.sector-analysis-metric.fixed,
+.tag.fixed { background: var(--sector-fixed-bg); border-color: var(--sector-fixed-border); color: var(--sector-fixed-text); }
+.sector-tile.food,
+.board-sector-card.food,
+.board-top-item.food,
+.sector-analysis-metric.food,
+.tag.food { background: var(--sector-food-bg); border-color: var(--sector-food-border); color: var(--sector-food-text); }
+.sector-tile.household,
+.board-sector-card.household,
+.board-top-item.household,
+.sector-analysis-metric.household,
+.tag.household { background: var(--sector-household-bg); border-color: var(--sector-household-border); color: var(--sector-household-text); }
+.sector-tile.shopping,
+.board-sector-card.shopping,
+.board-top-item.shopping,
+.sector-analysis-metric.shopping,
+.tag.shopping { background: var(--sector-shopping-bg); border-color: var(--sector-shopping-border); color: var(--sector-shopping-text); }
+.sector-tile.personal,
+.board-sector-card.personal,
+.board-top-item.personal,
+.sector-analysis-metric.personal,
+.tag.personal { background: var(--sector-personal-bg); border-color: var(--sector-personal-border); color: var(--sector-personal-text); }
+.sector-tile.selfdev,
+.board-sector-card.selfdev,
+.board-top-item.selfdev,
+.sector-analysis-metric.selfdev,
+.tag.selfdev { background: var(--sector-selfdev-bg); border-color: var(--sector-selfdev-border); color: var(--sector-selfdev-text); }
+.sector-tile.gift,
+.board-sector-card.gift,
+.board-top-item.gift,
+.sector-analysis-metric.gift,
+.tag.gift { background: var(--sector-gift-bg); border-color: var(--sector-gift-border); color: var(--sector-gift-text); }
+.sector-tile.transport,
+.board-sector-card.transport,
+.board-top-item.transport,
+.sector-analysis-metric.transport,
+.tag.transport { background: var(--sector-transport-bg); border-color: var(--sector-transport-border); color: var(--sector-transport-text); }
+.sector-tile.saving,
+.board-sector-card.saving,
+.board-top-item.saving,
+.tag.saving { background: var(--sector-saving-bg); border-color: var(--sector-saving-border); color: var(--sector-saving-text); }
+.sector-tile.income,
+.board-sector-card.income,
+.board-top-item.income,
+.tag.income { background: var(--sector-income-bg); border-color: var(--sector-income-border); color: var(--sector-income-text); }
+.sector-tile.etc,
+.board-sector-card.etc,
+.board-top-item.etc,
+.sector-analysis-metric.etc,
+.tag.etc { background: var(--sector-etc-bg); border-color: var(--sector-etc-border); color: var(--sector-etc-text); }
+.sector-tile.unknown,
+.board-sector-card.unknown,
+.board-top-item.unknown,
+.sector-analysis-metric.unknown,
+.tag.unknown { background: var(--sector-unknown-bg); border-color: var(--sector-unknown-border); color: var(--sector-unknown-text); }
+
+.category-chip.fixed,
+.subcategory-pill.fixed { background: var(--sector-fixed-bg); color: var(--sector-fixed-text); }
+.category-chip.food,
+.subcategory-pill.food { background: var(--sector-food-bg); color: var(--sector-food-text); }
+.category-chip.household,
+.subcategory-pill.household { background: var(--sector-household-bg); color: var(--sector-household-text); }
+.category-chip.shopping,
+.subcategory-pill.shopping { background: var(--sector-shopping-bg); color: var(--sector-shopping-text); }
+.category-chip.personal,
+.subcategory-pill.personal { background: var(--sector-personal-bg); color: var(--sector-personal-text); }
+.category-chip.selfdev,
+.subcategory-pill.selfdev { background: var(--sector-selfdev-bg); color: var(--sector-selfdev-text); }
+.category-chip.gift,
+.subcategory-pill.gift { background: var(--sector-gift-bg); color: var(--sector-gift-text); }
+.category-chip.transport,
+.subcategory-pill.transport { background: var(--sector-transport-bg); color: var(--sector-transport-text); }
+.category-chip.saving,
+.subcategory-pill.saving { background: var(--sector-saving-bg); color: var(--sector-saving-text); }
+.category-chip.income,
+.subcategory-pill.income { background: var(--sector-income-bg); color: var(--sector-income-text); }
+.category-chip.etc,
+.subcategory-pill.etc { background: var(--sector-etc-bg); color: var(--sector-etc-text); }
+.category-chip.unknown,
+.subcategory-pill.unknown { background: var(--sector-unknown-bg); color: var(--sector-unknown-text); }
+
+.chart-grid,
+.balance-grid {
+  stroke: color-mix(in srgb, var(--border-subtle) 86%, transparent);
+}
+
+.chart-axis,
+.balance-zero-line {
+  stroke: color-mix(in srgb, var(--text-secondary) 76%, transparent);
+}
+
+.balance-chart-bg {
+  fill: color-mix(in srgb, var(--bg-muted) 64%, var(--bg-surface));
+  stroke: var(--border-subtle);
+}
+
+.balance-segment.positive,
+.legend-positive {
+  stroke: var(--accent-positive);
+  background: var(--accent-positive);
+}
+
+.balance-segment.negative,
+.legend-negative {
+  stroke: var(--accent-negative);
+  background: var(--accent-negative);
+}
+
+.balance-point.good,
+.chart-dot.good {
+  fill: var(--accent-positive);
+}
+
+.balance-point.bad,
+.chart-dot.bad {
+  fill: var(--accent-negative);
+}
+
+.trend-bar.up,
+.legend-up {
+  fill: #e8798f;
+  background: #e8798f;
+}
+
+.trend-bar.down,
+.legend-down {
+  fill: #5fc6b0;
+  background: #5fc6b0;
+}
+
+.chart-label,
+.chart-value,
+.balance-axis-label,
+.chart-baseline-label {
+  fill: var(--text-secondary);
+}
+
+.monthly-chart {
+  min-height: 420px;
+}
+
+.monthly-chart-panel {
+  display: grid;
+  align-content: start;
+}
+
+:root[data-theme="dark"] .topbar,
+:root[data-theme="dark"] .privacy-note,
+:root[data-theme="dark"] .tabs,
+:root[data-theme="dark"] .section-head,
+:root[data-theme="dark"] .monthly-filterbar,
+:root[data-theme="dark"] .manual-entry-panel,
+:root[data-theme="dark"] .product-form,
+:root[data-theme="dark"] .rule-form,
+:root[data-theme="dark"] .board-metric,
+:root[data-theme="dark"] .monthly-kpi,
+:root[data-theme="dark"] .board-sector-summary-panel,
+:root[data-theme="dark"] .board-filter-panel,
+:root[data-theme="dark"] .board-side-summary,
+:root[data-theme="dark"] .board-top-panel,
+:root[data-theme="dark"] .detail-results-panel,
+:root[data-theme="dark"] .detail-filter-panel,
+:root[data-theme="dark"] .detail-bulk-panel,
+:root[data-theme="dark"] .category-card,
+:root[data-theme="dark"] .board-sector-accordion,
+:root[data-theme="dark"] .table-wrap,
+:root[data-theme="dark"] .transaction-list,
+:root[data-theme="dark"] .monthly-chart-panel,
+:root[data-theme="dark"] .sector-trend-panel,
+:root[data-theme="dark"] .sector-analysis-card,
+:root[data-theme="dark"] .food-analysis-card,
+:root[data-theme="dark"] .panel,
+:root[data-theme="dark"] .day-panel,
+:root[data-theme="dark"] .summary-metric-card,
+:root[data-theme="dark"] .selected-sector-card,
+:root[data-theme="dark"] .income-entry-card,
+:root[data-theme="dark"] .recurring-form,
+:root[data-theme="dark"] .recurring-bulk-panel,
+:root[data-theme="dark"] .recurring-list-panel,
+:root[data-theme="dark"] .product-card,
+:root[data-theme="dark"] .final-summary-card,
+:root[data-theme="dark"] .admin-menu,
+:root[data-theme="dark"] .admin-status-card,
+:root[data-theme="dark"] .auto-save-card > div,
+:root[data-theme="dark"] .snapshot-item,
+:root[data-theme="dark"] .snapshot-empty {
+  background: color-mix(in srgb, var(--bg-card) 94%, transparent);
+}
+
+:root[data-theme="dark"] .transaction-head,
+:root[data-theme="dark"] th,
+:root[data-theme="dark"] .summary-matrix-table .total-col,
+:root[data-theme="dark"] .net-cell,
+:root[data-theme="dark"] .matrix-bar {
+  background: var(--bg-muted);
+}
+
+:root[data-theme="dark"] .chart-dot,
+:root[data-theme="dark"] .balance-point {
+  stroke: var(--bg-card);
+}
+
+:root[data-theme="dark"] .trend-delta-label,
+:root[data-theme="dark"] .balance-point-label {
+  stroke: var(--bg-card);
+}
+
+@media (max-width: 1279px) {
+  .topbar,
+  main {
+    width: min(100% - 24px, 1720px);
+  }
+
+  .category-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  }
+
+  .board-sector-card-grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  }
+}
+
+@media (max-width: 1023px) {
+  .topbar {
+    align-items: flex-start;
+  }
+
+  .topbar,
+  .ledger-head,
+  .income-head,
+  .recurring-head,
+  .sector-trend-head {
+    gap: 12px;
+  }
+
+  .brand-block h1 {
+    font-size: 20px;
+  }
+
+  .board-sector-card-grid,
+  .selected-sector-grid,
+  .recurring-card-grid,
+  .product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .monthly-chart {
+    min-height: 360px;
+  }
+}
+
+@media (max-width: 767px) {
+  .theme-choice-grid,
+  .background-actions,
+  .auto-save-card {
+    grid-template-columns: 1fr;
+  }
+
+  .tabs {
+    border-radius: 14px;
+    padding: 4px;
+  }
+
+  .tab {
+    min-height: 32px;
+    padding: 7px 10px;
+    font-size: 12px;
+  }
+
+  .board-sector-card-grid,
+  .selected-sector-grid,
+  .recurring-card-grid,
+  .product-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .monthly-chart {
+    min-height: 320px;
+  }
+
+  .summary-matrix-table,
+  table {
+    font-size: 12px;
+  }
+}
+
+/* v29 premium summary dashboard */
+#summaryView .section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 92px;
+  padding: 22px 24px;
+}
+
+#summaryView .section-head h2 {
+  font-size: clamp(24px, 2.1vw, 32px);
+  letter-spacing: 0;
+}
+
+#summaryView .section-head p {
+  max-width: 620px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.sector-trend-panel {
+  display: grid;
+  gap: 18px;
+  padding: clamp(20px, 2.4vw, 30px);
+  border-radius: 20px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--bg-card) 94%, transparent), color-mix(in srgb, var(--bg-muted) 38%, var(--bg-card))),
+    var(--bg-card);
+}
+
+.sector-trend-head {
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: 0;
+}
+
+.sector-trend-head h3 {
+  font-size: clamp(21px, 1.8vw, 28px);
+  letter-spacing: 0;
+}
+
+.sector-trend-head p {
+  max-width: 560px;
+  margin-top: 7px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.sector-trend-head label {
+  min-width: 150px;
+}
+
+.sector-chart.monthly-chart {
+  display: grid;
+  gap: 14px;
+  min-height: 0;
+}
+
+.trend-chart-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.trend-chart-meta,
+.trend-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.trend-chart-meta > span {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.trend-legend span {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.summary-head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: end;
+  justify-content: flex-end;
+}
+
+.summary-head-actions label {
+  display: grid;
+  gap: 6px;
+  min-width: 136px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.summary-head-actions select:disabled {
+  cursor: not-allowed;
+  background: color-mix(in srgb, var(--bg-muted) 78%, var(--bg-card));
+  color: var(--text-muted);
+}
+
+.trend-insight-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.trend-insight-card,
+.trend-focus-card,
+.trend-pill {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 12px 14px;
+  background: color-mix(in srgb, var(--bg-card) 88%, var(--bg-muted));
+}
+
+.trend-insight-card span,
+.trend-insight-card small,
+.trend-focus-card span,
+.trend-focus-card small,
+.trend-pill small {
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.trend-insight-card strong,
+.trend-focus-card strong,
+.trend-pill b {
+  color: var(--text-primary);
+  font-family: var(--font-number);
+  font-size: 15px;
+  font-weight: 900;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.trend-insight-card.up,
+.trend-focus-card.up,
+.trend-pill.up {
+  border-color: color-mix(in srgb, var(--accent-negative) 28%, var(--border-subtle));
+  background: color-mix(in srgb, var(--status-negative-bg) 76%, var(--bg-card));
+}
+
+.trend-insight-card.down,
+.trend-focus-card.down,
+.trend-pill.down {
+  border-color: color-mix(in srgb, var(--accent-positive) 28%, var(--border-subtle));
+  background: color-mix(in srgb, var(--status-positive-bg) 76%, var(--bg-card));
+}
+
+.trend-insight-card.neutral,
+.trend-pill.neutral {
+  border-color: var(--border-subtle);
+  background: color-mix(in srgb, var(--bg-muted) 72%, var(--bg-card));
+}
+
+.trend-chart-frame {
+  min-width: 0;
+  overflow-x: auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  padding: 10px 12px 6px;
+  background: color-mix(in srgb, var(--bg-card) 94%, var(--bg-muted));
+}
+
+.trend-chart-frame svg {
+  min-width: 760px;
+}
+
+.trend-plot-bg {
+  fill: color-mix(in srgb, var(--bg-muted) 42%, var(--bg-card));
+  stroke: color-mix(in srgb, var(--border-subtle) 72%, transparent);
+  stroke-width: 1;
+}
+
+.trend-grid {
+  stroke: color-mix(in srgb, var(--border-subtle) 76%, transparent);
+  stroke-width: 1;
+}
+
+.trend-zero-line {
+  stroke: color-mix(in srgb, var(--text-primary) 54%, transparent);
+  stroke-width: 1.6;
+}
+
+.trend-axis-label {
+  fill: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.trend-axis-label.zero,
+.chart-baseline-label {
+  fill: var(--text-primary);
+  font-weight: 900;
+}
+
+.trend-selection-bg {
+  fill: transparent;
+  opacity: 0;
+  transition: opacity 0.16s ease;
+}
+
+.trend-bar {
+  filter: drop-shadow(0 8px 12px rgba(15, 23, 42, 0.08));
+  transition: opacity 0.16s ease, filter 0.16s ease, transform 0.16s ease;
+}
+
+.trend-bar.up {
+  fill: url(#trendUpGradient);
+  opacity: 0.96;
+}
+
+.trend-bar.down {
+  fill: url(#trendDownGradient);
+  opacity: 0.96;
+}
+
+.trend-zero-dot {
+  fill: color-mix(in srgb, var(--text-secondary) 52%, var(--bg-card));
+  stroke: var(--bg-card);
+  stroke-width: 1.5;
+}
+
+.trend-bar-group.selected .trend-selection-bg,
+.trend-bar-group.is-hovered .trend-selection-bg,
+.trend-bar-group:hover .trend-selection-bg,
+.trend-bar-group:focus .trend-selection-bg {
+  fill: color-mix(in srgb, var(--accent-blue) 10%, transparent);
+  opacity: 1;
+}
+
+.trend-bar-group.selected .trend-bar {
+  stroke: color-mix(in srgb, var(--accent-primary) 68%, var(--accent-blue));
+  stroke-width: 2.4;
+  filter: drop-shadow(0 12px 18px rgba(15, 23, 42, 0.13));
+}
+
+.trend-bar-group.is-hovered .trend-bar,
+.trend-bar-group:hover .trend-bar,
+.trend-bar-group:focus .trend-bar {
+  filter: drop-shadow(0 13px 20px rgba(15, 23, 42, 0.14));
+}
+
+.trend-tooltip {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.16s ease;
+}
+
+.trend-tooltip rect {
+  fill: color-mix(in srgb, var(--text-primary) 90%, #0f172a);
+  stroke: color-mix(in srgb, var(--text-primary) 22%, transparent);
+}
+
+.trend-tooltip text {
+  fill: var(--bg-surface);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.trend-tooltip text + text {
+  opacity: 0.78;
+  font-weight: 750;
+}
+
+.trend-bar-group.is-hovered .trend-tooltip,
+.trend-bar-group:hover .trend-tooltip,
+.trend-bar-group:focus .trend-tooltip {
+  opacity: 1;
+}
+
+.trend-delta-label {
+  fill: var(--text-primary);
+  font-size: 14px;
+  font-weight: 950;
+  paint-order: stroke;
+  stroke: var(--bg-card);
+  stroke-width: 5px;
+}
+
+.legend-up {
+  background: var(--accent-negative);
+}
+
+.legend-down {
+  background: var(--accent-positive);
+}
+
+.sector-analysis-card {
+  display: grid;
+  gap: 18px;
+  padding: clamp(18px, 2vw, 24px);
+  border-radius: 20px;
+}
+
+.sector-analysis-head h3 {
+  font-size: clamp(20px, 1.5vw, 24px);
+}
+
+.sector-analysis-body {
+  display: grid;
+  gap: 14px;
+}
+
+.sector-analysis-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 1.4fr);
+  gap: 18px;
+  align-items: center;
+  border: 1px solid var(--border-subtle);
+  border-radius: 18px;
+  padding: 18px;
+  background: color-mix(in srgb, var(--bg-card) 78%, var(--bg-muted));
+}
+
+.sector-analysis-overview h4 {
+  margin-top: 10px;
+  color: var(--text-primary);
+  font-size: 21px;
+  font-weight: 950;
+}
+
+.sector-analysis-overview p {
+  margin-top: 7px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.sector-analysis-overview dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.sector-analysis-overview dl div {
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 74%, transparent);
+  border-radius: 14px;
+  padding: 12px;
+  background: color-mix(in srgb, var(--bg-card) 88%, transparent);
+}
+
+.sector-analysis-overview dt {
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.sector-analysis-overview dd {
+  overflow: hidden;
+  margin: 6px 0 0;
+  color: var(--text-primary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 15px;
+  font-weight: 950;
+  font-variant-numeric: tabular-nums;
+}
+
+.food-analysis-grid,
+.sector-analysis-grid {
+  grid-template-columns: repeat(auto-fit, minmax(176px, 1fr));
+  gap: 10px;
+}
+
+.food-metric,
+.sector-analysis-metric {
+  border-radius: 16px;
+  padding: 14px;
+  transition: border-color 0.16s ease, background 0.16s ease, transform 0.16s ease;
+}
+
+.food-metric:hover,
+.sector-analysis-metric:hover,
+.sector-analysis-bar-row:hover {
+  transform: translateY(-1px);
+  border-color: var(--border-strong);
+}
+
+.food-metric strong,
+.sector-analysis-metric strong {
+  margin-top: 7px;
+  font-size: 19px;
+}
+
+.food-compare-chart,
+.sector-analysis-bars {
+  border-radius: 18px;
+  padding: 14px;
+  background: color-mix(in srgb, var(--bg-muted) 62%, var(--bg-card));
+}
+
+.sector-analysis-block .food-compare-chart,
+.sector-analysis-block .sector-analysis-bars {
+  border-top: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.food-compare-row,
+.sector-analysis-bar-row {
+  border-radius: 14px;
+  padding: 10px;
+}
+
+.food-ratio-bar,
+.sector-ratio-bar {
+  height: 10px;
+  background: color-mix(in srgb, var(--border-subtle) 58%, var(--bg-card));
+}
+
+.food-ratio-bar span,
+.sector-ratio-bar span {
+  min-width: 3px;
+}
+
+.summary-dashboard {
+  gap: 18px;
+}
+
+.summary-metric-grid {
+  grid-template-columns: repeat(4, minmax(180px, 1fr));
+}
+
+.summary-metric-card {
+  border-radius: 18px;
+  padding: 18px;
+}
+
+.summary-metric-card strong {
+  font-size: clamp(20px, 1.6vw, 26px);
+}
+
+.summary-selected-month-panel,
+.summary-matrix-panel,
+.selected-month-detail {
+  border-radius: 20px;
+  padding: 20px;
+}
+
+.summary-matrix-table th {
+  color: var(--text-secondary);
+  font-size: 12px;
+  letter-spacing: 0;
+}
+
+.summary-matrix-table td {
+  padding-top: 13px;
+  padding-bottom: 13px;
+}
+
+.summary-matrix-table tbody tr.selected {
+  background: transparent;
+  box-shadow: none;
+}
+
+.summary-matrix-table tbody tr.selected td {
+  border-color: color-mix(in srgb, var(--accent-blue) 38%, var(--border));
+  background: color-mix(in srgb, var(--accent-blue) 9%, var(--bg-card));
+}
+
+@media (max-width: 1023px) {
+  #summaryView .section-head,
+  .sector-trend-head,
+  .trend-chart-topline,
+  .sector-analysis-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .trend-insight-row,
+  .sector-analysis-overview,
+  .sector-analysis-overview dl {
+    grid-template-columns: 1fr;
+  }
+
+  .sector-trend-head label {
+    min-width: 0;
+    max-width: 260px;
+  }
+}
+
+@media (max-width: 767px) {
+  .sector-trend-panel,
+  .sector-analysis-card,
+  .summary-selected-month-panel,
+  .summary-matrix-panel,
+  .selected-month-detail {
+    border-radius: 18px;
+    padding: 16px;
+  }
+
+  .trend-chart-frame {
+    margin-inline: -4px;
+    padding: 8px;
+  }
+
+  .trend-chart-frame svg {
+    min-width: 700px;
+  }
+
+  .trend-insight-card,
+  .trend-focus-card,
+  .trend-pill {
+    padding: 11px;
+  }
+
+  .summary-metric-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* v30 app shell: finance SaaS sidebar layout */
+html,
+body,
+button,
+input,
+select,
+textarea {
+  font-family: var(--font-ui);
+  letter-spacing: 0;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+}
+
+body {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.topbar {
+  width: min(1760px, calc(100% - 32px));
+  min-height: 72px;
+  margin-top: 12px;
+  padding: 12px 16px;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--bg-card) 92%, transparent);
+  backdrop-filter: blur(16px);
+}
+
+.brand-block h1,
+h1 {
+  color: var(--text-primary);
+  font-size: clamp(22px, 1.6vw, 28px);
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.topbar p {
+  max-width: 560px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.primary-upload,
+.admin-menu-button {
+  min-height: 38px;
+  border-radius: 12px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+main {
+  width: min(1760px, calc(100% - 32px));
+  padding: 12px 0 48px;
+}
+
+.privacy-note {
+  align-items: center;
+  margin-top: 0;
+  margin-bottom: 14px;
+  padding: 11px 14px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--bg-card) 86%, var(--bg-muted));
+  font-size: 13px;
+}
+
+.privacy-note strong {
+  color: var(--text-primary);
+  font-weight: 800;
+}
+
+.app-shell,
+.workspace {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+  margin-top: 0;
+}
+
+.sidebar-nav,
+.tabs {
+  position: sticky;
+  top: 92px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: calc(100vh - 108px);
+  overflow: auto;
+  min-width: 0;
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  padding: 14px;
+  background: color-mix(in srgb, var(--bg-card) 90%, var(--bg-muted));
+  box-shadow: var(--shadow-card);
+  scrollbar-width: thin;
+}
+
+.sidebar-title {
+  display: grid;
+  gap: 2px;
+  margin-bottom: 8px;
+  padding: 6px 8px 12px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.sidebar-title span {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.sidebar-title strong {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.tab {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  min-height: 42px;
+  min-width: 0;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  padding: 7px 10px;
+  color: var(--text-secondary);
+  text-align: left;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: normal;
+}
+
+.tab:hover,
+.tab:focus-visible {
+  border-color: var(--border-subtle);
+  background: color-mix(in srgb, var(--bg-surface) 78%, var(--bg-muted));
+  color: var(--text-primary);
+  outline: none;
+}
+
+.tab.active {
+  border-color: color-mix(in srgb, var(--accent-primary) 12%, var(--border-subtle));
+  background: var(--accent-primary);
+  color: var(--bg-surface);
+  box-shadow: 0 10px 26px rgba(17, 24, 39, 0.12);
+}
+
+.nav-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--bg-muted) 78%, var(--bg-card));
+  color: var(--text-secondary);
+  font-family: var(--font-number);
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.tab.active .nav-icon {
+  background: rgba(255, 255, 255, 0.14);
+  color: inherit;
+}
+
+.nav-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.view {
+  grid-column: 2;
+  min-width: 0;
+  margin-top: 0;
+}
+
+.view.active {
+  display: block;
+}
+
+.section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 96px;
+  margin-bottom: 18px;
+  padding: 22px 24px;
+  border-radius: 20px;
+}
+
+.section-head h2 {
+  color: var(--text-primary);
+  font-size: clamp(26px, 2vw, 32px);
+  font-weight: 800;
+  line-height: 1.18;
+}
+
+.section-head p {
+  max-width: 680px;
+  margin-top: 8px;
+  color: var(--text-secondary);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.board-metric-grid,
+.monthly-kpis,
+.summary-metric-grid,
+.income-summary-grid,
+.recurring-summary-grid,
+.calendar-summary-grid {
+  gap: 12px;
+}
+
+.board-metric,
+.monthly-kpi,
+.summary-metric-card,
+.income-summary-card,
+.recurring-summary-card,
+.calendar-summary-card {
+  border-radius: 18px;
+  padding: 17px;
+}
+
+.board-metric small,
+.monthly-kpi span,
+.summary-metric-card span,
+.income-summary-card span,
+.recurring-summary-card span,
+.calendar-summary-card span {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.board-metric strong,
+.monthly-kpi strong,
+.summary-metric-card strong,
+.income-summary-card strong,
+.recurring-summary-card strong,
+.calendar-summary-card strong,
+.final-summary-grid strong,
+.compact-summary-grid strong {
+  color: var(--text-primary);
+  font-family: var(--font-number);
+  font-size: clamp(22px, 1.7vw, 30px);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.board-metric em,
+.monthly-kpi small,
+.summary-metric-card small,
+.income-summary-card small,
+.recurring-summary-card small,
+.calendar-summary-card small {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.detail-head button {
+  align-self: center;
+  border-color: var(--border-subtle);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-weight: 750;
+}
+
+.detail-filter-panel {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 14px;
+  border-radius: 20px;
+  padding: 18px;
+}
+
+.detail-filter-grid {
+  grid-template-columns: repeat(5, minmax(150px, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+
+.detail-filter-grid label {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.detail-filter-grid .check-line {
+  min-height: 42px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 8px 10px;
+  background: color-mix(in srgb, var(--bg-muted) 60%, var(--bg-card));
+}
+
+.detail-filter-actions {
+  min-height: 42px;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 12px;
+}
+
+.detail-filter-actions span {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.detail-results-panel {
+  border-radius: 20px;
+  padding: 20px;
+}
+
+.detail-category-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr));
+  gap: 16px;
+}
+
+.category-card,
+.board-sector-accordion,
+.selected-sector-card,
+.product-card,
+.recurring-card,
+.unknown-item {
+  border-radius: 18px;
+}
+
+.transaction-row,
+td,
+th {
+  font-size: 14px;
+}
+
+.amount,
+.transaction-row .amount,
+.transaction-head .amount,
+td.amount,
+th.amount {
+  font-family: var(--font-number);
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+input[type="text"],
+input[type="date"],
+input[type="time"],
+input[type="file"],
+select,
+textarea,
+button,
+.file-button,
+.ghost-file-button {
+  min-height: 42px;
+  border-color: var(--border-subtle);
+  font-size: 14px;
+}
+
+select {
+  font-weight: 650;
+}
+
+/* v35 numeric regression guard: KPI cards show full values; tables keep controlled overflow. */
+.board-metric-grid,
+.monthly-kpis,
+.summary-metric-grid,
+.income-summary-grid,
+.recurring-summary-grid,
+.calendar-summary-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+}
+
+#boardView,
+#boardView .section-head,
+#boardView .ledger-head,
+#boardView .ledger-controls,
+#boardView .month-control-group {
+  position: relative;
+  overflow: visible;
+}
+
+#boardView .section-head {
+  z-index: 20;
+}
+
+#boardView .ledger-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: flex-end;
+  min-width: min(100%, 460px);
+  gap: 10px;
+}
+
+#boardView .ledger-controls,
+#boardView .month-control-group {
+  z-index: 30;
+}
+
+#boardView .month-control-group {
+  flex: 0 0 auto;
+  align-items: end;
+  gap: 6px;
+}
+
+#boardView .month-control-group label {
+  width: 168px;
+  min-width: 168px;
+}
+
+#boardMonth,
+#boardRangePreset {
+  position: relative;
+  width: 100%;
+  min-width: 152px;
+  max-width: none;
+  z-index: 40;
+}
+
+#boardMonth {
+  min-width: 168px;
+}
+
+#boardRangePreset {
+  width: 156px;
+}
+
+#boardMonth option,
+#boardRangePreset option {
+  white-space: nowrap;
+}
+
+#boardMetrics,
+#boardPeriodStats,
+#boardSectorSummary,
+#boardGrid,
+#boardSummary,
+#boardSideSummary {
+  position: relative;
+  z-index: 1;
+}
+
+#calendarView .calendar-summary-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  gap: 9px;
+}
+
+#calendarView .calendar-summary-card {
+  min-height: auto;
+  padding: 10px 12px;
+  border-radius: 14px;
+}
+
+#calendarView .calendar-summary-card span,
+#calendarView .calendar-summary-card small {
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+#calendarView .calendar-summary-card strong {
+  width: auto;
+  max-width: 100%;
+  margin: 4px 0 3px;
+  overflow: visible;
+  text-overflow: clip;
+  font-size: clamp(15px, 1vw, 18px);
+  line-height: 1.12;
+  white-space: nowrap;
+}
+
+#calendarView .calendar-layout {
+  gap: 14px 22px;
+}
+
+@media (max-width: 767px) {
+  #boardView .ledger-controls {
+    justify-content: stretch;
+    min-width: 0;
+  }
+
+  #boardView .month-control-group,
+  #boardView .ledger-controls > label {
+    width: 100%;
+  }
+
+  #boardView .month-control-group label {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+  }
+
+  #boardMonth,
+  #boardRangePreset {
+    width: 100%;
+    min-width: 0;
+  }
+
+  #calendarView .calendar-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.board-metric,
+.monthly-kpi,
+.summary-metric-card,
+.income-summary-card,
+.recurring-summary-card,
+.calendar-summary-card,
+.final-summary-grid div,
+.compact-summary-grid div,
+.compact-summary-grid button,
+.sector-tile,
+.sector-analysis-metric,
+.food-metric,
+.trend-insight-card,
+.trend-focus-card,
+.trend-pill {
+  overflow: visible;
+  min-width: 0;
+}
+
+.board-metric strong,
+.monthly-kpi strong,
+.summary-metric-card strong,
+.income-summary-card strong,
+.recurring-summary-card strong,
+.calendar-summary-card strong,
+.final-summary-grid strong,
+.compact-summary-grid strong,
+.sector-tile strong,
+.sector-map-head strong,
+.side-summary-main strong,
+.selected-sector-head strong,
+.sector-analysis-metric strong,
+.food-metric strong,
+.sector-analysis-overview dd,
+.trend-insight-card strong,
+.trend-focus-card strong,
+.trend-pill b {
+  width: max-content;
+  max-width: 100%;
+  overflow: visible;
+  color: currentColor;
+  text-overflow: clip;
+  white-space: nowrap;
+  font-size: clamp(17px, 1.25vw, 24px);
+  line-height: 1.16;
+}
+
+.board-metric strong,
+.monthly-kpi strong,
+.summary-metric-card strong,
+.income-summary-card strong,
+.recurring-summary-card strong,
+.calendar-summary-card strong {
+  color: var(--text-primary);
+}
+
+.summary-metric-card.food strong { color: var(--sector-food-text); }
+.summary-metric-card.unknown strong { color: var(--sector-unknown-text); }
+.summary-metric-card.household strong { color: var(--sector-household-text); }
+.summary-metric-card.shopping strong { color: var(--sector-shopping-text); }
+.summary-metric-card.personal strong { color: var(--sector-personal-text); }
+.summary-metric-card.selfdev strong { color: var(--sector-selfdev-text); }
+.summary-metric-card.gift strong { color: var(--sector-gift-text); }
+.summary-metric-card.transport strong { color: var(--sector-transport-text); }
+.summary-metric-card.income strong { color: var(--sector-income-text); }
+.summary-metric-card.etc strong { color: var(--sector-etc-text); }
+
+.final-summary-grid,
+.compact-summary-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+}
+
+.table-wrap,
+.monthly-table-wrap,
+.summary-matrix-panel,
+.trend-chart-frame {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+td.amount,
+th.amount,
+.transaction-row .amount,
+.transaction-head .amount {
+  min-width: 112px;
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trend-focus-card.up,
+.trend-pill.up {
+  color: var(--status-negative-text);
+}
+
+.trend-insight-card.up,
+.trend-insight-card.down,
+.trend-insight-card.neutral,
+.trend-insight-card strong,
+.trend-insight-card span,
+.trend-insight-card small {
+  color: currentColor;
+}
+
+.trend-insight-card.up {
+  color: var(--status-negative-text);
+}
+
+.trend-focus-card.down,
+.trend-pill.down {
+  color: var(--status-positive-text);
+}
+
+.trend-insight-card.down {
+  color: var(--status-positive-text);
+}
+
+.trend-focus-card.neutral,
+.trend-pill.neutral {
+  color: var(--text-primary);
+}
+
+.trend-insight-card.neutral {
+  color: var(--text-primary);
+}
+
+.trend-insight-card strong,
+.trend-focus-card strong,
+.trend-pill b,
+.trend-insight-card small,
+.trend-focus-card small,
+.trend-pill small {
+  color: currentColor;
+}
+
+.trend-chart-frame,
+.trend-plot-bg {
+  color: var(--text-primary);
+}
+
+.trend-bar-group {
+  outline: none;
+}
+
+.trend-bar-group:focus-visible .trend-bar {
+  stroke: var(--accent-blue);
+  stroke-width: 2.6;
+}
+
+.trend-selection-bg,
+.trend-hit-area {
+  stroke: none;
+}
+
+.trend-selection-bg {
+  fill: transparent;
+  opacity: 0;
+}
+
+.trend-hit-area,
+.trend-bar-group.selected .trend-hit-area {
+  fill: transparent;
+}
+
+.trend-bar-group.selected .trend-selection-bg,
+.trend-bar-group.is-hovered .trend-selection-bg,
+.trend-bar-group:hover .trend-selection-bg,
+.trend-bar-group:focus .trend-selection-bg {
+  fill: color-mix(in srgb, var(--accent-blue) 13%, transparent);
+  opacity: 0.72;
+}
+
+.trend-tooltip rect {
+  fill: color-mix(in srgb, var(--bg-card) 94%, var(--text-primary));
+  stroke: var(--border-strong);
+}
+
+.trend-tooltip text {
+  fill: var(--text-primary);
+}
+
+.trend-chart-frame svg text,
+.trend-chart-frame .chart-label,
+.trend-chart-frame .chart-value,
+.trend-chart-frame .chart-baseline-label,
+.trend-chart-frame .trend-axis-label,
+.trend-chart-frame .trend-delta-label,
+.balance-chart text,
+.balance-chart .balance-axis-label,
+.balance-chart .balance-point-label {
+  max-width: none;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.selected-sector-card {
+  background: color-mix(in srgb, var(--sector-color, var(--accent-blue)) var(--sector-strength, 10%), var(--bg-card));
+  border-color: color-mix(in srgb, var(--sector-color, var(--accent-blue)) 28%, var(--border-subtle));
+}
+
+.selected-sector-card:hover,
+.selected-sector-card:focus {
+  border-color: color-mix(in srgb, var(--sector-color, var(--accent-blue)) 48%, var(--border-strong));
+}
+
+.sector-analysis-metric {
+  background: color-mix(in srgb, var(--analysis-color, var(--accent-blue)) var(--analysis-strength, 18%), var(--bg-card));
+  border-color: color-mix(in srgb, var(--analysis-color, var(--accent-blue)) 30%, var(--border-subtle));
+}
+
+.sector-analysis-bar-row {
+  background: color-mix(in srgb, var(--analysis-color, var(--accent-blue)) var(--analysis-strength, 12%), transparent);
+  border-color: color-mix(in srgb, var(--analysis-color, var(--accent-blue)) 20%, transparent);
+}
+
+.trend-insight-row {
+  grid-template-columns: repeat(4, minmax(170px, 1fr));
+}
+
+.trend-insight-card {
+  align-content: start;
+  gap: 7px;
+  min-height: 96px;
+  padding: 14px 16px;
+}
+
+.trend-insight-card span {
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.trend-insight-card strong {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+  font-size: clamp(20px, 1.45vw, 27px);
+  line-height: 1.08;
+}
+
+.trend-insight-card small {
+  font-size: 12px;
+  line-height: 1.35;
+  word-break: keep-all;
+}
+
+/* v45 hierarchy polish: dashboard and detail metrics get clear priority without changing data flow. */
+#boardMetrics.board-metric-grid,
+.detail-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 12px;
+  align-items: stretch;
+}
+
+#boardMetrics .board-core-metric,
+.detail-metric-grid .board-metric {
+  min-width: 0;
+  min-height: 0;
+}
+
+#boardMetrics .board-core-hero {
+  grid-column: span 4;
+  min-height: 138px;
+  padding: 20px;
+}
+
+#boardMetrics .board-core-primary {
+  grid-column: span 2;
+  min-height: 118px;
+  padding: 17px;
+}
+
+#boardMetrics .board-core-compact {
+  grid-column: span 4;
+  min-height: 86px;
+  padding: 13px 15px;
+}
+
+#boardMetrics .board-core-hero strong,
+.detail-metric-grid .priority-metric strong {
+  font-size: clamp(24px, 2vw, 34px);
+  line-height: 1.08;
+}
+
+#boardMetrics .board-core-primary strong,
+.detail-metric-grid .compact-metric strong {
+  font-size: clamp(18px, 1.35vw, 25px);
+  line-height: 1.12;
+}
+
+#boardMetrics .board-core-compact strong {
+  font-size: clamp(17px, 1.05vw, 22px);
+  line-height: 1.12;
+}
+
+#boardMetrics .board-core-compact em,
+.detail-metric-grid .compact-metric em {
+  margin-top: 4px;
+}
+
+#boardMetrics .board-core-hero.navy,
+#boardMetrics .board-core-primary.navy,
+.detail-metric-grid .priority-metric.navy {
+  border-color: color-mix(in srgb, var(--accent-blue) 30%, var(--border-subtle));
+  background: color-mix(in srgb, var(--accent-blue) 7%, var(--bg-card));
+}
+
+#boardMetrics .board-core-hero.green,
+#boardMetrics .board-core-primary.green,
+.detail-metric-grid .priority-metric.green {
+  border-color: color-mix(in srgb, var(--accent-positive) 30%, var(--border-subtle));
+  background: color-mix(in srgb, var(--accent-positive) 7%, var(--bg-card));
+}
+
+#boardMetrics .board-core-hero.red,
+#boardMetrics .board-core-primary.red,
+.detail-metric-grid .priority-metric.red {
+  border-color: color-mix(in srgb, var(--accent-negative) 28%, var(--border-subtle));
+  background: color-mix(in srgb, var(--accent-negative) 6%, var(--bg-card));
+}
+
+.detail-metric-grid .priority-metric {
+  grid-column: span 4;
+  min-height: 126px;
+  padding: 18px;
+}
+
+.detail-metric-grid .compact-metric {
+  grid-column: span 3;
+  min-height: 86px;
+  padding: 13px 15px;
+}
+
+.detail-results-panel .panel-head {
+  gap: 14px;
+}
+
+.detail-card-expand,
+.detail-reimbursement-toggle,
+.detail-card-more button,
+.detail-collapse-button {
+  min-height: 34px;
+  border-color: var(--border-subtle);
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: color-mix(in srgb, var(--accent-blue) 7%, var(--bg-card));
+  color: var(--accent-blue);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.detail-card-expand:hover,
+.detail-reimbursement-toggle:hover,
+.detail-card-more button:hover,
+.detail-collapse-button:hover {
+  border-color: color-mix(in srgb, var(--accent-blue) 34%, var(--border-subtle));
+  background: color-mix(in srgb, var(--accent-blue) 12%, var(--bg-card));
+}
+
+.detail-reimbursement-toggle.primary-action {
+  border-color: var(--primary-navy);
+  background: var(--primary-navy);
+  color: var(--text-on-primary);
+}
+
+.detail-card-more {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 10px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.detail-category-grid .category-card.is-truncated-card .transaction-list {
+  max-height: 430px;
+  overflow: auto;
+}
+
+.category-card.is-full-card .transaction-list {
+  max-height: none;
+  overflow-x: auto;
+}
+
+.detail-full-panel {
+  display: grid;
+  gap: 16px;
+}
+
+.detail-full-head {
+  align-items: flex-start;
+}
+
+.detail-full-eyebrow {
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: 6px;
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: color-mix(in srgb, var(--accent-blue) 8%, var(--bg-card));
+  color: var(--accent-blue);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.detail-full-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+  gap: 10px;
+}
+
+.detail-full-summary div {
+  min-width: 0;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 13px;
+  background: color-mix(in srgb, var(--bg-muted) 72%, var(--bg-card));
+}
+
+.detail-full-summary span {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.detail-full-summary strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--text-primary);
+  font-family: var(--font-number);
+  font-size: clamp(18px, 1.3vw, 24px);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.12;
+  white-space: nowrap;
+}
+
+.detail-full-card .category-card {
+  box-shadow: none;
+}
+
+@media (max-width: 1279px) {
+  :root {
+    --sidebar-width: 228px;
+  }
+
+  #boardMetrics .board-core-hero,
+  #boardMetrics .board-core-primary {
+    grid-column: span 6;
+  }
+
+  #boardMetrics .board-core-compact {
+    grid-column: span 4;
+  }
+
+  .detail-metric-grid .priority-metric {
+    grid-column: span 4;
+  }
+
+  .detail-metric-grid .compact-metric {
+    grid-column: span 6;
+  }
+
+  .detail-filter-grid {
+    grid-template-columns: repeat(3, minmax(150px, 1fr));
+  }
+}
+
+@media (max-width: 1023px) {
+  :root {
+    --sidebar-width: 82px;
+  }
+
+  .sidebar-title {
+    display: none;
+  }
+
+  .sidebar-nav,
+  .tabs {
+    padding: 10px;
+  }
+
+  .tab {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 4px;
+    min-height: 56px;
+    padding: 8px 6px;
+  }
+
+  .nav-label {
+    max-width: 62px;
+    font-size: 11px;
+    text-align: center;
+    white-space: normal;
+    line-height: 1.2;
+  }
+
+  .section-head,
+  .ledger-head,
+  .income-head,
+  .recurring-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 767px) {
+  .topbar,
+  main {
+    width: min(100% - 20px, 1760px);
+  }
+
+  .app-shell,
+  .workspace {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .sidebar-nav,
+  .tabs {
+    position: sticky;
+    top: 82px;
+    z-index: 30;
+    flex-direction: row;
+    max-height: none;
+    overflow-x: auto;
+    border-radius: 16px;
+    padding: 8px;
+  }
+
+  .tab {
+    flex: 0 0 auto;
+    grid-template-columns: 26px max-content;
+    justify-items: start;
+    min-height: 40px;
+    width: auto;
+    padding: 6px 10px;
+  }
+
+  .nav-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    font-size: 13px;
+  }
+
+  .nav-label {
+    max-width: none;
+    white-space: nowrap;
+    font-size: 13px;
+  }
+
+  .view {
+    grid-column: 1;
+  }
+
+  #boardMetrics .board-core-hero,
+  #boardMetrics .board-core-primary,
+  #boardMetrics .board-core-compact,
+  .detail-metric-grid .priority-metric,
+  .detail-metric-grid .compact-metric {
+    grid-column: 1 / -1;
+    min-height: auto;
+  }
+
+  .section-head {
+    min-height: auto;
+    padding: 18px;
+  }
+
+  .section-head h2 {
+    font-size: 25px;
+  }
+
+  .detail-filter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-filter-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+/* v85 layout regression fix: keep dashboard month select usable and make calendar KPIs compact. */
+#boardView,
+#boardView .section-head,
+#boardView .ledger-controls,
+#boardView .month-control-group,
+#boardView .month-control-group label {
+  overflow: visible !important;
+}
+
+#boardView .section-head {
+  isolation: isolate;
+  z-index: 80;
+}
+
+#boardView .ledger-controls {
+  position: relative;
+  z-index: 90;
+}
+
+#boardView .month-control-group {
+  position: relative;
+  z-index: 110;
+}
+
+#boardView .month-control-group label {
+  width: 188px;
+  min-width: 188px;
+}
+
+#boardMonth {
+  width: 188px;
+  min-width: 188px;
+  max-width: 188px;
+  padding-right: 34px;
+  white-space: nowrap;
+}
+
+#boardMonth option,
+#boardRangePreset option {
+  min-height: 32px;
+  background: var(--control-bg);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+#calendarView .calendar-layout {
+  grid-template-columns: minmax(580px, 1.16fr) minmax(360px, 0.84fr);
+  gap: 14px 22px;
+}
+
+#calendarView .calendar-summary-grid {
+  width: 100%;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 0;
+}
+
+#calendarView .calendar-summary-row {
+  width: 100%;
+  display: grid;
+  gap: 12px;
+  align-items: stretch;
+  justify-content: stretch;
+}
+
+#calendarView .calendar-summary-row.core {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+#calendarView .calendar-summary-row.support {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+#calendarView .calendar-summary-card {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  min-width: 0;
+  min-height: 108px;
+  padding: 16px 18px 15px;
+  border-color: color-mix(in srgb, var(--border-strong) 78%, var(--text-primary));
+  border-radius: 15px;
+  background: color-mix(in srgb, var(--bg-card) 92%, var(--surface-soft));
+  box-shadow: var(--shadow-sm);
+}
+
+#calendarView .calendar-summary-card.is-support {
+  min-height: 92px;
+  padding: 14px 16px 13px;
+}
+
+#calendarView .calendar-summary-card span,
+#calendarView .calendar-summary-card small {
+  font-size: 12px;
+  line-height: 1.28;
+}
+
+#calendarView .calendar-summary-card span {
+  color: var(--text-primary);
+  font-weight: 900;
+}
+
+#calendarView .calendar-summary-card small {
+  color: var(--text-secondary);
+  font-weight: 700;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+#calendarView .calendar-summary-card strong {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  margin: 7px 0 4px;
+  overflow: hidden;
+  text-overflow: clip;
+  font-size: clamp(18px, 1.12vw, 23px);
+  line-height: 1.08;
+  white-space: nowrap;
+  word-break: keep-all;
+  overflow-wrap: normal;
+}
+
+#calendarView .calendar-summary-card.is-support strong {
+  font-size: clamp(16px, 0.96vw, 19px);
+}
+
+#calendarView .calendar-summary-card.spend,
+#calendarView .calendar-summary-card.topday {
+  border-color: color-mix(in srgb, var(--primary-navy) 22%, var(--border-subtle));
+  background: color-mix(in srgb, var(--primary-navy) 4%, var(--bg-card));
+}
+
+#calendarView .calendar-summary-card.income,
+#calendarView .calendar-summary-card.positive {
+  border-color: color-mix(in srgb, var(--accent-positive) 26%, var(--border-subtle));
+  background: color-mix(in srgb, var(--accent-positive) 6%, var(--bg-card));
+}
+
+#calendarView .calendar-summary-card.negative,
+#calendarView .calendar-summary-card.unknown {
+  border-color: color-mix(in srgb, var(--accent-negative) 28%, var(--border-subtle));
+  background: color-mix(in srgb, var(--accent-negative) 7%, var(--bg-card));
+}
+
+#calendarView .calendar-summary-card.average {
+  border-color: color-mix(in srgb, var(--accent-blue) 24%, var(--border-subtle));
+  background: color-mix(in srgb, var(--accent-blue) 6%, var(--bg-card));
+}
+
+#calendarView .calendar-summary-card.scheduled,
+#calendarView .calendar-summary-card.neutral {
+  border-color: color-mix(in srgb, var(--sector-etc-text) 18%, var(--border-subtle));
+  background: color-mix(in srgb, var(--surface-soft) 58%, var(--bg-card));
+}
+
+#calendarView .calendar-current-month {
+  padding: 9px 12px;
+  border-radius: 14px;
+}
+
+#calendarView .calendar-current-month strong {
+  font-size: 16px;
+}
+
+#calendarView .calendar-current-month span,
+#calendarView .calendar-current-month em {
+  font-size: 11px;
+}
+
+@media (min-width: 1440px) {
+  #calendarView .calendar-summary-row.core {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  #calendarView .calendar-summary-row.support {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1200px) and (max-width: 1439px) {
+  #calendarView .calendar-summary-row.core {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  #calendarView .calendar-summary-row.support {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1199px) {
+  #calendarView .calendar-layout {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "summary"
+      "month"
+      "calendar"
+      "detail";
+  }
+
+  #calendarView .calendar-summary-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  #calendarView .calendar-summary-row.core,
+  #calendarView .calendar-summary-row.support {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  #boardView .month-control-group label,
+  #boardMonth {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+  }
+
+  #calendarView .calendar-summary-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  #calendarView .calendar-summary-row.core,
+  #calendarView .calendar-summary-row.support {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  #calendarView .calendar-summary-card {
+    min-height: 88px;
+    padding: 12px;
+  }
+
+  #calendarView .calendar-summary-card strong,
+  #calendarView .calendar-summary-card.is-support strong {
+    font-size: clamp(15px, 4.2vw, 19px);
+  }
+
+  #calendarView .calendar-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  #calendarView .calendar-summary-row.core,
+  #calendarView .calendar-summary-row.support {
+    grid-template-columns: 1fr;
+  }
+}

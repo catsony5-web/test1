@@ -1,0 +1,44 @@
+# Local/private data files
+*.xlsx
+*.xls
+*.xlsm
+*.csv
+*.tsv
+
+# App backup/export files can contain personal card, income, rule, and product data.
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!jsconfig.json
+!*.webmanifest
+
+# Local helper scripts and downloaded/import automation files
+*.ps1
+*.cmd
+*.bat
+*.command
+
+# Local data/export folders
+backups/
+backup/
+exports/
+export/
+local-data/
+private-data/
+sample-data/
+test-data/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
+*.tmp
+*.bak
+
+# Dependency/build output, if added later
+node_modules/
+dist/
+build/
+.cache/

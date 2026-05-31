@@ -1,0 +1,786 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>소비 분석</title>
+  <meta name="theme-color" content="#111827">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="src/styles/00-tokens.css?v=77">
+  <link rel="stylesheet" href="src/styles/01-base.css?v=61">
+  <link rel="stylesheet" href="src/styles/02-layout.css?v=76">
+  <link rel="stylesheet" href="src/styles/03-components.css?v=77">
+  <link rel="stylesheet" href="src/styles/04-forms-tables.css?v=81">
+  <link rel="stylesheet" href="src/styles/05-charts.css?v=78">
+  <link rel="stylesheet" href="src/styles/06-features.css?v=91">
+  <link rel="stylesheet" href="src/styles/07-responsive.css?v=83">
+  <link rel="stylesheet" href="src/styles/08-themes.css?v=91">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body data-app-name="소비 분석">
+  <header class="topbar compact-topbar">
+    <div class="brand-block">
+      <h1>소비 분석</h1>
+      <p>카드, 이체, 직접 입력 기록을 바탕으로 지출 흐름과 소비 패턴을 분석합니다.</p>
+    </div>
+    <div class="header-actions">
+      <label class="file-button primary-upload">
+        <input id="fileInput" type="file" accept=".xlsx,.xls,.xlsm">
+        카드/이체 엑셀 불러오기
+      </label>
+      <div class="admin-menu-wrap">
+        <button id="adminMenuButton" class="admin-menu-button" type="button" aria-expanded="false" aria-controls="adminMenu">설정/관리</button>
+        <div id="adminMenu" class="admin-menu" hidden>
+          <div class="admin-menu-head">
+            <div>
+              <strong>데이터 관리</strong>
+              <span>저장 상태와 관리 기능을 한곳에서 확인합니다.</span>
+            </div>
+            <button id="adminMenuCloseButton" class="admin-menu-close" type="button" aria-label="설정 메뉴 닫기">닫기</button>
+          </div>
+          <div class="admin-status-grid" aria-live="polite">
+            <div class="admin-status-card">
+              <span class="label">최근 업로드</span>
+              <strong id="fileName">아직 불러온 파일 없음</strong>
+            </div>
+            <div class="admin-status-card">
+              <span class="label">총 지출</span>
+              <strong id="totalAmount">0원</strong>
+            </div>
+            <div class="admin-status-card">
+              <span class="label">거래</span>
+              <strong id="transactionCount">0건</strong>
+            </div>
+            <div class="admin-status-card danger-status">
+              <span class="label">미분류</span>
+              <strong id="unknownCount">0건</strong>
+            </div>
+          </div>
+          <div class="admin-menu-section">
+            <span class="admin-menu-label">빠른 이동</span>
+            <div class="admin-nav-grid">
+              <button type="button" data-admin-view="income">수입 입력</button>
+              <button type="button" data-admin-view="recurring">고정 지출</button>
+              <button type="button" data-admin-view="rules">분류 규칙 관리</button>
+              <button type="button" data-admin-view="transactions">전체 내역 보기</button>
+              <button type="button" data-admin-view="unknown">미분류 해결</button>
+            </div>
+          </div>
+          <div class="admin-menu-section theme-settings-section">
+            <span class="admin-menu-label">화면 테마</span>
+            <div id="themeChoiceGroup" class="theme-choice-grid" role="group" aria-label="화면 테마 선택">
+              <button type="button" class="theme-choice" data-theme-choice="minimal">
+                <strong>Minimal Light</strong>
+                <span>흰색과 회색 중심</span>
+              </button>
+              <button type="button" class="theme-choice" data-theme-choice="warm">
+                <strong>Warm Neutral</strong>
+                <span>따뜻한 뉴트럴 톤</span>
+              </button>
+              <button type="button" class="theme-choice" data-theme-choice="slate">
+                <strong>Soft Slate</strong>
+                <span>차분한 블루 그레이</span>
+              </button>
+              <button type="button" class="theme-choice" data-theme-choice="dark">
+                <strong>Dark Mode</strong>
+                <span>어두운 화면 대비</span>
+              </button>
+            </div>
+          </div>
+          <div class="admin-menu-section background-settings-section">
+            <span class="admin-menu-label">배경 이미지</span>
+            <p class="admin-menu-help">사용자가 고른 이미지는 이 브라우저에만 저장됩니다.</p>
+            <div class="background-settings">
+              <div id="backgroundPreview" class="background-preview" aria-hidden="true"></div>
+              <div class="background-actions">
+                <label class="ghost-file-button background-file-button">
+                  <input id="backgroundImageInput" type="file" accept="image/*">
+                  이미지 선택
+                </label>
+                <button id="applyBackgroundButton" type="button" disabled>배경 적용</button>
+                <button id="removeBackgroundButton" class="danger-outline" type="button">배경 제거</button>
+              </div>
+              <div class="background-control-grid">
+                <label>이미지 투명도 <b id="backgroundOpacityValue">14%</b><input id="backgroundOpacityInput" type="range" min="0" max="45" value="14"></label>
+                <label>이미지 blur <b id="backgroundBlurValue">0px</b><input id="backgroundBlurInput" type="range" min="0" max="18" value="0"></label>
+                <label>밝기 overlay <b id="backgroundOverlayValue">28%</b><input id="backgroundOverlayInput" type="range" min="0" max="80" value="28"></label>
+              </div>
+              <p id="backgroundSettingsStatus" class="background-settings-status">배경 이미지를 선택하면 이 브라우저에만 저장됩니다.</p>
+            </div>
+          </div>
+          <div class="admin-menu-section">
+            <span class="admin-menu-label">백업과 초기화</span>
+            <p class="admin-menu-help">데이터는 브라우저에 저장됩니다. 아래 체크된 항목만 백업/불러오기/초기화합니다. 기본값은 직접 입력한 기록을 보호하기 위해 엑셀 업로드 기록만 선택되어 있습니다.</p>
+            <div class="data-scope-panel" aria-label="백업, 복원, 초기화 데이터 선택">
+              <div class="data-scope-head">
+                <strong>처리할 데이터 항목</strong>
+                <div>
+                  <button id="selectAllDataScopesButton" type="button">전체 선택</button>
+                  <button id="selectImportedDataScopeButton" type="button">엑셀만</button>
+                </div>
+              </div>
+              <div class="data-scope-grid">
+                <label><input type="checkbox" data-data-scope="importedExcelTransactions" checked> 엑셀 업로드 거래</label>
+                <label><input type="checkbox" data-data-scope="pastBulkTransactions"> 과거 거래 입력</label>
+                <label><input type="checkbox" data-data-scope="directManualTransactions"> 직접 추가 거래</label>
+                <label><input type="checkbox" data-data-scope="incomeInput"> 수입 입력</label>
+                <label><input type="checkbox" data-data-scope="recurringDefinitions"> 고정 지출 원본</label>
+                <label><input type="checkbox" data-data-scope="recurringPostedTransactions"> 고정 지출 실제 반영</label>
+                <label><input type="checkbox" data-data-scope="rulesAndLearning"> 분류 규칙/추천</label>
+                <label><input type="checkbox" data-data-scope="products"> 소모품 사용</label>
+                <label><input type="checkbox" data-data-scope="settings"> 설정/테마</label>
+                <label><input type="checkbox" data-data-scope="legacyUnknown"> 기타 legacy 데이터</label>
+              </div>
+              <div class="restore-mode-panel" aria-label="백업 복원 방식">
+                <strong>복원 방식</strong>
+                <label><input type="radio" name="restoreMode" data-restore-mode value="merge" checked> 병합 복원</label>
+                <label><input type="radio" name="restoreMode" data-restore-mode value="overwrite"> 선택 섹션 덮어쓰기</label>
+              </div>
+              <div id="restorePreview" class="restore-preview">
+                <span>백업 파일을 선택하면 포함 항목과 건수를 확인한 뒤 복원합니다.</span>
+              </div>
+              <small>정산금은 선택한 거래 기록과 함께 보존/복원됩니다. 기본값은 직접 입력한 기록을 보호하기 위해 엑셀 업로드 거래만 선택되어 있습니다.</small>
+            </div>
+            <div class="admin-menu-actions">
+              <button id="exportButton" type="button" disabled>분류 결과 내보내기</button>
+              <button id="backupButton" type="button">데이터 백업</button>
+              <label class="ghost-file-button">
+                <input id="restoreInput" type="file" accept=".json,application/json">
+                백업 불러오기
+              </label>
+              <button id="clearRecordsButton" class="danger-outline" type="button">기록 초기화</button>
+              <button id="resetRulesButton" class="danger-outline" type="button">기본 규칙 복원</button>
+            </div>
+          </div>
+          <div class="admin-menu-section auto-restore-section">
+            <span class="admin-menu-label">자동 저장 복구</span>
+            <div class="auto-save-card">
+              <div><span>마지막 자동 저장</span><strong id="autoSaveStatus">확인 중</strong></div>
+              <div><span>자동 스냅샷</span><strong id="snapshotCount">0개</strong></div>
+            </div>
+            <div class="admin-menu-actions">
+              <button id="restoreLatestSnapshotButton" type="button">최근 자동 저장 복구</button>
+              <button id="refreshSnapshotsButton" type="button">스냅샷 목록 새로고침</button>
+            </div>
+            <div id="snapshotList" class="snapshot-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="privacy-note">
+      <strong>개인 저장 방식</strong>
+      <span>카드 내역, 이체 내역, 분류 규칙, 월별 수입은 서버로 보내지지 않고 이 브라우저 저장소에만 남습니다.</span>
+    </section>
+
+    <section class="workspace app-shell">
+      <nav class="tabs sidebar-nav" aria-label="주요 메뉴">
+        <div class="sidebar-title">
+          <span>메뉴</span>
+          <strong>소비 분석 메뉴</strong>
+        </div>
+        <button class="tab active" type="button" data-view="board"><span class="nav-icon" aria-hidden="true">□</span><span class="nav-label">대시보드</span></button>
+        <button class="tab" type="button" data-view="calendar"><span class="nav-icon" aria-hidden="true">◇</span><span class="nav-label">소비 달력</span></button>
+        <button class="tab" type="button" data-view="details"><span class="nav-icon" aria-hidden="true">≡</span><span class="nav-label">상세 내역</span></button>
+        <button class="tab" type="button" data-view="monthly"><span class="nav-icon" aria-hidden="true">↗</span><span class="nav-label">년도 지출정리</span></button>
+        <button class="tab" type="button" data-view="summary"><span class="nav-icon" aria-hidden="true">▦</span><span class="nav-label">월별 섹터 요약</span></button>
+        <button class="tab" type="button" data-view="detailBulk"><span class="nav-icon" aria-hidden="true">＋</span><span class="nav-label">과거 거래 입력</span></button>
+        <button class="tab" type="button" data-view="income"><span class="nav-icon" aria-hidden="true">＋</span><span class="nav-label">수입 입력</span></button>
+        <button class="tab" type="button" data-view="recurring"><span class="nav-icon" aria-hidden="true">◎</span><span class="nav-label">고정 지출</span></button>
+        <button class="tab" type="button" data-view="products"><span class="nav-icon" aria-hidden="true">○</span><span class="nav-label">소모품 사용</span></button>
+        <button class="tab" type="button" data-view="unknown"><span class="nav-icon" aria-hidden="true">!</span><span class="nav-label">미분류 해결</span></button>
+        <button class="tab admin-only-tab" type="button" data-view="rules" hidden><span class="nav-icon" aria-hidden="true">※</span><span class="nav-label">분류 규칙</span></button>
+        <button class="tab admin-only-tab" type="button" data-view="transactions" hidden><span class="nav-icon" aria-hidden="true">#</span><span class="nav-label">전체 내역</span></button>
+      </nav>
+
+      <section id="boardView" class="view active">
+        <div class="section-head ledger-head">
+          <div>
+            <h2>대시보드</h2>
+            <p>선택 월의 지출, 수입, 잔액과 장기 소비 지표를 한눈에 확인합니다.</p>
+          </div>
+          <div class="ledger-controls">
+            <div class="month-control-group">
+              <button id="boardPrevMonth" type="button" class="month-step-button" title="이전 월">‹</button>
+              <label>월<select id="boardMonth"></select></label>
+              <button id="boardNextMonth" type="button" class="month-step-button" title="다음 월">›</button>
+            </div>
+            <label>기간 통계<select id="boardRangePreset"><option value="recent-12" selected>최근 1년</option><option value="recent-24">최근 2년</option><option value="year">올해</option><option value="all">전체</option></select></label>
+          </div>
+        </div>
+        <div id="boardMetrics" class="board-metric-grid"></div>
+        <div id="boardPeriodStats" class="board-period-stats"></div>
+        <div id="boardSectorMap" class="sector-map-panel" hidden></div>
+        <div id="boardSectorSummary" class="board-sector-summary"></div>
+        <div class="board-filter-legacy-controls" hidden>
+          <select id="boardFilterSector"><option value="all">전체</option></select>
+          <input id="boardFilterSearch" type="text">
+          <select id="boardFilterSort"><option value="amount">금액 높은 순</option></select>
+          <input id="boardFilterHideZero" type="checkbox" checked>
+          <input id="boardFilterUnknownOnly" type="checkbox">
+          <span id="boardFilterStatus"></span>
+          <button id="boardExpandAllButton" type="button">상세 내역 열기</button>
+          <button id="boardCollapseAllButton" type="button">필터 초기화</button>
+        </div>
+        <div class="board-detail-layout">
+          <div class="board-main-stack">
+            <div id="boardGrid" class="ledger-board"></div>
+            <div id="boardSummary" class="ledger-summary"></div>
+          </div>
+          <aside id="boardSideSummary" class="board-side-summary"></aside>
+        </div>
+        <button id="boardMapTopButton" class="board-map-top-button" type="button" hidden>소비 맵</button>
+      </section>
+
+      <section id="monthlyView" class="view">
+        <div class="section-head">
+          <h2>년도 지출정리</h2>
+          <p>연도별 흐름 안에서 월별 결제액, 실지출, 수입, 잔액, 자산 변화를 비교합니다.</p>
+        </div>
+        <div class="monthly-overview">
+          <div class="monthly-filterbar">
+            <label>보기 기준<select id="monthlyYearFilter"><option value="all">전체 연도</option><option value="recent">최근 몇 년</option></select></label>
+            <label>최근 기간<select id="monthlyRecentYears"><option value="1">최근 1년</option><option value="2" selected>최근 2년</option><option value="3">최근 3년</option><option value="5">최근 5년</option><option value="10">최근 10년</option></select></label>
+          </div>
+          <div class="monthly-kpis" id="monthlyKpis"></div>
+          <div class="monthly-layout">
+            <div class="monthly-chart-panel">
+              <div class="monthly-chart-head">
+                <div>
+                  <h3>수입 - 실 지출 추이</h3>
+                  <p>월별 수입 대비 남은 금액과 부족 금액을 확인합니다.</p>
+                </div>
+              </div>
+              <div id="monthlyFlowChart" class="monthly-chart"></div>
+            </div>
+            <div class="table-wrap monthly-table-wrap">
+              <table id="monthlyFlowTable"></table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="incomeView" class="view">
+        <div class="section-head income-head">
+          <div>
+            <h2>수입 입력</h2>
+            <p>급여, 환급, 지원금, 기타 수입을 날짜별로 기록합니다.</p>
+          </div>
+          <div class="income-head-actions">
+            <label>월 선택<select id="incomeMonthFilter"><option value="all">전체 보기</option></select></label>
+            <button id="backToMonthlyButton" class="secondary-action" type="button">년도 지출정리로 돌아가기</button>
+          </div>
+        </div>
+        <div class="income-entry-panel income-workspace">
+          <div id="incomeSummaryCards" class="income-summary-grid"></div>
+          <section class="income-entry-card">
+            <div class="income-entry-section">
+              <h3>단건 입력</h3>
+              <p>수입 한 건을 빠르게 추가합니다.</p>
+            </div>
+            <form id="incomeEntryForm" class="income-entry-form">
+              <input id="incomeEntryDate" type="date" aria-label="수입 날짜">
+              <input id="incomeEntryDescription" type="text" placeholder="내용 예: 급여, 환급금, 프로젝트 정산금">
+              <input id="incomeEntryAmount" type="text" inputmode="numeric" placeholder="금액">
+              <button type="submit" class="primary-action">수입 저장</button>
+            </form>
+          </section>
+          <section class="income-entry-card">
+            <div class="income-entry-section">
+              <h3>일괄 붙여넣기</h3>
+              <p>엑셀에서 날짜 / 내용 / 금액 형식으로 여러 줄을 붙여넣습니다.</p>
+            </div>
+            <div class="income-bulk-box">
+              <textarea id="incomeBulkPaste" rows="5" placeholder="YYYY.MM.DD	수입명	금액&#10;YYYY.MM.DD	수입명	금액"></textarea>
+              <p class="income-bulk-guide">날짜는 YYYY.MM.DD 또는 YYYY-MM-DD, 금액은 숫자 또는 쉼표 포함 형식을 사용할 수 있습니다.</p>
+              <div class="income-bulk-actions">
+                <button id="parseIncomeBulkButton" type="button">붙여넣기 해석</button>
+                <button id="clearIncomeBulkButton" type="button">초기화</button>
+                <button id="saveIncomeBulkButton" type="button" class="primary-action">일괄 저장</button>
+              </div>
+              <div id="incomeBulkFeedback" class="income-bulk-feedback" aria-live="polite"></div>
+              <div id="incomeBulkPreview" class="income-bulk-preview"></div>
+            </div>
+          </section>
+          <section class="income-entry-card income-list-card">
+            <div class="income-list-head">
+              <div>
+                <h3 id="incomeRecordTitle">저장된 수입 기록</h3>
+                <p>최근 수입부터 확인하고 필요한 항목은 바로 수정합니다.</p>
+              </div>
+              <div class="income-list-tools">
+                <input id="incomeSearchInput" type="text" placeholder="내용·날짜·금액 검색" aria-label="수입 내용, 날짜, 금액 검색">
+                <select id="incomeSortSelect" aria-label="수입 정렬">
+                  <option value="date-desc">최신 날짜순</option>
+                  <option value="date-asc">오래된 날짜순</option>
+                  <option value="amount-desc">금액 높은 순</option>
+                  <option value="amount-asc">금액 낮은 순</option>
+                </select>
+              </div>
+            </div>
+            <div id="incomeEntryList" class="income-entry-list"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="recurringView" class="view">
+        <div class="section-head">
+          <h2>고정 지출</h2>
+          <p>매월 반복되는 카드값, 보험료, 월세, 통신비 같은 예정 지출을 미리 등록합니다.</p>
+          <label>보기 월<select id="recurringMonthFilter"></select></label>
+        </div>
+        <div id="recurringSummaryCards" class="recurring-summary-grid"></div>
+        <div class="recurring-layout">
+          <form id="recurringForm" class="recurring-form">
+            <div class="panel-head">
+              <div>
+                <h3>고정 지출 등록</h3>
+                <p>저장해도 실제 지출에는 합산하지 않고 예정 지출로 표시합니다.</p>
+              </div>
+              <button id="cancelRecurringEditButton" type="button" hidden>수정 취소</button>
+            </div>
+            <input id="recurringId" type="hidden">
+            <label>지출명<input id="recurringName" type="text" placeholder="예: 카드값, 보험료, 월세, 통신비"></label>
+            <label>금액<input id="recurringAmount" type="text" inputmode="numeric" placeholder="예: 95000"></label>
+            <label>매월 지출일<input id="recurringDay" type="number" min="1" max="31" placeholder="예: 20"></label>
+            <label>섹터<select id="recurringSector"></select></label>
+            <label>세부항목<select id="recurringSubcategory"></select></label>
+            <label>결제 방식<select id="recurringPaymentType"><option value="카드">카드</option><option value="이체">이체</option><option value="현금">현금</option><option value="기타">기타</option></select></label>
+            <label>시작 월<input id="recurringStartMonth" type="month"></label>
+            <label>종료 월 선택사항<input id="recurringEndMonth" type="month" aria-describedby="recurringEndMonthHint"><small id="recurringEndMonthHint">비워두면 매월 계속 반복됩니다.</small></label>
+            <label class="wide-field">메모<input id="recurringMemo" type="text" placeholder="필요한 메모"></label>
+            <label class="check-line"><input id="recurringShowOnCalendar" type="checkbox" checked> 소비 달력에 예정 지출 표시</label>
+            <label class="check-line"><input id="recurringAutoPost" type="checkbox"> 실제 지출 자동 반영</label>
+            <button id="saveRecurringButton" type="submit" class="primary-action">고정 지출 저장</button>
+          </form>
+          <section class="recurring-bulk-panel">
+            <div class="panel-head">
+              <div>
+                <h3>고정 지출 일괄 입력</h3>
+                <p>날짜 / 지출명 / 금액 형식으로 여러 줄을 붙여넣으면 매월 반복 지출로 등록합니다.</p>
+              </div>
+            </div>
+            <div class="paste-entry">
+              <textarea id="recurringBulkPaste" rows="5" placeholder="YYYY.MM.DD	지출명	금액&#10;YYYY.MM.DD	지출명	금액"></textarea>
+              <div class="paste-actions">
+                <button id="parseRecurringBulkButton" type="button">붙여넣기 파싱</button>
+                <button id="clearRecurringBulkButton" type="button">비우기</button>
+                <button id="saveRecurringBulkButton" type="button" class="primary-action" disabled>일괄 저장</button>
+              </div>
+            </div>
+            <p id="recurringBulkFeedback" class="bulk-feedback" aria-live="polite"></p>
+            <div class="table-wrap">
+              <table id="recurringBulkPreview"></table>
+            </div>
+          </section>
+          <section class="recurring-list-panel">
+            <div class="panel-head">
+              <div>
+                <h3>등록된 고정 지출</h3>
+                <p>목록에서 수정, 삭제, 일시중지, 이번 달 실제 지출 반영을 할 수 있습니다.</p>
+              </div>
+              <strong id="recurringListSummary">0건</strong>
+            </div>
+            <div id="recurringList" class="recurring-list"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="summaryView" class="view">
+        <div class="section-head summary-head">
+          <div>
+            <h2>월별 섹터 요약</h2>
+            <p>월별 섹터별 소비 비중과 변화를 비교합니다.</p>
+          </div>
+        </div>
+        <div class="summary-subtabs" role="tablist" aria-label="월별 섹터 요약 보기">
+          <button class="summary-subtab active" type="button" role="tab" aria-selected="true" aria-controls="summarySubtabTrend" data-summary-subtab="trend"><span class="summary-subtab-index">1</span><span class="summary-subtab-text">섹터별 월별 증감</span></button>
+          <button class="summary-subtab" type="button" role="tab" aria-selected="false" aria-controls="summarySubtabShare" data-summary-subtab="share"><span class="summary-subtab-index">2</span><span class="summary-subtab-text">선택 월 섹터 비교</span></button>
+          <button class="summary-subtab" type="button" role="tab" aria-selected="false" aria-controls="summarySubtabDetail" data-summary-subtab="detail"><span class="summary-subtab-index">3</span><span class="summary-subtab-text">상세 섹터 비교</span></button>
+          <button class="summary-subtab" type="button" role="tab" aria-selected="false" aria-controls="summarySubtabReport" data-summary-subtab="report"><span class="summary-subtab-index">4</span><span class="summary-subtab-text">각 섹터 리포트</span></button>
+          <button class="summary-subtab" type="button" role="tab" aria-selected="false" aria-controls="summarySubtabMatrix" data-summary-subtab="matrix"><span class="summary-subtab-index">5</span><span class="summary-subtab-text">월별 섹터 매트릭스</span></button>
+        </div>
+
+        <div id="summarySubtabTrend" class="summary-subtab-panel active" role="tabpanel" data-summary-subtab-panel="trend">
+          <section class="sector-trend-panel">
+            <div class="panel-head sector-trend-head">
+              <div>
+                <h3>섹터별 월별 증감</h3>
+                <p>기간과 섹터를 선택해 전월 대비 소비가 얼마나 늘거나 줄었는지 확인합니다.</p>
+              </div>
+              <div class="summary-head-actions">
+                <label>섹터<select id="sectorTrendSelect"></select></label>
+                <label>기간<select id="summaryRangePreset"><option value="recent-12" selected>최근 1년</option><option value="recent-24">최근 2년</option><option value="all">전체</option><option value="custom">직접 선택</option></select></label>
+                <label>시작 월<select id="summaryStartMonth"></select></label>
+                <label>종료 월<select id="summaryEndMonth"></select></label>
+                <button id="summaryExportButton" type="button" hidden>카드/이체 엑셀 불러오기</button>
+              </div>
+            </div>
+            <div id="sectorTrendChart" class="sector-trend-chart"></div>
+          </section>
+        </div>
+
+        <div id="summarySubtabShare" class="summary-subtab-panel" role="tabpanel" data-summary-subtab-panel="share" hidden>
+          <section class="summary-selected-month-panel">
+            <div class="panel-head">
+              <div>
+                <h3>선택 월 섹터 비교</h3>
+                <p>선택 월의 총지출, 가장 큰 섹터, 선택 섹터 비중과 미분류 금액을 함께 봅니다.</p>
+              </div>
+              <label class="summary-month-control">분석 월<select id="summaryMonthSelect"></select></label>
+            </div>
+            <div id="summaryMetricCards" class="summary-metric-grid"></div>
+            <section id="summarySectorSharePanel" class="summary-sector-share-panel"></section>
+          </section>
+        </div>
+
+        <div id="summarySubtabDetail" class="summary-subtab-panel" role="tabpanel" data-summary-subtab-panel="detail" hidden>
+          <section class="summary-month-detail">
+            <div class="panel-head">
+              <div>
+                <h3>상세 섹터 비교</h3>
+                <p>선택한 월의 섹터별 금액과 주요 세부항목 TOP 3를 비교합니다.</p>
+              </div>
+              <label class="summary-month-control">분석 월<select id="summaryDetailMonthSelect"></select></label>
+            </div>
+            <div id="selectedMonthSectorCards" class="selected-month-sector-cards"></div>
+          </section>
+        </div>
+
+        <div id="summarySubtabReport" class="summary-subtab-panel" role="tabpanel" data-summary-subtab-panel="report" hidden>
+          <section id="foodAnalysisCard" class="sector-analysis-card">
+            <div class="panel-head">
+              <div>
+                <h3 id="sectorAnalysisTitle">각 섹터 리포트</h3>
+                <p id="sectorAnalysisDescription">선택한 월과 섹터의 세부 소비 패턴을 더 자세히 분석합니다.</p>
+              </div>
+              <div class="sector-analysis-head-actions">
+                <label class="summary-month-control">섹터<select id="sectorAnalysisSectorSelect"></select></label>
+                <label class="summary-month-control">분석 월<select id="sectorAnalysisMonthSelect"></select></label>
+                <span id="sectorAnalysisBadge" class="analysis-badge"></span>
+              </div>
+            </div>
+            <div id="sectorAnalysisBody"></div>
+          </section>
+        </div>
+
+        <div id="summarySubtabMatrix" class="summary-subtab-panel" role="tabpanel" data-summary-subtab-panel="matrix" hidden>
+          <section class="summary-matrix-panel">
+            <div class="selected-month-detail-head">
+              <div>
+                <h3 id="selectedMonthDetailTitle">월별 섹터 매트릭스</h3>
+                <p>기간 내 모든 월의 섹터별 금액을 표로 비교하는 보조 데이터입니다.</p>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table id="monthlyTable"></table>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section id="detailsView" class="view">
+        <div class="section-head">
+          <div>
+            <h2>상세 내역</h2>
+            <p>필터 조건에 맞는 거래를 조회하고, 전체 보기에서 정산금과 할부 정보를 수정합니다.</p>
+          </div>
+          <button id="detailBackToBoardButton" type="button">대시보드로</button>
+        </div>
+        <div class="detail-filter-panel">
+          <div class="detail-filter-grid">
+            <label>월<select id="detailMonth"></select></label>
+            <label>섹터<select id="detailSector"></select></label>
+            <label>세부항목<select id="detailSubcategory"></select></label>
+            <label>검색<input id="detailSearch" type="text" placeholder="가맹점명, 내용 검색"></label>
+            <label>정렬<select id="detailSort"><option value="amount-desc">금액 높은 순</option><option value="date">날짜순</option><option value="amount-asc">금액 낮은 순</option><option value="recent">최근 입력순</option></select></label>
+            <label>표시<select id="detailEntryType"><option value="actual">실제 지출만</option><option value="scheduled">예정 지출만</option><option value="both">실제 + 예정</option></select></label>
+            <label class="check-line"><input id="detailUnknownOnly" type="checkbox"> 미분류만 보기</label>
+            <label class="check-line"><input id="detailReimbursedOnly" type="checkbox"> 정산금 있는 항목만</label>
+            <label class="check-line"><input id="detailHideZero" type="checkbox" checked> 0원 항목 숨기기</label>
+          </div>
+          <div class="detail-filter-actions">
+            <span>카드 안의 + 내역 추가로 입력하고, 전체 보기에서 정산금을 수정할 수 있습니다.</span>
+          </div>
+        </div>
+        <div id="detailMetrics" class="board-metric-grid detail-metric-grid"></div>
+        <div id="detailGrid" class="ledger-board"></div>
+        <table id="detailTable" hidden></table>
+      </section>
+
+      <section id="detailBulkView" class="view">
+        <div class="section-head">
+          <div>
+            <h2>과거 거래 입력</h2>
+            <p>카드 내역 엑셀이 없는 과거 소비 기록을 붙여넣고, 선택한 분류로 한 번에 저장합니다.</p>
+          </div>
+        </div>
+        <section class="detail-bulk-panel detail-bulk-workspace">
+          <div class="detail-bulk-head">
+            <div>
+              <h3>과거 거래 일괄 입력</h3>
+              <p>카드 내역이 없는 과거 소비 기록을 날짜 / 내용 / 금액 형식으로 붙여넣어 등록합니다. 월은 날짜에서 자동 추출됩니다.</p>
+            </div>
+          </div>
+          <div class="detail-bulk-controls">
+            <label>기준 월<select id="detailBulkMonth"></select></label>
+            <label>섹터<select id="detailBulkSector"></select></label>
+            <label>세부항목<select id="detailBulkSubcategory"></select></label>
+            <label>결제수단<select id="detailBulkSourceType"><option value="manual" selected>직접 입력</option><option value="card">카드</option><option value="transfer">이체</option><option value="cash">현금</option><option value="other">기타</option></select></label>
+            <label>정산 기본값<input id="detailBulkReimbursementDefault" type="text" inputmode="numeric" value="0"></label>
+            <label class="check-line"><input id="detailBulkAutoSuggest" type="checkbox"> 행별 자동 추천 적용</label>
+            <label class="check-line"><input id="detailBulkAllowDuplicates" type="checkbox"> 중복 가능 항목 포함 저장</label>
+          </div>
+          <div class="paste-entry detail-bulk-paste">
+            <textarea id="detailBulkPaste" rows="5" placeholder="YYYY.MM.DD&#9;내용&#9;금액&#10;YYYY.MM.DD&#9;내용&#9;금액"></textarea>
+            <div class="paste-actions">
+              <button id="parseDetailBulkButton" type="button">붙여넣기 파싱</button>
+              <button id="clearDetailBulkButton" type="button">초기화</button>
+              <button id="saveDetailBulkButton" class="primary-action" type="button" disabled>일괄 저장</button>
+            </div>
+          </div>
+          <p id="detailBulkFeedback" class="bulk-feedback" aria-live="polite"></p>
+          <div class="table-wrap detail-bulk-preview-wrap">
+            <table id="detailBulkPreview"></table>
+          </div>
+        </section>
+        <section class="detail-bulk-records-panel">
+          <div class="detail-bulk-records-head">
+            <div>
+              <h3>전체 과거 거래 기록</h3>
+              <p>일괄 입력으로 저장한 거래를 월, 섹터, 세부항목, 검색어 기준으로 확인하고 수정합니다.</p>
+            </div>
+            <strong id="detailBulkRecordCount">0건</strong>
+          </div>
+          <div class="detail-bulk-record-filters">
+            <label>기준 월<select id="detailBulkListMonth"></select></label>
+            <label>섹터<select id="detailBulkListSector"></select></label>
+            <label>세부항목<select id="detailBulkListSubcategory"></select></label>
+            <label>검색어<input id="detailBulkListSearch" type="text" placeholder="가맹점명·날짜·금액 검색"></label>
+            <label>정렬<select id="detailBulkListSort"><option value="date-desc">최신 날짜순</option><option value="date-asc">오래된 날짜순</option><option value="amount-desc">금액 높은 순</option><option value="amount-asc">금액 낮은 순</option></select></label>
+          </div>
+          <div id="detailBulkRecordList" class="detail-bulk-record-list"></div>
+        </section>
+      </section>
+
+      <section id="calendarView" class="view">
+        <div class="section-head ledger-head">
+          <div>
+            <h2>소비 달력</h2>
+            <p>월별 달력에서 날짜별 소비 금액과 결제 시간을 확인합니다.</p>
+          </div>
+          <div class="ledger-controls compact calendar-controls">
+            <button id="calendarPrevMonth" type="button">이전</button>
+            <label>월<select id="calendarMonth"></select></label>
+            <button id="calendarNextMonth" type="button">다음</button>
+            <label class="check-line"><input id="calendarShowIncome" type="checkbox" checked> 수입 표시</label>
+          </div>
+        </div>
+        <div class="calendar-layout">
+          <div id="calendarMonthSummary" class="calendar-summary-grid"></div>
+          <div id="calendarCurrentMonthLabel" class="calendar-current-month" aria-live="polite"></div>
+          <div id="spendingCalendar" class="spending-calendar"></div>
+          <aside class="day-panel">
+            <h3 id="selectedDayTitle">날짜를 선택하세요</h3>
+            <div id="selectedDayTimeline" class="day-timeline"></div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="productsView" class="view">
+        <div class="section-head">
+          <h2>소모품 사용 기록</h2>
+          <p>화장품과 생활용품의 구매일, 유통기한, 사용 기간, 재구매 시점을 기록합니다.</p>
+        </div>
+        <form id="productForm" class="product-form">
+          <label>제품명<input id="productName" type="text" placeholder="예: 토너, 선크림, 주방세제"></label>
+          <label>브랜드/상품명<input id="productBrand" type="text" placeholder="예: 브랜드명, 상품명"></label>
+          <label>카테고리<select id="productCategory"><option value="스킨케어">스킨케어</option><option value="클렌징/바디">클렌징/바디</option><option value="세제">세제</option><option value="의약/위생">의약/위생</option><option value="청소용품">청소용품</option><option value="주방용품">주방용품</option><option value="면도/생활">면도/생활</option><option value="기타">기타</option></select></label>
+          <label>구매일<input id="productPurchaseDate" type="date"></label>
+          <label>유통기한<input id="productExpiryDate" type="date"></label>
+          <label>사용 시작일<input id="productStartDate" type="date"></label>
+          <label>사용 종료일<input id="productEndDate" type="date"></label>
+          <label>구매 가격<input id="productPrice" type="text" inputmode="numeric" placeholder="예: 15000"></label>
+          <label>용량<input id="productVolume" type="text" inputmode="decimal" placeholder="예: 500"></label>
+          <label>단위<select id="productUnit"><option value="ml">ml</option><option value="g">g</option><option value="개">개</option><option value="매">매</option><option value="L">L</option><option value="회">회</option><option value="기타">기타</option></select></label>
+          <label>개수<input id="productQuantity" type="text" inputmode="numeric" placeholder="예: 1, 3"></label>
+          <label>구매처<input id="productStore" type="text" placeholder="예: 올리브영, 쿠팡, 다이소"></label>
+          <label>예상 사용일<input id="productExpectedDays" type="text" inputmode="numeric" placeholder="예: 60"></label>
+          <label class="wide-field">제품 링크<input id="productLink" type="text" placeholder="구매 페이지나 제품 정보 링크"></label>
+          <label class="wide-field">이미지<input id="productImage" type="file" accept="image/*"></label>
+          <label class="wide-field">메모<input id="productMemo" type="text" placeholder="색상, 향, 피부 반응, 구성 등"></label>
+          <button type="submit">소모품 기록 추가</button>
+        </form>
+        <div class="product-dashboard">
+          <div class="product-filter-panel">
+            <div>
+              <h3>소모품 필터</h3>
+              <p>품목, 카테고리, 구매처, 사용 상태로 기록을 빠르게 찾습니다.</p>
+            </div>
+            <div class="product-filter-grid">
+              <label>카테고리<select id="productFilterCategory"></select></label>
+              <label>제품명<select id="productFilterName"></select></label>
+              <label>구매처<input id="productFilterStore" type="text" placeholder="구매처 검색"></label>
+              <label>상태<select id="productFilterStatus"><option value="all">전체</option><option value="using">사용 중</option><option value="done">사용 완료</option></select></label>
+              <label class="wide-field">검색<input id="productFilterSearch" type="text" placeholder="품목명, 제품명, 메모 검색"></label>
+              <label>정렬<select id="productSort"><option value="recent">최근 구매일</option><option value="price-desc">가격 높은 순</option><option value="unit-asc">단위가격 낮은 순</option><option value="usage-desc">사용기간 긴 순</option></select></label>
+            </div>
+          </div>
+          <div class="product-trend-panel">
+            <div class="panel-head">
+              <div>
+                <h3>가격 추이</h3>
+                <p>같은 품목 기록이 2개 이상이면 구매 가격과 단위가격 변화를 볼 수 있습니다.</p>
+              </div>
+              <label>품목<select id="productTrendSelect"></select></label>
+            </div>
+            <div id="productTrendChart" class="product-trend-chart"></div>
+          </div>
+        </div>
+        <div id="productList" class="product-list"></div>
+      </section>
+
+      <section id="unknownView" class="view">
+        <div class="section-head">
+          <h2>미분류 해결</h2>
+          <p>가맹점에 섹터와 세부항목을 지정하면 맞춤 규칙으로 저장됩니다.</p>
+        </div>
+        <div id="unknownList" class="unknown-list"></div>
+      </section>
+
+      <section id="rulesView" class="view">
+        <div class="section-head">
+          <h2>분류 규칙</h2>
+          <p>키워드가 가맹점명에 포함되면 해당 항목으로 자동 분류합니다.</p>
+        </div>
+        <form id="ruleForm" class="rule-form">
+          <select id="ruleSector"></select>
+          <select id="ruleSubcategory"></select>
+          <input id="ruleKeyword" type="text" placeholder="가맹점 키워드">
+          <button type="submit">규칙 추가</button>
+        </form>
+        <div class="rule-filter-panel">
+          <div class="rule-filter-head">
+            <div>
+              <h3>규칙 빠른 찾기</h3>
+              <p>저장된 섹터, 세부항목, 키워드로 자동 분류 규칙을 좁혀 봅니다.</p>
+            </div>
+            <strong id="ruleFilterCount">0개 표시</strong>
+          </div>
+          <div class="rule-filter-grid">
+            <label>규칙 유형<select id="ruleFilterType"><option value="all">전체</option><option value="기본 규칙">기본 규칙</option><option value="사용자 규칙">사용자 규칙</option><option value="수정된 기본 규칙">수정된 기본 규칙</option><option value="스마트 추천">스마트 추천</option></select></label>
+            <label>섹터<select id="ruleFilterSector"></select></label>
+            <label>세부항목<select id="ruleFilterSubcategory"></select></label>
+            <label>정렬<select id="ruleSortSelect"><option value="priority">우선순위순</option><option value="sector">섹터순</option><option value="updated">최근 수정순</option></select></label>
+            <label class="wide-field">검색<input id="ruleSearchInput" type="text" placeholder="키워드, 섹터명, 세부항목명 검색"></label>
+            <button id="resetRuleFiltersButton" type="button">필터 초기화</button>
+          </div>
+        </div>
+        <div id="ruleFeedback" class="rule-feedback" aria-live="polite"></div>
+        <div class="table-wrap">
+          <table id="rulesTable"></table>
+        </div>
+      </section>
+
+      <section id="transactionsView" class="view">
+        <div class="section-head">
+          <h2>전체 내역</h2>
+          <p>승인일자, 가맹점명, 금액과 현재 분류 상태를 확인하고 직접 내역을 추가합니다.</p>
+        </div>
+        <div class="manual-entry-panel">
+          <form id="manualEntryForm" class="manual-entry-form">
+            <select id="manualSourceType" aria-label="입력 유형"><option value="card">카드</option><option value="transfer">이체</option><option value="cash">현금</option></select>
+            <select id="manualFlow" aria-label="흐름"><option value="expense">지출</option><option value="income">수입</option></select>
+            <input id="manualDate" type="date" aria-label="날짜">
+            <input id="manualTime" type="time" aria-label="시간">
+            <input id="manualMerchant" type="text" placeholder="가맹점명 또는 내용">
+            <input id="manualAmount" type="text" inputmode="numeric" placeholder="금액">
+            <select id="manualSector" aria-label="섹터"></select>
+            <select id="manualSubcategory" aria-label="세부항목"></select>
+            <button type="submit">내역 추가</button>
+          </form>
+          <div class="paste-entry">
+            <textarea id="pasteEntries" rows="4" placeholder="여러 줄 붙여넣기: 날짜, 내용, 금액 순서로 입력&#10;예: YYYY.MM.DD 내용 금액"></textarea>
+            <button id="pasteEntriesButton" type="button">붙여넣은 내역 추가</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table id="transactionsTable"></table>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <template id="unknownItemTemplate">
+    <article class="unknown-item">
+      <div>
+        <h3 class="merchant"></h3>
+        <p class="meta"></p>
+        <p class="suggestion"></p>
+      </div>
+      <div class="assign-controls">
+        <select class="sector-select"></select>
+        <select class="subcategory-select"></select>
+        <input class="keyword-input" type="text" aria-label="키워드">
+        <button class="assign-button" type="button">규칙 추가</button>
+      </div>
+    </article>
+  </template>
+
+  <script src="src/data/constants.js?v=93"></script>
+  <script src="src/data/categories.js?v=86"></script>
+  <script src="src/data/rules.js?v=93"></script>
+  <script src="src/data/board-sections.js?v=86"></script>
+  <script src="src/data/field-aliases.js?v=77"></script>
+
+  <script src="src/features/app/state.js?v=87"></script>
+
+  <script src="src/utils/format.js?v=80"></script>
+  <script src="src/utils/date.js?v=61"></script>
+  <script src="src/utils/dom.js?v=61"></script>
+  <script src="src/utils/normalize.js?v=93"></script>
+  <script src="src/utils/grouping.js?v=78"></script>
+  <script src="src/utils/storage.js?v=86"></script>
+  <script src="src/utils/backup.js?v=78"></script>
+
+  <script src="src/components/chips.js?v=86"></script>
+  <script src="src/components/tables.js?v=61"></script>
+  <script src="src/components/metrics.js?v=61"></script>
+  <script src="src/components/charts.js?v=61"></script>
+  <script src="src/components/quick-add.js?v=61"></script>
+
+  <script src="src/features/import/excel-import.js?v=61"></script>
+  <script src="src/features/import/transaction-parser.js?v=77"></script>
+  <script src="src/features/classification/classifier.js?v=61"></script>
+  <script src="src/features/classification/smart-suggestions.js?v=61"></script>
+  <script src="src/features/classification/rules-manager.js?v=61"></script>
+
+  <script src="src/features/board/board-view.js?v=78"></script>
+  <script src="src/features/board/board-summary.js?v=86"></script>
+  <script src="src/features/board/board-cards.js?v=81"></script>
+  <script src="src/features/details/details-view.js?v=81"></script>
+  <script src="src/features/summary/summary-view.js?v=87"></script>
+  <script src="src/features/summary/sector-analysis.js?v=82"></script>
+  <script src="src/features/summary/summary-chart.js?v=61"></script>
+  <script src="src/features/monthly/monthly-flow.js?v=79"></script>
+  <script src="src/features/monthly/monthly-chart.js?v=79"></script>
+  <script src="src/features/income/income-entry.js?v=61"></script>
+  <script src="src/features/income/income-bulk.js?v=61"></script>
+  <script src="src/features/income/income-list.js?v=66"></script>
+  <script src="src/features/recurring/recurring-view.js?v=74"></script>
+  <script src="src/features/calendar/calendar-view.js?v=88"></script>
+  <script src="src/features/products/products-view.js?v=61"></script>
+  <script src="src/features/unknown/unknown-view.js?v=61"></script>
+  <script src="src/features/transactions/transactions-view.js?v=77"></script>
+
+  <script src="src/features/app/navigation.js?v=61"></script>
+  <script src="src/features/app/appearance.js?v=61"></script>
+  <script src="src/features/app/render-all.js?v=78"></script>
+  <script src="src/features/app/init.js?v=87"></script>
+</body>
+</html>
+
+
+

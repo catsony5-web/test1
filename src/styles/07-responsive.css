@@ -1,0 +1,551 @@
+@media (max-width: 1399px) {
+  .monthly-chart-panel {
+    min-width: 0;
+    min-height: 420px;
+  }
+
+  .monthly-chart {
+    min-height: 380px;
+  }
+
+  .monthly-chart .balance-chart {
+    height: clamp(360px, 44vw, 460px);
+  }
+}
+
+@media (max-width: 1199px) {
+  .board-metric-grid,
+  .monthly-kpis,
+  .summary-metric-grid,
+  .income-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .monthly-layout,
+  .split,
+  .calendar-layout,
+  .board-detail-layout,
+  .product-dashboard,
+  .recurring-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .calendar-layout {
+    grid-template-areas:
+      "summary"
+      "month"
+      "calendar"
+      "detail";
+  }
+
+  .recurring-layout {
+    grid-template-areas:
+      "form"
+      "bulk"
+      "list";
+  }
+
+  .board-side-summary {
+    position: static;
+  }
+
+  .manual-entry-form {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .quick-add-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .income-entry-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .recurring-form,
+  .recurring-bulk-panel,
+  .recurring-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .recurring-bulk-panel {
+    grid-template-areas:
+      "head head"
+      "paste preview"
+      "feedback preview";
+    grid-template-columns: minmax(300px, 0.46fr) minmax(0, 0.54fr);
+  }
+
+  .detail-bulk-workspace {
+    grid-template-areas:
+      "head"
+      "controls"
+      "paste"
+      "feedback"
+      "preview";
+    grid-template-columns: 1fr;
+  }
+
+  .detail-bulk-workspace .detail-bulk-paste textarea {
+    min-height: 260px;
+  }
+
+  .detail-bulk-workspace .detail-bulk-preview-wrap {
+    min-height: 320px;
+    max-height: 480px;
+  }
+
+  .detail-bulk-record-item,
+  .detail-bulk-record-item.editing {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .detail-bulk-record-merchant,
+  .detail-bulk-record-item .category-chip,
+  .detail-bulk-record-item .income-entry-actions {
+    grid-column: 1 / -1;
+  }
+
+  .recurring-bulk-panel,
+  .recurring-list-panel {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .board-filter-grid,
+  .detail-filter-grid,
+  .detail-bulk-controls,
+  .detail-bulk-record-filters,
+  .product-filter-grid,
+  .rule-filter-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .board-metric strong,
+  .monthly-kpi strong,
+  .summary-metric-card strong,
+  .income-summary-card strong,
+  .recurring-summary-card strong,
+  .calendar-summary-card strong,
+  .final-summary-grid strong,
+  .compact-summary-grid strong,
+  .sector-tile strong,
+  .matrix-cell strong,
+  .selected-sector-head strong {
+    font-size: clamp(16px, 5vw, 22px);
+    white-space: nowrap;
+  }
+
+  .amount,
+  .money,
+  td.amount,
+  th.amount,
+  .transaction-row .amount,
+  .transaction-head .amount {
+    white-space: nowrap;
+  }
+
+  .monthly-chart-panel {
+    padding: 18px;
+  }
+
+  .monthly-chart {
+    min-height: 360px;
+  }
+
+  .monthly-chart .balance-chart {
+    height: 360px;
+  }
+}
+
+@media (max-width: 767px) {
+  .topbar,
+  main {
+    width: min(100% - 20px, 1720px);
+  }
+
+  .monthly-layout {
+    gap: 18px;
+  }
+
+  .monthly-chart-panel {
+    min-height: 360px;
+    padding: 16px;
+  }
+
+  .monthly-chart-head {
+    margin-bottom: 10px;
+  }
+
+  .monthly-chart-panel h3 {
+    font-size: 18px;
+  }
+
+  .monthly-chart-panel p {
+    font-size: 12px;
+  }
+
+  .monthly-chart {
+    min-height: 320px;
+  }
+
+  .monthly-chart .balance-chart {
+    height: 320px;
+  }
+
+  .topbar,
+  .ledger-head,
+  .income-head,
+  .recurring-head,
+  .sector-trend-head,
+  .card-head,
+  .board-group-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .actions {
+    justify-content: flex-start;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .primary-upload,
+  .admin-menu-wrap,
+  .admin-menu-button {
+    width: 100%;
+  }
+
+  .primary-upload,
+  .admin-menu-button {
+    justify-content: center;
+  }
+
+  .admin-menu {
+    position: fixed;
+    top: 78px;
+    right: 10px;
+    left: 10px;
+    width: auto;
+    max-height: calc(100vh - 92px);
+  }
+
+  .admin-status-grid,
+  .admin-nav-grid,
+  .admin-menu-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .status-band,
+  .board-metric-grid,
+  .monthly-kpis,
+  .summary-metric-grid,
+  .income-summary-grid,
+  .recurring-summary-grid,
+  .final-summary-grid,
+  .ledger-controls,
+  .ledger-controls.compact,
+  .manual-entry-form,
+  .income-entry-form,
+  .income-record-controls,
+  .recurring-form,
+  .recurring-meta,
+  .recurring-card-main,
+  .scheduled-detail-item,
+  .paste-entry,
+  .recurring-bulk-panel,
+  .product-form,
+  .product-filter-grid,
+  .rule-filter-grid,
+  .board-filter-grid,
+  .detail-filter-grid,
+  .detail-bulk-controls,
+  .board-top-grid,
+  .product-card,
+  .unknown-item,
+  .assign-controls,
+  .rule-form {
+    grid-template-columns: 1fr;
+  }
+
+  .recurring-bulk-panel {
+    grid-template-areas:
+      "head"
+      "paste"
+      "feedback"
+      "preview";
+  }
+
+  .recurring-bulk-panel textarea {
+    min-height: 180px;
+  }
+
+  .recurring-bulk-panel .paste-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .recurring-bulk-panel .table-wrap {
+    min-height: 220px;
+    max-height: 340px;
+  }
+
+  .detail-bulk-paste {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-bulk-paste .paste-actions,
+  .detail-bulk-workspace .detail-bulk-paste .paste-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-bulk-workspace {
+    padding: 16px;
+  }
+
+  .detail-bulk-workspace .detail-bulk-paste textarea {
+    min-height: 220px;
+  }
+
+  .detail-bulk-records-panel {
+    padding: 16px;
+  }
+
+  .detail-bulk-records-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .detail-bulk-record-item,
+  .detail-bulk-record-item.editing {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-bulk-record-merchant,
+  .detail-bulk-record-item .category-chip,
+  .detail-bulk-record-item .income-entry-actions {
+    grid-column: auto;
+  }
+
+  .detail-bulk-record-item > .amount {
+    text-align: left;
+  }
+
+  .panel-head,
+  .selected-detail-head,
+  .panel-subhead,
+  .summary-share-head,
+  .income-record-head,
+  .recurring-form-head,
+  .food-analysis-head,
+  .food-compare-labels,
+  .sector-analysis-head,
+  .sector-analysis-head-actions,
+  .sector-analysis-controls,
+  .rule-filter-head,
+  .sector-map-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .section-head,
+  .monthly-filterbar,
+  .manual-entry-panel,
+  .income-entry-card,
+  .recurring-form,
+  .recurring-bulk-panel,
+  .recurring-list-panel,
+  .product-form,
+  .rule-form,
+  .board-group-card,
+  .board-top-panel,
+  .detail-results-panel,
+  .detail-filter-panel,
+  .final-summary-card,
+  .summary-selected-month-panel,
+  .sector-analysis-card,
+  .food-analysis-card {
+    padding: 16px;
+  }
+
+  .sector-map-card {
+    padding: 16px;
+  }
+
+  .summary-share-body {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-donut-wrap {
+    width: min(100%, 260px);
+  }
+
+  .income-head label {
+    flex-basis: auto;
+  }
+
+  .income-head-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .income-head-actions label,
+  .income-head-actions .secondary-action {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  .recurring-head label {
+    flex-basis: auto;
+  }
+
+  .product-form .wide-field,
+  .product-filter-grid .wide-field,
+  .product-form button[type="submit"] {
+    grid-column: auto;
+  }
+
+  .board-sector-accordion summary {
+    grid-template-columns: 1fr;
+  }
+
+  .category-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .spending-calendar {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+
+  .calendar-cell {
+    min-height: 74px;
+    padding: 6px;
+  }
+
+  .calendar-cell strong {
+    font-size: 11px;
+  }
+
+  .timeline-item {
+    grid-template-columns: 1fr;
+  }
+
+  .timeline-amount-actions,
+  .timeline-actions {
+    justify-items: start;
+    justify-content: flex-start;
+  }
+
+  .calendar-edit-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .calendar-edit-grid label.wide {
+    grid-column: auto;
+  }
+
+  .calendar-edit-actions {
+    justify-content: stretch;
+  }
+
+  .calendar-edit-save-actions {
+    width: 100%;
+    margin-left: 0;
+    justify-content: stretch;
+  }
+
+  .calendar-edit-actions button,
+  .calendar-edit-save-actions button {
+    flex: 1 1 120px;
+  }
+
+  .calendar-duplicate-group {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .calendar-duplicate-cleanup {
+    width: 100%;
+  }
+
+  .scheduled-actions {
+    justify-content: flex-start;
+  }
+
+  .calendar-current-month {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .income-entry-item {
+    grid-template-columns: 1fr;
+  }
+
+  .income-entry-item.editing {
+    grid-template-columns: 1fr;
+  }
+
+  .category-card-head,
+  .category-actions {
+    align-items: stretch;
+  }
+
+  .quick-add-form {
+    grid-template-columns: 1fr;
+  }
+
+  .transaction-head {
+    display: none;
+  }
+
+  .transaction-row {
+    grid-template-columns: 74px minmax(0, 1fr);
+    grid-template-areas:
+      "date merchant"
+      "payment payment"
+      "reimbursement reimbursement"
+      "actual actual";
+    gap: 8px 10px;
+    padding: 13px;
+  }
+
+  .transaction-row .date { grid-area: date; }
+  .transaction-row .merchant { grid-area: merchant; }
+  .transaction-row .payment { grid-area: payment; }
+  .transaction-row .reimbursement { grid-area: reimbursement; }
+  .transaction-row .actual { grid-area: actual; }
+
+  .transaction-row .payment,
+  .transaction-row .reimbursement,
+  .transaction-row .actual {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-radius: 10px;
+    padding: 8px 10px;
+    background: var(--surface-soft);
+  }
+
+  .transaction-row .payment::before {
+    content: "총 결제액";
+    color: var(--text-sub);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .transaction-row .reimbursement::before {
+    content: "정산받은 금액";
+    color: var(--text-sub);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .transaction-row .actual::before {
+    content: "실 지출액";
+    color: var(--text-sub);
+    font-size: 12px;
+    font-weight: 700;
+  }
+}

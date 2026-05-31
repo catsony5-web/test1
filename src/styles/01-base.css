@@ -1,0 +1,279 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+html,
+body,
+button,
+input,
+select,
+textarea {
+  font-family: var(--font-ui);
+  letter-spacing: 0;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+}
+
+body {
+  position: relative;
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(148, 163, 184, 0.14), transparent 28rem),
+    radial-gradient(circle at 100% 12%, rgba(99, 102, 241, 0.06), transparent 24rem),
+    var(--page);
+  color: var(--text-main);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background-image: var(--app-bg-image);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  opacity: var(--app-bg-opacity);
+  filter: blur(var(--app-bg-blur));
+  transform: scale(1.02);
+  transform-origin: center;
+  pointer-events: none;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: rgba(255, 255, 255, var(--app-bg-overlay));
+  pointer-events: none;
+}
+
+:root[data-theme="dark"] body::after {
+  background: rgba(13, 17, 23, var(--app-bg-overlay));
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+.file-button,
+.ghost-file-button {
+  min-height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text-main);
+  padding: 9px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+button:hover,
+.file-button:hover,
+.ghost-file-button:hover {
+  border-color: var(--border-strong);
+  background: var(--control-hover-bg);
+  box-shadow: none;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  box-shadow: none;
+}
+
+.primary-action,
+.file-button {
+  display: inline-flex;
+  align-items: center;
+  background: var(--primary-navy);
+  border-color: var(--primary-navy);
+  color: var(--text-on-primary);
+  font-weight: 700;
+}
+
+.primary-action:hover,
+.file-button:hover {
+  background: color-mix(in srgb, var(--accent-primary) 84%, var(--accent-blue));
+  border-color: color-mix(in srgb, var(--accent-primary) 76%, var(--accent-blue));
+}
+
+.secondary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-color: var(--border-strong);
+  background: var(--control-bg);
+  color: var(--primary-navy);
+  font-weight: 800;
+}
+
+.secondary-action:hover {
+  border-color: var(--border-strong);
+  background: var(--control-hover-bg);
+  color: var(--text-primary);
+}
+
+.ghost-file-button {
+  display: inline-flex;
+  align-items: center;
+}
+
+.file-button input,
+.ghost-file-button input {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+input[type="text"],
+input[type="date"],
+input[type="time"],
+input[type="file"],
+select,
+textarea {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--control-bg);
+  color: var(--text-main);
+  padding: 9px 11px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+textarea {
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.amount,
+.money,
+.numeric,
+td.amount,
+th.amount,
+.transaction-row .amount,
+.transaction-head .amount,
+.board-metric strong,
+.monthly-kpi strong,
+.summary-metric-card strong,
+.income-summary-card strong,
+.recurring-summary-card strong,
+.calendar-summary-card strong,
+.final-summary-grid strong,
+.compact-summary-grid strong,
+.sector-tile strong,
+.sector-map-head strong,
+.board-sector-card-head strong,
+.board-top-item strong,
+.side-summary-main strong,
+.category-card-head strong,
+.selected-sector-head strong,
+.selected-subcategory-list b,
+.sector-analysis-metric strong,
+.food-metric strong,
+.sector-analysis-overview dd,
+.trend-focus-card strong,
+.trend-pill b,
+.chart-value,
+.chart-label,
+.chart-baseline-label,
+.balance-point-label,
+.balance-axis-label,
+.trend-axis-label,
+.trend-delta-label,
+.timeline-item b,
+.scheduled-actions b,
+.scheduled-amount,
+.income-link-button,
+.income-entry-item strong,
+.calendar-cell strong,
+.net-cell strong,
+.matrix-cell strong {
+  font-family: var(--font-number);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  word-break: keep-all;
+  overflow-wrap: normal;
+}
+
+.amount,
+.money,
+.numeric,
+td.amount,
+th.amount,
+.transaction-row .amount,
+.transaction-head .amount,
+.board-metric strong,
+.monthly-kpi strong,
+.summary-metric-card strong,
+.income-summary-card strong,
+.recurring-summary-card strong,
+.calendar-summary-card strong,
+.final-summary-grid strong,
+.compact-summary-grid strong,
+.sector-tile strong,
+.sector-map-head strong,
+.board-sector-card-head strong,
+.board-top-item strong,
+.side-summary-main strong,
+.category-card-head strong,
+.selected-sector-head strong,
+.selected-subcategory-list b,
+.sector-analysis-metric strong,
+.food-metric strong,
+.sector-analysis-overview dd,
+.trend-focus-card strong,
+.trend-pill b,
+.chart-value,
+.chart-label,
+.chart-baseline-label,
+.balance-point-label,
+.balance-axis-label,
+.trend-axis-label,
+.trend-delta-label,
+.timeline-item b,
+.scheduled-actions b,
+.scheduled-amount,
+.income-link-button,
+.income-entry-item strong,
+.calendar-cell strong,
+.net-cell strong,
+.matrix-cell strong {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
