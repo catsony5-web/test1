@@ -357,19 +357,24 @@ function renderCalendarEditForm(item) {
         <label class="wide">메모
           <input type="text" name="memo" value="${escapeHtml(item.memo || "")}">
         </label>
-        <label class="check-line calendar-installment-toggle">
-          <input type="checkbox" name="installmentEnabled" ${installmentEnabled ? "checked" : ""}>
-          할부 적용
-        </label>
-        <label>할부 개월 수
-          <input type="number" name="installmentMonths" min="2" max="60" value="${escapeHtml(installmentMonthCount)}">
-        </label>
-        <label>할부 시작 월
-          <input type="month" name="installmentStartMonth" value="${escapeHtml(installmentStartMonth)}">
-        </label>
-        <label>월별 반영액
-          <input class="calendar-installment-preview" type="text" value="${escapeHtml(formatWon(installmentPreview))}" readonly>
-        </label>
+        <div class="calendar-installment-line wide">
+          <label class="check-line calendar-installment-toggle">
+            <input type="checkbox" name="installmentEnabled" ${installmentEnabled ? "checked" : ""}>
+            <span>할부 적용</span>
+          </label>
+          <label class="calendar-installment-field" ${installmentEnabled ? "" : "hidden"}>
+            할부 개월 수
+            <input type="number" name="installmentMonths" min="2" max="60" value="${escapeHtml(installmentMonthCount)}">
+          </label>
+          <label class="calendar-installment-field" ${installmentEnabled ? "" : "hidden"}>
+            할부 시작 월
+            <input type="month" name="installmentStartMonth" value="${escapeHtml(installmentStartMonth)}">
+          </label>
+          <label class="calendar-installment-field" ${installmentEnabled ? "" : "hidden"}>
+            월별 반영액
+            <input class="calendar-installment-preview" type="text" value="${escapeHtml(formatWon(installmentPreview))}" readonly>
+          </label>
+        </div>
       </div>
       <label class="calendar-rule-option">
         <input type="checkbox" name="saveRule">
@@ -476,8 +481,20 @@ function attachCalendarTimelineHandlers(root) {
       const preview = form.querySelector(".calendar-installment-preview");
       if (preview) preview.value = formatWon(Math.floor(amount / months));
     };
+    const syncInstallmentFields = () => {
+      const enabled = Boolean(form.elements.installmentEnabled?.checked);
+      form.querySelectorAll(".calendar-installment-field").forEach((field) => {
+        field.hidden = !enabled;
+        field.querySelectorAll("input, select, textarea").forEach((control) => {
+          control.disabled = !enabled;
+        });
+      });
+      if (enabled) updateInstallmentPreview();
+    };
     form.elements.amount?.addEventListener("input", updateInstallmentPreview);
     form.elements.installmentMonths?.addEventListener("input", updateInstallmentPreview);
+    form.elements.installmentEnabled?.addEventListener("change", syncInstallmentFields);
+    syncInstallmentFields();
     form.addEventListener("submit", (event) => {
       event.preventDefault();
       saveCalendarTransactionEdit(form.dataset.calendarEditForm, form);

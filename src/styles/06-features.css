@@ -1832,16 +1832,6 @@ button.calendar-summary-card:focus-visible {
   padding-top: 14px;
 }
 
-.calendar-installment-toggle {
-  align-self: end;
-  min-height: 42px;
-}
-
-.calendar-installment-preview {
-  font-weight: 850;
-  font-variant-numeric: tabular-nums;
-}
-
 .calendar-edit-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1859,6 +1849,51 @@ button.calendar-summary-card:focus-visible {
 
 .calendar-edit-grid label.wide {
   grid-column: span 2;
+}
+
+.calendar-installment-line {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 88px minmax(96px, 0.9fr) minmax(126px, 1.1fr) minmax(112px, 1fr);
+  gap: 10px;
+  align-items: end;
+  min-width: 0;
+}
+
+.calendar-edit-grid .calendar-installment-line.wide {
+  grid-column: 1 / -1;
+}
+
+.calendar-edit-grid .calendar-installment-line label {
+  min-width: 0;
+}
+
+.calendar-edit-grid .calendar-installment-field {
+  gap: 5px;
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.calendar-installment-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 5px;
+  min-height: 38px;
+  padding: 8px;
+  border: 1px solid var(--control-border);
+  border-radius: 12px;
+  background: var(--surface-soft);
+  color: var(--text-main);
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.calendar-installment-preview {
+  font-weight: 850;
+  font-variant-numeric: tabular-nums;
 }
 
 .calendar-edit-grid input,
@@ -1879,6 +1914,17 @@ button.calendar-summary-card:focus-visible {
   color: var(--accent-primary);
   font-family: var(--font-number);
   font-weight: 900;
+}
+
+.calendar-edit-grid .calendar-installment-toggle input[type="checkbox"] {
+  flex: 0 0 auto;
+  width: 13px;
+  height: 13px;
+  min-width: 13px;
+  min-height: 13px;
+  margin: 0;
+  padding: 0;
+  border-radius: 3px;
 }
 
 .calendar-rule-option {
