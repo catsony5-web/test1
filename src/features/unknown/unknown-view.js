@@ -18,6 +18,7 @@ function renderUnknown() {
     node.querySelector(".merchant").textContent = merchant;
     node.querySelector(".meta").textContent = `${rows.length}건 · ${formatWon(sum(rows, "amount"))}`;
     node.querySelector(".suggestion").innerHTML = renderSuggestionBlock(suggestion);
+    appendCalendarLinkButton(node.querySelector(".suggestion"));
 
     fillCategorySelects(sectorSelect, subcategorySelect, suggestion);
     keywordInput.value = merchant;
@@ -30,6 +31,9 @@ function renderUnknown() {
     });
     node.querySelector("[data-save-suggestion-rule]")?.addEventListener("click", () => {
       saveSuggestionRuleForMerchant(merchant, suggestion, keywordInput.value);
+    });
+    node.querySelector("[data-open-calendar-date]")?.addEventListener("click", () => {
+      openUnknownRowsInCalendar(rows);
     });
     node.querySelector(".assign-button").addEventListener("click", () => {
       const keyword = keywordInput.value.trim();
@@ -45,6 +49,36 @@ function bestSuggestionForRows(rows) {
     .map((row) => row.suggestion)
     .filter(Boolean)
     .sort((a, b) => Number(b.confidence || 0) - Number(a.confidence || 0))[0] || null;
+}
+
+function appendCalendarLinkButton(container) {
+  if (!container || container.querySelector("[data-open-calendar-date]")) return;
+  const actions = container.querySelector(".suggestion-actions");
+  const buttonHtml = `<button type="button" data-open-calendar-date>달력에서 보기</button>`;
+  if (actions) {
+    actions.insertAdjacentHTML("beforeend", buttonHtml);
+    return;
+  }
+  container.insertAdjacentHTML("beforeend", `<span class="suggestion-actions">${buttonHtml}</span>`);
+}
+
+function openUnknownRowsInCalendar(rows) {
+  const targetDate = rows
+    .map((item) => normalizeDateKey(item.approvalDate))
+    .filter(Boolean)
+    .sort()
+    .at(-1);
+  if (!targetDate) return;
+  const targetMonth = targetDate.slice(0, 7);
+  selectedCalendarDate = targetDate;
+  selectedCalendarMonth = targetMonth;
+  calendarEditingRecordKey = "";
+  calendarEditFeedback = null;
+  setSharedSelectedMonth(targetMonth, { syncControls: false });
+  switchView("calendar");
+  requestAnimationFrame(() => {
+    document.querySelector("#calendarView")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
 }
 
 function renderSuggestionBlock(suggestion) {
