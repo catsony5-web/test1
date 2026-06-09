@@ -1854,7 +1854,7 @@ button.calendar-summary-card:focus-visible {
 .calendar-installment-line {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: minmax(76px, 0.62fr) minmax(100px, 1fr) minmax(126px, 1.08fr) minmax(112px, 1fr);
+  grid-template-columns: 88px minmax(96px, 0.9fr) minmax(126px, 1.1fr) minmax(112px, 1fr);
   gap: 10px;
   align-items: end;
   min-width: 0;
@@ -1868,26 +1868,27 @@ button.calendar-summary-card:focus-visible {
   min-width: 0;
 }
 
+.calendar-edit-grid .calendar-installment-field {
+  gap: 5px;
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
 .calendar-installment-toggle {
   display: inline-flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 6px;
-  min-height: 40px;
-  padding: 8px 10px;
+  gap: 5px;
+  min-height: 38px;
+  padding: 8px;
   border: 1px solid var(--control-border);
   border-radius: 12px;
   background: var(--surface-soft);
   color: var(--text-main);
+  font-size: 11px;
+  line-height: 1;
   white-space: nowrap;
-}
-
-.calendar-installment-toggle input {
-  flex: 0 0 auto;
-  width: 14px;
-  height: 14px;
-  min-height: 14px;
-  padding: 0;
 }
 
 .calendar-installment-preview {
@@ -1913,6 +1914,17 @@ button.calendar-summary-card:focus-visible {
   color: var(--accent-primary);
   font-family: var(--font-number);
   font-weight: 900;
+}
+
+.calendar-edit-grid .calendar-installment-toggle input[type="checkbox"] {
+  flex: 0 0 auto;
+  width: 13px;
+  height: 13px;
+  min-width: 13px;
+  min-height: 13px;
+  margin: 0;
+  padding: 0;
+  border-radius: 3px;
 }
 
 .calendar-rule-option {
