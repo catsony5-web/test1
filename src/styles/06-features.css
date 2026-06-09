@@ -1832,16 +1832,6 @@ button.calendar-summary-card:focus-visible {
   padding-top: 14px;
 }
 
-.calendar-installment-toggle {
-  align-self: end;
-  min-height: 42px;
-}
-
-.calendar-installment-preview {
-  font-weight: 850;
-  font-variant-numeric: tabular-nums;
-}
-
 .calendar-edit-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1859,6 +1849,50 @@ button.calendar-summary-card:focus-visible {
 
 .calendar-edit-grid label.wide {
   grid-column: span 2;
+}
+
+.calendar-installment-line {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(76px, 0.62fr) minmax(100px, 1fr) minmax(126px, 1.08fr) minmax(112px, 1fr);
+  gap: 10px;
+  align-items: end;
+  min-width: 0;
+}
+
+.calendar-edit-grid .calendar-installment-line.wide {
+  grid-column: 1 / -1;
+}
+
+.calendar-edit-grid .calendar-installment-line label {
+  min-width: 0;
+}
+
+.calendar-installment-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid var(--control-border);
+  border-radius: 12px;
+  background: var(--surface-soft);
+  color: var(--text-main);
+  white-space: nowrap;
+}
+
+.calendar-installment-toggle input {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  min-height: 14px;
+  padding: 0;
+}
+
+.calendar-installment-preview {
+  font-weight: 850;
+  font-variant-numeric: tabular-nums;
 }
 
 .calendar-edit-grid input,

@@ -441,6 +441,10 @@
     grid-template-columns: 1fr;
   }
 
+  .calendar-installment-line {
+    grid-template-columns: 1fr;
+  }
+
   .calendar-edit-grid label.wide {
     grid-column: auto;
   }

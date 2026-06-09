@@ -357,22 +357,24 @@ function renderCalendarEditForm(item) {
         <label class="wide">메모
           <input type="text" name="memo" value="${escapeHtml(item.memo || "")}">
         </label>
-        <label class="check-line calendar-installment-toggle">
-          <input type="checkbox" name="installmentEnabled" ${installmentEnabled ? "checked" : ""}>
-          할부 적용
-        </label>
-        <label class="calendar-installment-field" ${installmentEnabled ? "" : "hidden"}>
-          할부 개월 수
-          <input type="number" name="installmentMonths" min="2" max="60" value="${escapeHtml(installmentMonthCount)}">
-        </label>
-        <label class="calendar-installment-field" ${installmentEnabled ? "" : "hidden"}>
-          할부 시작 월
-          <input type="month" name="installmentStartMonth" value="${escapeHtml(installmentStartMonth)}">
-        </label>
-        <label class="calendar-installment-field" ${installmentEnabled ? "" : "hidden"}>
-          월별 반영액
-          <input class="calendar-installment-preview" type="text" value="${escapeHtml(formatWon(installmentPreview))}" readonly>
-        </label>
+        <div class="calendar-installment-line wide">
+          <label class="check-line calendar-installment-toggle">
+            <input type="checkbox" name="installmentEnabled" ${installmentEnabled ? "checked" : ""}>
+            <span>할부 적용</span>
+          </label>
+          <label class="calendar-installment-field" ${installmentEnabled ? "" : "hidden"}>
+            할부 개월 수
+            <input type="number" name="installmentMonths" min="2" max="60" value="${escapeHtml(installmentMonthCount)}">
+          </label>
+          <label class="calendar-installment-field" ${installmentEnabled ? "" : "hidden"}>
+            할부 시작 월
+            <input type="month" name="installmentStartMonth" value="${escapeHtml(installmentStartMonth)}">
+          </label>
+          <label class="calendar-installment-field" ${installmentEnabled ? "" : "hidden"}>
+            월별 반영액
+            <input class="calendar-installment-preview" type="text" value="${escapeHtml(formatWon(installmentPreview))}" readonly>
+          </label>
+        </div>
       </div>
       <label class="calendar-rule-option">
         <input type="checkbox" name="saveRule">
