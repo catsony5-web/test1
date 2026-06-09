@@ -398,7 +398,7 @@ function renderSelectedMonthDetail(activeRows, month, sectorNames) {
 
 function renderSelectedSectorCard(sector, rows, monthTotal) {
   const amount = sumActual(rows);
-  const grouped = groupBy(rows, (item) => item.subcategory);
+  const grouped = groupBy(rows, summaryDisplaySubcategory);
   const details = [...grouped.entries()]
     .map(([subcategory, subRows]) => ({ subcategory, amount: sumActual(subRows), count: subRows.length }))
     .sort((a, b) => b.amount - a.amount);
@@ -461,7 +461,7 @@ function attachSelectedSectorCardHandlers(month) {
 }
 
 function buildSelectedDetailRows(monthRows, monthTotal) {
-  const grouped = groupBy(monthRows, (item) => `${item.sector}|${item.subcategory}`);
+  const grouped = groupBy(monthRows, (item) => `${item.sector}|${summaryDisplaySubcategory(item)}`);
   return [...grouped.entries()]
     .map(([key, rows]) => {
       const [sector, subcategory] = key.split("|");
@@ -469,6 +469,22 @@ function buildSelectedDetailRows(monthRows, monthTotal) {
       return { 섹터: sector, 세부항목: subcategory, 금액: amount, 건수: rows.length, 비중: formatPercent(amount, monthTotal) };
     })
     .sort((a, b) => b.금액 - a.금액);
+}
+
+function summaryDisplaySubcategory(item) {
+  const sector = item?.sector || "미분류";
+  const subcategory = item?.subcategory || "미분류";
+  if (sector !== "고정 주거비") return subcategory;
+  const text = [
+    item.merchant,
+    item.description,
+    item.memo,
+    item.sourceLabel,
+    item.sourceFile
+  ].filter(Boolean).join(" ");
+  if (/월세|임대료|rent/i.test(text)) return "월세";
+  if (/보험|실비|치아|운전자|화재/i.test(text)) return "보험료";
+  return subcategory;
 }
 
 function updateSummaryMonthOptions(months) {

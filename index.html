@@ -207,11 +207,9 @@
               <label>월<select id="boardMonth"></select></label>
               <button id="boardNextMonth" type="button" class="month-step-button" title="다음 월">›</button>
             </div>
-            <label>기간 통계<select id="boardRangePreset"><option value="recent-12" selected>최근 1년</option><option value="recent-24">최근 2년</option><option value="year">올해</option><option value="all">전체</option></select></label>
           </div>
         </div>
         <div id="boardMetrics" class="board-metric-grid"></div>
-        <div id="boardPeriodStats" class="board-period-stats"></div>
         <div id="boardSectorMap" class="sector-map-panel" hidden></div>
         <div id="boardSectorSummary" class="board-sector-summary"></div>
         <div class="board-filter-legacy-controls" hidden>
@@ -244,6 +242,7 @@
             <label>보기 기준<select id="monthlyYearFilter"><option value="all">전체 연도</option><option value="recent">최근 몇 년</option></select></label>
             <label>최근 기간<select id="monthlyRecentYears"><option value="1">최근 1년</option><option value="2" selected>최근 2년</option><option value="3">최근 3년</option><option value="5">최근 5년</option><option value="10">최근 10년</option></select></label>
           </div>
+          <div id="monthlyPeriodStats" class="board-period-stats monthly-period-stats"></div>
           <div class="monthly-kpis" id="monthlyKpis"></div>
           <div class="monthly-layout">
             <div class="monthly-chart-panel">
@@ -729,13 +728,13 @@
     </article>
   </template>
 
-  <script src="src/data/constants.js?v=97"></script>
+  <script src="src/data/constants.js?v=98"></script>
   <script src="src/data/categories.js?v=86"></script>
   <script src="src/data/rules.js?v=93"></script>
   <script src="src/data/board-sections.js?v=86"></script>
   <script src="src/data/field-aliases.js?v=77"></script>
 
-  <script src="src/features/app/state.js?v=87"></script>
+  <script src="src/features/app/state.js?v=98"></script>
 
   <script src="src/utils/format.js?v=80"></script>
   <script src="src/utils/date.js?v=61"></script>
@@ -757,14 +756,14 @@
   <script src="src/features/classification/smart-suggestions.js?v=61"></script>
   <script src="src/features/classification/rules-manager.js?v=61"></script>
 
-  <script src="src/features/board/board-view.js?v=78"></script>
-  <script src="src/features/board/board-summary.js?v=86"></script>
+  <script src="src/features/board/board-view.js?v=98"></script>
+  <script src="src/features/board/board-summary.js?v=98"></script>
   <script src="src/features/board/board-cards.js?v=81"></script>
   <script src="src/features/details/details-view.js?v=81"></script>
-  <script src="src/features/summary/summary-view.js?v=87"></script>
+  <script src="src/features/summary/summary-view.js?v=98"></script>
   <script src="src/features/summary/sector-analysis.js?v=82"></script>
   <script src="src/features/summary/summary-chart.js?v=61"></script>
-  <script src="src/features/monthly/monthly-flow.js?v=79"></script>
+  <script src="src/features/monthly/monthly-flow.js?v=98"></script>
   <script src="src/features/monthly/monthly-chart.js?v=79"></script>
   <script src="src/features/income/income-entry.js?v=61"></script>
   <script src="src/features/income/income-bulk.js?v=61"></script>
@@ -778,8 +777,6 @@
   <script src="src/features/app/navigation.js?v=61"></script>
   <script src="src/features/app/appearance.js?v=61"></script>
   <script src="src/features/app/render-all.js?v=78"></script>
-  <script src="src/features/app/init.js?v=87"></script>
+  <script src="src/features/app/init.js?v=98"></script>
 </body>
 </html>
-
-

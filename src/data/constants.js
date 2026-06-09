@@ -1,4 +1,4 @@
-const APP_VERSION = "v97";
+const APP_VERSION = "v98";
 const STORAGE_KEYS = {
   rules: "monthly-card-budget-rules-v1",
   monthlyIncome: "monthly-card-budget-income-v1",
