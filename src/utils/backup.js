@@ -88,6 +88,7 @@ const DATA_SCOPE_META = [
   { key: "recurringPostedTransactions", label: "고정 지출 실제 반영" },
   { key: "rulesAndLearning", label: "분류 규칙/추천" },
   { key: "products", label: "소모품 사용" },
+  { key: "ipoRecords", label: "공모주 기록" },
   { key: "settings", label: "설정/테마" },
   { key: "legacyUnknown", label: "기타 legacy 데이터" }
 ];
@@ -234,6 +235,7 @@ async function buildBackupPayload(scopes) {
   if (sections.rulesAndLearning) payload.rules = sections.rulesAndLearning.rules;
   if (sections.incomeInput) payload.monthlyIncome = sections.incomeInput.monthlyIncome || {};
   if (sections.products) payload.products = sections.products.products || [];
+  if (sections.ipoRecords) payload.ipoRecords = sections.ipoRecords.ipoRecords || [];
   if (sections.recurringDefinitions) payload.recurringExpenses = sections.recurringDefinitions.recurringExpenses || [];
   if (sections.settings) payload.settings = sections.settings.settings || {};
   if (sections.importedExcelTransactions) payload.importMeta = sections.importedExcelTransactions.importMeta || {};
@@ -254,6 +256,7 @@ function buildBackupSection(scope) {
   if (scope === "recurringDefinitions") return { recurringExpenses: recurringExpenses.map(normalizeRecurringExpense) };
   if (scope === "rulesAndLearning") return { rules };
   if (scope === "products") return { products: products.map(normalizeProduct) };
+  if (scope === "ipoRecords") return { ipoRecords: ipoRecords.map(normalizeIpoRecord) };
   if (scope === "settings") return { settings: appSettings };
   return null;
 }
@@ -298,6 +301,7 @@ function normalizeBackupPayload(payload) {
   if (!sections.rulesAndLearning && Array.isArray(payload?.rules)) sections.rulesAndLearning = { rules: payload.rules };
   if (!sections.recurringDefinitions && Array.isArray(payload?.recurringExpenses)) sections.recurringDefinitions = { recurringExpenses: payload.recurringExpenses };
   if (!sections.products && Array.isArray(payload?.products)) sections.products = { products: payload.products };
+  if (!sections.ipoRecords && Array.isArray(payload?.ipoRecords)) sections.ipoRecords = { ipoRecords: payload.ipoRecords };
   if (!sections.settings && payload?.settings) sections.settings = { settings: payload.settings };
 
   Object.keys(DATA_SCOPE_ALIASES).forEach((legacyScope) => {
@@ -338,6 +342,7 @@ function normalizeBackupSection(scope, raw) {
   if (scope === "recurringDefinitions") return { recurringExpenses: Array.isArray(raw.recurringExpenses) ? raw.recurringExpenses.map(normalizeRecurringExpense) : [] };
   if (scope === "rulesAndLearning") return { rules: Array.isArray(raw.rules) ? raw.rules : [] };
   if (scope === "products") return { products: Array.isArray(raw.products) ? raw.products.map(normalizeProduct) : [] };
+  if (scope === "ipoRecords") return { ipoRecords: Array.isArray(raw.ipoRecords) ? raw.ipoRecords.map(normalizeIpoRecord) : [] };
   if (scope === "settings") return { settings: raw.settings && typeof raw.settings === "object" ? raw.settings : {} };
   return null;
 }
@@ -347,6 +352,7 @@ function emptyBackupSection(scope) {
   if (scope === "recurringDefinitions") return { recurringExpenses: [] };
   if (scope === "rulesAndLearning") return { rules: [] };
   if (scope === "products") return { products: [] };
+  if (scope === "ipoRecords") return { ipoRecords: [] };
   if (scope === "settings") return { settings: {} };
   return {};
 }
@@ -364,6 +370,7 @@ function countBackupSections(sections) {
     else if (scope === "recurringDefinitions") counts[scope] = Array.isArray(section.recurringExpenses) ? section.recurringExpenses.length : 0;
     else if (scope === "rulesAndLearning") counts[scope] = Array.isArray(section.rules) ? section.rules.length : 0;
     else if (scope === "products") counts[scope] = Array.isArray(section.products) ? section.products.length : 0;
+    else if (scope === "ipoRecords") counts[scope] = Array.isArray(section.ipoRecords) ? section.ipoRecords.length : 0;
     else if (scope === "settings") counts[scope] = section.settings && Object.keys(section.settings).length ? 1 : 0;
   });
   return counts;
@@ -409,6 +416,7 @@ function applyClearScopes(scopes) {
   if (selected.includes("recurringDefinitions")) recurringExpenses = [];
   if (selected.includes("rulesAndLearning")) rules = structuredClone(defaultRules);
   if (selected.includes("products")) products = [];
+  if (selected.includes("ipoRecords")) ipoRecords = [];
   if (selected.includes("settings")) {
     appSettings = defaultAppSettings();
     applyAppSettings();
@@ -441,6 +449,10 @@ function applyRestorePayload(payload, scopes, options = {}) {
     const incoming = Array.isArray(bundle.sections.products?.products) ? bundle.sections.products.products.map(normalizeProduct) : [];
     products = mode === "merge" ? mergeProducts(products, incoming) : incoming;
   }
+  if (selected.includes("ipoRecords")) {
+    const incoming = Array.isArray(bundle.sections.ipoRecords?.ipoRecords) ? bundle.sections.ipoRecords.ipoRecords.map(normalizeIpoRecord) : [];
+    ipoRecords = mode === "merge" ? mergeIpoRecords(ipoRecords, incoming) : incoming;
+  }
   if (selected.includes("settings")) {
     const incoming = bundle.sections.settings?.settings && typeof bundle.sections.settings.settings === "object" ? bundle.sections.settings.settings : {};
     appSettings = { ...defaultAppSettings(), ...incoming };
@@ -466,6 +478,7 @@ async function saveSelectedScopes(scopes, options = {}) {
   if (selected.includes("rulesAndLearning")) writes.push(saveRules());
   if (selected.includes("incomeInput")) writes.push(saveIncome());
   if (selected.includes("products")) writes.push(saveProducts());
+  if (selected.includes("ipoRecords")) writes.push(saveIpoRecords());
   if (selected.includes("recurringDefinitions")) writes.push(saveRecurringExpenses());
   if (selected.includes("settings")) writes.push(saveSettings());
   await Promise.all(writes);
@@ -565,9 +578,31 @@ function mergeProducts(current, incoming) {
   return result;
 }
 
+function mergeIpoRecords(current, incoming) {
+  const result = current.map(normalizeIpoRecord);
+  const seen = new Set(result.map(ipoRecordSignature));
+  incoming.map(normalizeIpoRecord).forEach((item) => {
+    const signature = ipoRecordSignature(item);
+    if (seen.has(signature)) return;
+    seen.add(signature);
+    result.push(item);
+  });
+  return result;
+}
+
 function productSignature(item) {
   const normalized = normalizeProduct(item);
   return normalized.id || [normalizeKeyText(normalized.name), normalized.purchaseDate, normalized.link].join("|");
+}
+
+function ipoRecordSignature(item) {
+  const normalized = normalizeIpoRecord(item);
+  return normalized.id || [
+    normalizeKeyText(normalized.company),
+    normalized.broker,
+    normalized.subscriptionStart,
+    normalized.offerPrice
+  ].join("|");
 }
 
 function mergeRuleLists(current, incoming) {

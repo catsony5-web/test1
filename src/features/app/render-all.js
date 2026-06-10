@@ -8,6 +8,7 @@ function renderAll() {
   renderCalendar();
   renderRecurring();
   renderProducts();
+  renderIpoView();
   renderUnknown();
   renderRules();
   renderTransactions();
@@ -25,6 +26,7 @@ function renderView(viewName) {
     income: renderIncomeEntries,
     recurring: renderRecurring,
     products: renderProducts,
+    ipo: renderIpoView,
     unknown: renderUnknown,
     rules: renderRules,
     transactions: renderTransactions

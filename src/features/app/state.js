@@ -177,6 +177,56 @@ const els = {
   productTrendSelect: document.querySelector("#productTrendSelect"),
   productTrendChart: document.querySelector("#productTrendChart"),
   productList: document.querySelector("#productList"),
+  ipoForm: document.querySelector("#ipoForm"),
+  ipoId: document.querySelector("#ipoId"),
+  ipoCompany: document.querySelector("#ipoCompany"),
+  ipoMarket: document.querySelector("#ipoMarket"),
+  ipoBroker: document.querySelector("#ipoBroker"),
+  ipoSubscriptionStart: document.querySelector("#ipoSubscriptionStart"),
+  ipoSubscriptionEnd: document.querySelector("#ipoSubscriptionEnd"),
+  ipoRefundDate: document.querySelector("#ipoRefundDate"),
+  ipoListingDate: document.querySelector("#ipoListingDate"),
+  ipoOfferPrice: document.querySelector("#ipoOfferPrice"),
+  ipoAppliedShares: document.querySelector("#ipoAppliedShares"),
+  ipoDepositAmount: document.querySelector("#ipoDepositAmount"),
+  ipoApplicationFee: document.querySelector("#ipoApplicationFee"),
+  ipoAllocatedShares: document.querySelector("#ipoAllocatedShares"),
+  ipoSellDate: document.querySelector("#ipoSellDate"),
+  ipoSellPrice: document.querySelector("#ipoSellPrice"),
+  ipoSellAmount: document.querySelector("#ipoSellAmount"),
+  ipoSellFee: document.querySelector("#ipoSellFee"),
+  ipoOpenPrice: document.querySelector("#ipoOpenPrice"),
+  ipoHighPrice: document.querySelector("#ipoHighPrice"),
+  ipoClosePrice: document.querySelector("#ipoClosePrice"),
+  ipoMemo: document.querySelector("#ipoMemo"),
+  ipoComputedProfit: document.querySelector("#ipoComputedProfit"),
+  ipoComputedRate: document.querySelector("#ipoComputedRate"),
+  ipoComputedSettlementProfit: document.querySelector("#ipoComputedSettlementProfit"),
+  saveIpoButton: document.querySelector("#saveIpoButton"),
+  cancelIpoEditButton: document.querySelector("#cancelIpoEditButton"),
+  ipoSubtabs: document.querySelectorAll("[data-ipo-subtab]"),
+  ipoSubtabPanels: document.querySelectorAll("[data-ipo-panel]"),
+  ipoSummaryCards: document.querySelector("#ipoSummaryCards"),
+  prevIpoCalendarMonth: document.querySelector("#prevIpoCalendarMonth"),
+  ipoCalendarMonthSelect: document.querySelector("#ipoCalendarMonthSelect"),
+  nextIpoCalendarMonth: document.querySelector("#nextIpoCalendarMonth"),
+  ipoCalendarGrid: document.querySelector("#ipoCalendarGrid"),
+  ipoCalendarDetail: document.querySelector("#ipoCalendarDetail"),
+  ipoStatusFilter: document.querySelector("#ipoStatusFilter"),
+  ipoMonthFilter: document.querySelector("#ipoMonthFilter"),
+  ipoBrokerFilter: document.querySelector("#ipoBrokerFilter"),
+  ipoSearchInput: document.querySelector("#ipoSearchInput"),
+  ipoSortSelect: document.querySelector("#ipoSortSelect"),
+  ipoList: document.querySelector("#ipoList"),
+  ipoPasteInput: document.querySelector("#ipoPasteInput"),
+  parseIpoPasteButton: document.querySelector("#parseIpoPasteButton"),
+  clearIpoPasteButton: document.querySelector("#clearIpoPasteButton"),
+  saveIpoPasteButton: document.querySelector("#saveIpoPasteButton"),
+  ipoPasteFeedback: document.querySelector("#ipoPasteFeedback"),
+  ipoPastePreview: document.querySelector("#ipoPastePreview"),
+  loadIpoCalendarButton: document.querySelector("#loadIpoCalendarButton"),
+  ipoCalendarStatus: document.querySelector("#ipoCalendarStatus"),
+  ipoCalendarCandidates: document.querySelector("#ipoCalendarCandidates"),
   recurringForm: document.querySelector("#recurringForm"),
   recurringId: document.querySelector("#recurringId"),
   recurringName: document.querySelector("#recurringName"),
@@ -238,6 +288,7 @@ let classified = [];
 let importMeta = {};
 let reimbursements = {};
 let products = [];
+let ipoRecords = [];
 let recurringExpenses = [];
 let appSettings = defaultAppSettings();
 let pendingBackgroundImageData = "";
@@ -258,6 +309,14 @@ let boardHighlightSector = "";
 let incomeBulkRows = [];
 let recurringBulkRows = [];
 let detailBulkRows = [];
+let ipoPasteRows = [];
+let ipoCalendarCandidates = [];
+let editingIpoId = "";
+let selectedIpoSubtab = "dashboard";
+let selectedIpoCalendarMonth = "";
+let selectedIpoCalendarDate = "";
+let selectedIpoCalendarRecordId = "";
+let selectedIpoCalendarEventKey = "";
 let editingDetailBulkRecordKey = "";
 let editingIncomeKey = "";
 let editingRecurringId = "";
@@ -267,6 +326,7 @@ let focusedMonthlyMonth = "";
 let isCreatingSnapshot = false;
 const ruleFilters = { type: "all", sector: "all", subcategory: "all", search: "", sort: "priority" };
 const productFilters = { category: "all", name: "all", store: "", status: "all", search: "", sort: "recent", trendName: "" };
+const ipoFilters = { status: "all", month: "all", broker: "all", search: "", sort: "subscription-desc" };
 let selectedSummarySector = "";
 let selectedSummaryMonth = "";
 let selectedSummaryRangePreset = "recent-12";

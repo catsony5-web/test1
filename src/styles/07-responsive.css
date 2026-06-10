@@ -26,6 +26,7 @@
   .calendar-layout,
   .board-detail-layout,
   .product-dashboard,
+  .ipo-layout,
   .recurring-layout {
     grid-template-columns: 1fr;
   }
@@ -59,6 +60,20 @@
 
   .income-entry-form {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ipo-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ipo-subtabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .ipo-subtab {
+    flex: 0 0 auto;
   }
 
   .recurring-form,
@@ -158,6 +173,57 @@
 }
 
 @media (max-width: 767px) {
+  .ipo-form-grid,
+  .ipo-computed-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .ipo-card-head,
+  .ipo-candidate {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .ipo-card-profit {
+    text-align: left;
+  }
+
+  .ipo-calendar-panel .panel-head,
+  .ipo-calendar-controls {
+    width: 100%;
+  }
+
+  .ipo-calendar-controls {
+    grid-template-columns: 38px minmax(0, 1fr) 38px;
+  }
+
+  .ipo-calendar-body {
+    grid-template-columns: 1fr;
+  }
+
+  .ipo-calendar-weekdays span {
+    padding: 8px 3px;
+    font-size: 11px;
+  }
+
+  .ipo-calendar-cell {
+    min-height: 94px;
+    padding: 7px;
+  }
+
+  .ipo-calendar-event {
+    padding: 5px 6px;
+  }
+
+  .ipo-calendar-event small,
+  .ipo-calendar-event b {
+    display: none;
+  }
+
+  .ipo-calendar-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
   .topbar,
   main {
     width: min(100% - 20px, 1720px);

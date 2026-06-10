@@ -157,6 +157,42 @@ async function init() {
     .forEach((control) => control.addEventListener("change", renderProducts));
   [els.productFilterStore, els.productFilterSearch]
     .forEach((control) => control.addEventListener("input", renderProducts));
+  els.ipoForm?.addEventListener("submit", handleIpoSubmit);
+  els.cancelIpoEditButton?.addEventListener("click", resetIpoForm);
+  Array.from(els.ipoSubtabs || []).forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedIpoSubtab = button.dataset.ipoSubtab || "dashboard";
+      renderIpoView();
+    });
+  });
+  [
+    els.ipoOfferPrice,
+    els.ipoApplicationFee,
+    els.ipoAllocatedShares,
+    els.ipoSellPrice,
+    els.ipoSellAmount,
+    els.ipoSellFee
+  ].filter(Boolean).forEach((control) => control.addEventListener("input", updateIpoComputedPreview));
+  [els.ipoStatusFilter, els.ipoMonthFilter, els.ipoBrokerFilter, els.ipoSortSelect]
+    .filter(Boolean)
+    .forEach((control) => control.addEventListener("change", () => {
+      readIpoFilters();
+      renderIpoView();
+    }));
+  els.ipoSearchInput?.addEventListener("input", () => {
+    readIpoFilters();
+    renderIpoView();
+  });
+  els.parseIpoPasteButton?.addEventListener("click", handleIpoPasteParse);
+  els.clearIpoPasteButton?.addEventListener("click", clearIpoPasteInput);
+  els.saveIpoPasteButton?.addEventListener("click", saveIpoPasteRows);
+  els.loadIpoCalendarButton?.addEventListener("click", loadIpoCalendarCandidates);
+  els.prevIpoCalendarMonth?.addEventListener("click", () => moveIpoCalendarMonth(-1));
+  els.nextIpoCalendarMonth?.addEventListener("click", () => moveIpoCalendarMonth(1));
+  els.ipoCalendarMonthSelect?.addEventListener("change", () => {
+    selectedIpoCalendarMonth = els.ipoCalendarMonthSelect.value;
+    renderIpoView();
+  });
   els.ruleForm.addEventListener("submit", (event) => {
     event.preventDefault();
     const keyword = els.ruleKeyword.value.trim();

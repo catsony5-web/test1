@@ -7,6 +7,7 @@ async function hydrateStoredData() {
   importMeta = await loadImportMeta();
   reimbursements = await loadReimbursements();
   products = await loadProducts();
+  ipoRecords = await loadIpoRecords();
   recurringExpenses = await loadRecurringExpenses();
   currentFileName = importMeta.lastFileName || "";
   await ensureDailyAutoSnapshot();
@@ -223,6 +224,7 @@ function collectSnapshotData() {
     recurringExpenses: recurringExpenses.map(normalizeRecurringExpense),
     rules,
     products: products.map(normalizeProduct),
+    ipoRecords: ipoRecords.map(normalizeIpoRecord),
     reimbursements,
     importMeta,
     settings: appSettings
@@ -235,7 +237,7 @@ async function loadAutoSnapshots() {
 }
 
 async function ensureDailyAutoSnapshot() {
-  const hasData = transactions.length || Object.keys(monthlyIncome || {}).length || recurringExpenses.length || products.length || rules.length;
+  const hasData = transactions.length || Object.keys(monthlyIncome || {}).length || recurringExpenses.length || products.length || ipoRecords.length || rules.length;
   const today = new Date().toISOString().slice(0, 10);
   if (!hasData || appSettings.lastDailySnapshotDate === today) return;
   await createAutoSnapshot("하루 1회 자동 스냅샷");
@@ -278,7 +280,7 @@ async function restoreFromSnapshot(snapshotId) {
   if (!snapshot) return;
   const scopes = typeof selectedDataScopes === "function"
     ? selectedDataScopes()
-    : ["importedExcelTransactions", "pastBulkTransactions", "directManualTransactions", "incomeInput", "recurringDefinitions", "recurringPostedTransactions", "rulesAndLearning", "products", "settings", "legacyUnknown"];
+    : ["importedExcelTransactions", "pastBulkTransactions", "directManualTransactions", "incomeInput", "recurringDefinitions", "recurringPostedTransactions", "rulesAndLearning", "products", "ipoRecords", "settings", "legacyUnknown"];
   if (!scopes.length) {
     alert("복구할 데이터 항목을 하나 이상 선택해주세요.");
     return;
@@ -430,6 +432,16 @@ function saveProducts() {
   return safeSave(PRODUCT_STORAGE_KEY, products.map(normalizeProduct));
 }
 
+async function loadIpoRecords() {
+  const stored = await safeLoad(IPO_STORAGE_KEY, []);
+  if (Array.isArray(stored)) return stored.map(normalizeIpoRecord).filter((item) => item.id && item.company);
+  return [];
+}
+
+function saveIpoRecords() {
+  return safeSave(IPO_STORAGE_KEY, ipoRecords.map(normalizeIpoRecord));
+}
+
 async function loadRecurringExpenses() {
   const stored = await safeLoad(RECURRING_STORAGE_KEY, []);
   if (Array.isArray(stored)) return stored.map(normalizeRecurringExpense).filter((item) => item.id && item.name);
@@ -471,4 +483,52 @@ function normalizeReimbursements(value) {
   return Object.fromEntries(Object.entries(value)
     .map(([key, amount]) => [key, Math.max(0, toNumber(amount))])
     .filter(([key, amount]) => key && amount > 0));
+}
+
+function normalizeIpoRecord(item) {
+  const company = String(item?.company || item?.name || "").trim();
+  const offerPrice = Math.max(0, toNumber(item?.offerPrice));
+  const allocatedShares = Math.max(0, toNumber(item?.allocatedShares));
+  const sellPrice = Math.max(0, toNumber(item?.sellPrice));
+  const sellAmount = Math.max(0, toNumber(item?.sellAmount));
+  const applicationFee = Math.max(0, toNumber(item?.applicationFee));
+  const sellFee = Math.max(0, toNumber(item?.sellFee));
+    const finalSellAmount = sellAmount || sellPrice || 0;
+    const buyAmount = offerPrice;
+    const totalFees = applicationFee + sellFee;
+    const hasSettledAmount = finalSellAmount > 0 && buyAmount > 0;
+    const profit = hasSettledAmount ? finalSellAmount - buyAmount : 0;
+    const settlementProfit = hasSettledAmount ? profit - totalFees : 0;
+  const profitRate = buyAmount ? profit / buyAmount * 100 : 0;
+  return {
+    id: item?.id || `ipo-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    company,
+    market: String(item?.market || "").trim(),
+    broker: String(item?.broker || "").trim(),
+    subscriptionStart: normalizeInputDate(item?.subscriptionStart || item?.date),
+    subscriptionEnd: normalizeInputDate(item?.subscriptionEnd || item?.subscriptionStart || item?.date),
+    refundDate: normalizeInputDate(item?.refundDate),
+    listingDate: normalizeInputDate(item?.listingDate),
+    offerPrice,
+    appliedShares: Math.max(0, toNumber(item?.appliedShares)),
+    depositAmount: Math.max(0, toNumber(item?.depositAmount)),
+    applicationFee,
+    allocatedShares,
+    sellDate: normalizeInputDate(item?.sellDate),
+    sellPrice,
+    sellAmount: finalSellAmount,
+    sellFee,
+    openPrice: Math.max(0, toNumber(item?.openPrice)),
+    highPrice: Math.max(0, toNumber(item?.highPrice)),
+    closePrice: Math.max(0, toNumber(item?.closePrice)),
+    memo: String(item?.memo || "").trim(),
+    source: item?.source || "manual",
+    sourceLabel: item?.sourceLabel || (item?.source === "calendar" ? "일정 불러오기" : "직접 입력"),
+    createdAt: item?.createdAt || new Date().toISOString(),
+    updatedAt: item?.updatedAt || item?.createdAt || new Date().toISOString(),
+    profit,
+    profitRate,
+    totalFees,
+    settlementProfit
+  };
 }

@@ -12,8 +12,8 @@
   <link rel="stylesheet" href="src/styles/03-components.css?v=77">
   <link rel="stylesheet" href="src/styles/04-forms-tables.css?v=81">
   <link rel="stylesheet" href="src/styles/05-charts.css?v=78">
-  <link rel="stylesheet" href="src/styles/06-features.css?v=96">
-  <link rel="stylesheet" href="src/styles/07-responsive.css?v=95">
+  <link rel="stylesheet" href="src/styles/06-features.css?v=105">
+  <link rel="stylesheet" href="src/styles/07-responsive.css?v=105">
   <link rel="stylesheet" href="src/styles/08-themes.css?v=91">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
@@ -128,6 +128,7 @@
                 <label><input type="checkbox" data-data-scope="recurringPostedTransactions"> 고정 지출 실제 반영</label>
                 <label><input type="checkbox" data-data-scope="rulesAndLearning"> 분류 규칙/추천</label>
                 <label><input type="checkbox" data-data-scope="products"> 소모품 사용</label>
+                <label><input type="checkbox" data-data-scope="ipoRecords"> 공모주 기록</label>
                 <label><input type="checkbox" data-data-scope="settings"> 설정/테마</label>
                 <label><input type="checkbox" data-data-scope="legacyUnknown"> 기타 legacy 데이터</label>
               </div>
@@ -186,6 +187,7 @@
         <button class="tab" type="button" data-view="details"><span class="nav-icon" aria-hidden="true">≡</span><span class="nav-label">상세 내역</span></button>
         <button class="tab" type="button" data-view="monthly"><span class="nav-icon" aria-hidden="true">↗</span><span class="nav-label">년도 지출정리</span></button>
         <button class="tab" type="button" data-view="summary"><span class="nav-icon" aria-hidden="true">▦</span><span class="nav-label">월별 섹터 요약</span></button>
+        <button class="tab" type="button" data-view="ipo"><span class="nav-icon" aria-hidden="true">◇</span><span class="nav-label">공모주</span></button>
         <button class="tab" type="button" data-view="detailBulk"><span class="nav-icon" aria-hidden="true">＋</span><span class="nav-label">과거 거래 입력</span></button>
         <button class="tab" type="button" data-view="income"><span class="nav-icon" aria-hidden="true">＋</span><span class="nav-label">수입 입력</span></button>
         <button class="tab" type="button" data-view="recurring"><span class="nav-icon" aria-hidden="true">◎</span><span class="nav-label">고정 지출</span></button>
@@ -481,6 +483,127 @@
         </div>
       </section>
 
+      <section id="ipoView" class="view">
+        <div class="section-head ipo-head">
+          <div>
+            <h2>공모주</h2>
+            <p>청약 일정, 배정 주수, 매도 금액을 기록하고 매도금액과 공모가 기준으로 손익을 자동 계산합니다.</p>
+          </div>
+          <button id="loadIpoCalendarButton" type="button">자동 일정 확인</button>
+        </div>
+        <div class="ipo-subtabs" role="tablist" aria-label="공모주 화면">
+          <button class="ipo-subtab active" type="button" role="tab" data-ipo-subtab="dashboard" aria-selected="true" aria-controls="ipoDashboardPanel">대시보드</button>
+          <button class="ipo-subtab" type="button" role="tab" data-ipo-subtab="entry" aria-selected="false" aria-controls="ipoEntryPanel">기록 입력</button>
+          <button class="ipo-subtab" type="button" role="tab" data-ipo-subtab="records" aria-selected="false" aria-controls="ipoRecordsPanel">전체 기록</button>
+        </div>
+        <section id="ipoDashboardPanel" class="ipo-subtab-panel" data-ipo-panel="dashboard" role="tabpanel">
+          <div id="ipoSummaryCards" class="ipo-summary-grid"></div>
+          <section class="ipo-calendar-panel">
+            <div class="panel-head">
+              <div>
+                <h3>공모주 달력</h3>
+                <p>청약, 환불, 상장, 매도 일정을 월별 달력으로 확인합니다.</p>
+              </div>
+              <div class="ipo-calendar-controls">
+                <button id="prevIpoCalendarMonth" type="button" title="이전 월">‹</button>
+                <select id="ipoCalendarMonthSelect" aria-label="공모주 달력 월 선택"></select>
+                <button id="nextIpoCalendarMonth" type="button" title="다음 월">›</button>
+              </div>
+            </div>
+            <div class="ipo-calendar-body">
+              <div id="ipoCalendarGrid" class="ipo-calendar-grid"></div>
+              <aside id="ipoCalendarDetail" class="ipo-calendar-detail" aria-live="polite"></aside>
+            </div>
+          </section>
+        </section>
+        <section id="ipoEntryPanel" class="ipo-subtab-panel" data-ipo-panel="entry" role="tabpanel" hidden>
+          <div class="ipo-layout">
+          <form id="ipoForm" class="ipo-form">
+            <input id="ipoId" type="hidden">
+            <div class="panel-head">
+              <div>
+                <h3>공모주 기록 입력</h3>
+                <p>매도 금액만 입력해도 공모가 기준으로 손익을 계산합니다. 배정 주수는 기록용으로만 사용합니다.</p>
+              </div>
+            </div>
+            <div class="ipo-form-grid">
+              <label>종목명<input id="ipoCompany" type="text" placeholder="예: 미트박스"></label>
+              <label>시장<input id="ipoMarket" type="text" placeholder="예: 코스닥"></label>
+              <label>증권사<input id="ipoBroker" type="text" placeholder="예: 미래에셋"></label>
+              <label>청약 시작일<input id="ipoSubscriptionStart" type="date"></label>
+              <label>청약 종료일<input id="ipoSubscriptionEnd" type="date"></label>
+              <label>환불일<input id="ipoRefundDate" type="date"></label>
+              <label>상장일<input id="ipoListingDate" type="date"></label>
+              <label>공모가<input id="ipoOfferPrice" type="text" inputmode="numeric" placeholder="예: 16800"></label>
+              <label>청약 주수<input id="ipoAppliedShares" type="number" min="0" placeholder="선택 입력"></label>
+              <label>청약 증거금<input id="ipoDepositAmount" type="text" inputmode="numeric" placeholder="선택 입력"></label>
+              <label>청약 수수료<input id="ipoApplicationFee" type="text" inputmode="numeric" placeholder="예: 2000"></label>
+              <label>배정 주수<input id="ipoAllocatedShares" type="number" min="0" placeholder="예: 1"></label>
+              <label>매도일<input id="ipoSellDate" type="date"></label>
+              <label>매도가<input id="ipoSellPrice" type="text" inputmode="numeric" placeholder="1주 매도가"></label>
+              <label>매도 금액<input id="ipoSellAmount" type="text" inputmode="numeric" placeholder="총 매도 금액"></label>
+              <label>매도 수수료<input id="ipoSellFee" type="text" inputmode="numeric" placeholder="선택 입력"></label>
+              <label>시가<input id="ipoOpenPrice" type="text" inputmode="numeric" placeholder="자동/수동 입력"></label>
+              <label>고가<input id="ipoHighPrice" type="text" inputmode="numeric" placeholder="자동/수동 입력"></label>
+              <label>종가<input id="ipoClosePrice" type="text" inputmode="numeric" placeholder="자동/수동 입력"></label>
+              <label class="wide-field">메모<input id="ipoMemo" type="text" placeholder="상장일 메모, 매도 이유, 참고 링크 등"></label>
+            </div>
+            <div class="ipo-computed-panel">
+              <div><span>손익(수수료 제외)</span><strong id="ipoComputedProfit">0원</strong></div>
+              <div><span>손익률(수수료 제외)</span><strong id="ipoComputedRate">0.00%</strong></div>
+              <div><span>최종 정산 손익</span><strong id="ipoComputedSettlementProfit">0원</strong></div>
+              <small>정산 손익만 청약/매도 수수료를 반영합니다.</small>
+            </div>
+            <div class="ipo-form-actions">
+              <button id="saveIpoButton" class="primary-action" type="submit">공모주 기록 저장</button>
+              <button id="cancelIpoEditButton" type="button" hidden>수정 취소</button>
+            </div>
+          </form>
+          <section class="ipo-side-panel">
+            <div class="panel-head">
+              <div>
+                <h3>붙여넣기/CSV 가져오기</h3>
+                <p>엑셀에서 날짜, 종목, 증권사, 공모가, 수수료, 매도금액 순서로 붙여넣을 수 있습니다.</p>
+              </div>
+            </div>
+            <textarea id="ipoPasteInput" rows="7" placeholder="01월 23일	미트박스	미래에셋	16800	2000	15940&#10;2026.02.12	클로봇 2개	미래에셋	13000	2000	15940"></textarea>
+            <div class="paste-actions">
+              <button id="parseIpoPasteButton" type="button">붙여넣기 파싱</button>
+              <button id="clearIpoPasteButton" type="button">비우기</button>
+              <button id="saveIpoPasteButton" class="primary-action" type="button" disabled>일괄 저장</button>
+            </div>
+            <p id="ipoPasteFeedback" class="bulk-feedback" aria-live="polite"></p>
+            <div class="table-wrap ipo-preview-wrap">
+              <table id="ipoPastePreview"></table>
+            </div>
+            <div class="ipo-calendar-import">
+              <h3>자동 일정 후보</h3>
+              <p id="ipoCalendarStatus">GitHub Actions로 만든 일정 JSON이 있으면 자동 후보를 불러올 수 있습니다.</p>
+              <div id="ipoCalendarCandidates" class="ipo-candidate-list"></div>
+            </div>
+          </section>
+          </div>
+        </section>
+        <section id="ipoRecordsPanel" class="ipo-subtab-panel" data-ipo-panel="records" role="tabpanel" hidden>
+        <section class="ipo-records-panel">
+          <div class="detail-bulk-records-head">
+            <div>
+              <h3>전체 공모주 기록</h3>
+              <p>청약 상태, 증권사, 월, 종목명으로 기록을 찾고 매도 결과를 관리합니다.</p>
+            </div>
+          </div>
+          <div class="detail-bulk-record-filters">
+            <label>상태<select id="ipoStatusFilter"><option value="all">전체</option><option value="planned">청약 예정</option><option value="applied">배정 대기</option><option value="allocated">배정/매도 대기</option><option value="sold">매도 완료</option></select></label>
+            <label>월<select id="ipoMonthFilter"><option value="all">전체 월</option></select></label>
+            <label>증권사<select id="ipoBrokerFilter"><option value="all">전체 증권사</option></select></label>
+            <label>검색<input id="ipoSearchInput" type="text" placeholder="종목명·증권사·메모 검색"></label>
+            <label>정렬<select id="ipoSortSelect"><option value="subscription-desc">최근 청약순</option><option value="listing-desc">최근 상장순</option><option value="sell-desc">최근 매도순</option><option value="profit-desc">수익 높은 순</option><option value="profit-asc">손실 큰 순</option></select></label>
+          </div>
+          <div id="ipoList" class="ipo-list"></div>
+        </section>
+        </section>
+      </section>
+
       <section id="detailsView" class="view">
         <div class="section-head">
           <div>
@@ -729,21 +852,21 @@
     </article>
   </template>
 
-  <script src="src/data/constants.js?v=97"></script>
+  <script src="src/data/constants.js?v=105"></script>
   <script src="src/data/categories.js?v=86"></script>
   <script src="src/data/rules.js?v=93"></script>
   <script src="src/data/board-sections.js?v=86"></script>
   <script src="src/data/field-aliases.js?v=77"></script>
 
-  <script src="src/features/app/state.js?v=87"></script>
+  <script src="src/features/app/state.js?v=105"></script>
 
   <script src="src/utils/format.js?v=80"></script>
   <script src="src/utils/date.js?v=61"></script>
   <script src="src/utils/dom.js?v=61"></script>
   <script src="src/utils/normalize.js?v=93"></script>
   <script src="src/utils/grouping.js?v=78"></script>
-  <script src="src/utils/storage.js?v=86"></script>
-  <script src="src/utils/backup.js?v=78"></script>
+  <script src="src/utils/storage.js?v=104"></script>
+  <script src="src/utils/backup.js?v=99"></script>
 
   <script src="src/components/chips.js?v=86"></script>
   <script src="src/components/tables.js?v=61"></script>
@@ -772,14 +895,13 @@
   <script src="src/features/recurring/recurring-view.js?v=74"></script>
   <script src="src/features/calendar/calendar-view.js?v=96"></script>
   <script src="src/features/products/products-view.js?v=61"></script>
+  <script src="src/features/ipo/ipo-view.js?v=105"></script>
   <script src="src/features/unknown/unknown-view.js?v=97"></script>
   <script src="src/features/transactions/transactions-view.js?v=77"></script>
 
   <script src="src/features/app/navigation.js?v=61"></script>
   <script src="src/features/app/appearance.js?v=61"></script>
-  <script src="src/features/app/render-all.js?v=78"></script>
-  <script src="src/features/app/init.js?v=87"></script>
+  <script src="src/features/app/render-all.js?v=99"></script>
+  <script src="src/features/app/init.js?v=103"></script>
 </body>
 </html>
-
-

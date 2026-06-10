@@ -1,4 +1,4 @@
-const CACHE_NAME = "monthly-card-budget-v97";
+const CACHE_NAME = "monthly-card-budget-v105";
 const APP_FILES = [
   "./",
   "./index.html",
@@ -49,6 +49,7 @@ const APP_FILES = [
   "./src/features/recurring/recurring-view.js",
   "./src/features/calendar/calendar-view.js",
   "./src/features/products/products-view.js",
+  "./src/features/ipo/ipo-view.js",
   "./src/features/unknown/unknown-view.js",
   "./src/features/transactions/transactions-view.js",
   "./src/features/app/navigation.js",
@@ -56,7 +57,8 @@ const APP_FILES = [
   "./src/features/app/render-all.js",
   "./src/features/app/init.js",
   "./manifest.webmanifest",
-  "./app-icon.svg"
+  "./app-icon.svg",
+  "./data/ipo-calendar.json"
 ];
 
 self.addEventListener("install", (event) => {
