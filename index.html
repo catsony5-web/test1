@@ -241,8 +241,9 @@
         </div>
         <div class="monthly-overview">
           <div class="monthly-filterbar">
-            <label>보기 기준<select id="monthlyYearFilter"><option value="all">전체 연도</option><option value="recent">최근 몇 년</option></select></label>
-            <label>최근 기간<select id="monthlyRecentYears"><option value="1">최근 1년</option><option value="2" selected>최근 2년</option><option value="3">최근 3년</option><option value="5">최근 5년</option><option value="10">최근 10년</option></select></label>
+            <label>보기 기준<select id="monthlyYearFilter"><option value="all">전체 연도</option><option value="range">직접 기간</option></select></label>
+            <label>시작 연도<select id="monthlyStartYear"></select></label>
+            <label>종료 연도<select id="monthlyEndYear"></select></label>
           </div>
           <div id="monthlyPeriodStats" class="board-period-stats monthly-period-stats"></div>
           <div class="monthly-kpis" id="monthlyKpis"></div>
@@ -857,7 +858,7 @@
   <script src="src/data/board-sections.js?v=86"></script>
   <script src="src/data/field-aliases.js?v=77"></script>
 
-  <script src="src/features/app/state.js?v=106"></script>
+  <script src="src/features/app/state.js?v=108"></script>
 
   <script src="src/utils/format.js?v=80"></script>
   <script src="src/utils/date.js?v=61"></script>
@@ -886,12 +887,12 @@
   <script src="src/features/summary/summary-view.js?v=106"></script>
   <script src="src/features/summary/sector-analysis.js?v=82"></script>
   <script src="src/features/summary/summary-chart.js?v=61"></script>
-  <script src="src/features/monthly/monthly-flow.js?v=106"></script>
+  <script src="src/features/monthly/monthly-flow.js?v=108"></script>
   <script src="src/features/monthly/monthly-chart.js?v=79"></script>
   <script src="src/features/income/income-entry.js?v=61"></script>
   <script src="src/features/income/income-bulk.js?v=61"></script>
   <script src="src/features/income/income-list.js?v=66"></script>
-  <script src="src/features/recurring/recurring-view.js?v=107"></script>
+  <script src="src/features/recurring/recurring-view.js?v=108"></script>
   <script src="src/features/calendar/calendar-view.js?v=96"></script>
   <script src="src/features/products/products-view.js?v=61"></script>
   <script src="src/features/ipo/ipo-view.js?v=106"></script>
@@ -901,6 +902,6 @@
   <script src="src/features/app/navigation.js?v=61"></script>
   <script src="src/features/app/appearance.js?v=61"></script>
   <script src="src/features/app/render-all.js?v=106"></script>
-  <script src="src/features/app/init.js?v=106"></script>
+  <script src="src/features/app/init.js?v=108"></script>
 </body>
 </html>

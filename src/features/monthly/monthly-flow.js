@@ -318,17 +318,35 @@ function buildMonthlyFlowRows() {
 
 function updateMonthlyYearOptions(rows) {
   const previous = els.monthlyYearFilter.value || "all";
+  const previousStartYear = els.monthlyStartYear?.value || "";
+  const previousEndYear = els.monthlyEndYear?.value || "";
   const years = unique(rows.map((row) => row.month.slice(0, 4))).sort();
   const options = [
     `<option value="all">전체 연도</option>`,
-    `<option value="recent">최근 몇 년</option>`,
+    `<option value="range">직접 기간</option>`,
     ...years.map((year) => `<option value="year:${escapeHtml(year)}">${escapeHtml(year)}년</option>`)
   ];
   els.monthlyYearFilter.innerHTML = options.join("");
   els.monthlyYearFilter.value = [...els.monthlyYearFilter.options].some((option) => option.value === previous)
     ? previous
     : "all";
-  els.monthlyRecentYears.disabled = els.monthlyYearFilter.value !== "recent";
+  updateMonthlyRangeYearOptions(years, previousStartYear, previousEndYear);
+}
+
+function updateMonthlyRangeYearOptions(years, previousStartYear = "", previousEndYear = "") {
+  if (!els.monthlyStartYear || !els.monthlyEndYear) return;
+  const yearOptions = years.map((year) => `<option value="${escapeHtml(year)}">${escapeHtml(year)}년</option>`).join("");
+  els.monthlyStartYear.innerHTML = yearOptions;
+  els.monthlyEndYear.innerHTML = yearOptions;
+
+  const firstYear = years[0] || "";
+  const lastYear = years[years.length - 1] || firstYear;
+  els.monthlyStartYear.value = years.includes(previousStartYear) ? previousStartYear : firstYear;
+  els.monthlyEndYear.value = years.includes(previousEndYear) ? previousEndYear : lastYear;
+
+  const rangeEnabled = els.monthlyYearFilter.value === "range";
+  els.monthlyStartYear.disabled = !rangeEnabled;
+  els.monthlyEndYear.disabled = !rangeEnabled;
 }
 
 function filterMonthlyRows(rows) {
@@ -339,16 +357,31 @@ function filterMonthlyRows(rows) {
     const year = mode.slice(5);
     return rows.filter((row) => row.month.startsWith(`${year}-`));
   }
-  const years = rows.map((row) => Number(row.month.slice(0, 4))).filter(Number.isFinite);
-  const latestYear = Math.max(...years);
-  const recentYears = Math.max(1, Number(els.monthlyRecentYears.value || 1));
-  const minYear = latestYear - recentYears + 1;
-  return rows.filter((row) => Number(row.month.slice(0, 4)) >= minYear);
+  if (mode === "range") {
+    const startYear = Number(els.monthlyStartYear?.value || 0);
+    const endYear = Number(els.monthlyEndYear?.value || 0);
+    if (!startYear || !endYear) return rows;
+    const minYear = Math.min(startYear, endYear);
+    const maxYear = Math.max(startYear, endYear);
+    return rows.filter((row) => {
+      const year = Number(row.month.slice(0, 4));
+      return year >= minYear && year <= maxYear;
+    });
+  }
+  return rows;
 }
 
 function currentMonthlyRangeLabel() {
   const mode = els.monthlyYearFilter.value || "all";
   if (mode === "all") return "선택 기간 전체";
   if (mode.startsWith("year:")) return `${mode.slice(5)}년`;
-  return `최근 ${els.monthlyRecentYears.value || 1}년`;
+  if (mode === "range") {
+    const startYear = els.monthlyStartYear?.value || "";
+    const endYear = els.monthlyEndYear?.value || "";
+    if (startYear && endYear) {
+      const ordered = [startYear, endYear].sort();
+      return `${ordered[0]}년 ~ ${ordered[1]}년`;
+    }
+  }
+  return "선택 기간";
 }

@@ -74,7 +74,8 @@ async function init() {
   els.calendarPrevMonth.addEventListener("click", () => moveCalendarMonth(-1));
   els.calendarNextMonth.addEventListener("click", () => moveCalendarMonth(1));
   els.monthlyYearFilter.addEventListener("change", renderMonthlyFlow);
-  els.monthlyRecentYears.addEventListener("change", renderMonthlyFlow);
+  els.monthlyStartYear.addEventListener("change", renderMonthlyFlow);
+  els.monthlyEndYear.addEventListener("change", renderMonthlyFlow);
   els.incomeMonthFilter.addEventListener("change", () => {
     preferredIncomeMonth = els.incomeMonthFilter.value || "all";
     focusedMonthlyMonth = preferredIncomeMonth === "all" ? "" : preferredIncomeMonth;

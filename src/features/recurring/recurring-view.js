@@ -61,6 +61,7 @@ async function syncPostedRecurringTransactions(recurringItem) {
   if (!recurringItem?.id) return 0;
   const syncedAt = new Date().toISOString();
   let updated = 0;
+  let removed = 0;
   transactions = transactions.map((record) => {
     const normalized = normalizeStoredTransaction(record);
     if (
@@ -94,12 +95,24 @@ async function syncPostedRecurringTransactions(recurringItem) {
     if (!changed) return normalized;
     updated += 1;
     return normalizeStoredTransaction(nextRecord);
+  }).filter((record) => {
+    const normalized = normalizeStoredTransaction(record);
+    if (
+      normalized.sourceType !== "recurring" ||
+      normalized.recurringId !== recurringItem.id ||
+      isCanceled(normalized.cancel)
+    ) {
+      return true;
+    }
+    if (isRecurringActiveForMonth(recurringItem, normalized.month)) return true;
+    removed += 1;
+    return false;
   });
 
-  if (!updated) return 0;
+  if (!updated && !removed) return 0;
   await saveTransactions();
   reclassify();
-  return updated;
+  return updated + removed;
 }
 
 function handleRecurringBulkParse() {
