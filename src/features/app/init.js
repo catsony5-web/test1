@@ -43,7 +43,6 @@ async function init() {
   });
   els.boardPrevMonth?.addEventListener("click", () => moveBoardMonth(-1));
   els.boardNextMonth?.addEventListener("click", () => moveBoardMonth(1));
-  els.boardRangePreset?.addEventListener("change", renderBoard);
   els.boardFilterSector.addEventListener("change", () => {
     boardHighlightSector = "";
     renderBoard();

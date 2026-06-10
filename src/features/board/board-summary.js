@@ -62,9 +62,8 @@ function attachBoardMetricHandlers() {
   });
 }
 
-function renderBoardPeriodStats(periodRows, periodMonths, preset, selectedMonth) {
-  if (!els.boardPeriodStats) return "";
-  const label = preset === "all" ? "전체 기간" : preset === "year" ? "올해" : preset === "recent-24" ? "최근 2년" : "최근 1년";
+function renderBoardPeriodStats(periodRows, periodMonths, preset, selectedMonth, options = {}) {
+  const label = options.label || (preset === "all" ? "전체 기간" : preset === "year" ? "올해" : preset === "recent-24" ? "최근 2년" : "최근 1년");
   if (!periodMonths.length) {
     return `
       <section class="board-period-card">
@@ -141,23 +140,37 @@ function renderBoardPeriodStats(periodRows, periodMonths, preset, selectedMonth)
   `;
 }
 
-function attachBoardPeriodHandlers() {
-  if (!els.boardPeriodStats) return;
-  els.boardPeriodStats.querySelectorAll("[data-board-period-detail]").forEach((button) => {
+function attachBoardPeriodHandlers(root = els.boardPeriodStats, fallbackMonth = els.boardMonth?.value || currentMonthKey(), source = "board") {
+  if (!root) return;
+  root.querySelectorAll("[data-board-period-detail]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const month = button.dataset.boardPeriodDetail || fallbackMonth;
+      openDetailView(boardDetailOptions({
+        sourceView: source,
+        month,
+        sector: "all",
+        subcategory: "all",
+        query: "",
+        hideZero: false,
+        returnTo: { source, month, scrollY: window.scrollY || 0 }
+      }));
+    });
+  });
+  root.querySelectorAll("[data-board-period-sector]").forEach((button) => {
     button.addEventListener("click", () => openDetailView(boardDetailOptions({
-      month: button.dataset.boardPeriodDetail || els.boardMonth.value
+      sourceView: source,
+      month: fallbackMonth,
+      sector: button.dataset.boardPeriodSector || "all",
+      subcategory: "all",
+      query: "",
+      hideZero: false,
+      returnTo: { source, month: fallbackMonth, scrollY: window.scrollY || 0 }
     })));
   });
-  els.boardPeriodStats.querySelectorAll("[data-board-period-sector]").forEach((button) => {
-    button.addEventListener("click", () => openDetailView(boardDetailOptions({
-      month: els.boardMonth.value,
-      sector: button.dataset.boardPeriodSector || "all"
-    })));
-  });
-  els.boardPeriodStats.querySelectorAll("[data-open-income-month]").forEach((button) => {
+  root.querySelectorAll("[data-open-income-month]").forEach((button) => {
     button.addEventListener("click", () => openIncomeView({
-      month: button.dataset.openIncomeMonth || els.boardMonth.value,
-      source: "board",
+      month: button.dataset.openIncomeMonth || fallbackMonth,
+      source,
       scrollToRecords: true
     }));
   });

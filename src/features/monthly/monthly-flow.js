@@ -1,4 +1,5 @@
 function renderMonthlyFlow() {
+  const reportRows = reportingExpenseRows(classified);
   const allRows = buildMonthlyFlowRows();
   els.monthlyFlowTable.className = "monthly-flow-table";
   updateMonthlyYearOptions(allRows);
@@ -7,12 +8,14 @@ function renderMonthlyFlow() {
   const rows = filterMonthlyRows(allRows);
   if (!allRows.length) {
     els.monthlyKpis.innerHTML = "";
+    if (els.monthlyPeriodStats) els.monthlyPeriodStats.innerHTML = "";
     els.monthlyFlowChart.innerHTML = "";
     els.monthlyFlowTable.innerHTML = `<tbody><tr><td class="empty">카드/이체 엑셀을 불러오면 년도 지출정리가 표시됩니다.</td></tr></tbody>`;
     return;
   }
   if (!rows.length) {
     els.monthlyKpis.innerHTML = "";
+    if (els.monthlyPeriodStats) els.monthlyPeriodStats.innerHTML = "";
     els.monthlyFlowChart.innerHTML = "";
     els.monthlyFlowTable.innerHTML = `<tbody><tr><td class="empty">선택한 기간에 표시할 월별 기록이 없습니다.</td></tr></tbody>`;
     return;
@@ -28,6 +31,8 @@ function renderMonthlyFlow() {
   const totalIncome = sum(rows, "income");
   const totalScheduled = sum(rows, "scheduled");
   const rangeLabel = currentMonthlyRangeLabel();
+  const periodMonths = rows.map((row) => row.month);
+  const periodRows = reportRows.filter((item) => periodMonths.includes(item.month));
 
   const hasScheduledExpenses = rows.some((row) => Number(row.scheduled || 0) !== 0);
   els.monthlyFlowTable.className = `monthly-flow-table ${hasScheduledExpenses ? "has-scheduled" : "no-scheduled"}`;
@@ -44,6 +49,10 @@ function renderMonthlyFlow() {
     kpiCards.splice(5, 0, renderKpi("예정 지출", formatWon(totalScheduled), totalScheduled, "선택 기간 예정 합계", "neutral"));
   }
   els.monthlyKpis.innerHTML = kpiCards.join("");
+  if (els.monthlyPeriodStats) {
+    els.monthlyPeriodStats.innerHTML = renderBoardPeriodStats(periodRows, periodMonths, "custom", focusedMonthlyMonth, { label: rangeLabel });
+    attachBoardPeriodHandlers(els.monthlyPeriodStats, focusedMonthlyMonth, "monthly");
+  }
 
   const maxAbs = Math.max(...rows.map((row) => Math.abs(row.net)), 1);
   const tableRows = rows.map((row) => `

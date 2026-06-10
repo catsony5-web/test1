@@ -12,8 +12,6 @@ function renderBoard() {
   els.boardMonth.value = selectedMonth;
 
   const monthRows = active.filter((item) => item.month === selectedMonth);
-  const periodMonths = boardPeriodMonths(months, selectedMonth, els.boardRangePreset?.value || "recent-12");
-  const periodRows = active.filter((item) => periodMonths.includes(item.month));
   const buckets = buildBoardBuckets(monthRows);
   const fixedSections = boardSections.filter((section) => section.group === "고정비");
   const variableSections = boardSections.filter((section) => section.group === "변동비");
@@ -47,10 +45,6 @@ function renderBoard() {
     unknownTotal,
     unknownCount: monthRows.filter((item) => item.sector === "미분류").length
   });
-  if (els.boardPeriodStats) {
-    els.boardPeriodStats.innerHTML = renderBoardPeriodStats(periodRows, periodMonths, els.boardRangePreset?.value || "recent-12", selectedMonth);
-  }
-
   els.boardSectorMap.innerHTML = "";
   els.boardSectorSummary.innerHTML = renderBoardSectorSummary(monthRows, selectedMonth);
   const visibleSectionStats = sectionStats
@@ -66,7 +60,6 @@ function renderBoard() {
     variableTotal
   });
   attachBoardMetricHandlers();
-  attachBoardPeriodHandlers();
   attachBoardSummaryHandlers();
   attachBoardSideHandlers();
   attachBoardTopCategoryHandlers();

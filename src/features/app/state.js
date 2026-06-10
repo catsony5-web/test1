@@ -88,6 +88,7 @@ const els = {
   incomeSearchInput: document.querySelector("#incomeSearchInput"),
   incomeSortSelect: document.querySelector("#incomeSortSelect"),
   monthlyKpis: document.querySelector("#monthlyKpis"),
+  monthlyPeriodStats: document.querySelector("#monthlyPeriodStats"),
   monthlyFlowTable: document.querySelector("#monthlyFlowTable"),
   monthlyFlowChart: document.querySelector("#monthlyFlowChart"),
   monthlyTable: document.querySelector("#monthlyTable"),
