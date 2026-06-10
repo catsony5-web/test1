@@ -49,9 +49,57 @@ async function handleRecurringSubmit(event) {
     recurringExpenses.unshift(item);
   }
   await saveRecurringExpenses();
+  if (original) {
+    await syncPostedRecurringTransactions(item);
+  }
   await ensureAutoPostedRecurringExpenses();
   resetRecurringForm();
   renderAll();
+}
+
+async function syncPostedRecurringTransactions(recurringItem) {
+  if (!recurringItem?.id) return 0;
+  const syncedAt = new Date().toISOString();
+  let updated = 0;
+  transactions = transactions.map((record) => {
+    const normalized = normalizeStoredTransaction(record);
+    if (
+      normalized.sourceType !== "recurring" ||
+      normalized.recurringId !== recurringItem.id ||
+      isCanceled(normalized.cancel)
+    ) {
+      return record;
+    }
+
+    const nextRecord = {
+      ...normalized,
+      merchant: recurringItem.name,
+      amount: Number(recurringItem.amount || 0),
+      manualSector: recurringItem.sector,
+      manualSubcategory: recurringItem.subcategory,
+      memo: recurringItem.memo || "",
+      updatedAt: syncedAt
+    };
+    nextRecord.recordKey = createRecordKey(nextRecord);
+
+    const changed = [
+      "merchant",
+      "amount",
+      "manualSector",
+      "manualSubcategory",
+      "memo",
+      "recordKey"
+    ].some((key) => normalized[key] !== nextRecord[key]);
+
+    if (!changed) return normalized;
+    updated += 1;
+    return normalizeStoredTransaction(nextRecord);
+  });
+
+  if (!updated) return 0;
+  await saveTransactions();
+  reclassify();
+  return updated;
 }
 
 function handleRecurringBulkParse() {
