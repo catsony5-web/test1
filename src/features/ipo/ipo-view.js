@@ -9,6 +9,7 @@ async function saveIpoFromForm() {
     alert("공모주 종목명을 입력해주세요.");
     return;
   }
+  const existingRecord = ipoRecords.find((item) => item.id === els.ipoId.value);
   const record = normalizeIpoRecord({
     id: els.ipoId.value || `ipo-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     company,
@@ -31,9 +32,11 @@ async function saveIpoFromForm() {
     highPrice: els.ipoHighPrice.value,
     closePrice: els.ipoClosePrice.value,
     memo: els.ipoMemo.value.trim(),
+    imageData: ipoImageDraftData,
+    imageName: ipoImageDraftName,
     source: "manual",
     sourceLabel: "직접 입력",
-    createdAt: ipoRecords.find((item) => item.id === els.ipoId.value)?.createdAt || new Date().toISOString(),
+    createdAt: existingRecord?.createdAt || new Date().toISOString(),
     updatedAt: new Date().toISOString()
   });
   await createAutoSnapshot("공모주 기록 저장 전");
@@ -78,7 +81,104 @@ function resetIpoForm() {
   editingIpoId = "";
   els.saveIpoButton.textContent = "공모주 기록 저장";
   els.cancelIpoEditButton.hidden = true;
+  clearIpoImageDraft();
   updateIpoComputedPreview();
+}
+
+async function handleIpoImageChange(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  if (!file.type.startsWith("image/")) {
+    alert("이미지 파일만 첨부할 수 있습니다.");
+    clearIpoImageDraft();
+    return;
+  }
+  if (file.size > 8 * 1024 * 1024) {
+    alert("이미지는 8MB 이하 파일을 사용해주세요.");
+    clearIpoImageDraft();
+    return;
+  }
+  try {
+    const dataUrl = await readIpoImageFile(file);
+    const compressed = await compressIpoImage(dataUrl);
+    setIpoImageDraft(compressed, file.name);
+  } catch (error) {
+    console.error(error);
+    alert("이미지를 불러오지 못했습니다.");
+    clearIpoImageDraft();
+  }
+}
+
+function readIpoImageFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
+function compressIpoImage(dataUrl) {
+  return new Promise((resolve) => {
+    const image = new Image();
+    image.onload = () => {
+      const maxWidth = 1200;
+      const maxHeight = 900;
+      const scale = Math.min(1, maxWidth / image.width, maxHeight / image.height);
+      const width = Math.max(1, Math.round(image.width * scale));
+      const height = Math.max(1, Math.round(image.height * scale));
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext("2d");
+      if (!context) {
+        resolve(dataUrl);
+        return;
+      }
+      context.drawImage(image, 0, 0, width, height);
+      resolve(canvas.toDataURL("image/jpeg", 0.84));
+    };
+    image.onerror = () => resolve(dataUrl);
+    image.src = dataUrl;
+  });
+}
+
+function setIpoImageDraft(dataUrl = "", imageName = "") {
+  ipoImageDraftData = /^data:image\//.test(String(dataUrl || "")) ? String(dataUrl) : "";
+  ipoImageDraftName = String(imageName || "").trim();
+  renderIpoImagePreview();
+}
+
+function clearIpoImageDraft() {
+  ipoImageDraftData = "";
+  ipoImageDraftName = "";
+  if (els.ipoImage) els.ipoImage.value = "";
+  renderIpoImagePreview();
+}
+
+function renderIpoImagePreview() {
+  if (!els.ipoImagePreview) return;
+  if (!ipoImageDraftData) {
+    els.ipoImagePreview.classList.add("empty");
+    els.ipoImagePreview.innerHTML = "첨부한 이미지가 여기에 표시됩니다.";
+    return;
+  }
+  els.ipoImagePreview.classList.remove("empty");
+  els.ipoImagePreview.innerHTML = `
+    <img src="${escapeHtml(ipoImageDraftData)}" alt="${escapeHtml(ipoImageDraftName || "공모주 참고 이미지")}">
+    ${ipoImageDraftName ? `<span>${escapeHtml(ipoImageDraftName)}</span>` : ""}
+  `;
+}
+
+function renderIpoAttachedImage(item, className = "") {
+  if (!item?.imageData) return "";
+  const classes = ["ipo-attached-image", className].filter(Boolean).join(" ");
+  return `
+    <figure class="${escapeHtml(classes)}">
+      <img src="${escapeHtml(item.imageData)}" alt="${escapeHtml(item.imageName || `${item.company} 참고 이미지`)}">
+      ${item.imageName ? `<figcaption>${escapeHtml(item.imageName)}</figcaption>` : ""}
+    </figure>
+  `;
 }
 
 function updateIpoComputedPreview() {
@@ -328,6 +428,7 @@ function renderIpoCalendarSelectedRecord(event) {
         </div>
         <button type="button" data-edit-ipo="${escapeHtml(item.id)}">수정</button>
       </div>
+      ${renderIpoAttachedImage(item, "compact")}
       <dl class="ipo-calendar-detail-grid">
         ${detailRows.map(([label, value]) => `
           <div>
@@ -464,6 +565,7 @@ function renderIpoCard(item) {
         <div><dt>최종 정산 손익</dt><dd>${item.sellAmount ? formatSignedWon(item.settlementProfit) : "-"}</dd></div>
         <div><dt>시가/고가/종가</dt><dd>${formatIpoMarketPrices(item)}</dd></div>
       </dl>
+      ${renderIpoAttachedImage(item)}
       ${item.memo ? `<p class="ipo-card-memo">${escapeHtml(item.memo)}</p>` : ""}
       <div class="ipo-card-actions">
         <button type="button" data-edit-ipo="${escapeHtml(item.id)}">수정</button>
@@ -507,6 +609,7 @@ function editIpoRecord(id) {
   els.ipoHighPrice.value = item.highPrice ? formatPlainNumber(item.highPrice) : "";
   els.ipoClosePrice.value = item.closePrice ? formatPlainNumber(item.closePrice) : "";
   els.ipoMemo.value = item.memo;
+  setIpoImageDraft(item.imageData, item.imageName);
   els.saveIpoButton.textContent = "수정 저장";
   els.cancelIpoEditButton.hidden = false;
   selectedIpoSubtab = "entry";

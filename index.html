@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="src/styles/03-components.css?v=77">
   <link rel="stylesheet" href="src/styles/04-forms-tables.css?v=81">
   <link rel="stylesheet" href="src/styles/05-charts.css?v=78">
-  <link rel="stylesheet" href="src/styles/06-features.css?v=105">
+  <link rel="stylesheet" href="src/styles/06-features.css?v=109">
   <link rel="stylesheet" href="src/styles/07-responsive.css?v=105">
   <link rel="stylesheet" href="src/styles/08-themes.css?v=91">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -547,6 +547,17 @@
               <label>고가<input id="ipoHighPrice" type="text" inputmode="numeric" placeholder="자동/수동 입력"></label>
               <label>종가<input id="ipoClosePrice" type="text" inputmode="numeric" placeholder="자동/수동 입력"></label>
               <label class="wide-field">메모<input id="ipoMemo" type="text" placeholder="상장일 메모, 매도 이유, 참고 링크 등"></label>
+              <div class="wide-field ipo-image-field">
+                <div class="ipo-image-field-head">
+                  <span>참고 이미지</span>
+                  <small>종목별 캡처, 요약 이미지, 리포트 이미지를 첨부할 수 있습니다.</small>
+                </div>
+                <div class="ipo-image-input-row">
+                  <input id="ipoImage" type="file" accept="image/*">
+                  <button id="removeIpoImageButton" type="button">이미지 제거</button>
+                </div>
+                <div id="ipoImagePreview" class="ipo-image-preview empty">첨부한 이미지가 여기에 표시됩니다.</div>
+              </div>
             </div>
             <div class="ipo-computed-panel">
               <div><span>손익(수수료 제외)</span><strong id="ipoComputedProfit">0원</strong></div>
@@ -858,14 +869,14 @@
   <script src="src/data/board-sections.js?v=86"></script>
   <script src="src/data/field-aliases.js?v=77"></script>
 
-  <script src="src/features/app/state.js?v=108"></script>
+  <script src="src/features/app/state.js?v=109"></script>
 
   <script src="src/utils/format.js?v=80"></script>
   <script src="src/utils/date.js?v=61"></script>
   <script src="src/utils/dom.js?v=61"></script>
   <script src="src/utils/normalize.js?v=93"></script>
   <script src="src/utils/grouping.js?v=78"></script>
-  <script src="src/utils/storage.js?v=106"></script>
+  <script src="src/utils/storage.js?v=109"></script>
   <script src="src/utils/backup.js?v=99"></script>
 
   <script src="src/components/chips.js?v=86"></script>
@@ -895,13 +906,13 @@
   <script src="src/features/recurring/recurring-view.js?v=108"></script>
   <script src="src/features/calendar/calendar-view.js?v=96"></script>
   <script src="src/features/products/products-view.js?v=61"></script>
-  <script src="src/features/ipo/ipo-view.js?v=106"></script>
+  <script src="src/features/ipo/ipo-view.js?v=109"></script>
   <script src="src/features/unknown/unknown-view.js?v=97"></script>
   <script src="src/features/transactions/transactions-view.js?v=77"></script>
 
   <script src="src/features/app/navigation.js?v=61"></script>
   <script src="src/features/app/appearance.js?v=61"></script>
   <script src="src/features/app/render-all.js?v=106"></script>
-  <script src="src/features/app/init.js?v=108"></script>
+  <script src="src/features/app/init.js?v=109"></script>
 </body>
 </html>

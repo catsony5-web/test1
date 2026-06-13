@@ -1,5 +1,33 @@
 {
-  "updatedAt": "",
-  "source": "manual-placeholder",
-  "items": []
+  "updatedAt": "2026-06-13",
+  "items": [
+    {
+      "company": "져스텍",
+      "broker": "삼성증권",
+      "subscriptionStart": "2026-06-18",
+      "subscriptionEnd": "2026-06-19",
+      "offerPrice": 12500,
+      "appliedShares": 10,
+      "depositAmount": 125000,
+      "memo": "반도체 및 디스플레이 제조 장비에 들어가는 초정밀 모터 및 모션 제어 시스템 기업. HBM 반도체와 우주항공/위성통신 분야로 확장 중. 공모가 밴드 상단 12,500원, 최소 청약 금액 125,000원 기준."
+    },
+    {
+      "company": "스트라드비전",
+      "broker": "KB증권",
+      "subscriptionStart": "2026-06-18",
+      "subscriptionEnd": "2026-06-19",
+      "offerPrice": 14000,
+      "appliedShares": 10,
+      "depositAmount": 70000,
+      "memo": "ADAS 및 자율주행차용 AI 기반 차량용 비전 인식 소프트웨어 기업. 로봇, 물류, 국방 등 피지컬 AI 시장 확장 계획. 공모가 상단 14,000원, 최소 청약 금액 70,000원 기준."
+    },
+    {
+      "company": "빅웨이브로보틱스",
+      "broker": "유진투자증권, 미래에셋증권",
+      "subscriptionStart": "2026-06-19",
+      "subscriptionEnd": "2026-06-22",
+      "offerPrice": 27000,
+      "memo": "국내 로봇 전문 플랫폼 마로솔 운영 기업. 도입 컨설팅부터 유지보수까지 제공하며 전년 흑자 전환. 환매청구권 부여 언급. 공모가 상단 27,000원 기준."
+    }
+  ]
 }

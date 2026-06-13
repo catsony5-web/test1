@@ -159,6 +159,8 @@ async function init() {
     .forEach((control) => control.addEventListener("input", renderProducts));
   els.ipoForm?.addEventListener("submit", handleIpoSubmit);
   els.cancelIpoEditButton?.addEventListener("click", resetIpoForm);
+  els.ipoImage?.addEventListener("change", handleIpoImageChange);
+  els.removeIpoImageButton?.addEventListener("click", clearIpoImageDraft);
   Array.from(els.ipoSubtabs || []).forEach((button) => {
     button.addEventListener("click", () => {
       selectedIpoSubtab = button.dataset.ipoSubtab || "dashboard";

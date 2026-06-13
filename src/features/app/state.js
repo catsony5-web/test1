@@ -201,6 +201,9 @@ const els = {
   ipoHighPrice: document.querySelector("#ipoHighPrice"),
   ipoClosePrice: document.querySelector("#ipoClosePrice"),
   ipoMemo: document.querySelector("#ipoMemo"),
+  ipoImage: document.querySelector("#ipoImage"),
+  ipoImagePreview: document.querySelector("#ipoImagePreview"),
+  removeIpoImageButton: document.querySelector("#removeIpoImageButton"),
   ipoComputedProfit: document.querySelector("#ipoComputedProfit"),
   ipoComputedRate: document.querySelector("#ipoComputedRate"),
   ipoComputedSettlementProfit: document.querySelector("#ipoComputedSettlementProfit"),
@@ -314,6 +317,8 @@ let detailBulkRows = [];
 let ipoPasteRows = [];
 let ipoCalendarCandidates = [];
 let editingIpoId = "";
+let ipoImageDraftData = "";
+let ipoImageDraftName = "";
 let selectedIpoSubtab = "dashboard";
 let selectedIpoCalendarMonth = "";
 let selectedIpoCalendarDate = "";

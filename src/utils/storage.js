@@ -522,6 +522,8 @@ function normalizeIpoRecord(item) {
     highPrice: Math.max(0, toNumber(item?.highPrice)),
     closePrice: Math.max(0, toNumber(item?.closePrice)),
     memo: String(item?.memo || "").trim(),
+    imageData: /^data:image\//.test(String(item?.imageData || "")) ? String(item.imageData) : "",
+    imageName: String(item?.imageName || "").trim(),
     source: item?.source || "manual",
     sourceLabel: item?.sourceLabel || (item?.source === "calendar" ? "일정 불러오기" : "직접 입력"),
     createdAt: item?.createdAt || new Date().toISOString(),

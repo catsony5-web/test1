@@ -754,6 +754,82 @@ button.summary-metric-card:hover {
   grid-column: 1 / -1;
 }
 
+.ipo-image-field {
+  display: grid;
+  gap: 10px;
+  border: 1px dashed color-mix(in srgb, var(--accent-blue) 28%, var(--border));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--accent-blue) 4%, var(--surface));
+  padding: 12px;
+}
+
+.ipo-image-field-head {
+  display: grid;
+  gap: 3px;
+}
+
+.ipo-image-field-head span {
+  color: var(--text-main);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.ipo-image-field-head small {
+  color: var(--text-sub);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.ipo-image-input-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ipo-image-input-row input[type="file"] {
+  min-width: min(100%, 280px);
+  color: var(--text-sub);
+  font-size: 12px;
+}
+
+.ipo-image-preview {
+  display: grid;
+  gap: 8px;
+  min-height: 120px;
+  overflow: hidden;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-soft);
+  color: var(--text-sub);
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.ipo-image-preview img {
+  display: block;
+  width: 100%;
+  max-height: 280px;
+  object-fit: contain;
+  background: var(--surface);
+}
+
+.ipo-image-preview span {
+  width: 100%;
+  padding: 0 10px 10px;
+  color: var(--text-sub);
+  font-size: 12px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.ipo-image-preview.empty {
+  min-height: 92px;
+}
+
 .ipo-computed-panel {
   display: grid;
   grid-template-columns: repeat(2, minmax(160px, 1fr)) minmax(220px, 1.2fr);
@@ -1013,6 +1089,36 @@ button.summary-metric-card:hover {
   font-size: 13px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
+}
+
+.ipo-attached-image {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-soft);
+}
+
+.ipo-attached-image img {
+  display: block;
+  width: 100%;
+  max-height: 360px;
+  object-fit: contain;
+  background: var(--surface);
+}
+
+.ipo-attached-image.compact img {
+  max-height: 230px;
+}
+
+.ipo-attached-image figcaption {
+  padding: 0 10px 10px;
+  color: var(--text-sub);
+  font-size: 12px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
 }
 
 .summary-selected-month-panel .summary-sector-share-panel {
