@@ -11,6 +11,14 @@ function renderBoard() {
   els.boardMonth.innerHTML = availableMonths.map((month) => `<option value="${escapeHtml(month)}">${escapeHtml(month)}</option>`).join("");
   els.boardMonth.value = selectedMonth;
 
+  if (isBoardAppEmpty()) {
+    renderBoardEmptyWorkspace(selectedMonth);
+    return;
+  }
+
+  els.boardMetrics.classList.remove("is-empty-workspace");
+  els.boardSideSummary.hidden = false;
+
   const monthRows = active.filter((item) => item.month === selectedMonth);
   const buckets = buildBoardBuckets(monthRows);
   const fixedSections = boardSections.filter((section) => section.group === "고정비");
@@ -76,6 +84,147 @@ function renderBoard() {
   });
   attachBoardFinalSummaryHandlers();
   updateBoardMapTopButton();
+}
+
+function isBoardAppEmpty() {
+  const hasTransactions = [transactions, classified].some((rows) => Array.isArray(rows) && rows.length > 0);
+  const hasIncome = Object.values(monthlyIncome || {}).some((amount) => {
+    const value = Number(amount);
+    return Number.isFinite(value) && value !== 0;
+  });
+  const hasRecurringExpenses = Array.isArray(recurringExpenses) && recurringExpenses.length > 0;
+  return !hasTransactions && !hasIncome && !hasRecurringExpenses;
+}
+
+function renderBoardEmptyWorkspace(selectedMonth) {
+  const monthNumber = Number(selectedMonth.slice(5, 7));
+  const monthLabel = Number.isInteger(monthNumber) && monthNumber >= 1 && monthNumber <= 12
+    ? `${monthNumber}월`
+    : "이번 달";
+
+  els.boardMetrics.classList.add("is-empty-workspace");
+  els.boardMetrics.innerHTML = `
+    <div class="board-empty-workspace">
+      <header class="board-empty-intro">
+        <p class="board-empty-kicker">처음 시작하기</p>
+        <h3>${escapeHtml(monthLabel)} 소비 시작하기</h3>
+        <p>3단계만 따라하면 이번 달 소비를 한눈에 볼 수 있어요.</p>
+      </header>
+
+      <ol class="board-empty-steps">
+        <li class="board-empty-step is-primary">
+          <span class="board-empty-step-number" aria-hidden="true">1</span>
+          <span class="board-empty-step-icon" aria-hidden="true"><i class="ti ti-file-spreadsheet"></i></span>
+          <div class="board-empty-step-copy">
+            <strong>거래 불러오기</strong>
+            <span>카드, 이체, 현금 내역을 엑셀로 불러오거나 직접 입력하세요.</span>
+          </div>
+          <div class="board-empty-step-actions">
+            <button type="button" class="primary" data-board-empty-action="import">
+              <i class="ti ti-upload" aria-hidden="true"></i>
+              <span>엑셀 불러오기</span>
+            </button>
+            <button type="button" data-board-empty-view="detailBulk">
+              <i class="ti ti-pencil-plus" aria-hidden="true"></i>
+              <span>직접 입력</span>
+            </button>
+          </div>
+        </li>
+
+        <li class="board-empty-step">
+          <span class="board-empty-step-number" aria-hidden="true">2</span>
+          <span class="board-empty-step-icon" aria-hidden="true"><i class="ti ti-wallet"></i></span>
+          <div class="board-empty-step-copy">
+            <strong>수입·고정 지출 확인</strong>
+            <span>이번 달 수입과 반복되는 지출을 등록하고 확인하세요.</span>
+          </div>
+          <div class="board-empty-step-actions">
+            <button type="button" data-board-empty-view="income">
+              <i class="ti ti-cash-banknote" aria-hidden="true"></i>
+              <span>수입 입력</span>
+            </button>
+            <button type="button" data-board-empty-view="recurring">
+              <i class="ti ti-calendar-repeat" aria-hidden="true"></i>
+              <span>고정 지출</span>
+            </button>
+          </div>
+        </li>
+
+        <li class="board-empty-step">
+          <span class="board-empty-step-number" aria-hidden="true">3</span>
+          <span class="board-empty-step-icon" aria-hidden="true"><i class="ti ti-calendar-month"></i></span>
+          <div class="board-empty-step-copy">
+            <strong>소비 달력 확인</strong>
+            <span>날짜별 소비를 확인하고 분류를 정리해 보세요.</span>
+          </div>
+          <div class="board-empty-step-actions is-single-action">
+            <button type="button" data-board-empty-view="calendar">
+              <i class="ti ti-calendar" aria-hidden="true"></i>
+              <span>소비 달력 보기</span>
+            </button>
+          </div>
+        </li>
+      </ol>
+
+      <section class="board-empty-overview" aria-labelledby="boardEmptyOverviewTitle">
+        <div class="board-empty-section-head">
+          <div>
+            <p class="board-empty-kicker">선택 월 기준</p>
+            <h4 id="boardEmptyOverviewTitle">${escapeHtml(monthLabel)} 한눈에 보기</h4>
+          </div>
+        </div>
+        <dl class="board-empty-overview-grid">
+          <div>
+            <dt>실 지출액</dt>
+            <dd>0원</dd>
+            <span>총 결제 0원 · 정산 0원</span>
+          </div>
+          <div>
+            <dt>수입</dt>
+            <dd class="positive">0원</dd>
+            <span>수입 입력 전</span>
+          </div>
+          <div>
+            <dt>잔액</dt>
+            <dd class="positive">0원</dd>
+            <span>수입 - 실 지출액</span>
+          </div>
+        </dl>
+      </section>
+
+      <section class="board-empty-recent" aria-labelledby="boardEmptyRecentTitle">
+        <div class="board-empty-section-head">
+          <div>
+            <p class="board-empty-kicker">최근 거래</p>
+            <h4 id="boardEmptyRecentTitle">등록된 거래가 없습니다</h4>
+          </div>
+          <button type="button" data-board-empty-view="detailBulk">
+            <i class="ti ti-plus" aria-hidden="true"></i>
+            <span>거래 입력하기</span>
+          </button>
+        </div>
+        <p>거래를 불러오거나 직접 입력하면 최근 내역이 이곳에 표시됩니다.</p>
+      </section>
+    </div>
+  `;
+
+  els.boardSectorMap.innerHTML = "";
+  els.boardSectorSummary.innerHTML = "";
+  els.boardGrid.innerHTML = "";
+  els.boardSideSummary.innerHTML = "";
+  els.boardSideSummary.hidden = true;
+  els.boardSummary.innerHTML = "";
+  updateBoardMapTopButton();
+  attachBoardEmptyWorkspaceHandlers();
+}
+
+function attachBoardEmptyWorkspaceHandlers() {
+  els.boardMetrics.querySelector('[data-board-empty-action="import"]')?.addEventListener("click", () => {
+    els.fileInput.click();
+  });
+  els.boardMetrics.querySelectorAll("[data-board-empty-view]").forEach((button) => {
+    button.addEventListener("click", () => switchView(button.dataset.boardEmptyView));
+  });
 }
 
 function moveBoardMonth(offset) {

@@ -191,6 +191,121 @@ function returnFromDetailView() {
   requestAnimationFrame(() => window.scrollTo({ top: Number(state.scrollY || 0), behavior: "smooth" }));
 }
 
+function openCalendarTransactionFromDetail(recordKey, options = {}) {
+  const item = classified.find((row) => row.recordKey === recordKey);
+  if (!item) return;
+
+  const date = normalizeInputDate(options.date || item.approvalDate);
+  const month = options.month || monthKey(date) || item.month;
+  calendarDetailReturnState = {
+    recordKey,
+    expandedSectionKey: detailExpandedSectionKey,
+    filters: { ...detailFilters }
+  };
+  selectedCalendarMonth = month;
+  if (month) setSharedSelectedMonth(month, { syncControls: false });
+  selectedCalendarDate = date && date.startsWith(month) ? date : "";
+  calendarEditingRecordKey = recordKey;
+  calendarEditFeedback = null;
+  switchView("calendar");
+
+  requestAnimationFrame(() => {
+    const target = els.selectedDayTimeline?.querySelector(`[data-calendar-card="${cssEscape(recordKey)}"]`);
+    (target || document.querySelector("#calendarView"))?.scrollIntoView({
+      behavior: "smooth",
+      block: target ? "center" : "start",
+      inline: "nearest"
+    });
+  });
+}
+
+function returnToDetailFromCalendar() {
+  const state = calendarDetailReturnState;
+  if (!state?.recordKey) return;
+
+  const item = classified.find((row) => row.recordKey === state.recordKey);
+  const section = item
+    ? boardSections.find((candidate) => candidate.match(item)) || boardSections.at(-1)
+    : boardSections.find((candidate) => candidate.key === state.expandedSectionKey);
+  const filters = state.filters || {};
+  calendarDetailReturnState = null;
+  calendarEditingRecordKey = "";
+  calendarEditFeedback = null;
+
+  detailFilters.month = item?.month || filters.month || "all";
+  if (detailFilters.month !== "all") setSharedSelectedMonth(detailFilters.month, { syncControls: false });
+  detailFilters.sector = section?.sector || item?.sector || filters.sector || "all";
+  detailFilters.subcategory = detailFilters.sector === "미분류"
+    ? "all"
+    : section?.subcategory || item?.subcategory || filters.subcategory || "all";
+  detailFilters.search = "";
+  detailFilters.sort = filters.sort || "amount-desc";
+  detailFilters.entryType = "actual";
+  detailFilters.unknownOnly = detailFilters.sector === "미분류";
+  detailFilters.reimbursedOnly = false;
+  detailFilters.hideZero = Object.prototype.hasOwnProperty.call(filters, "hideZero") ? Boolean(filters.hideZero) : true;
+  detailExpandedSectionKey = section?.key || state.expandedSectionKey || "";
+  detailFocusRecordKey = state.recordKey;
+  detailInstallmentEditRecordKey = "";
+
+  switchView("details");
+  requestAnimationFrame(() => {
+    const target = els.detailGrid?.querySelector(`[data-detail-record-key="${cssEscape(state.recordKey)}"]`);
+    (target || document.querySelector("#detailsView"))?.scrollIntoView({
+      behavior: "smooth",
+      block: target ? "center" : "start",
+      inline: "nearest"
+    });
+  });
+}
+
+function detailMonthOptions() {
+  return unique([
+    ...expenseRows(classified).map((item) => item.month).filter(Boolean),
+    detailFilters.month !== "all" ? detailFilters.month : "",
+    selectedAppMonth,
+    currentMonthKey()
+  ]).filter(isValidMonthKey).sort();
+}
+
+function moveDetailMonth(offset) {
+  const months = detailMonthOptions();
+  if (!months.length) return;
+  const baseMonth = detailFilters.month !== "all"
+    ? detailFilters.month
+    : getSharedSelectedMonth(els.detailMonth?.value || currentMonthKey()) || currentMonthKey();
+  const currentIndex = months.includes(baseMonth)
+    ? months.indexOf(baseMonth)
+    : offset > 0 ? -1 : months.length;
+  const nextIndex = currentIndex + offset;
+  if (nextIndex < 0 || nextIndex >= months.length) return;
+  const nextMonth = months[nextIndex];
+  if (!nextMonth || nextMonth === detailFilters.month) return;
+
+  detailFocusRecordKey = "";
+  detailInstallmentEditRecordKey = "";
+  detailFilters.month = nextMonth;
+  setSharedSelectedMonth(nextMonth, { syncControls: false });
+  renderDetailView();
+}
+
+function resetDetailFilters() {
+  const currentMonth = detailFilters.month || els.detailMonth?.value || "all";
+  detailFocusRecordKey = "";
+  detailExpandedSectionKey = "";
+  detailInstallmentEditRecordKey = "";
+  detailFilters.month = currentMonth;
+  detailFilters.sector = "all";
+  detailFilters.subcategory = "all";
+  detailFilters.search = "";
+  detailFilters.sort = "amount-desc";
+  detailFilters.entryType = "actual";
+  detailFilters.unknownOnly = false;
+  detailFilters.reimbursedOnly = false;
+  detailFilters.hideZero = true;
+  renderDetailView();
+}
+
 function renderDetailView() {
   const active = expenseRows(classified);
   const months = unique(active.map((item) => item.month).filter(Boolean)).sort();
@@ -906,8 +1021,7 @@ function focusDetailRecord() {
 function syncDetailFilterControls(activeRows, months) {
   const monthOptions = unique([
     ...months,
-    detailFilters.month && detailFilters.month !== "all" ? detailFilters.month : "",
-    currentMonthKey()
+    ...detailMonthOptions()
   ]).filter((month) => /^\d{4}-\d{2}$/.test(month)).sort();
   if (detailFilters.month !== "all" && !monthOptions.includes(detailFilters.month)) {
     detailFilters.month = monthOptions.at(-1) || currentMonthKey();
@@ -1120,6 +1234,24 @@ function renderDetailExpandedSection(stat, selectedMonth, filterText) {
 
 function attachDetailCardHandlers() {
   if (!els.detailGrid) return;
+  els.detailGrid.querySelectorAll("[data-detail-open-calendar]").forEach((row) => {
+    const open = () => {
+      openCalendarTransactionFromDetail(row.dataset.detailOpenCalendar, {
+        date: row.dataset.detailCalendarDate,
+        month: row.dataset.detailCalendarMonth
+      });
+    };
+    row.addEventListener("click", (event) => {
+      if (event.target.closest("button, input, select, textarea, form, a")) return;
+      open();
+    });
+    row.addEventListener("keydown", (event) => {
+      if (!["Enter", " "].includes(event.key)) return;
+      if (event.target.closest("button, input, select, textarea, form, a")) return;
+      event.preventDefault();
+      open();
+    });
+  });
   els.detailGrid.querySelectorAll("[data-detail-expand-section]").forEach((button) => {
     button.addEventListener("click", () => {
       detailExpandedSectionKey = button.dataset.detailExpandSection || "";

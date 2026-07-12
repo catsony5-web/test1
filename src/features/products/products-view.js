@@ -5,7 +5,25 @@ async function handleProductSubmit(event) {
     alert("제품명을 입력해주세요.");
     return;
   }
-  const imageDataUrl = els.productImage.files?.[0] ? await fileToDataUrl(els.productImage.files[0]) : "";
+  const imageFile = els.productImage.files?.[0];
+  let imageDataUrl = "";
+  if (imageFile) {
+    if (!imageFile.type.startsWith("image/")) {
+      alert("이미지 파일만 첨부할 수 있습니다.");
+      return;
+    }
+    if (imageFile.size > 8 * 1024 * 1024) {
+      alert("이미지는 8MB 이하 파일을 사용해주세요.");
+      return;
+    }
+    try {
+      imageDataUrl = await prepareProductImage(imageFile);
+    } catch (error) {
+      console.error("product image preparation failed", error);
+      alert("이미지를 불러오지 못했습니다.");
+      return;
+    }
+  }
   await createAutoSnapshot("소모품 기록 저장 전");
   products.unshift(normalizeProduct({
     id: `product-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -293,5 +311,36 @@ function fileToDataUrl(file) {
     reader.onload = () => resolve(reader.result || "");
     reader.onerror = () => reject(reader.error);
     reader.readAsDataURL(file);
+  });
+}
+
+async function prepareProductImage(file) {
+  const dataUrl = await fileToDataUrl(file);
+  const compressed = await compressProductImage(dataUrl);
+  return compressed.length < dataUrl.length ? compressed : dataUrl;
+}
+
+function compressProductImage(dataUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => {
+      const maxWidth = 960;
+      const maxHeight = 720;
+      const scale = Math.min(1, maxWidth / image.width, maxHeight / image.height);
+      const width = Math.max(1, Math.round(image.width * scale));
+      const height = Math.max(1, Math.round(image.height * scale));
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext("2d");
+      if (!context) {
+        resolve(dataUrl);
+        return;
+      }
+      context.drawImage(image, 0, 0, width, height);
+      resolve(canvas.toDataURL("image/webp", 0.82));
+    };
+    image.onerror = () => reject(new Error("Invalid product image"));
+    image.src = dataUrl;
   });
 }

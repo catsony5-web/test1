@@ -43,7 +43,16 @@ const els = {
   backgroundSettingsStatus: document.querySelector("#backgroundSettingsStatus"),
   adminMenuButton: document.querySelector("#adminMenuButton"),
   adminMenuCloseButton: document.querySelector("#adminMenuCloseButton"),
+  adminMenuBackdrop: document.querySelector("#adminMenuBackdrop"),
   adminMenu: document.querySelector("#adminMenu"),
+  adminMenuTabs: document.querySelectorAll("[data-admin-tab]"),
+  adminMenuPanels: document.querySelectorAll("[data-admin-panel]"),
+  mobileNavigationButtons: document.querySelectorAll("[data-mobile-view]"),
+  mobileMoreButton: document.querySelector("#mobileMoreButton"),
+  mobileMoreBackdrop: document.querySelector("#mobileMoreBackdrop"),
+  mobileMoreDialog: document.querySelector("#mobileMoreDialog"),
+  mobileMoreCloseButton: document.querySelector("#mobileMoreCloseButton"),
+  mobileSettingsButton: document.querySelector("#mobileSettingsButton"),
   fileName: document.querySelector("#fileName"),
   totalAmount: document.querySelector("#totalAmount"),
   transactionCount: document.querySelector("#transactionCount"),
@@ -100,19 +109,28 @@ const els = {
   summaryRangePreset: document.querySelector("#summaryRangePreset"),
   summaryStartMonth: document.querySelector("#summaryStartMonth"),
   summaryEndMonth: document.querySelector("#summaryEndMonth"),
+  summaryMobileViewSelect: document.querySelector("#summaryMobileViewSelect"),
+  summaryPrevMonth: document.querySelector("#summaryPrevMonth"),
   summaryMonthSelect: document.querySelector("#summaryMonthSelect"),
+  summaryNextMonth: document.querySelector("#summaryNextMonth"),
+  summaryDetailPrevMonth: document.querySelector("#summaryDetailPrevMonth"),
   summaryDetailMonthSelect: document.querySelector("#summaryDetailMonthSelect"),
+  summaryDetailNextMonth: document.querySelector("#summaryDetailNextMonth"),
   foodAnalysisCard: document.querySelector("#foodAnalysisCard"),
   sectorAnalysisBody: document.querySelector("#sectorAnalysisBody"),
   sectorAnalysisTitle: document.querySelector("#sectorAnalysisTitle"),
   sectorAnalysisDescription: document.querySelector("#sectorAnalysisDescription"),
   sectorAnalysisBadge: document.querySelector("#sectorAnalysisBadge"),
   sectorAnalysisSectorSelect: document.querySelector("#sectorAnalysisSectorSelect"),
+  sectorAnalysisPrevMonth: document.querySelector("#sectorAnalysisPrevMonth"),
   sectorAnalysisMonthSelect: document.querySelector("#sectorAnalysisMonthSelect"),
+  sectorAnalysisNextMonth: document.querySelector("#sectorAnalysisNextMonth"),
   selectedMonthDetailTitle: document.querySelector("#selectedMonthDetailTitle"),
   selectedMonthSectorCards: document.querySelector("#selectedMonthSectorCards"),
   sectorTrendChart: document.querySelector("#sectorTrendChart"),
+  detailPrevMonth: document.querySelector("#detailPrevMonth"),
   detailMonth: document.querySelector("#detailMonth"),
+  detailNextMonth: document.querySelector("#detailNextMonth"),
   detailSector: document.querySelector("#detailSector"),
   detailSubcategory: document.querySelector("#detailSubcategory"),
   detailSearch: document.querySelector("#detailSearch"),
@@ -121,6 +139,7 @@ const els = {
   detailUnknownOnly: document.querySelector("#detailUnknownOnly"),
   detailReimbursedOnly: document.querySelector("#detailReimbursedOnly"),
   detailHideZero: document.querySelector("#detailHideZero"),
+  detailFilterResetButton: document.querySelector("#detailFilterResetButton"),
   detailBackToBoardButton: document.querySelector("#detailBackToBoardButton"),
   detailMetrics: document.querySelector("#detailMetrics"),
   detailGrid: document.querySelector("#detailGrid"),
@@ -149,6 +168,7 @@ const els = {
   calendarPrevMonth: document.querySelector("#calendarPrevMonth"),
   calendarNextMonth: document.querySelector("#calendarNextMonth"),
   calendarMonthSummary: document.querySelector("#calendarMonthSummary"),
+  calendarMonthlyMemo: document.querySelector("#calendarMonthlyMemo"),
   calendarCurrentMonthLabel: document.querySelector("#calendarCurrentMonthLabel"),
   spendingCalendar: document.querySelector("#spendingCalendar"),
   selectedDayTitle: document.querySelector("#selectedDayTitle"),
@@ -295,6 +315,7 @@ let reimbursements = {};
 let products = [];
 let ipoRecords = [];
 let recurringExpenses = [];
+let calendarMemos = {};
 let appSettings = defaultAppSettings();
 let pendingBackgroundImageData = "";
 let reimbursementEditMode = false;
@@ -307,6 +328,9 @@ let selectedCalendarDate = "";
 let calendarShowIncome = true;
 let calendarEditingRecordKey = "";
 let calendarEditFeedback = null;
+let calendarDetailReturnState = null;
+let calendarMemoSaveTimer = null;
+let calendarMemoSelectionRange = null;
 let currentFileName = "";
 let boardExpandedSectors = new Set();
 let boardExpandedMonth = "";

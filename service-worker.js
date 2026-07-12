@@ -1,4 +1,4 @@
-const CACHE_NAME = "monthly-card-budget-v109";
+const CACHE_NAME = "monthly-card-budget-v115";
 const APP_FILES = [
   "./",
   "./index.html",
@@ -11,6 +11,49 @@ const APP_FILES = [
   "./src/styles/06-features.css",
   "./src/styles/07-responsive.css",
   "./src/styles/08-themes.css",
+  "./src/styles/09-production-ui.css",
+  "./assets/vendor/xlsx.full.min.js",
+  "./assets/vendor/xlsx.LICENSE",
+  "./assets/tabler/tabler-icons.min.css",
+  "./assets/tabler/icons/adjustments.svg",
+  "./assets/tabler/icons/adjustments-horizontal.svg",
+  "./assets/tabler/icons/alert-circle.svg",
+  "./assets/tabler/icons/building-bank.svg",
+  "./assets/tabler/icons/calendar.svg",
+  "./assets/tabler/icons/calendar-month.svg",
+  "./assets/tabler/icons/calendar-repeat.svg",
+  "./assets/tabler/icons/cash.svg",
+  "./assets/tabler/icons/cash-banknote.svg",
+  "./assets/tabler/icons/category.svg",
+  "./assets/tabler/icons/chart-line.svg",
+  "./assets/tabler/icons/chart-pie.svg",
+  "./assets/tabler/icons/chevron-down.svg",
+  "./assets/tabler/icons/chevron-left.svg",
+  "./assets/tabler/icons/chevron-right.svg",
+  "./assets/tabler/icons/database.svg",
+  "./assets/tabler/icons/dots.svg",
+  "./assets/tabler/icons/download.svg",
+  "./assets/tabler/icons/file-export.svg",
+  "./assets/tabler/icons/file-plus.svg",
+  "./assets/tabler/icons/file-spreadsheet.svg",
+  "./assets/tabler/icons/filter-off.svg",
+  "./assets/tabler/icons/history.svg",
+  "./assets/tabler/icons/layout-dashboard.svg",
+  "./assets/tabler/icons/list-details.svg",
+  "./assets/tabler/icons/notebook.svg",
+  "./assets/tabler/icons/package.svg",
+  "./assets/tabler/icons/palette.svg",
+  "./assets/tabler/icons/pencil-plus.svg",
+  "./assets/tabler/icons/plus.svg",
+  "./assets/tabler/icons/receipt.svg",
+  "./assets/tabler/icons/refresh.svg",
+  "./assets/tabler/icons/repeat.svg",
+  "./assets/tabler/icons/settings.svg",
+  "./assets/tabler/icons/trash.svg",
+  "./assets/tabler/icons/upload.svg",
+  "./assets/tabler/icons/wallet.svg",
+  "./assets/tabler/icons/x.svg",
+  "./assets/tabler/LICENSE",
   "./data/ipo-calendar.json",
   "./src/data/constants.js",
   "./src/data/categories.js",
@@ -58,9 +101,18 @@ const APP_FILES = [
   "./src/features/app/render-all.js",
   "./src/features/app/init.js",
   "./manifest.webmanifest",
-  "./app-icon.svg",
-  "./data/ipo-calendar.json"
+  "./app-icon.svg"
 ];
+
+async function fetchAndCache(request, event) {
+  const response = await fetch(request);
+  if (response.ok || response.type === "opaque") {
+    event.waitUntil(
+      caches.open(CACHE_NAME).then((cache) => cache.put(request, response.clone()))
+    );
+  }
+  return response;
+}
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -81,14 +133,23 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      fetchAndCache(event.request, event).catch(async () =>
+        (await caches.match(event.request))
+        || (await caches.match("./index.html"))
+        || Response.error()
+      )
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
-      return fetch(event.request).then((response) => {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-        return response;
-      });
+      return fetchAndCache(event.request, event).catch(async () =>
+        (await caches.match(event.request, { ignoreSearch: true })) || Response.error()
+      );
     })
   );
 });

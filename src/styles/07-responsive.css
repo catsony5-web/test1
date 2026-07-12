@@ -34,6 +34,7 @@
   .calendar-layout {
     grid-template-areas:
       "summary"
+      "memo"
       "month"
       "calendar"
       "detail";
@@ -546,6 +547,19 @@
   .calendar-current-month {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .calendar-current-month-actions {
+    justify-content: flex-start;
+  }
+
+  .calendar-memo-tabs {
+    position: static;
+    margin: -4px 0 8px;
+  }
+
+  .calendar-memo-card {
+    min-height: 210px;
   }
 
   .income-entry-item {

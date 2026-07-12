@@ -1,0 +1,59 @@
+/*!
+ * Tabler Icons 3.34.1 by tabler - https://tabler.io/icons
+ * MIT License - see ./LICENSE
+ * Project-local subset containing only icons used by this application.
+ */
+.ti {
+  --ti-icon: none;
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  background-color: currentColor;
+  -webkit-mask-image: var(--ti-icon);
+  mask-image: var(--ti-icon);
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+.ti-adjustments { --ti-icon: url("./icons/adjustments.svg"); }
+.ti-adjustments-horizontal { --ti-icon: url("./icons/adjustments-horizontal.svg"); }
+.ti-alert-circle { --ti-icon: url("./icons/alert-circle.svg"); }
+.ti-building-bank { --ti-icon: url("./icons/building-bank.svg"); }
+.ti-calendar { --ti-icon: url("./icons/calendar.svg"); }
+.ti-calendar-month { --ti-icon: url("./icons/calendar-month.svg"); }
+.ti-calendar-repeat { --ti-icon: url("./icons/calendar-repeat.svg"); }
+.ti-cash { --ti-icon: url("./icons/cash.svg"); }
+.ti-cash-banknote { --ti-icon: url("./icons/cash-banknote.svg"); }
+.ti-category { --ti-icon: url("./icons/category.svg"); }
+.ti-chart-line { --ti-icon: url("./icons/chart-line.svg"); }
+.ti-chart-pie { --ti-icon: url("./icons/chart-pie.svg"); }
+.ti-chevron-down { --ti-icon: url("./icons/chevron-down.svg"); }
+.ti-chevron-left { --ti-icon: url("./icons/chevron-left.svg"); }
+.ti-chevron-right { --ti-icon: url("./icons/chevron-right.svg"); }
+.ti-database { --ti-icon: url("./icons/database.svg"); }
+.ti-dots { --ti-icon: url("./icons/dots.svg"); }
+.ti-download { --ti-icon: url("./icons/download.svg"); }
+.ti-file-export { --ti-icon: url("./icons/file-export.svg"); }
+.ti-file-plus { --ti-icon: url("./icons/file-plus.svg"); }
+.ti-file-spreadsheet { --ti-icon: url("./icons/file-spreadsheet.svg"); }
+.ti-filter-off { --ti-icon: url("./icons/filter-off.svg"); }
+.ti-history { --ti-icon: url("./icons/history.svg"); }
+.ti-layout-dashboard { --ti-icon: url("./icons/layout-dashboard.svg"); }
+.ti-list-details { --ti-icon: url("./icons/list-details.svg"); }
+.ti-notebook { --ti-icon: url("./icons/notebook.svg"); }
+.ti-package { --ti-icon: url("./icons/package.svg"); }
+.ti-palette { --ti-icon: url("./icons/palette.svg"); }
+.ti-pencil-plus { --ti-icon: url("./icons/pencil-plus.svg"); }
+.ti-plus { --ti-icon: url("./icons/plus.svg"); }
+.ti-receipt { --ti-icon: url("./icons/receipt.svg"); }
+.ti-refresh { --ti-icon: url("./icons/refresh.svg"); }
+.ti-repeat { --ti-icon: url("./icons/repeat.svg"); }
+.ti-settings { --ti-icon: url("./icons/settings.svg"); }
+.ti-trash { --ti-icon: url("./icons/trash.svg"); }
+.ti-upload { --ti-icon: url("./icons/upload.svg"); }
+.ti-wallet { --ti-icon: url("./icons/wallet.svg"); }
+.ti-x { --ti-icon: url("./icons/x.svg"); }

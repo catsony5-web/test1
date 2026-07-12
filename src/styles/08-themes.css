@@ -2380,6 +2380,7 @@ th.amount,
     grid-template-columns: 1fr;
     grid-template-areas:
       "summary"
+      "memo"
       "month"
       "calendar"
       "detail";

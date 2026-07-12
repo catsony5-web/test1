@@ -16,9 +16,70 @@ function renderSummary() {
   syncSummarySubtabs();
 }
 
+const summaryMobileToDesktopSubtab = Object.freeze({
+  trend: "trend",
+  month: "share",
+  detail: "detail",
+  sector: "report",
+  merchant: "matrix"
+});
+
+function summaryMobileValueForSubtab(subtab) {
+  return Object.entries(summaryMobileToDesktopSubtab)
+    .find(([, desktopSubtab]) => desktopSubtab === subtab)?.[0] || "trend";
+}
+
+function selectSummarySubtab(subtab, { focus = false } = {}) {
+  const button = document.querySelector(`[data-summary-subtab="${cssEscape(subtab)}"]`);
+  if (!button) return;
+  selectedSummarySubtab = subtab;
+  syncSummarySubtabs();
+  if (focus) button.focus();
+}
+
+function selectSummarySubtabFromMobile(mobileValue) {
+  selectSummarySubtab(summaryMobileToDesktopSubtab[mobileValue] || "trend");
+}
+
 function summaryMonthControls() {
   return [els.summaryMonthSelect, els.summaryDetailMonthSelect, els.sectorAnalysisMonthSelect]
     .filter(Boolean);
+}
+
+function summaryMonthButtonPairs() {
+  return [
+    { select: els.summaryMonthSelect, prev: els.summaryPrevMonth, next: els.summaryNextMonth },
+    { select: els.summaryDetailMonthSelect, prev: els.summaryDetailPrevMonth, next: els.summaryDetailNextMonth },
+    { select: els.sectorAnalysisMonthSelect, prev: els.sectorAnalysisPrevMonth, next: els.sectorAnalysisNextMonth }
+  ].filter((pair) => pair.select || pair.prev || pair.next);
+}
+
+function summarySelectableMonths() {
+  const control = summaryMonthControls().find((item) => item.options?.length);
+  return [...(control?.options || [])].map((option) => option.value).filter(isValidMonthKey);
+}
+
+function syncSummaryMonthStepButtons(months, selectedMonth) {
+  summaryMonthButtonPairs().forEach(({ select, prev, next }) => {
+    const current = select?.value || selectedMonth;
+    const index = months.indexOf(current);
+    if (prev) prev.disabled = index <= 0;
+    if (next) next.disabled = index < 0 || index >= months.length - 1;
+  });
+}
+
+function moveSummaryMonth(control, offset) {
+  const months = summarySelectableMonths();
+  if (!months.length) return;
+  const current = control?.value || selectedSummaryMonth || getSharedSelectedMonth(months.at(-1));
+  const currentIndex = months.includes(current)
+    ? months.indexOf(current)
+    : offset > 0 ? -1 : months.length;
+  const nextIndex = currentIndex + offset;
+  if (nextIndex < 0 || nextIndex >= months.length) return;
+
+  setSharedSelectedMonth(months[nextIndex]);
+  renderSummary();
 }
 
 function syncSummarySubtabs() {
@@ -32,11 +93,27 @@ function syncSummarySubtabs() {
     const isActive = button.dataset.summarySubtab === selectedSummarySubtab;
     button.classList.toggle("active", isActive);
     button.setAttribute("aria-selected", isActive ? "true" : "false");
+    button.tabIndex = isActive ? 0 : -1;
     button.onclick = () => {
-      selectedSummarySubtab = button.dataset.summarySubtab || validTabs[0];
-      syncSummarySubtabs();
+      selectSummarySubtab(button.dataset.summarySubtab || validTabs[0]);
+    };
+    button.onkeydown = (event) => {
+      const currentIndex = buttons.indexOf(button);
+      let nextIndex = currentIndex;
+      if (event.key === "ArrowLeft") nextIndex = (currentIndex - 1 + buttons.length) % buttons.length;
+      else if (event.key === "ArrowRight") nextIndex = (currentIndex + 1) % buttons.length;
+      else if (event.key === "Home") nextIndex = 0;
+      else if (event.key === "End") nextIndex = buttons.length - 1;
+      else return;
+
+      event.preventDefault();
+      selectSummarySubtab(buttons[nextIndex].dataset.summarySubtab || validTabs[0], { focus: true });
     };
   });
+
+  if (els.summaryMobileViewSelect) {
+    els.summaryMobileViewSelect.value = summaryMobileValueForSubtab(selectedSummarySubtab);
+  }
 
   panels.forEach((panel) => {
     const isActive = panel.dataset.summarySubtabPanel === selectedSummarySubtab;
@@ -495,6 +572,7 @@ function updateSummaryMonthOptions(months) {
       control.value = "";
     });
     selectedSummaryMonth = "";
+    syncSummaryMonthStepButtons([], "");
     return "";
   }
   const previousControlValue = controls.find((control) => control.value)?.value || "";
@@ -511,5 +589,6 @@ function updateSummaryMonthOptions(months) {
     control.innerHTML = optionsHtml;
     control.value = selected;
   });
+  syncSummaryMonthStepButtons(months, selected);
   return selected;
 }

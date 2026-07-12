@@ -15,9 +15,11 @@ function renderCalendar() {
     : `<option value="${escapeHtml(selectedMonth)}">${escapeHtml(selectedMonth)}</option>`;
   els.calendarMonth.value = selectedMonth;
   if (els.calendarShowIncome) els.calendarShowIncome.checked = calendarShowIncome;
+  attachCalendarWorkspaceHandlers();
 
   if (!selectedMonth) {
     els.calendarMonthSummary.innerHTML = "";
+    if (els.calendarMonthlyMemo) els.calendarMonthlyMemo.innerHTML = "";
     if (els.calendarCurrentMonthLabel) els.calendarCurrentMonthLabel.innerHTML = "";
     els.spendingCalendar.innerHTML = `<div class="empty">카드/이체 내역을 불러오거나 직접 추가하면 소비 달력이 표시됩니다.</div>`;
     els.selectedDayTitle.textContent = "날짜를 선택하세요";
@@ -38,9 +40,11 @@ function renderCalendar() {
   const pendingScheduledRows = scheduledRows.filter((item) => !item.posted);
   const scheduledByDate = groupBy(scheduledRows, (item) => item.date);
   els.calendarMonthSummary.innerHTML = renderCalendarMonthSummary(selectedMonth, monthRows, byDate, dayCount, pendingScheduledRows, calendarShowIncome);
+  renderCalendarMonthlyMemo(selectedMonth);
   renderCalendarCurrentMonthLabel(selectedMonth, pendingScheduledRows);
   attachCalendarSummaryHandlers(selectedMonth);
-  const firstSpendDate = [...new Set([...byDate.keys(), ...incomeByDate.keys(), ...scheduledByDate.keys()])].sort()[0] || `${selectedMonth}-01`;
+  const firstSpendDate = [...new Set([...byDate.keys(), ...incomeByDate.keys(), ...scheduledByDate.keys()])].sort()[0]
+    || defaultDateForMonth(selectedMonth);
   const activeDate = selectedCalendarDate && selectedCalendarDate.startsWith(selectedMonth) ? selectedCalendarDate : firstSpendDate;
   selectedCalendarDate = activeDate;
   const cells = [];
@@ -104,8 +108,220 @@ function renderCalendarCurrentMonthLabel(month, scheduledRows = []) {
       <strong>${escapeHtml(year)}년 ${escapeHtml(monthNumber)}월</strong>
       <span>선택 월 소비 달력</span>
     </div>
-    ${scheduledCount ? `<em>고정 지출 예정 ${scheduledCount.toLocaleString("ko-KR")}건 · ${formatWon(scheduledTotal)}</em>` : `<em>고정 지출 일정은 등록된 날에만 표시됩니다.</em>`}
+    <div class="calendar-current-month-actions">
+      ${calendarDetailReturnState ? `<button type="button" class="calendar-detail-return-button" data-calendar-return-detail>← 상세내역으로 돌아가기</button>` : ""}
+      ${scheduledCount ? `<em>고정 지출 예정 ${scheduledCount.toLocaleString("ko-KR")}건 · ${formatWon(scheduledTotal)}</em>` : `<em>고정 지출 일정은 등록된 날에만 표시됩니다.</em>`}
+    </div>
   `;
+  attachCalendarDetailReturnHandler();
+}
+
+function attachCalendarDetailReturnHandler() {
+  els.calendarCurrentMonthLabel
+    ?.querySelector("[data-calendar-return-detail]")
+    ?.addEventListener("click", returnToDetailFromCalendar);
+}
+
+function attachCalendarWorkspaceHandlers() {
+  const calendarView = document.querySelector("#calendarView");
+  const importButton = calendarView?.querySelector('[data-calendar-action="import"]');
+  const directButton = calendarView?.querySelector('[data-calendar-action="direct"]');
+  const memoSection = calendarView?.querySelector(".calendar-memo-section");
+  const memoToggle = memoSection?.querySelector(".calendar-memo-toggle");
+
+  if (importButton) importButton.onclick = () => els.fileInput?.click();
+  if (directButton) directButton.onclick = () => switchView("detailBulk");
+  if (!memoSection || !memoToggle) return;
+
+  const syncMemoToggle = () => {
+    memoToggle.setAttribute("aria-expanded", String(memoSection.classList.contains("is-open")));
+  };
+  memoToggle.onclick = () => {
+    memoSection.classList.toggle("is-open");
+    syncMemoToggle();
+  };
+  syncMemoToggle();
+}
+
+function renderCalendarMonthlyMemo(month) {
+  if (!els.calendarMonthlyMemo || !isValidMonthKey(month)) return;
+  const memo = normalizeCalendarMemo(calendarMemos[month] || {});
+  const fontOptions = [
+    ["Noto Sans KR", "Noto Sans KR"],
+    ["Pretendard", "Pretendard"],
+    ["Gowun Dodum", "Gowun"],
+    ["Nanum Pen Script", "손글씨"],
+    ["serif", "Serif"],
+    ["monospace", "Mono"]
+  ];
+  const paperTabs = [
+    ["yellow", "노랑"],
+    ["pink", "분홍"],
+    ["green", "초록"],
+    ["blue", "파랑"],
+    ["violet", "보라"]
+  ];
+
+  els.calendarMonthlyMemo.innerHTML = `
+    <section class="calendar-memo-card paper-${escapeHtml(memo.paper)}" data-calendar-memo-card data-calendar-memo-month="${escapeHtml(month)}">
+      <div class="calendar-memo-tabs" aria-label="메모지 색상">
+        ${paperTabs.map(([paper, label]) => `
+          <button type="button" class="calendar-memo-tab ${paper === memo.paper ? "active" : ""}" data-calendar-memo-paper="${escapeHtml(paper)}" title="${escapeHtml(label)}"></button>
+        `).join("")}
+      </div>
+      <div class="calendar-memo-toolbar" aria-label="월별 메모 서식">
+        <select data-calendar-memo-command="formatBlock" title="문단 스타일">
+          <option value="p">본문</option>
+          <option value="h3">제목</option>
+          <option value="h4">소제목</option>
+        </select>
+        <select data-calendar-memo-command="fontName" title="글꼴">
+          ${fontOptions.map(([value, label]) => `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`).join("")}
+        </select>
+        <select data-calendar-memo-command="fontSize" title="글자 크기">
+          <option value="2">14</option>
+          <option value="3" selected>16</option>
+          <option value="4">18</option>
+          <option value="5">22</option>
+          <option value="6">26</option>
+        </select>
+        <button type="button" data-calendar-memo-command="bold" title="굵게"><b>B</b></button>
+        <button type="button" data-calendar-memo-command="italic" title="기울기"><i>I</i></button>
+        <button type="button" data-calendar-memo-command="strikeThrough" title="취소선"><s>S</s></button>
+        <label class="calendar-memo-color" title="글자색">
+          <span>A</span>
+          <input type="color" data-calendar-memo-command="foreColor" value="#dc2626">
+        </label>
+        <label class="calendar-memo-color highlight" title="배경색">
+          <span>A</span>
+          <input type="color" data-calendar-memo-command="hiliteColor" value="#fde68a">
+        </label>
+        <button type="button" data-calendar-memo-command="insertUnorderedList" title="목록">•</button>
+        <button type="button" data-calendar-memo-command="justifyLeft" title="왼쪽 정렬">≡</button>
+        <button type="button" data-calendar-memo-command="justifyCenter" title="가운데 정렬">≣</button>
+        <button type="button" data-calendar-memo-command="justifyRight" title="오른쪽 정렬">☰</button>
+      </div>
+      <div class="calendar-memo-head">
+        <strong>${escapeHtml(month)} 메모</strong>
+        <span data-calendar-memo-status>${memo.updatedAt ? "저장됨" : "새 메모"}</span>
+      </div>
+      <div class="calendar-memo-editor" contenteditable="true" data-calendar-memo-editor aria-label="${escapeHtml(`${month} 월별 메모`)}">${memo.html}</div>
+    </section>
+  `;
+  attachCalendarMemoHandlers(month);
+}
+
+function attachCalendarMemoHandlers(month) {
+  const card = els.calendarMonthlyMemo?.querySelector("[data-calendar-memo-card]");
+  const editor = card?.querySelector("[data-calendar-memo-editor]");
+  if (!card || !editor) return;
+
+  const rememberSelection = () => saveCalendarMemoSelection(editor);
+  editor.addEventListener("keyup", rememberSelection);
+  editor.addEventListener("mouseup", rememberSelection);
+  editor.addEventListener("focus", rememberSelection);
+  editor.addEventListener("input", () => scheduleCalendarMemoSave(month));
+  editor.addEventListener("paste", (event) => {
+    event.preventDefault();
+    const text = event.clipboardData?.getData("text/plain") || "";
+    restoreCalendarMemoSelection(editor);
+    document.execCommand("insertText", false, text);
+    scheduleCalendarMemoSave(month);
+  });
+
+  card.querySelectorAll("[data-calendar-memo-command]").forEach((control) => {
+    const eventNames = control.matches("input[type='color']")
+      ? ["input", "change"]
+      : [control.matches("select") ? "change" : "click"];
+    const handleCommand = (event) => {
+      event.preventDefault();
+      applyCalendarMemoCommand(editor, control.dataset.calendarMemoCommand, control.value);
+      if (control.matches("button")) control.blur();
+      scheduleCalendarMemoSave(month);
+    };
+    eventNames.forEach((eventName) => control.addEventListener(eventName, handleCommand));
+  });
+
+  card.querySelectorAll("[data-calendar-memo-paper]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const paper = button.dataset.calendarMemoPaper || "yellow";
+      const current = normalizeCalendarMemo(calendarMemos[month] || {});
+      calendarMemos[month] = normalizeCalendarMemo({
+        ...current,
+        paper,
+        updatedAt: new Date().toISOString()
+      });
+      card.className = `calendar-memo-card paper-${paper}`;
+      card.querySelectorAll("[data-calendar-memo-paper]").forEach((tab) => {
+        tab.classList.toggle("active", tab === button);
+      });
+      scheduleCalendarMemoSave(month, { immediate: true });
+    });
+  });
+}
+
+function saveCalendarMemoSelection(editor) {
+  const selection = window.getSelection();
+  if (!selection?.rangeCount) return;
+  const range = selection.getRangeAt(0);
+  const node = range.commonAncestorContainer;
+  if (editor.contains(node.nodeType === Node.ELEMENT_NODE ? node : node.parentNode)) {
+    calendarMemoSelectionRange = range.cloneRange();
+  }
+}
+
+function restoreCalendarMemoSelection(editor) {
+  editor.focus();
+  if (!calendarMemoSelectionRange) return;
+  const selection = window.getSelection();
+  selection.removeAllRanges();
+  selection.addRange(calendarMemoSelectionRange);
+}
+
+function calendarMemoHasActiveSelection(editor) {
+  const selection = window.getSelection();
+  if (!selection?.rangeCount) return false;
+  const range = selection.getRangeAt(0);
+  if (range.collapsed) return false;
+  const node = range.commonAncestorContainer;
+  return editor.contains(node.nodeType === Node.ELEMENT_NODE ? node : node.parentNode);
+}
+
+function selectCalendarMemoContents(editor) {
+  if (!editor.textContent.trim()) return;
+  const range = document.createRange();
+  range.selectNodeContents(editor);
+  const selection = window.getSelection();
+  selection.removeAllRanges();
+  selection.addRange(range);
+  calendarMemoSelectionRange = range.cloneRange();
+}
+
+function applyCalendarMemoCommand(editor, command, value = "") {
+  restoreCalendarMemoSelection(editor);
+  if (!calendarMemoHasActiveSelection(editor)) selectCalendarMemoContents(editor);
+  document.execCommand("styleWithCSS", false, true);
+  document.execCommand(command, false, value || null);
+  saveCalendarMemoSelection(editor);
+}
+
+function scheduleCalendarMemoSave(month, options = {}) {
+  const editor = els.calendarMonthlyMemo?.querySelector("[data-calendar-memo-editor]");
+  const status = els.calendarMonthlyMemo?.querySelector("[data-calendar-memo-status]");
+  if (!editor || !isValidMonthKey(month)) return;
+  const current = normalizeCalendarMemo(calendarMemos[month] || {});
+  calendarMemos[month] = normalizeCalendarMemo({
+    ...current,
+    html: sanitizeCalendarMemoHtml(editor.innerHTML),
+    updatedAt: new Date().toISOString()
+  });
+  if (status) status.textContent = "저장 중";
+  clearTimeout(calendarMemoSaveTimer);
+  calendarMemoSaveTimer = setTimeout(async () => {
+    await saveCalendarMemos();
+    const latestStatus = els.calendarMonthlyMemo?.querySelector("[data-calendar-memo-status]");
+    if (latestStatus && selectedCalendarMonth === month) latestStatus.textContent = "자동 저장됨";
+  }, options.immediate ? 0 : 450);
 }
 
 function renderCalendarMonthSummary(month, monthRows, byDate, dayCount, scheduledRows = [], showIncome = true) {
@@ -122,18 +338,18 @@ function renderCalendarMonthSummary(month, monthRows, byDate, dayCount, schedule
   const topDay = dailyTotals[0] || { date: "-", amount: 0, count: 0 };
   const unknownAmount = sumActual(monthRows.filter((item) => item.sector === "미분류"));
   const coreMetrics = [
-    renderCalendarMetric("총 지출", formatWon(totalSpend), `${month} 실 지출 합계`, "spend", { priority: "core" }),
+    renderCalendarMetric("총 지출", formatWon(totalSpend), `${month} 실 지출 합계`, "spend", { priority: "core", key: "spend" }),
     ...(showIncome ? [
-      renderCalendarMetric("총 수입", formatWon(totalIncome), "수입 입력 + 이체 입금", "income", { incomeMonth: month, priority: "core" }),
-      renderCalendarMetric("잔액", formatSignedWon(balance), "총 수입 - 총 지출", balance >= 0 ? "positive" : "negative", { priority: "core" }),
-      renderCalendarMetric("예상 잔액", formatSignedWon(expectedBalance), "잔액 - 예정 지출", expectedBalance >= 0 ? "positive" : "negative", { priority: "core" })
+      renderCalendarMetric("총 수입", formatWon(totalIncome), "수입 입력 + 이체 입금", "income", { incomeMonth: month, priority: "core", key: "income" }),
+      renderCalendarMetric("잔액", formatSignedWon(balance), "총 수입 - 총 지출", balance >= 0 ? "positive" : "negative", { priority: "core", key: "balance" }),
+      renderCalendarMetric("예상 잔액", formatSignedWon(expectedBalance), "잔액 - 예정 지출", expectedBalance >= 0 ? "positive" : "negative", { priority: "core", key: "expected-balance" })
     ] : [])
   ];
   const supportMetrics = [
-    renderCalendarMetric("고정 지출 예정", formatWon(scheduledTotal), `${scheduledRows.length.toLocaleString("ko-KR")}건 · 실 지출 미포함`, "scheduled", { priority: "support" }),
-    renderCalendarMetric("하루 평균 지출", formatWon(avgSpend), `소비 발생 ${spendDayCount.toLocaleString("ko-KR")}일 기준`, "average", { priority: "support" }),
-    renderCalendarMetric("가장 많이 쓴 날", topDay.date, `${formatWon(topDay.amount)} · ${topDay.count.toLocaleString("ko-KR")}건`, topDay.amount > 0 ? "topday" : "neutral", { priority: "support" }),
-    renderCalendarMetric("미분류", formatWon(unknownAmount), unknownAmount > 0 ? "분류 확인 필요" : "분류 필요 항목 없음", unknownAmount > 0 ? "unknown" : "neutral", { priority: "support" })
+    renderCalendarMetric("고정 지출 예정", formatWon(scheduledTotal), `${scheduledRows.length.toLocaleString("ko-KR")}건 · 실 지출 미포함`, "scheduled", { priority: "support", key: "scheduled" }),
+    renderCalendarMetric("하루 평균 지출", formatWon(avgSpend), `소비 발생 ${spendDayCount.toLocaleString("ko-KR")}일 기준`, "average", { priority: "support", key: "average" }),
+    renderCalendarMetric("가장 많이 쓴 날", topDay.date, `${formatWon(topDay.amount)} · ${topDay.count.toLocaleString("ko-KR")}건`, topDay.amount > 0 ? "topday" : "neutral", { priority: "support", key: "top-day" }),
+    renderCalendarMetric("미분류", formatWon(unknownAmount), unknownAmount > 0 ? "분류 확인 필요" : "분류 필요 항목 없음", unknownAmount > 0 ? "unknown" : "neutral", { priority: "support", key: "unknown" })
   ];
   return `
     <div class="calendar-summary-row core" aria-label="소비 달력 핵심 요약">
@@ -147,10 +363,11 @@ function renderCalendarMonthSummary(month, monthRows, byDate, dayCount, schedule
 
 function renderCalendarMetric(label, value, hint, tone, options = {}) {
   const attrs = options.incomeMonth ? ` data-open-income-month="${escapeHtml(options.incomeMonth)}"` : "";
+  const metricAttr = options.key ? ` data-calendar-metric="${escapeHtml(options.key)}"` : "";
   const priorityClass = options.priority ? ` is-${escapeHtml(options.priority)}` : "";
   const tagOpen = options.incomeMonth
-    ? `<button type="button" class="calendar-summary-card ${escapeHtml(tone)}${priorityClass}"${attrs}>`
-    : `<article class="calendar-summary-card ${escapeHtml(tone)}${priorityClass}">`;
+    ? `<button type="button" class="calendar-summary-card ${escapeHtml(tone)}${priorityClass}"${attrs}${metricAttr}>`
+    : `<article class="calendar-summary-card ${escapeHtml(tone)}${priorityClass}"${metricAttr}>`;
   const tagClose = options.incomeMonth ? "button" : "article";
   return `
     ${tagOpen}

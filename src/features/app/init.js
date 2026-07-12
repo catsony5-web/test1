@@ -24,6 +24,7 @@ async function init() {
     tab.addEventListener("click", () => switchView(tab.dataset.view));
   });
   setupAdminMenu();
+  setupMobileNavigation();
   setupAppearanceControls();
 
   els.fileInput.addEventListener("change", handleFile);
@@ -123,6 +124,9 @@ async function init() {
     }
     renderSummary();
   });
+  els.summaryMobileViewSelect?.addEventListener("change", () => {
+    selectSummarySubtabFromMobile(els.summaryMobileViewSelect.value);
+  });
   [els.summaryMonthSelect, els.summaryDetailMonthSelect, els.sectorAnalysisMonthSelect]
     .filter(Boolean)
     .forEach((control) => {
@@ -131,6 +135,12 @@ async function init() {
         renderSummary();
       });
     });
+  els.summaryPrevMonth?.addEventListener("click", () => moveSummaryMonth(els.summaryMonthSelect, -1));
+  els.summaryNextMonth?.addEventListener("click", () => moveSummaryMonth(els.summaryMonthSelect, 1));
+  els.summaryDetailPrevMonth?.addEventListener("click", () => moveSummaryMonth(els.summaryDetailMonthSelect, -1));
+  els.summaryDetailNextMonth?.addEventListener("click", () => moveSummaryMonth(els.summaryDetailMonthSelect, 1));
+  els.sectorAnalysisPrevMonth?.addEventListener("click", () => moveSummaryMonth(els.sectorAnalysisMonthSelect, -1));
+  els.sectorAnalysisNextMonth?.addEventListener("click", () => moveSummaryMonth(els.sectorAnalysisMonthSelect, 1));
   window.addEventListener("scroll", updateBoardMapTopButton, { passive: true });
   els.boardMapTopButton.addEventListener("click", () => {
     els.boardSectorMap.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -226,10 +236,13 @@ async function init() {
       if (control === els.detailSector) detailFilters.subcategory = "all";
       renderDetailView();
     }));
+  els.detailPrevMonth?.addEventListener("click", () => moveDetailMonth(-1));
+  els.detailNextMonth?.addEventListener("click", () => moveDetailMonth(1));
   els.detailSearch.addEventListener("input", () => {
     readDetailFilterControls();
     renderDetailView();
   });
+  els.detailFilterResetButton?.addEventListener("click", resetDetailFilters);
   els.detailBackToBoardButton.addEventListener("click", returnFromDetailView);
   els.detailBulkMonth.addEventListener("change", () => setSharedSelectedMonth(els.detailBulkMonth.value));
   els.detailBulkSector.addEventListener("change", () => updateDetailBulkSubcategorySelect());

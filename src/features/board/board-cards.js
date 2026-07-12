@@ -293,8 +293,12 @@ function renderLedgerSection(section, rows, selectedMonth, sortMode = "date", op
     const reimbursementDisabled = item.isInstallmentOccurrence || !reimbursementEditMode;
     const canEditInstallment = Boolean(options.fullMode && !item.isInstallmentOccurrence);
     const isInstallmentEditing = canEditInstallment && detailInstallmentEditRecordKey === item.recordKey;
+    const calendarRecordKey = item.installmentSourceRecordKey || item.recordKey;
+    const calendarLinkAttrs = options.fullMode
+      ? ` data-detail-open-calendar="${escapeHtml(calendarRecordKey)}" data-detail-calendar-date="${escapeHtml(item.approvalDate)}" data-detail-calendar-month="${escapeHtml(item.month)}" role="button" tabindex="0" title="소비 달력에서 이 거래 수정"`
+      : "";
     return `
-    <div class="transaction-row ${categoryClass(item.sector)} ${detailFocusRecordKey === item.recordKey ? "is-detail-focused" : ""}" data-detail-record-key="${escapeHtml(item.recordKey)}">
+    <div class="transaction-row ${categoryClass(item.sector)} ${options.fullMode ? "detail-calendar-link" : ""} ${detailFocusRecordKey === item.recordKey ? "is-detail-focused" : ""}" data-detail-record-key="${escapeHtml(item.recordKey)}"${calendarLinkAttrs}>
       <span class="date">${escapeHtml(item.approvalDate)}</span>
       <span class="merchant" title="${escapeHtml(item.merchant)}">
         ${escapeHtml(item.merchant)}${item.status === "직접입력" ? `<em class="manual-badge">직접 입력</em>` : ""}

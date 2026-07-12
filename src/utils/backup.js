@@ -89,6 +89,7 @@ const DATA_SCOPE_META = [
   { key: "rulesAndLearning", label: "분류 규칙/추천" },
   { key: "products", label: "소모품 사용" },
   { key: "ipoRecords", label: "공모주 기록" },
+  { key: "calendarMemos", label: "달력 메모" },
   { key: "settings", label: "설정/테마" },
   { key: "legacyUnknown", label: "기타 legacy 데이터" }
 ];
@@ -237,6 +238,7 @@ async function buildBackupPayload(scopes) {
   if (sections.products) payload.products = sections.products.products || [];
   if (sections.ipoRecords) payload.ipoRecords = sections.ipoRecords.ipoRecords || [];
   if (sections.recurringDefinitions) payload.recurringExpenses = sections.recurringDefinitions.recurringExpenses || [];
+  if (sections.calendarMemos) payload.calendarMemos = sections.calendarMemos.calendarMemos || {};
   if (sections.settings) payload.settings = sections.settings.settings || {};
   if (sections.importedExcelTransactions) payload.importMeta = sections.importedExcelTransactions.importMeta || {};
   return payload;
@@ -257,6 +259,7 @@ function buildBackupSection(scope) {
   if (scope === "rulesAndLearning") return { rules };
   if (scope === "products") return { products: products.map(normalizeProduct) };
   if (scope === "ipoRecords") return { ipoRecords: ipoRecords.map(normalizeIpoRecord) };
+  if (scope === "calendarMemos") return { calendarMemos: normalizeCalendarMemos(calendarMemos) };
   if (scope === "settings") return { settings: appSettings };
   return null;
 }
@@ -302,6 +305,7 @@ function normalizeBackupPayload(payload) {
   if (!sections.recurringDefinitions && Array.isArray(payload?.recurringExpenses)) sections.recurringDefinitions = { recurringExpenses: payload.recurringExpenses };
   if (!sections.products && Array.isArray(payload?.products)) sections.products = { products: payload.products };
   if (!sections.ipoRecords && Array.isArray(payload?.ipoRecords)) sections.ipoRecords = { ipoRecords: payload.ipoRecords };
+  if (!sections.calendarMemos && payload?.calendarMemos) sections.calendarMemos = { calendarMemos: payload.calendarMemos };
   if (!sections.settings && payload?.settings) sections.settings = { settings: payload.settings };
 
   Object.keys(DATA_SCOPE_ALIASES).forEach((legacyScope) => {
@@ -343,6 +347,7 @@ function normalizeBackupSection(scope, raw) {
   if (scope === "rulesAndLearning") return { rules: Array.isArray(raw.rules) ? raw.rules : [] };
   if (scope === "products") return { products: Array.isArray(raw.products) ? raw.products.map(normalizeProduct) : [] };
   if (scope === "ipoRecords") return { ipoRecords: Array.isArray(raw.ipoRecords) ? raw.ipoRecords.map(normalizeIpoRecord) : [] };
+  if (scope === "calendarMemos") return { calendarMemos: normalizeCalendarMemos(raw.calendarMemos) };
   if (scope === "settings") return { settings: raw.settings && typeof raw.settings === "object" ? raw.settings : {} };
   return null;
 }
@@ -353,6 +358,7 @@ function emptyBackupSection(scope) {
   if (scope === "rulesAndLearning") return { rules: [] };
   if (scope === "products") return { products: [] };
   if (scope === "ipoRecords") return { ipoRecords: [] };
+  if (scope === "calendarMemos") return { calendarMemos: {} };
   if (scope === "settings") return { settings: {} };
   return {};
 }
@@ -371,6 +377,7 @@ function countBackupSections(sections) {
     else if (scope === "rulesAndLearning") counts[scope] = Array.isArray(section.rules) ? section.rules.length : 0;
     else if (scope === "products") counts[scope] = Array.isArray(section.products) ? section.products.length : 0;
     else if (scope === "ipoRecords") counts[scope] = Array.isArray(section.ipoRecords) ? section.ipoRecords.length : 0;
+    else if (scope === "calendarMemos") counts[scope] = section.calendarMemos && typeof section.calendarMemos === "object" ? Object.keys(section.calendarMemos).length : 0;
     else if (scope === "settings") counts[scope] = section.settings && Object.keys(section.settings).length ? 1 : 0;
   });
   return counts;
@@ -417,6 +424,7 @@ function applyClearScopes(scopes) {
   if (selected.includes("rulesAndLearning")) rules = structuredClone(defaultRules);
   if (selected.includes("products")) products = [];
   if (selected.includes("ipoRecords")) ipoRecords = [];
+  if (selected.includes("calendarMemos")) calendarMemos = {};
   if (selected.includes("settings")) {
     appSettings = defaultAppSettings();
     applyAppSettings();
@@ -453,6 +461,10 @@ function applyRestorePayload(payload, scopes, options = {}) {
     const incoming = Array.isArray(bundle.sections.ipoRecords?.ipoRecords) ? bundle.sections.ipoRecords.ipoRecords.map(normalizeIpoRecord) : [];
     ipoRecords = mode === "merge" ? mergeIpoRecords(ipoRecords, incoming) : incoming;
   }
+  if (selected.includes("calendarMemos")) {
+    const incoming = normalizeCalendarMemos(bundle.sections.calendarMemos?.calendarMemos);
+    calendarMemos = mode === "merge" ? { ...incoming, ...normalizeCalendarMemos(calendarMemos) } : incoming;
+  }
   if (selected.includes("settings")) {
     const incoming = bundle.sections.settings?.settings && typeof bundle.sections.settings.settings === "object" ? bundle.sections.settings.settings : {};
     appSettings = { ...defaultAppSettings(), ...incoming };
@@ -480,6 +492,7 @@ async function saveSelectedScopes(scopes, options = {}) {
   if (selected.includes("products")) writes.push(saveProducts());
   if (selected.includes("ipoRecords")) writes.push(saveIpoRecords());
   if (selected.includes("recurringDefinitions")) writes.push(saveRecurringExpenses());
+  if (selected.includes("calendarMemos")) writes.push(saveCalendarMemos());
   if (selected.includes("settings")) writes.push(saveSettings());
   await Promise.all(writes);
 }

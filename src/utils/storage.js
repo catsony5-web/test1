@@ -9,6 +9,7 @@ async function hydrateStoredData() {
   products = await loadProducts();
   ipoRecords = await loadIpoRecords();
   recurringExpenses = await loadRecurringExpenses();
+  calendarMemos = await loadCalendarMemos();
   currentFileName = importMeta.lastFileName || "";
   await ensureDailyAutoSnapshot();
 }
@@ -225,6 +226,7 @@ function collectSnapshotData() {
     rules,
     products: products.map(normalizeProduct),
     ipoRecords: ipoRecords.map(normalizeIpoRecord),
+    calendarMemos: normalizeCalendarMemos(calendarMemos),
     reimbursements,
     importMeta,
     settings: appSettings
@@ -237,7 +239,7 @@ async function loadAutoSnapshots() {
 }
 
 async function ensureDailyAutoSnapshot() {
-  const hasData = transactions.length || Object.keys(monthlyIncome || {}).length || recurringExpenses.length || products.length || ipoRecords.length || rules.length;
+  const hasData = transactions.length || Object.keys(monthlyIncome || {}).length || recurringExpenses.length || products.length || ipoRecords.length || Object.keys(calendarMemos || {}).length || rules.length;
   const today = new Date().toISOString().slice(0, 10);
   if (!hasData || appSettings.lastDailySnapshotDate === today) return;
   await createAutoSnapshot("하루 1회 자동 스냅샷");
@@ -280,7 +282,7 @@ async function restoreFromSnapshot(snapshotId) {
   if (!snapshot) return;
   const scopes = typeof selectedDataScopes === "function"
     ? selectedDataScopes()
-    : ["importedExcelTransactions", "pastBulkTransactions", "directManualTransactions", "incomeInput", "recurringDefinitions", "recurringPostedTransactions", "rulesAndLearning", "products", "ipoRecords", "settings", "legacyUnknown"];
+    : ["importedExcelTransactions", "pastBulkTransactions", "directManualTransactions", "incomeInput", "recurringDefinitions", "recurringPostedTransactions", "rulesAndLearning", "products", "ipoRecords", "calendarMemos", "settings", "legacyUnknown"];
   if (!scopes.length) {
     alert("복구할 데이터 항목을 하나 이상 선택해주세요.");
     return;
@@ -450,6 +452,135 @@ async function loadRecurringExpenses() {
 
 function saveRecurringExpenses() {
   return safeSave(RECURRING_STORAGE_KEY, recurringExpenses.map(normalizeRecurringExpense));
+}
+
+async function loadCalendarMemos() {
+  const stored = await safeLoad(CALENDAR_MEMO_STORAGE_KEY, {});
+  return normalizeCalendarMemos(stored);
+}
+
+function saveCalendarMemos() {
+  calendarMemos = normalizeCalendarMemos(calendarMemos);
+  return safeSave(CALENDAR_MEMO_STORAGE_KEY, calendarMemos);
+}
+
+function normalizeCalendarMemos(value) {
+  if (!value || typeof value !== "object") return {};
+  return Object.fromEntries(Object.entries(value)
+    .filter(([month]) => isValidMonthKey(month))
+    .map(([month, memo]) => [month, normalizeCalendarMemo(memo)])
+    .filter(([, memo]) => memo.html || memo.paper !== "yellow"));
+}
+
+function normalizeCalendarMemo(memo = {}) {
+  const paper = ["yellow", "pink", "green", "blue", "violet"].includes(memo.paper) ? memo.paper : "yellow";
+  return {
+    html: sanitizeCalendarMemoHtml(memo.html || ""),
+    paper,
+    updatedAt: String(memo.updatedAt || "")
+  };
+}
+
+function sanitizeCalendarMemoHtml(html) {
+  const template = document.createElement("template");
+  template.innerHTML = String(html || "");
+  const allowedTags = new Set(["P", "DIV", "SPAN", "B", "STRONG", "I", "EM", "U", "S", "STRIKE", "BR", "UL", "OL", "LI", "H3", "H4", "FONT"]);
+  const allowedStyles = new Set(["color", "background-color", "font-size", "font-family", "font-weight", "font-style", "text-align", "text-decoration", "text-decoration-line"]);
+  const allowedFonts = new Set(["Noto Sans KR", "Pretendard", "Gowun Dodum", "Nanum Pen Script", "serif", "monospace"]);
+  const allowedSizes = new Set(["12px", "14px", "16px", "18px", "22px", "26px"]);
+  const fontSizeMap = { 1: "12px", 2: "14px", 3: "16px", 4: "18px", 5: "22px", 6: "26px", 7: "26px" };
+  const keywordSizeMap = {
+    "x-small": "12px",
+    small: "14px",
+    medium: "16px",
+    large: "18px",
+    "x-large": "22px",
+    "xx-large": "26px",
+    "-webkit-xxx-large": "26px"
+  };
+
+  const cleanColor = (value) => {
+    const text = String(value || "").trim();
+    if (!text || /url|expression|javascript/i.test(text)) return "";
+    return CSS.supports("color", text) ? text : "";
+  };
+  const cleanFont = (value) => {
+    const first = String(value || "").split(",")[0].replaceAll("\"", "").replaceAll("'", "").trim();
+    return allowedFonts.has(first) ? first : "";
+  };
+  const cleanSize = (value) => {
+    const text = String(value || "").trim().toLowerCase();
+    if (allowedSizes.has(text)) return text;
+    return keywordSizeMap[text] || "";
+  };
+  const cleanFontWeight = (value) => {
+    const text = String(value || "").trim().toLowerCase();
+    return ["bold", "600", "700"].includes(text) ? text : "";
+  };
+  const cleanFontStyle = (value) => {
+    const text = String(value || "").trim().toLowerCase();
+    return text === "italic" ? text : "";
+  };
+  const cleanTextDecoration = (value) => {
+    const text = String(value || "").toLowerCase();
+    if (text.includes("line-through")) return "line-through";
+    return "";
+  };
+  const cleanStyle = (source, target) => {
+    [...source.style].forEach((property) => {
+      if (!allowedStyles.has(property)) return;
+      const value = source.style.getPropertyValue(property);
+      if (property === "color" || property === "background-color") {
+        const color = cleanColor(value);
+        if (color) target.style.setProperty(property, color);
+      } else if (property === "font-family") {
+        const font = cleanFont(value);
+        if (font) target.style.fontFamily = font;
+      } else if (property === "font-size") {
+        const size = cleanSize(value);
+        if (size) target.style.fontSize = size;
+      } else if (property === "font-weight") {
+        const weight = cleanFontWeight(value);
+        if (weight) target.style.fontWeight = weight;
+      } else if (property === "font-style") {
+        const style = cleanFontStyle(value);
+        if (style) target.style.fontStyle = style;
+      } else if (property === "text-align" && ["left", "center", "right"].includes(value.trim())) {
+        target.style.textAlign = value.trim();
+      } else if (property === "text-decoration" || property === "text-decoration-line") {
+        const decoration = cleanTextDecoration(value);
+        if (decoration) target.style.textDecoration = decoration;
+      }
+    });
+  };
+  const cleanNode = (node) => {
+    if (node.nodeType === Node.TEXT_NODE) return document.createTextNode(node.textContent || "");
+    if (node.nodeType !== Node.ELEMENT_NODE) return document.createDocumentFragment();
+    if (!allowedTags.has(node.tagName)) {
+      const fragment = document.createDocumentFragment();
+      node.childNodes.forEach((child) => fragment.appendChild(cleanNode(child)));
+      return fragment;
+    }
+    const tagName = node.tagName === "FONT" ? "span" : node.tagName.toLowerCase();
+    const next = document.createElement(tagName);
+    cleanStyle(node, next);
+    if (node.tagName === "FONT") {
+      const color = cleanColor(node.getAttribute("color"));
+      const face = cleanFont(node.getAttribute("face"));
+      const size = fontSizeMap[node.getAttribute("size")];
+      if (color) next.style.color = color;
+      if (face) next.style.fontFamily = face;
+      if (size) next.style.fontSize = size;
+    }
+    node.childNodes.forEach((child) => next.appendChild(cleanNode(child)));
+    return next;
+  };
+  const fragment = document.createDocumentFragment();
+  template.content.childNodes.forEach((child) => fragment.appendChild(cleanNode(child)));
+  const output = document.createElement("div");
+  output.appendChild(fragment);
+  if (!output.textContent.trim()) return "";
+  return output.innerHTML.trim();
 }
 
 function normalizeRecurringExpense(item) {

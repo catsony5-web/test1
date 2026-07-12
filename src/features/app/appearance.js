@@ -74,7 +74,9 @@ function readFileAsDataUrl(file) {
 
 function syncAppearanceControls() {
   els.themeChoiceGroup?.querySelectorAll("[data-theme-choice]").forEach((button) => {
-    button.classList.toggle("active", button.dataset.themeChoice === appSettings.theme);
+    const isActive = button.dataset.themeChoice === appSettings.theme;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
   });
   if (els.backgroundOpacityInput) els.backgroundOpacityInput.value = Math.round(clampNumber(appSettings.backgroundOpacity, 0, 0.45, 0.14) * 100);
   if (els.backgroundBlurInput) els.backgroundBlurInput.value = Math.round(clampNumber(appSettings.backgroundBlur, 0, 18, 0));
@@ -94,21 +96,38 @@ function setBackgroundStatus(message) {
   if (els.backgroundSettingsStatus) els.backgroundSettingsStatus.textContent = message;
 }
 
-function toggleAdminMenu(force) {
-  if (!els.adminMenuButton || !els.adminMenu) return;
-  const shouldOpen = typeof force === "boolean" ? force : els.adminMenu.hidden;
-  els.adminMenu.hidden = !shouldOpen;
-  els.adminMenuButton.setAttribute("aria-expanded", String(shouldOpen));
-}
+const MOBILE_PRIMARY_VIEWS = new Set(["board", "calendar", "details"]);
 
-function closeAdminMenu() {
-  toggleAdminMenu(false);
+function syncNavigationState(viewName) {
+  document.querySelectorAll(".tab[data-view]").forEach((tab) => {
+    const isActive = tab.dataset.view === viewName;
+    tab.classList.toggle("active", isActive);
+    if (isActive) tab.setAttribute("aria-current", "page");
+    else tab.removeAttribute("aria-current");
+  });
+
+  els.mobileNavigationButtons?.forEach((button) => {
+    const isActive = button.dataset.mobileView === viewName;
+    button.classList.toggle("active", isActive);
+    if (isActive) button.setAttribute("aria-current", "page");
+    else button.removeAttribute("aria-current");
+  });
+
+  const isMoreView = !MOBILE_PRIMARY_VIEWS.has(viewName);
+  els.mobileMoreButton?.classList.toggle("active", isMoreView);
+  if (isMoreView) els.mobileMoreButton?.setAttribute("aria-current", "page");
+  else els.mobileMoreButton?.removeAttribute("aria-current");
 }
 
 function switchView(viewName) {
   if (!document.querySelector(`#${viewName}View`)) return;
-  closeAdminMenu();
-  document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.view === viewName));
+  const currentViewName = document.querySelector(".view.active")?.id?.replace(/View$/, "");
+  if (currentViewName === "calendar" && viewName !== "calendar") {
+    calendarDetailReturnState = null;
+    els.calendarCurrentMonthLabel?.querySelector("[data-calendar-return-detail]")?.remove();
+  }
+  closeAdminMenu({ restoreFocus: false });
+  syncNavigationState(viewName);
   document.querySelectorAll(".view").forEach((view) => view.classList.remove("active"));
   document.querySelector(`#${viewName}View`).classList.add("active");
   els.adminMenuButton?.classList.toggle("active-admin-view", ["income", "recurring", "rules", "transactions"].includes(viewName));
