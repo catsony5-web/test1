@@ -1,97 +1,133 @@
+function monthlyChartStep(maxAbs) {
+  const rawStep = Math.max(Number(maxAbs || 0), 2) / 2;
+  const magnitude = 10 ** Math.floor(Math.log10(rawStep));
+  const normalized = rawStep / magnitude;
+  const factor = [1, 1.25, 2, 2.5, 5, 10].find((candidate) => normalized <= candidate) || 10;
+  return factor * magnitude;
+}
+
+function renderMonthlyBalanceSummaryItem(tone, icon, label, row, selected = false) {
+  return `
+    <div class="balance-summary-item ${tone}"${selected ? " data-monthly-selected-summary" : ""}>
+      <span class="balance-summary-icon"><i class="ti ${icon}" aria-hidden="true"></i></span>
+      <span class="balance-summary-copy">
+        <small>${escapeHtml(label)}</small>
+        <b${selected ? " data-monthly-selected-month" : ""}>${escapeHtml(row.month)}</b>
+      </span>
+      <strong${selected ? " data-monthly-selected-amount" : ""}>${escapeHtml(formatSignedWon(row.net))}</strong>
+    </div>
+  `;
+}
+
 function renderMonthlyLineChart(rows) {
   const width = 980;
-  const height = 390;
-  const padLeft = 104;
-  const padRight = 46;
-  const padTop = 54;
-  const padBottom = 70;
-  const values = rows.map((row) => row.net);
+  const height = 410;
+  const padLeft = 86;
+  const padRight = 28;
+  const padTop = 34;
+  const padBottom = 66;
+  const values = rows.map((row) => Number(row.net || 0));
   const min = Math.min(...values, 0);
   const max = Math.max(...values, 0);
-  const span = max - min || 1;
+  const step = monthlyChartStep(Math.max(Math.abs(min), Math.abs(max)));
+  let maxBound = max > 0 ? Math.ceil(max / step) * step : 0;
+  let minBound = min < 0 ? -Math.ceil(Math.abs(min) / step) * step : 0;
+  if (maxBound === 0 && minBound === 0) {
+    maxBound = step;
+    minBound = -step;
+  }
+
+  const range = maxBound - minBound || step;
   const plotWidth = width - padLeft - padRight;
   const plotHeight = height - padTop - padBottom;
-  const xStep = rows.length > 1 ? plotWidth / (rows.length - 1) : 0;
-  const point = (row, index) => {
-    const x = rows.length > 1 ? padLeft + index * xStep : padLeft + plotWidth / 2;
-    const y = padTop + (max - row.net) / span * plotHeight;
-    return { x, y };
-  };
-  const points = rows.map(point);
-  const polyline = points.map((p) => `${p.x},${p.y}`).join(" ");
-  const segments = points.slice(1).map((p, index) => {
-    const previous = points[index];
-    const previousRow = rows[index];
-    const row = rows[index + 1];
-    const tone = previousRow.net >= 0 && row.net >= 0
-      ? "positive"
-      : previousRow.net < 0 && row.net < 0
-        ? "negative"
-        : "mixed";
-    return `<line class="balance-segment ${tone}" x1="${previous.x}" y1="${previous.y}" x2="${p.x}" y2="${p.y}"></line>`;
-  }).join("");
-  const zeroY = padTop + (max - 0) / span * plotHeight;
-  const labelEvery = Math.max(1, Math.ceil(rows.length / 8));
+  const slotWidth = plotWidth / Math.max(rows.length, 1);
+  const barWidth = Math.max(6, Math.min(30, slotWidth * 0.56));
+  const yFor = (value) => padTop + (maxBound - value) / range * plotHeight;
+  const zeroY = yFor(0);
+  const points = rows.map((row, index) => ({
+    x: padLeft + slotWidth * (index + 0.5),
+    y: yFor(Number(row.net || 0))
+  }));
+  const labelEvery = Math.max(1, Math.ceil(rows.length / 7));
   const best = [...rows].sort((a, b) => b.net - a.net)[0];
   const worst = [...rows].sort((a, b) => a.net - b.net)[0];
-  const areaPoints = [
-    `${points[0]?.x || padLeft},${zeroY}`,
-    ...points.map((p) => `${p.x},${p.y}`),
-    `${points.at(-1)?.x || width - padRight},${zeroY}`
-  ].join(" ");
-  const gridValues = unique([max, Math.round((max + 0) / 2), 0, Math.round((min + 0) / 2), min])
-    .filter((value) => Number.isFinite(value))
-    .sort((a, b) => b - a);
+  const selected = rows.find((row) => row.month === focusedMonthlyMonth) || rows.at(-1);
+  const gridValues = [];
+  for (let value = maxBound; value > 0; value -= step) gridValues.push(value);
+  gridValues.push(0);
+  for (let value = -step; value >= minBound; value -= step) gridValues.push(value);
+
+  const chartGroups = points.map((point, index) => {
+    const row = rows[index];
+    const barY = Math.min(point.y, zeroY);
+    const barHeight = Math.max(2, Math.abs(point.y - zeroY));
+    const showMonth = index % labelEvery === 0 || index === rows.length - 1;
+    const persistent = focusedMonthlyMonth === row.month ? " is-persistent" : "";
+    return `
+      <g class="balance-point-group${persistent}" data-chart-month="${escapeHtml(row.month)}" data-chart-net="${escapeHtml(String(row.net))}" tabindex="0" role="button" aria-label="${escapeHtml(`${row.month} 월별 상세 행으로 이동, ${formatSignedWon(row.net)}`)}">
+        <title>${escapeHtml(row.month)} · ${escapeHtml(formatSignedWon(row.net))}</title>
+        <rect class="balance-hit-area" x="${point.x - slotWidth / 2}" y="${padTop}" width="${slotWidth}" height="${plotHeight}" rx="8"></rect>
+        <rect class="balance-bar ${row.net >= 0 ? "good" : "bad"}" x="${point.x - barWidth / 2}" y="${barY}" width="${barWidth}" height="${barHeight}" rx="3"></rect>
+        ${showMonth ? `<text class="chart-label" x="${point.x}" y="${height - 22}" text-anchor="middle">${escapeHtml(row.month.slice(2))}</text>` : ""}
+      </g>
+    `;
+  }).join("");
+
+  const selectionBands = points.map((point, index) => {
+    const row = rows[index];
+    const persistent = focusedMonthlyMonth === row.month ? " is-persistent" : "";
+    return `<rect class="balance-selection-band${persistent}" data-chart-selection="${escapeHtml(row.month)}" x="${point.x - slotWidth * 0.42}" y="${padTop}" width="${slotWidth * 0.84}" height="${plotHeight}" rx="12"></rect>`;
+  }).join("");
+
+  const tooltips = points.map((point, index) => {
+    const row = rows[index];
+    const tooltipWidth = 164;
+    const tooltipHeight = 74;
+    const tooltipX = point.x + tooltipWidth + 16 <= width - padRight
+      ? point.x + 12
+      : point.x - tooltipWidth - 12;
+    const tooltipY = row.net >= 0
+      ? Math.max(padTop + 8, point.y - tooltipHeight - 12)
+      : Math.max(padTop + 8, zeroY - tooltipHeight - 14);
+    const previous = rows[index - 1];
+    const comparison = previous
+      ? `전월 대비 ${formatSignedWon(row.net - previous.net)}`
+      : "첫 기록";
+    const persistent = focusedMonthlyMonth === row.month ? " is-persistent" : "";
+    return `
+      <g class="balance-bar-tooltip${persistent}" data-chart-tooltip="${escapeHtml(row.month)}" transform="translate(${tooltipX} ${tooltipY})" aria-hidden="true">
+        <rect class="balance-bar-tooltip-bg" width="${tooltipWidth}" height="${tooltipHeight}" rx="10"></rect>
+        <text class="balance-bar-tooltip-month" x="12" y="20">${escapeHtml(row.month)}</text>
+        <text class="balance-bar-tooltip-value ${row.net >= 0 ? "positive" : "negative"}" x="12" y="42">${escapeHtml(formatSignedWon(row.net))}</text>
+        <text class="balance-bar-tooltip-delta" x="12" y="61">${escapeHtml(comparison)}</text>
+      </g>
+    `;
+  }).join("");
 
   return `
-    <div class="monthly-chart-summary">
-      <span class="chart-summary-pill positive">최고 잔액 <b>${escapeHtml(best.month)} ${escapeHtml(formatSignedWon(best.net))}</b></span>
-      <span class="chart-summary-pill negative">최저 잔액 <b>${escapeHtml(worst.month)} ${escapeHtml(formatSignedWon(worst.net))}</b></span>
+    <div class="balance-summary-grid" aria-label="월별 잔액 요약">
+      ${renderMonthlyBalanceSummaryItem("positive", "ti-chart-line", "최고 월 잔액", best)}
+      ${renderMonthlyBalanceSummaryItem("negative", "ti-alert-circle", "최저 월 잔액", worst)}
+      ${renderMonthlyBalanceSummaryItem("selected", "ti-calendar", "선택 월", selected, true)}
     </div>
-    <div class="chart-legend-row balance-legend">
-      <span><b class="legend-positive"></b>남은 돈 <b class="legend-negative"></b>부족한 돈</span>
-      <span>0원 기준선 위는 흑자, 아래는 적자입니다.</span>
+    <div class="monthly-chart-scroll" data-monthly-chart-scroll>
+      <svg class="balance-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="월별 수입에서 실 지출을 뺀 잔액 막대 차트">
+        <rect class="balance-chart-bg" x="0" y="0" width="${width}" height="${height}" rx="14"></rect>
+        ${gridValues.filter((value) => value !== 0).map((value) => {
+          const y = yFor(value);
+          return `
+            <g>
+              <line class="chart-grid balance-grid" x1="${padLeft}" y1="${y}" x2="${width - padRight}" y2="${y}"></line>
+              <text class="chart-value balance-axis-label" x="${padLeft - 12}" y="${y + 4}" text-anchor="end">${escapeHtml(formatCompactWon(value))}</text>
+            </g>
+          `;
+        }).join("")}
+        ${selectionBands}
+        ${chartGroups}
+        <line class="chart-axis balance-zero-line" x1="${padLeft}" y1="${zeroY}" x2="${width - padRight}" y2="${zeroY}"></line>
+        <text class="chart-baseline-label" x="${padLeft - 12}" y="${zeroY + 4}" text-anchor="end">0원</text>
+        ${tooltips}
+      </svg>
     </div>
-    <svg class="balance-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="수입에서 실 지출을 뺀 월별 잔액 추이 차트">
-      <defs>
-        <linearGradient id="balanceAreaGradient" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stop-color="#22c55e" stop-opacity="0.17"></stop>
-          <stop offset="52%" stop-color="#94a3b8" stop-opacity="0.08"></stop>
-          <stop offset="100%" stop-color="#ef4444" stop-opacity="0.14"></stop>
-        </linearGradient>
-      </defs>
-      <rect class="balance-chart-bg" x="0" y="0" width="${width}" height="${height}" rx="18"></rect>
-      ${gridValues.map((value) => {
-        const y = padTop + (max - value) / span * plotHeight;
-        return `
-          <g>
-            <line class="chart-grid balance-grid" x1="${padLeft}" y1="${y}" x2="${width - padRight}" y2="${y}"></line>
-            <text class="chart-value balance-axis-label" x="${padLeft - 12}" y="${y + 4}" text-anchor="end">${escapeHtml(formatCompactWon(value))}</text>
-          </g>
-        `;
-      }).join("")}
-      <line class="chart-axis balance-zero-line" x1="${padLeft}" y1="${zeroY}" x2="${width - padRight}" y2="${zeroY}"></line>
-      <text class="chart-baseline-label" x="${width - padRight}" y="${zeroY - 8}" text-anchor="end">0원</text>
-      <polygon class="balance-area" points="${areaPoints}"></polygon>
-      <polyline class="balance-line balance-line-base" points="${polyline}"></polyline>
-      ${segments}
-      ${points.map((p, index) => {
-        const row = rows[index];
-        const showMonth = index % labelEvery === 0 || index === rows.length - 1;
-        const isEdge = row === best || row === worst || index === rows.length - 1;
-        const valueY = row.net >= 0 ? Math.max(p.y - 16, padTop + 14) : Math.min(p.y + 27, height - padBottom - 9);
-        const hitWidth = Math.max(30, Math.min(62, xStep || 48));
-        return `
-        <g class="balance-point-group ${focusedMonthlyMonth === row.month ? "is-persistent" : ""}" data-chart-month="${escapeHtml(row.month)}" tabindex="0" role="button" aria-label="${escapeHtml(`${row.month} 년도 지출정리 표 행으로 이동`)}">
-          <title>${escapeHtml(row.month)} · ${escapeHtml(formatSignedWon(row.net))}</title>
-          <rect class="balance-hit-area" x="${p.x - hitWidth / 2}" y="${padTop}" width="${hitWidth}" height="${plotHeight}" rx="12"></rect>
-          <line class="balance-guide" x1="${p.x}" y1="${padTop}" x2="${p.x}" y2="${height - padBottom}"></line>
-          <circle class="balance-point ${row.net >= 0 ? "good" : "bad"}" cx="${p.x}" cy="${p.y}" r="${isEdge ? 6.7 : 5.4}"></circle>
-          ${isEdge ? `<text class="chart-value balance-point-label" x="${p.x}" y="${valueY}" text-anchor="middle">${escapeHtml(formatSignedWon(row.net))}</text>` : ""}
-          ${showMonth ? `<text class="chart-label" x="${p.x}" y="${height - 22}" text-anchor="middle">${escapeHtml(row.month.slice(2))}</text>` : ""}
-        </g>
-      `;
-      }).join("")}
-    </svg>
   `;
 }

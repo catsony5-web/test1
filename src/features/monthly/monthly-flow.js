@@ -25,32 +25,70 @@ function renderMonthlyFlow() {
   const sharedMonth = getSharedSelectedMonth(focusedMonthlyMonth || latest.month);
   focusedMonthlyMonth = rows.some((row) => row.month === sharedMonth) ? sharedMonth : latest.month;
   if (canViewDriveSharedMonth("monthly")) setSharedSelectedMonth(focusedMonthlyMonth, { syncControls: false });
-  const best = [...rows].sort((a, b) => b.net - a.net)[0];
-  const worst = [...rows].sort((a, b) => a.net - b.net)[0];
   const totalSpend = sum(rows, "actualSpend");
   const totalIncome = sum(rows, "income");
   const totalScheduled = sum(rows, "scheduled");
+  const periodNet = totalIncome - totalSpend;
+  const averageSpend = Math.round(totalSpend / Math.max(rows.length, 1));
   const rangeLabel = currentMonthlyRangeLabel();
   const periodMonths = rows.map((row) => row.month);
   const periodRows = reportRows.filter((item) => periodMonths.includes(item.month));
+  const topMonth = [...rows].sort((a, b) => b.actualSpend - a.actualSpend)[0];
+  const topSector = buildSectorSpendRows(periodRows)[0] || { sector: "all", amount: 0, count: 0 };
+  const topSectorLabel = topSector.sector === "all" ? "-" : topSector.sector;
 
   const hasScheduledExpenses = rows.some((row) => Number(row.scheduled || 0) !== 0);
   els.monthlyFlowTable.className = `monthly-flow-table ${hasScheduledExpenses ? "has-scheduled" : "no-scheduled"}`;
   const kpiCards = [
-    renderKpi("최근 월 잔액", formatSignedWon(latest.net), latest.net, latest.month, "balance"),
-    renderKpi("현재 자산", formatSignedWon(latest.asset), latest.asset, `${latest.month} 기준 누적`, "balance"),
-    renderKpi("누적 실지출", formatWon(totalSpend), totalSpend, rangeLabel, "neutral"),
-    renderKpi("누적 총수입", formatWon(totalIncome), totalIncome, rangeLabel, "income"),
-    renderKpi("가장 여유", best.month, best.net, formatSignedWon(best.net), "balance"),
-    renderKpi("가장 부족", worst.month, worst.net, formatSignedWon(worst.net), "balance")
+    renderKpi("기간 실 지출", formatWon(totalSpend), totalSpend, rangeLabel, "neutral"),
+    renderKpi("기간 총수입", formatWon(totalIncome), totalIncome, rangeLabel, "income"),
+    renderKpi("기간 잔액", formatSignedWon(periodNet), periodNet, "총수입 - 실 지출", "balance"),
+    renderKpi("월평균 실 지출", formatWon(averageSpend), averageSpend, `${rows.length.toLocaleString("ko-KR")}개월 기준`, "neutral")
   ];
-  if (hasScheduledExpenses) {
-    kpiCards.splice(1, 0, renderKpi("예상 잔액", formatSignedWon(latest.expectedNet), latest.expectedNet, "최근 월 잔액 - 예정 지출", "balance"));
-    kpiCards.splice(5, 0, renderKpi("예정 지출", formatWon(totalScheduled), totalScheduled, "선택 기간 예정 합계", "neutral"));
-  }
   els.monthlyKpis.innerHTML = kpiCards.join("");
   if (els.monthlyPeriodStats) {
-    els.monthlyPeriodStats.innerHTML = renderBoardPeriodStats(periodRows, periodMonths, "custom", focusedMonthlyMonth, { label: rangeLabel });
+    const insightItems = [
+      `
+        <div>
+          <span>누적 잔액</span>
+          <strong class="${latest.asset >= 0 ? "positive" : "negative"}">${formatSignedWon(latest.asset)}</strong>
+          <small>${escapeHtml(latest.month)}까지 전체 기록 기준</small>
+        </div>
+      `,
+      `
+        <button type="button" data-board-period-detail="${escapeHtml(topMonth.month)}">
+          <span>최다 지출 월</span>
+          <strong>${escapeHtml(topMonth.month)}</strong>
+          <small>${formatWon(topMonth.actualSpend)}</small>
+        </button>
+      `,
+      `
+        <button type="button" data-board-period-sector="${escapeHtml(topSector.sector || "all")}">
+          <span>최다 섹터</span>
+          <strong>${escapeHtml(topSectorLabel)}</strong>
+          <small>${formatWon(topSector.amount)} · ${Number(topSector.count || 0).toLocaleString("ko-KR")}건</small>
+        </button>
+      `
+    ];
+    if (hasScheduledExpenses) {
+      insightItems.push(`
+        <div>
+          <span>예정 지출</span>
+          <strong>${formatWon(totalScheduled)}</strong>
+          <small>선택 기간 예정 합계</small>
+        </div>
+        <div>
+          <span>최근 예상 잔액</span>
+          <strong class="${latest.expectedNet >= 0 ? "positive" : "negative"}">${formatSignedWon(latest.expectedNet)}</strong>
+          <small>${escapeHtml(latest.month)} 잔액 - 예정 지출</small>
+        </div>
+      `);
+    }
+    els.monthlyPeriodStats.innerHTML = `
+      <section class="monthly-insight-strip" aria-label="선택 기간 보조 지표">
+        ${insightItems.join("")}
+      </section>
+    `;
     attachBoardPeriodHandlers(els.monthlyPeriodStats, focusedMonthlyMonth, "monthly");
   }
 
@@ -91,7 +129,7 @@ function renderMonthlyFlow() {
         ${hasScheduledExpenses ? `<th class="amount scheduled-amount" scope="col">예정 지출</th>` : ""}
         <th class="net-wrap-cell" scope="col">잔액</th>
         ${hasScheduledExpenses ? `<th class="amount expected-cell" scope="col">예상 잔액</th>` : ""}
-        <th class="amount asset-cell" scope="col">자산</th>
+        <th class="amount asset-cell" scope="col">누적 잔액</th>
       </tr>
     </thead>
     <tbody>${tableRows}</tbody>
@@ -99,7 +137,10 @@ function renderMonthlyFlow() {
 
   els.monthlyFlowChart.innerHTML = renderMonthlyLineChart(rows);
   attachMonthlyFlowHandlers();
-  if (focusedMonthlyMonth) setMonthlyFlowHighlight(focusedMonthlyMonth, { persistent: true });
+  if (focusedMonthlyMonth) {
+    setMonthlyFlowHighlight(focusedMonthlyMonth, { persistent: true });
+    requestAnimationFrame(() => scrollMonthlyChartToMonth(focusedMonthlyMonth));
+  }
 }
 
 function attachMonthlyFlowHandlers() {
@@ -107,6 +148,8 @@ function attachMonthlyFlowHandlers() {
     const month = row.dataset.monthRow;
     row.addEventListener("mouseenter", () => setMonthlyFlowHighlight(month));
     row.addEventListener("mouseleave", restoreMonthlyFlowFocus);
+    row.addEventListener("focus", () => setMonthlyFlowHighlight(month));
+    row.addEventListener("blur", restoreMonthlyFlowFocus);
     row.addEventListener("click", () => focusMonthlyTableRow(month));
     row.addEventListener("keydown", (event) => {
       if (event.key !== "Enter" && event.key !== " ") return;
@@ -118,6 +161,8 @@ function attachMonthlyFlowHandlers() {
     const month = group.dataset.chartMonth;
     group.addEventListener("mouseenter", () => setMonthlyFlowHighlight(month));
     group.addEventListener("mouseleave", restoreMonthlyFlowFocus);
+    group.addEventListener("focus", () => setMonthlyFlowHighlight(month));
+    group.addEventListener("blur", restoreMonthlyFlowFocus);
     group.addEventListener("click", () => focusMonthlyTableRow(month));
     group.addEventListener("keydown", (event) => {
       if (event.key !== "Enter" && event.key !== " ") return;
@@ -169,11 +214,29 @@ function focusMonthlyTableRow(month) {
   setSharedSelectedMonth(month, { syncControls: false });
   focusedMonthlyMonth = month;
   setMonthlyFlowHighlight(month, { persistent: true });
+  scrollMonthlyChartToMonth(month, { behavior: "smooth" });
   const row = els.monthlyFlowTable.querySelector(`[data-month-row="${cssEscape(month)}"]`);
   if (!row) return;
   row.classList.add("is-scroll-target");
   row.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
   window.setTimeout(() => row.classList.remove("is-scroll-target"), 1200);
+}
+
+function scrollMonthlyChartToMonth(month, options = {}) {
+  const scrollArea = els.monthlyFlowChart?.querySelector("[data-monthly-chart-scroll]");
+  if (!month || !scrollArea || scrollArea.scrollWidth <= scrollArea.clientWidth) return;
+  const group = els.monthlyFlowChart.querySelector(`[data-chart-month="${cssEscape(month)}"]`);
+  if (!group) return;
+  const chartRect = scrollArea.getBoundingClientRect();
+  const groupRect = group.getBoundingClientRect();
+  const targetLeft = scrollArea.scrollLeft
+    + groupRect.left
+    - chartRect.left
+    - ((chartRect.width - groupRect.width) / 2);
+  scrollArea.scrollTo({
+    left: Math.max(0, targetLeft),
+    behavior: options.behavior === "smooth" ? "smooth" : "auto"
+  });
 }
 
 function setMonthlyFlowHighlight(month, options = {}) {
@@ -189,6 +252,17 @@ function setMonthlyFlowHighlight(month, options = {}) {
     group.classList.toggle("is-highlighted", isTarget);
     group.classList.toggle("is-persistent", persistent && isTarget);
   });
+  els.monthlyFlowChart.querySelectorAll("[data-chart-selection]").forEach((selection) => {
+    const isTarget = selection.dataset.chartSelection === month;
+    selection.classList.toggle("is-highlighted", isTarget);
+    selection.classList.toggle("is-persistent", persistent && isTarget);
+  });
+  els.monthlyFlowChart.querySelectorAll("[data-chart-tooltip]").forEach((tooltip) => {
+    const isTarget = tooltip.dataset.chartTooltip === month;
+    tooltip.classList.toggle("is-highlighted", isTarget);
+    tooltip.classList.toggle("is-persistent", persistent && isTarget);
+  });
+  if (persistent) updateMonthlyChartSelectedSummary(month);
 }
 
 function restoreMonthlyFlowFocus() {
@@ -200,6 +274,25 @@ function restoreMonthlyFlowFocus() {
     group.classList.remove("is-highlighted");
     group.classList.toggle("is-persistent", Boolean(focusedMonthlyMonth && group.dataset.chartMonth === focusedMonthlyMonth));
   });
+  els.monthlyFlowChart.querySelectorAll("[data-chart-selection]").forEach((selection) => {
+    selection.classList.remove("is-highlighted");
+    selection.classList.toggle("is-persistent", Boolean(focusedMonthlyMonth && selection.dataset.chartSelection === focusedMonthlyMonth));
+  });
+  els.monthlyFlowChart.querySelectorAll("[data-chart-tooltip]").forEach((tooltip) => {
+    tooltip.classList.remove("is-highlighted");
+    tooltip.classList.toggle("is-persistent", Boolean(focusedMonthlyMonth && tooltip.dataset.chartTooltip === focusedMonthlyMonth));
+  });
+}
+
+function updateMonthlyChartSelectedSummary(month) {
+  const group = els.monthlyFlowChart.querySelector(`[data-chart-month="${cssEscape(month)}"]`);
+  const summary = els.monthlyFlowChart.querySelector("[data-monthly-selected-summary]");
+  if (!group || !summary) return;
+  const value = Number(group.dataset.chartNet || 0);
+  const monthLabel = summary.querySelector("[data-monthly-selected-month]");
+  const amountLabel = summary.querySelector("[data-monthly-selected-amount]");
+  if (monthLabel) monthLabel.textContent = month;
+  if (amountLabel) amountLabel.textContent = formatSignedWon(value);
 }
 
 function openIncomeView(options = {}) {
@@ -347,6 +440,8 @@ function updateMonthlyRangeYearOptions(years, previousStartYear = "", previousEn
   const rangeEnabled = els.monthlyYearFilter.value === "range";
   els.monthlyStartYear.disabled = !rangeEnabled;
   els.monthlyEndYear.disabled = !rangeEnabled;
+  els.monthlyStartYear.closest("label")?.toggleAttribute("hidden", !rangeEnabled);
+  els.monthlyEndYear.closest("label")?.toggleAttribute("hidden", !rangeEnabled);
 }
 
 function filterMonthlyRows(rows) {

@@ -345,24 +345,18 @@ textarea,
   stroke: var(--border-subtle);
 }
 
-.balance-segment.positive,
-.legend-positive {
-  stroke: var(--accent-positive);
-  background: var(--accent-positive);
+.balance-bar.good {
+  fill: var(--accent-positive);
 }
 
-.balance-segment.negative,
-.legend-negative {
-  stroke: var(--accent-negative);
-  background: var(--accent-negative);
+.balance-bar.bad {
+  fill: var(--accent-negative);
 }
 
-.balance-point.good,
 .chart-dot.good {
   fill: var(--accent-positive);
 }
 
-.balance-point.bad,
 .chart-dot.bad {
   fill: var(--accent-negative);
 }
@@ -446,13 +440,11 @@ textarea,
   background: var(--bg-muted);
 }
 
-:root[data-theme="dark"] .chart-dot,
-:root[data-theme="dark"] .balance-point {
+:root[data-theme="dark"] .chart-dot {
   stroke: var(--bg-card);
 }
 
-:root[data-theme="dark"] .trend-delta-label,
-:root[data-theme="dark"] .balance-point-label {
+:root[data-theme="dark"] .trend-delta-label {
   stroke: var(--bg-card);
 }
 
@@ -1775,7 +1767,7 @@ th.amount,
 .trend-chart-frame .trend-delta-label,
 .balance-chart text,
 .balance-chart .balance-axis-label,
-.balance-chart .balance-point-label {
+.balance-chart .balance-bar-tooltip-value {
   max-width: none;
   overflow: visible;
   text-overflow: clip;

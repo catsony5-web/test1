@@ -253,10 +253,42 @@
 
   .monthly-chart {
     min-height: 320px;
+    overflow: hidden;
+  }
+
+  .monthly-chart-scroll {
+    overflow-x: auto;
+    scrollbar-gutter: stable;
   }
 
   .monthly-chart .balance-chart {
     height: 320px;
+    min-width: 720px;
+  }
+
+  .balance-summary-grid,
+  .monthly-insight-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .balance-summary-item {
+    grid-template-columns: 38px minmax(76px, 0.7fr) minmax(120px, 1fr);
+    border-top: 1px solid var(--border-subtle);
+    border-left: 0;
+    padding: 12px 14px;
+  }
+
+  .balance-summary-item:first-child {
+    border-top: 0;
+  }
+
+  .monthly-insight-strip > div,
+  .monthly-insight-strip > button {
+    min-height: 74px;
+  }
+
+  .monthly-table-wrap {
+    max-height: 68vh;
   }
 
   .topbar,

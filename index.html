@@ -7,14 +7,14 @@
   <meta name="theme-color" content="#111827">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="src/styles/00-tokens.css?v=77">
-  <link rel="stylesheet" href="src/styles/01-base.css?v=61">
+  <link rel="stylesheet" href="src/styles/01-base.css?v=117">
   <link rel="stylesheet" href="src/styles/02-layout.css?v=76">
   <link rel="stylesheet" href="src/styles/03-components.css?v=79">
   <link rel="stylesheet" href="src/styles/04-forms-tables.css?v=83">
-  <link rel="stylesheet" href="src/styles/05-charts.css?v=78">
+  <link rel="stylesheet" href="src/styles/05-charts.css?v=119">
   <link rel="stylesheet" href="src/styles/06-features.css?v=113">
-  <link rel="stylesheet" href="src/styles/07-responsive.css?v=107">
-  <link rel="stylesheet" href="src/styles/08-themes.css?v=92">
+  <link rel="stylesheet" href="src/styles/07-responsive.css?v=119">
+  <link rel="stylesheet" href="src/styles/08-themes.css?v=117">
   <link rel="stylesheet" href="assets/tabler/tabler-icons.min.css?v=113">
   <link rel="stylesheet" href="src/styles/09-production-ui.css?v=115">
   <script src="assets/vendor/xlsx.full.min.js"></script>
@@ -272,28 +272,28 @@
       <section id="monthlyView" class="view">
         <div class="section-head">
           <h2>년도 지출정리</h2>
-          <p>연도별 흐름 안에서 월별 결제액, 실지출, 수입, 잔액, 자산 변화를 비교합니다.</p>
+          <p>연도별 흐름 안에서 월별 결제액, 실 지출, 수입과 누적 잔액 변화를 비교합니다.</p>
         </div>
         <div class="monthly-overview">
           <div class="monthly-filterbar">
             <label>보기 기준<select id="monthlyYearFilter"><option value="all">전체 연도</option><option value="range">직접 기간</option></select></label>
-            <label>시작 연도<select id="monthlyStartYear"></select></label>
-            <label>종료 연도<select id="monthlyEndYear"></select></label>
+            <label hidden>시작 연도<select id="monthlyStartYear"></select></label>
+            <label hidden>종료 연도<select id="monthlyEndYear"></select></label>
           </div>
-          <div id="monthlyPeriodStats" class="board-period-stats monthly-period-stats"></div>
           <div class="monthly-kpis" id="monthlyKpis"></div>
+          <div id="monthlyPeriodStats" class="board-period-stats monthly-period-stats"></div>
           <div class="monthly-layout">
             <div class="monthly-chart-panel">
               <div class="monthly-chart-head">
                 <div>
-                  <h3>수입 - 실 지출 추이</h3>
+                  <h3>수입 · 실 지출 추이</h3>
                   <p>월별 수입 대비 남은 금액과 부족 금액을 확인합니다.</p>
                 </div>
               </div>
               <div id="monthlyFlowChart" class="monthly-chart"></div>
             </div>
-            <div class="table-wrap monthly-table-wrap">
-              <table id="monthlyFlowTable"></table>
+            <div class="table-wrap monthly-table-wrap" role="region" aria-label="월별 수입과 지출 표" tabindex="0">
+              <table id="monthlyFlowTable" aria-label="월별 수입과 지출 및 잔액"></table>
             </div>
           </div>
         </div>
@@ -991,7 +991,7 @@
     </article>
   </template>
 
-  <script src="src/data/constants.js?v=114"></script>
+  <script src="src/data/constants.js?v=120"></script>
   <script src="src/data/categories.js?v=86"></script>
   <script src="src/data/rules.js?v=93"></script>
   <script src="src/data/board-sections.js?v=86"></script>
@@ -1026,8 +1026,8 @@
   <script src="src/features/summary/summary-view.js?v=108"></script>
   <script src="src/features/summary/sector-analysis.js?v=82"></script>
   <script src="src/features/summary/summary-chart.js?v=61"></script>
-  <script src="src/features/monthly/monthly-flow.js?v=108"></script>
-  <script src="src/features/monthly/monthly-chart.js?v=79"></script>
+  <script src="src/features/monthly/monthly-flow.js?v=118"></script>
+  <script src="src/features/monthly/monthly-chart.js?v=120"></script>
   <script src="src/features/income/income-entry.js?v=61"></script>
   <script src="src/features/income/income-bulk.js?v=61"></script>
   <script src="src/features/income/income-list.js?v=66"></script>
