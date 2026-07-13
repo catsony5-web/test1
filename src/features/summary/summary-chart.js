@@ -1,7 +1,6 @@
-function renderSectorTrend(activeRows, months, sectorNames, selectedSector, selectedMonth) {
+function renderSectorTrend(activeRows, months, sectorNames, selectedSector, selectedMonth, comparison) {
   const selectableSectors = sectorNames.filter((sector) => sector !== "수입");
   if (!activeRows.length || !selectableSectors.length) {
-    els.sectorTrendSelect.innerHTML = "";
     els.sectorTrendChart.innerHTML = `<div class="empty">섹터별 그래프를 보려면 먼저 엑셀 파일을 불러오세요.</div>`;
     return;
   }
@@ -10,11 +9,11 @@ function renderSectorTrend(activeRows, months, sectorNames, selectedSector, sele
     const rows = activeRows.filter((item) => item.month === month && item.sector === selectedSector);
     return { month, amount: sumActual(rows) };
   });
-  els.sectorTrendChart.innerHTML = renderSectorTrendChart(points, selectedSector, selectedMonth);
-  attachSectorTrendHandlers();
+  els.sectorTrendChart.innerHTML = renderSectorTrendChart(points, selectedSector, selectedMonth, comparison);
+  attachSectorTrendHandlers(comparison);
 }
 
-function attachSectorTrendHandlers() {
+function attachSectorTrendHandlers(comparison) {
   els.sectorTrendChart.querySelectorAll("[data-trend-month]").forEach((node) => {
     node.addEventListener("mouseenter", () => node.classList.add("is-hovered"));
     node.addEventListener("mouseleave", () => node.classList.remove("is-hovered"));
@@ -32,9 +31,16 @@ function attachSectorTrendHandlers() {
       }
     });
   });
+  els.sectorTrendChart.querySelector("[data-trend-detail-month]")?.addEventListener("click", (event) => {
+    openDetailView(summaryDetailOptions({
+      month: event.currentTarget.dataset.trendDetailMonth,
+      sector: event.currentTarget.dataset.trendDetailSector
+    }));
+  });
+  attachSummaryComparisonDriverHandlers(els.sectorTrendChart, comparison);
 }
 
-function renderSectorTrendChart(points, sector, selectedMonth = "") {
+function renderSectorTrendChart(points, sector, selectedMonth = "", comparison) {
   if (!points.length) {
     return `<div class="empty">선택한 섹터의 월별 데이터가 없습니다.</div>`;
   }
@@ -64,17 +70,17 @@ function renderSectorTrendChart(points, sector, selectedMonth = "") {
   const foundSelectedIndex = points.findIndex((point) => point.month === selectedMonth);
   const selectedIndex = foundSelectedIndex >= 0 ? foundSelectedIndex : points.length - 1;
   const selectedPoint = points[selectedIndex] || points.at(-1);
-  const selectedDelta = deltas[selectedIndex] || 0;
-  const selectedCopy = selectedIndex === 0
-    ? "기준 월"
-    : selectedDelta >= 0
-      ? "전월보다 증가"
-      : "전월보다 감소";
+  const selectedComparison = comparison.selectedSectorChange;
+  const selectedCopy = !comparison.comparisonExists
+    ? "비교 기록 없음"
+    : selectedComparison.delta >= 0
+      ? `${comparison.comparisonLabel}보다 증가`
+      : `${comparison.comparisonLabel}보다 감소`;
   const trendAverage = changes.length ? Math.round(changes.reduce((total, item) => total + item.delta, 0) / changes.length) : 0;
   const insightItems = [
-    { label: "선택 월", value: selectedPoint.month, hint: `${selectedCopy} · ${selectedIndex === 0 ? "기준" : formatSignedWon(selectedDelta)}`, tone: selectedDelta >= 0 ? "up" : "down" },
-    { label: "최대 증가", value: biggestRise.delta > 0 ? biggestRise.month : "없음", hint: biggestRise.delta > 0 ? `전월보다 ${formatSignedWon(biggestRise.delta)}` : "증가한 월 없음", tone: "up" },
-    { label: "최대 감소", value: biggestDrop.delta < 0 ? biggestDrop.month : "없음", hint: biggestDrop.delta < 0 ? `전월보다 ${formatSignedWon(biggestDrop.delta)}` : "감소한 월 없음", tone: "down" },
+    { label: "선택 월", value: selectedPoint.month, hint: `${comparison.comparisonMonth || "-"} 대비 · ${comparison.comparisonExists ? formatSignedWon(selectedComparison.delta) : "기록 없음"}`, tone: comparison.comparisonExists ? selectedComparison.tone : "neutral" },
+    { label: "최대 증가", value: biggestRise.delta > 0 ? biggestRise.month : "없음", hint: biggestRise.delta > 0 ? `전월보다 ${formatSignedWon(biggestRise.delta)}` : "증가한 월 없음", tone: biggestRise.delta > 0 ? "up" : "neutral" },
+    { label: "최대 감소", value: biggestDrop.delta < 0 ? biggestDrop.month : "없음", hint: biggestDrop.delta < 0 ? `전월보다 ${formatSignedWon(biggestDrop.delta)}` : "감소한 월 없음", tone: biggestDrop.delta < 0 ? "down" : "neutral" },
     { label: "평균 증감", value: formatSignedWon(trendAverage), hint: `기간 내 ${Math.max(0, changes.length).toLocaleString("ko-KR")}개월 평균`, tone: "neutral" }
   ];
   const yTicks = [-maxAbs, -maxAbs / 2, 0, maxAbs / 2, maxAbs];
@@ -97,12 +103,12 @@ function renderSectorTrendChart(points, sector, selectedMonth = "") {
     const showMonth = index % labelEvery === 0 || index === points.length - 1;
     const isSelected = point.month === selectedMonth;
     const isPeak = index > 0 && Math.abs(delta) === rawMaxAbs && rawMaxAbs > 0;
-    const showValue = isSelected || isPeak;
+    const showValue = isPeak && !isSelected;
     const monthLabel = point.month.replace(/^20/, "").replace("-", ".");
     const tooltipY = delta >= 0 ? Math.max(20, y - 44) : Math.min(height - padBottom - 40, y + barHeight + 16);
     const selectionX = Math.max(padLeft, x - 8);
-    const selectionY = Math.max(padTop - 4, y - 10);
-    const selectionHeight = Math.min(height - padBottom + 10 - selectionY, Math.max(24, barHeight + 20));
+    const selectionY = padTop - 18;
+    const selectionHeight = plotHeight + 42;
     return `
       <g class="trend-bar-group ${isSelected ? "selected" : ""}" data-trend-month="${escapeHtml(point.month)}" tabindex="0" role="button" aria-label="${escapeHtml(point.month)} ${escapeHtml(index === 0 ? "기준" : formatSignedWon(delta))}">
         <title>${escapeHtml(point.month)} · ${escapeHtml(index === 0 ? "기준" : formatSignedWon(delta))}</title>
@@ -141,23 +147,29 @@ function renderSectorTrendChart(points, sector, selectedMonth = "") {
         </article>
       `).join("")}
     </div>
-    <div class="trend-chart-frame">
-      <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(sector)} 전월 대비 증가 차트">
-        <defs>
-          <linearGradient id="trendUpGradient" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stop-color="#e85d75"></stop>
-            <stop offset="100%" stop-color="#f4a0ad"></stop>
-          </linearGradient>
-          <linearGradient id="trendDownGradient" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stop-color="#51bfa9"></stop>
-            <stop offset="100%" stop-color="#9ee3d7"></stop>
-          </linearGradient>
-        </defs>
-        <rect class="trend-plot-bg" x="${padLeft}" y="${padTop - 18}" width="${plotWidth}" height="${plotHeight + 42}" rx="20"></rect>
-        ${gridLines}
-        <text class="chart-baseline-label" x="${width - padRight}" y="${zeroY - 12}" text-anchor="end">전월 대비 기준선</text>
-        ${bars}
-      </svg>
+    <div class="trend-workspace">
+      <div class="trend-chart-frame">
+        <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(sector)} 전월 대비 증가 차트">
+          <rect class="trend-plot-bg" x="${padLeft}" y="${padTop - 18}" width="${plotWidth}" height="${plotHeight + 42}" rx="12"></rect>
+          ${gridLines}
+          <text class="chart-baseline-label" x="${padLeft + 8}" y="${zeroY - 12}" text-anchor="start">전월 대비 기준선</text>
+          ${bars}
+        </svg>
+      </div>
+      <aside class="trend-selected-inspector" aria-label="선택한 달 요약">
+        <span>선택한 달</span>
+        <h4><i class="ti ti-calendar-month" aria-hidden="true"></i>${escapeHtml(selectedPoint.month)}</h4>
+        <div class="trend-selected-delta ${comparison.comparisonExists ? selectedComparison.tone : "neutral"}">
+          <span>${escapeHtml(selectedCopy)}</span>
+          <strong>${comparison.comparisonExists ? formatSignedWon(selectedComparison.delta) : "-"}</strong>
+        </div>
+        <dl>
+          <div><dt>${escapeHtml(selectedPoint.month)} ${escapeHtml(sector)}</dt><dd>${formatWon(selectedComparison.currentAmount)}</dd></div>
+          <div><dt>${escapeHtml(comparison.comparisonMonth || "비교 월")} ${escapeHtml(sector)}</dt><dd>${comparison.comparisonExists ? formatWon(selectedComparison.comparisonAmount) : "-"}</dd></div>
+        </dl>
+        <button type="button" data-trend-detail-month="${escapeHtml(selectedPoint.month)}" data-trend-detail-sector="${escapeHtml(sector)}">상세 내역 보기 <i class="ti ti-chevron-right" aria-hidden="true"></i></button>
+      </aside>
     </div>
+    ${renderSummaryComparisonDriverPanel(comparison, { idPrefix: "trend" })}
   `;
 }

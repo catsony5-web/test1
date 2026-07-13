@@ -1,4 +1,4 @@
-const CACHE_NAME = "monthly-card-budget-v120";
+const CACHE_NAME = "monthly-card-budget-v122";
 const APP_FILES = [
   "./",
   "./index.html",
@@ -82,6 +82,7 @@ const APP_FILES = [
   "./src/features/board/board-summary.js",
   "./src/features/board/board-cards.js",
   "./src/features/details/details-view.js",
+  "./src/features/summary/comparison-analysis.js",
   "./src/features/summary/summary-view.js",
   "./src/features/summary/sector-analysis.js",
   "./src/features/summary/summary-chart.js",

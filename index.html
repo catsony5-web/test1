@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="src/styles/07-responsive.css?v=119">
   <link rel="stylesheet" href="src/styles/08-themes.css?v=117">
   <link rel="stylesheet" href="assets/tabler/tabler-icons.min.css?v=113">
-  <link rel="stylesheet" href="src/styles/09-production-ui.css?v=115">
+  <link rel="stylesheet" href="src/styles/09-production-ui.css?v=122">
   <script src="assets/vendor/xlsx.full.min.js"></script>
 </head>
 <body data-app-name="소비 분석">
@@ -439,7 +439,7 @@
             <option value="month">선택 월 비교</option>
             <option value="detail">상세 섹터 비교</option>
             <option value="sector">섹터 리포트</option>
-            <option value="merchant">가맹점 분석</option>
+            <option value="matrix">월별 섹터 매트릭스</option>
           </select>
         </label>
         <div class="summary-subtabs" role="tablist" aria-label="월별 섹터 요약 보기">
@@ -450,19 +450,48 @@
           <button id="summaryTabMatrix" class="summary-subtab" type="button" role="tab" tabindex="-1" aria-selected="false" aria-controls="summarySubtabMatrix" data-summary-subtab="matrix"><span class="summary-subtab-index">5</span><span class="summary-subtab-text">월별 섹터 매트릭스</span></button>
         </div>
 
+        <section class="summary-context-bar" aria-label="공통 분석 조건">
+          <div class="summary-context-main">
+            <div class="summary-context-control summary-context-month">
+              <span>분석 월</span>
+              <div class="summary-month-step-control month-control-group">
+                <button id="summaryPrevMonth" type="button" class="month-step-button" title="이전 월" aria-label="이전 월"><i class="ti ti-chevron-left" aria-hidden="true"></i></button>
+                <label class="summary-month-control"><select id="summaryMonthSelect" aria-label="분석 월"></select></label>
+                <button id="summaryNextMonth" type="button" class="month-step-button" title="다음 월" aria-label="다음 월"><i class="ti ti-chevron-right" aria-hidden="true"></i></button>
+              </div>
+            </div>
+            <div id="summarySectorPicker" class="summary-context-control summary-context-sector">
+              <span id="summarySectorPickerLabel">관심 섹터</span>
+              <div class="summary-sector-picker">
+                <button id="summarySectorPickerButton" type="button" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="summarySectorPickerLabel summarySectorPickerText">
+                  <i id="summarySectorPickerIcon" class="ti ti-receipt summary-sector-icon food" aria-hidden="true"></i>
+                  <span id="summarySectorPickerText">식비</span>
+                  <i class="ti ti-chevron-down" aria-hidden="true"></i>
+                </button>
+                <div id="summarySectorPickerMenu" class="summary-sector-picker-menu" role="listbox" aria-label="관심 섹터" hidden></div>
+              </div>
+            </div>
+            <div class="summary-context-control summary-context-comparison">
+              <span>비교 기준</span>
+              <div class="summary-comparison-segment" role="group" aria-label="비교 기준">
+                <button id="summaryComparePreviousButton" type="button" aria-pressed="true">전월</button>
+                <button id="summaryCompareCustomButton" type="button" aria-pressed="false">비교월</button>
+              </div>
+            </div>
+            <label id="summaryComparisonMonthField" class="summary-context-control summary-comparison-month" hidden><span>비교 월</span><select id="summaryComparisonMonthSelect"></select></label>
+            <label class="summary-context-control summary-context-range"><span>기간</span><select id="summaryRangePreset"><option value="recent-12" selected>최근 1년</option><option value="recent-24">최근 2년</option><option value="all">전체</option><option value="custom">직접 선택</option></select></label>
+            <label class="summary-context-control summary-custom-range-field"><span>시작 월</span><select id="summaryStartMonth"></select></label>
+            <label class="summary-context-control summary-custom-range-field"><span>종료 월</span><select id="summaryEndMonth"></select></label>
+          </div>
+          <p id="summaryComparisonNotice" class="summary-comparison-notice"><i class="ti ti-calendar-repeat" aria-hidden="true"></i><span>분석 월과 비교 기준을 선택하세요.</span></p>
+        </section>
+
         <div id="summarySubtabTrend" class="summary-subtab-panel active" role="tabpanel" aria-labelledby="summaryTabTrend" data-summary-subtab-panel="trend">
           <section class="sector-trend-panel">
             <div class="panel-head sector-trend-head">
               <div>
                 <h3>섹터별 월별 증감</h3>
                 <p>기간과 섹터를 선택해 전월 대비 소비가 얼마나 늘거나 줄었는지 확인합니다.</p>
-              </div>
-              <div class="summary-head-actions">
-                <label>섹터<select id="sectorTrendSelect"></select></label>
-                <label>기간<select id="summaryRangePreset"><option value="recent-12" selected>최근 1년</option><option value="recent-24">최근 2년</option><option value="all">전체</option><option value="custom">직접 선택</option></select></label>
-                <label>시작 월<select id="summaryStartMonth"></select></label>
-                <label>종료 월<select id="summaryEndMonth"></select></label>
-                <button id="summaryExportButton" type="button" hidden>카드/이체 엑셀 불러오기</button>
               </div>
             </div>
             <div id="sectorTrendChart" class="sector-trend-chart"></div>
@@ -475,11 +504,6 @@
               <div>
                 <h3>선택 월 섹터 비교</h3>
                 <p>선택 월의 총지출, 가장 큰 섹터, 선택 섹터 비중과 미분류 금액을 함께 봅니다.</p>
-              </div>
-              <div class="summary-month-step-control month-control-group">
-                <button id="summaryPrevMonth" type="button" class="month-step-button" title="이전 월" aria-label="이전 월"><i class="ti ti-chevron-left" aria-hidden="true"></i></button>
-                <label class="summary-month-control">분석 월<select id="summaryMonthSelect"></select></label>
-                <button id="summaryNextMonth" type="button" class="month-step-button" title="다음 월" aria-label="다음 월"><i class="ti ti-chevron-right" aria-hidden="true"></i></button>
               </div>
             </div>
             <div id="summaryMetricCards" class="summary-metric-grid"></div>
@@ -494,11 +518,6 @@
                 <h3>상세 섹터 비교</h3>
                 <p>선택한 월의 섹터별 금액과 주요 세부항목 TOP 3를 비교합니다.</p>
               </div>
-              <div class="summary-month-step-control month-control-group">
-                <button id="summaryDetailPrevMonth" type="button" class="month-step-button" title="이전 월" aria-label="이전 월"><i class="ti ti-chevron-left" aria-hidden="true"></i></button>
-                <label class="summary-month-control">분석 월<select id="summaryDetailMonthSelect"></select></label>
-                <button id="summaryDetailNextMonth" type="button" class="month-step-button" title="다음 월" aria-label="다음 월"><i class="ti ti-chevron-right" aria-hidden="true"></i></button>
-              </div>
             </div>
             <div id="selectedMonthSectorCards" class="selected-month-sector-cards"></div>
           </section>
@@ -510,15 +529,6 @@
               <div>
                 <h3 id="sectorAnalysisTitle">각 섹터 리포트</h3>
                 <p id="sectorAnalysisDescription">선택한 월과 섹터의 세부 소비 패턴을 더 자세히 분석합니다.</p>
-              </div>
-              <div class="sector-analysis-head-actions">
-                <label class="summary-month-control">섹터<select id="sectorAnalysisSectorSelect"></select></label>
-                <div class="summary-month-step-control month-control-group">
-                  <button id="sectorAnalysisPrevMonth" type="button" class="month-step-button" title="이전 월" aria-label="이전 월"><i class="ti ti-chevron-left" aria-hidden="true"></i></button>
-                  <label class="summary-month-control">분석 월<select id="sectorAnalysisMonthSelect"></select></label>
-                  <button id="sectorAnalysisNextMonth" type="button" class="month-step-button" title="다음 월" aria-label="다음 월"><i class="ti ti-chevron-right" aria-hidden="true"></i></button>
-                </div>
-                <span id="sectorAnalysisBadge" class="analysis-badge"></span>
               </div>
             </div>
             <div id="sectorAnalysisBody"></div>
@@ -533,8 +543,8 @@
                 <p>기간 내 모든 월의 섹터별 금액을 표로 비교하는 보조 데이터입니다.</p>
               </div>
             </div>
-            <div class="table-wrap">
-              <table id="monthlyTable"></table>
+            <div class="table-wrap summary-matrix-wrap" tabindex="0" aria-label="월별 섹터 매트릭스, 가로로 스크롤할 수 있습니다">
+              <table id="monthlyTable" aria-label="월별 섹터별 지출 비교"></table>
             </div>
           </section>
         </div>
@@ -997,7 +1007,7 @@
   <script src="src/data/board-sections.js?v=86"></script>
   <script src="src/data/field-aliases.js?v=77"></script>
 
-  <script src="src/features/app/state.js?v=112"></script>
+  <script src="src/features/app/state.js?v=122"></script>
 
   <script src="src/utils/format.js?v=80"></script>
   <script src="src/utils/date.js?v=61"></script>
@@ -1007,7 +1017,7 @@
   <script src="src/utils/storage.js?v=111"></script>
   <script src="src/utils/backup.js?v=100"></script>
 
-  <script src="src/components/chips.js?v=86"></script>
+  <script src="src/components/chips.js?v=122"></script>
   <script src="src/components/tables.js?v=61"></script>
   <script src="src/components/metrics.js?v=61"></script>
   <script src="src/components/charts.js?v=61"></script>
@@ -1022,10 +1032,11 @@
   <script src="src/features/board/board-view.js?v=107"></script>
   <script src="src/features/board/board-summary.js?v=106"></script>
   <script src="src/features/board/board-cards.js?v=82"></script>
-  <script src="src/features/details/details-view.js?v=85"></script>
-  <script src="src/features/summary/summary-view.js?v=108"></script>
-  <script src="src/features/summary/sector-analysis.js?v=82"></script>
-  <script src="src/features/summary/summary-chart.js?v=61"></script>
+  <script src="src/features/details/details-view.js?v=122"></script>
+  <script src="src/features/summary/comparison-analysis.js?v=122"></script>
+  <script src="src/features/summary/summary-view.js?v=122"></script>
+  <script src="src/features/summary/sector-analysis.js?v=122"></script>
+  <script src="src/features/summary/summary-chart.js?v=122"></script>
   <script src="src/features/monthly/monthly-flow.js?v=118"></script>
   <script src="src/features/monthly/monthly-chart.js?v=120"></script>
   <script src="src/features/income/income-entry.js?v=61"></script>
@@ -1041,6 +1052,6 @@
   <script src="src/features/app/navigation.js?v=112"></script>
   <script src="src/features/app/appearance.js?v=112"></script>
   <script src="src/features/app/render-all.js?v=106"></script>
-  <script src="src/features/app/init.js?v=112"></script>
+  <script src="src/features/app/init.js?v=122"></script>
 </body>
 </html>

@@ -96,12 +96,46 @@ async function init() {
   els.parseRecurringBulkButton.addEventListener("click", handleRecurringBulkParse);
   els.clearRecurringBulkButton.addEventListener("click", clearRecurringBulkInput);
   els.saveRecurringBulkButton.addEventListener("click", handleRecurringBulkSave);
-  els.sectorTrendSelect.addEventListener("change", () => {
-    selectedSummarySector = els.sectorTrendSelect.value;
-    renderSummary();
+  els.summarySectorPickerButton.addEventListener("click", toggleSummarySectorPicker);
+  els.summarySectorPickerButton.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      openSummarySectorPicker({ focusSelected: true });
+    } else if (event.key === "Escape") {
+      closeSummarySectorPicker();
+    }
   });
-  els.sectorAnalysisSectorSelect?.addEventListener("change", () => {
-    selectedSummarySector = els.sectorAnalysisSectorSelect.value;
+  els.summarySectorPickerMenu.addEventListener("click", (event) => {
+    const option = event.target.closest("[data-summary-sector-option]");
+    if (option) selectSummarySector(option.dataset.summarySectorOption);
+  });
+  els.summarySectorPickerMenu.addEventListener("keydown", (event) => {
+    const option = event.target.closest("[data-summary-sector-option]");
+    if (!option) return;
+    if (["ArrowDown", "ArrowRight"].includes(event.key)) {
+      event.preventDefault();
+      moveSummarySectorPickerFocus(option, 1);
+    } else if (["ArrowUp", "ArrowLeft"].includes(event.key)) {
+      event.preventDefault();
+      moveSummarySectorPickerFocus(option, -1);
+    } else if (event.key === "Home" || event.key === "End") {
+      event.preventDefault();
+      const options = [...els.summarySectorPickerMenu.querySelectorAll("[data-summary-sector-option]")];
+      (event.key === "Home" ? options[0] : options.at(-1))?.focus();
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      closeSummarySectorPicker({ restoreFocus: true });
+    }
+  });
+  document.addEventListener("click", (event) => {
+    if (!els.summarySectorPickerMenu.hidden && !els.summarySectorPicker.contains(event.target)) {
+      closeSummarySectorPicker();
+    }
+  });
+  els.summaryComparePreviousButton.addEventListener("click", () => setSummaryComparisonMode("previous"));
+  els.summaryCompareCustomButton.addEventListener("click", () => setSummaryComparisonMode("custom"));
+  els.summaryComparisonMonthSelect.addEventListener("change", () => {
+    selectedSummaryComparisonMonth = els.summaryComparisonMonthSelect.value;
     renderSummary();
   });
   els.summaryRangePreset.addEventListener("change", () => {
@@ -127,20 +161,12 @@ async function init() {
   els.summaryMobileViewSelect?.addEventListener("change", () => {
     selectSummarySubtabFromMobile(els.summaryMobileViewSelect.value);
   });
-  [els.summaryMonthSelect, els.summaryDetailMonthSelect, els.sectorAnalysisMonthSelect]
-    .filter(Boolean)
-    .forEach((control) => {
-      control.addEventListener("change", () => {
-        setSharedSelectedMonth(control.value);
-        renderSummary();
-      });
-    });
+  els.summaryMonthSelect.addEventListener("change", () => {
+    setSharedSelectedMonth(els.summaryMonthSelect.value);
+    renderSummary();
+  });
   els.summaryPrevMonth?.addEventListener("click", () => moveSummaryMonth(els.summaryMonthSelect, -1));
   els.summaryNextMonth?.addEventListener("click", () => moveSummaryMonth(els.summaryMonthSelect, 1));
-  els.summaryDetailPrevMonth?.addEventListener("click", () => moveSummaryMonth(els.summaryDetailMonthSelect, -1));
-  els.summaryDetailNextMonth?.addEventListener("click", () => moveSummaryMonth(els.summaryDetailMonthSelect, 1));
-  els.sectorAnalysisPrevMonth?.addEventListener("click", () => moveSummaryMonth(els.sectorAnalysisMonthSelect, -1));
-  els.sectorAnalysisNextMonth?.addEventListener("click", () => moveSummaryMonth(els.sectorAnalysisMonthSelect, 1));
   window.addEventListener("scroll", updateBoardMapTopButton, { passive: true });
   els.boardMapTopButton.addEventListener("click", () => {
     els.boardSectorMap.scrollIntoView({ behavior: "smooth", block: "start" });

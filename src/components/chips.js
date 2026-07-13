@@ -24,6 +24,21 @@ function sectorTheme(sector) {
   return sectorThemes[sector] || sectorThemes["미분류"];
 }
 
+function sectorIconClass(sector) {
+  return {
+    "고정 주거비": "ti-building-bank",
+    "식비": "ti-receipt",
+    "생활용품": "ti-package",
+    "쇼핑": "ti-wallet",
+    "개인관리": "ti-palette",
+    "자기개발": "ti-notebook",
+    "교통비": "ti-repeat",
+    "저축": "ti-cash-banknote",
+    "기타 소비": "ti-dots",
+    "미분류": "ti-alert-circle"
+  }[sector] || "ti-category";
+}
+
 function categoryChip(sector, subcategory) {
   return `
     <span class="category-chip ${categoryClass(sector)}">

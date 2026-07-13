@@ -105,7 +105,16 @@ const els = {
   detailTable: document.querySelector("#detailTable"),
   summaryMetricCards: document.querySelector("#summaryMetricCards"),
   summarySectorSharePanel: document.querySelector("#summarySectorSharePanel"),
-  sectorTrendSelect: document.querySelector("#sectorTrendSelect"),
+  summarySectorPicker: document.querySelector("#summarySectorPicker"),
+  summarySectorPickerButton: document.querySelector("#summarySectorPickerButton"),
+  summarySectorPickerIcon: document.querySelector("#summarySectorPickerIcon"),
+  summarySectorPickerText: document.querySelector("#summarySectorPickerText"),
+  summarySectorPickerMenu: document.querySelector("#summarySectorPickerMenu"),
+  summaryComparePreviousButton: document.querySelector("#summaryComparePreviousButton"),
+  summaryCompareCustomButton: document.querySelector("#summaryCompareCustomButton"),
+  summaryComparisonMonthField: document.querySelector("#summaryComparisonMonthField"),
+  summaryComparisonMonthSelect: document.querySelector("#summaryComparisonMonthSelect"),
+  summaryComparisonNotice: document.querySelector("#summaryComparisonNotice"),
   summaryRangePreset: document.querySelector("#summaryRangePreset"),
   summaryStartMonth: document.querySelector("#summaryStartMonth"),
   summaryEndMonth: document.querySelector("#summaryEndMonth"),
@@ -113,18 +122,10 @@ const els = {
   summaryPrevMonth: document.querySelector("#summaryPrevMonth"),
   summaryMonthSelect: document.querySelector("#summaryMonthSelect"),
   summaryNextMonth: document.querySelector("#summaryNextMonth"),
-  summaryDetailPrevMonth: document.querySelector("#summaryDetailPrevMonth"),
-  summaryDetailMonthSelect: document.querySelector("#summaryDetailMonthSelect"),
-  summaryDetailNextMonth: document.querySelector("#summaryDetailNextMonth"),
   foodAnalysisCard: document.querySelector("#foodAnalysisCard"),
   sectorAnalysisBody: document.querySelector("#sectorAnalysisBody"),
   sectorAnalysisTitle: document.querySelector("#sectorAnalysisTitle"),
   sectorAnalysisDescription: document.querySelector("#sectorAnalysisDescription"),
-  sectorAnalysisBadge: document.querySelector("#sectorAnalysisBadge"),
-  sectorAnalysisSectorSelect: document.querySelector("#sectorAnalysisSectorSelect"),
-  sectorAnalysisPrevMonth: document.querySelector("#sectorAnalysisPrevMonth"),
-  sectorAnalysisMonthSelect: document.querySelector("#sectorAnalysisMonthSelect"),
-  sectorAnalysisNextMonth: document.querySelector("#sectorAnalysisNextMonth"),
   selectedMonthDetailTitle: document.querySelector("#selectedMonthDetailTitle"),
   selectedMonthSectorCards: document.querySelector("#selectedMonthSectorCards"),
   sectorTrendChart: document.querySelector("#sectorTrendChart"),
@@ -363,7 +364,10 @@ let selectedSummaryMonth = "";
 let selectedSummaryRangePreset = "recent-12";
 let selectedSummaryStartMonth = "";
 let selectedSummaryEndMonth = "";
+let selectedSummaryComparisonMode = "previous";
+let selectedSummaryComparisonMonth = "";
 let selectedSummarySubtab = "trend";
+let expandedSummaryDetailSector = "";
 let selectedCalendarMonth = "";
 let selectedAppMonth = "";
 let detailReturnState = null;
@@ -437,8 +441,6 @@ function syncSharedMonthControls(month = selectedAppMonth) {
   syncMonthSelectValue(els.boardMonth, month);
   syncMonthSelectValue(els.calendarMonth, month);
   syncMonthSelectValue(els.summaryMonthSelect, month);
-  syncMonthSelectValue(els.summaryDetailMonthSelect, month);
-  syncMonthSelectValue(els.sectorAnalysisMonthSelect, month);
   syncMonthSelectValue(els.detailBulkMonth, month);
   if (detailFilters.month !== "all") syncMonthSelectValue(els.detailMonth, month);
 }

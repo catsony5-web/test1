@@ -1,10 +1,9 @@
-function renderSectorAnalysis(activeRows, month, sector) {
+function renderSectorAnalysis(activeRows, month, sector, comparison) {
   const body = els.sectorAnalysisBody || els.foodAnalysisCard;
   els.sectorAnalysisTitle.textContent = sector ? `${sector} 리포트` : "각 섹터 리포트";
   els.sectorAnalysisDescription.textContent = month && sector
     ? `${month} 기준으로 ${sector}의 금액, 주요 지표, 세부항목별 소비를 분석합니다.`
     : "선택한 월과 섹터의 소비 패턴을 자세히 분석합니다.";
-  els.sectorAnalysisBadge.innerHTML = sector ? categoryChip(sector) : "";
   if (!month) {
     body.innerHTML = `<div class="empty">각 섹터 리포트를 보려면 먼저 지출 내역을 추가하세요.</div>`;
     return;
@@ -14,12 +13,13 @@ function renderSectorAnalysis(activeRows, month, sector) {
     return;
   }
   body.innerHTML = sector === "식비"
-    ? renderFoodAnalysisBody(activeRows, month)
-    : renderGenericSectorAnalysisBody(activeRows, month, sector);
+    ? renderFoodAnalysisBody(activeRows, month, comparison)
+    : renderGenericSectorAnalysisBody(activeRows, month, sector, comparison);
   attachSectorAnalysisHandlers(month);
+  attachSummaryComparisonDriverHandlers(body, comparison);
 }
 
-function renderFoodAnalysisBody(activeRows, month) {
+function renderFoodAnalysisBody(activeRows, month, comparison) {
   const foodRows = activeRows.filter((item) => item.month === month && item.sector === "식비");
   const amountBySubcategory = Object.fromEntries(categories["식비"].map((subcategory) => [subcategory, 0]));
   foodRows.forEach((item) => {
@@ -32,14 +32,6 @@ function renderFoodAnalysisBody(activeRows, month) {
   const solo = sumValues(amountBySubcategory, ["외식-혼자", "배달-혼자"]);
   const social = sumValues(amountBySubcategory, ["외식-친구", "외식-단체", "배달-친구", "배달-단체"]);
   const snackCafe = sumValues(amountBySubcategory, ["편의점/간식", "카페/음료"]);
-  const metrics = [
-    { key: "total", label: "전체 식비", amount: total, tone: "total" },
-    { key: "outside", label: "밖에서 먹은 식비", amount: outside, tone: "outside" },
-    { key: "grocery", label: "장봐서 먹은 식비", amount: grocery, tone: "grocery", subcategory: "장보기/마트" },
-    { key: "solo", label: "혼자 먹은 식비", amount: solo, tone: "solo" },
-    { key: "social", label: "사람 만난 식비", amount: social, tone: "social" },
-    { key: "snack", label: "간식/카페", amount: snackCafe, tone: "snack" }
-  ];
   const detailItems = Object.entries(amountBySubcategory)
     .map(([subcategory, amount]) => ({ subcategory, amount, count: foodRows.filter((item) => item.subcategory === subcategory).length }))
     .filter((item) => item.amount > 0 || item.count > 0)
@@ -50,24 +42,16 @@ function renderFoodAnalysisBody(activeRows, month) {
   return `
     ${total ? `
       ${renderSectorAnalysisOverview("식비", total, foodRows.length, topDetail, month)}
-      <section class="sector-analysis-block">
-        <div class="analysis-block-head">
-          <h4>주요 식비 지표</h4>
-          <p>선택 월 식비를 빠르게 요약합니다.</p>
-        </div>
-        <div class="food-analysis-grid">
-          ${metrics.map((metric) => renderFoodMetric(metric, total)).join("")}
-        </div>
-      </section>
+      ${renderSummaryComparisonDriverPanel(comparison, { idPrefix: "report" })}
       <section class="sector-analysis-block context">
         <div class="analysis-block-head">
-          <h4>식사 맥락 비교</h4>
-          <p>밖에서 먹은 식비, 장보기, 혼자/사람 만난 소비를 비교합니다.</p>
+          <h4>식비 소비 맥락</h4>
+          <p>각 행은 서로 다른 기준이므로 합산하지 않고 따로 비교합니다.</p>
         </div>
-        <div class="food-compare-chart">
-          ${renderFoodComparison("밖에서 먹은 식비", outside, "장봐서 먹은 식비", grocery, total, "outside", "grocery")}
-          ${renderFoodComparison("혼자 먹은 식비", solo, "사람 만난 식비", social, total, "solo", "social")}
-          ${renderFoodSingleBar("간식/카페 비중", snackCafe, total, "snack")}
+        <div class="food-context-grid">
+          ${renderFoodContextGroup("소비 방식", "밖에서 먹기", outside, "장보기", grocery, total, "outside", "grocery")}
+          ${renderFoodContextGroup("동행 여부", "혼자", solo, "사람과 함께", social, total, "solo", "social")}
+          ${renderFoodContextIndicator("간식·카페", "편의점과 카페 소비", snackCafe, total, "snack")}
         </div>
       </section>
       <section class="sector-analysis-block detail">
@@ -79,15 +63,15 @@ function renderFoodAnalysisBody(activeRows, month) {
           ${detailItems.map((item) => renderSectorAnalysisBar("식비", item, total, maxDetailAmount)).join("")}
         </div>
       </section>
-    ` : `<div class="empty compact-empty">선택한 월의 식비 기록이 없습니다.</div>`}
+    ` : `${renderSummaryComparisonDriverPanel(comparison, { idPrefix: "report" })}<div class="empty compact-empty">선택한 월의 식비 기록이 없습니다.</div>`}
   `;
 }
 
-function renderGenericSectorAnalysisBody(activeRows, month, sector) {
+function renderGenericSectorAnalysisBody(activeRows, month, sector, comparison) {
   const rows = activeRows.filter((item) => item.month === month && item.sector === sector);
   const total = sumActual(rows);
   if (!total) {
-    return `<div class="empty compact-empty">선택한 월의 ${escapeHtml(sector)} 데이터가 없습니다.</div>`;
+    return `${renderSummaryComparisonDriverPanel(comparison, { idPrefix: "report" })}<div class="empty compact-empty">선택한 월의 ${escapeHtml(sector)} 데이터가 없습니다.</div>`;
   }
   const details = [...groupBy(rows, (item) => item.subcategory || "미분류").entries()]
     .map(([subcategory, subRows]) => ({ subcategory, amount: sumActual(subRows), count: subRows.length }))
@@ -95,6 +79,7 @@ function renderGenericSectorAnalysisBody(activeRows, month, sector) {
   const maxDetailAmount = Math.max(...details.map((item) => item.amount), 1);
   return `
     ${renderSectorAnalysisOverview(sector, total, rows.length, details[0] || { subcategory: "-", amount: 0, count: 0 }, month)}
+    ${renderSummaryComparisonDriverPanel(comparison, { idPrefix: "report" })}
     <section class="sector-analysis-block">
       <div class="analysis-block-head">
         <h4>주요 세부항목</h4>
@@ -176,17 +161,6 @@ function renderSectorAnalysisBar(sector, item, total, maxAmount = total) {
   `;
 }
 
-function renderFoodMetric(metric, total) {
-  const ratio = total ? Math.round(metric.amount / total * 100) : 0;
-  return `
-    <button type="button" class="food-metric ${escapeHtml(metric.tone)}" data-analysis-sector="식비" data-analysis-subcategory="${escapeHtml(metric.subcategory || "all")}">
-      <span>${escapeHtml(metric.label)}</span>
-      <strong>${formatWon(metric.amount)}</strong>
-      <small>전체 식비 대비 ${ratio}%</small>
-    </button>
-  `;
-}
-
 function attachSectorAnalysisHandlers(month) {
   (els.sectorAnalysisBody || els.foodAnalysisCard).querySelectorAll("[data-analysis-sector]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -199,12 +173,13 @@ function attachSectorAnalysisHandlers(month) {
   });
 }
 
-function renderFoodComparison(leftLabel, leftAmount, rightLabel, rightAmount, total, leftTone, rightTone) {
+function renderFoodContextGroup(groupLabel, leftLabel, leftAmount, rightLabel, rightAmount, total, leftTone, rightTone) {
   const pairTotal = leftAmount + rightAmount || 1;
   const leftWidth = Math.round(leftAmount / pairTotal * 100);
   const rightWidth = 100 - leftWidth;
   return `
-    <div class="food-compare-row">
+    <section class="food-context-group">
+      <span class="food-context-label">${escapeHtml(groupLabel)}</span>
       <div class="food-compare-labels">
         <span>${escapeHtml(leftLabel)} <b>${formatWon(leftAmount)}</b></span>
         <span>${escapeHtml(rightLabel)} <b>${formatWon(rightAmount)}</b></span>
@@ -214,21 +189,22 @@ function renderFoodComparison(leftLabel, leftAmount, rightLabel, rightAmount, to
         <span class="${escapeHtml(rightTone)}" style="width: ${rightWidth}%"></span>
       </div>
       <small>${escapeHtml(leftLabel)} ${total ? Math.round(leftAmount / total * 100) : 0}% · ${escapeHtml(rightLabel)} ${total ? Math.round(rightAmount / total * 100) : 0}%</small>
-    </div>
+    </section>
   `;
 }
 
-function renderFoodSingleBar(label, amount, total, tone) {
+function renderFoodContextIndicator(groupLabel, label, amount, total, tone) {
   const width = total ? Math.round(amount / total * 100) : 0;
   return `
-    <div class="food-compare-row">
+    <section class="food-context-group">
+      <span class="food-context-label">${escapeHtml(groupLabel)}</span>
       <div class="food-compare-labels">
         <span>${escapeHtml(label)} <b>${formatWon(amount)}</b></span>
-        <span>${width}%</span>
+        <span>전체 식비의 ${width}%</span>
       </div>
       <div class="food-ratio-bar single" aria-label="${escapeHtml(label)}">
         <span class="${escapeHtml(tone)}" style="width: ${width}%"></span>
       </div>
-    </div>
+    </section>
   `;
 }

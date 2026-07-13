@@ -39,7 +39,7 @@ function captureDetailReturnState(sourceView = "board", sourceLabel = "", return
     },
     summary: {
       month: returnTo.month || returnTo.summary?.month || selectedSummaryMonth || els.summaryMonthSelect?.value || "",
-      sector: returnTo.selectedSector || returnTo.sector || returnTo.summary?.sector || selectedSummarySector || els.sectorTrendSelect?.value || ""
+      sector: returnTo.selectedSector || returnTo.sector || returnTo.summary?.sector || selectedSummarySector || ""
     },
     monthly: {
       month: returnTo.month || returnTo.monthly?.month || focusedMonthlyMonth || ""
