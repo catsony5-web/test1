@@ -17,7 +17,7 @@ function renderBoard() {
   }
 
   els.boardMetrics.classList.remove("is-empty-workspace");
-  els.boardSideSummary.hidden = false;
+  els.boardSideSummary.hidden = true;
 
   const monthRows = active.filter((item) => item.month === selectedMonth);
   const buckets = buildBoardBuckets(monthRows);
@@ -56,33 +56,16 @@ function renderBoard() {
   els.boardSectorMap.innerHTML = "";
   els.boardSectorSummary.innerHTML = renderBoardSectorSummary(monthRows, selectedMonth);
   const visibleSectionStats = sectionStats
-    .filter((stat) => stat.actualTotal > 0 || stat.count > 0)
+    .filter((stat) => stat.actualTotal > 0)
     .sort((a, b) => b.actualTotal - a.actualTotal || b.count - a.count);
   els.boardGrid.innerHTML = renderBoardTopCategories(visibleSectionStats, selectedMonth);
-  els.boardSideSummary.innerHTML = renderBoardSideSummary(sectorRows, selectedMonth, {
-    totalSpend,
-    unknownTotal,
-    income,
-    net,
-    fixedTotal,
-    variableTotal
-  });
+  els.boardSideSummary.innerHTML = "";
   attachBoardMetricHandlers();
   attachBoardSummaryHandlers();
-  attachBoardSideHandlers();
   attachBoardTopCategoryHandlers();
 
-  els.boardSummary.innerHTML = renderBoardFinalSummary({
-    selectedMonth,
-    totalPayment,
-    reimbursementTotal,
-    totalSpend,
-    fixedTotal,
-    variableTotal,
-    income,
-    net
-  });
-  attachBoardFinalSummaryHandlers();
+  els.boardSummary.innerHTML = renderBoardLongTermIndicators(active, selectedMonth);
+  attachBoardPeriodHandlers(els.boardSummary, selectedMonth, "board");
   updateBoardMapTopButton();
 }
 

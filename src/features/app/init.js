@@ -74,6 +74,8 @@ async function init() {
   });
   els.calendarPrevMonth.addEventListener("click", () => moveCalendarMonth(-1));
   els.calendarNextMonth.addEventListener("click", () => moveCalendarMonth(1));
+  els.monthlyPrevYear?.addEventListener("click", () => moveMonthlyYear(-1));
+  els.monthlyNextYear?.addEventListener("click", () => moveMonthlyYear(1));
   els.monthlyYearFilter.addEventListener("change", renderMonthlyFlow);
   els.monthlyStartYear.addEventListener("change", renderMonthlyFlow);
   els.monthlyEndYear.addEventListener("change", renderMonthlyFlow);

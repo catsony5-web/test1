@@ -90,30 +90,123 @@ function renderBoardAccordions(sectionStats, selectedMonth) {
     }).join("");
 }
 
+function buildBoardTreemapLayout(items, width, height) {
+  const cells = Array(items.length).fill(null);
+  const weighted = items
+    .map((item, index) => ({ index, value: Math.max(0, Number(item.value || 0)) }))
+    .filter((item) => item.value > 0);
+
+  const place = (group, rect) => {
+    if (!group.length) return;
+    if (group.length === 1) {
+      cells[group[0].index] = rect;
+      return;
+    }
+
+    const total = group.reduce((sumValue, item) => sumValue + item.value, 0);
+    const target = total / 2;
+    let running = 0;
+    let splitIndex = 1;
+    let closest = Number.POSITIVE_INFINITY;
+    for (let index = 1; index < group.length; index += 1) {
+      running += group[index - 1].value;
+      const distance = Math.abs(target - running);
+      if (distance < closest) {
+        closest = distance;
+        splitIndex = index;
+      }
+    }
+
+    const first = group.slice(0, splitIndex);
+    const second = group.slice(splitIndex);
+    const firstTotal = first.reduce((sumValue, item) => sumValue + item.value, 0);
+    const ratio = total > 0 ? firstTotal / total : 0.5;
+    if (rect.width >= rect.height) {
+      const firstWidth = rect.width * ratio;
+      place(first, { ...rect, width: firstWidth });
+      place(second, { x: rect.x + firstWidth, y: rect.y, width: rect.width - firstWidth, height: rect.height });
+      return;
+    }
+
+    const firstHeight = rect.height * ratio;
+    place(first, { ...rect, height: firstHeight });
+    place(second, { x: rect.x, y: rect.y + firstHeight, width: rect.width, height: rect.height - firstHeight });
+  };
+
+  place(weighted, { x: 0, y: 0, width, height });
+  return cells.map((cell) => cell || { x: 0, y: 0, width: 0, height: 0 });
+}
+
+function buildResponsiveBoardTreemapLayouts(items, heights) {
+  return {
+    wide: buildBoardTreemapLayout(items, 100, heights.wide),
+    medium: buildBoardTreemapLayout(items, 100, heights.medium),
+    mobile: buildBoardTreemapLayout(items, 100, heights.mobile)
+  };
+}
+
+function boardTreemapStyle(layouts, index) {
+  const declarations = [];
+  const addLayout = (prefix, cell, height) => {
+    const toPercent = (value, total) => (value / total * 100).toFixed(4);
+    declarations.push(
+      `--treemap-${prefix}x:${toPercent(cell.x, 100)}%`,
+      `--treemap-${prefix}y:${toPercent(cell.y, height)}%`,
+      `--treemap-${prefix}w:${toPercent(cell.width, 100)}%`,
+      `--treemap-${prefix}h:${toPercent(cell.height, height)}%`
+    );
+  };
+  addLayout("", layouts.wide[index], layouts.wide.reduce((max, cell) => Math.max(max, cell.y + cell.height), 0) || 1);
+  addLayout("medium-", layouts.medium[index], layouts.medium.reduce((max, cell) => Math.max(max, cell.y + cell.height), 0) || 1);
+  addLayout("mobile-", layouts.mobile[index], layouts.mobile.reduce((max, cell) => Math.max(max, cell.y + cell.height), 0) || 1);
+  return declarations.join(";");
+}
+
+function formatBoardTreemapWon(value) {
+  return formatCompactWon(value).replace(/^\+/, "");
+}
+
 function renderBoardTopCategories(sectionStats, selectedMonth) {
   const visible = sectionStats
-    .filter((stat) => stat.actualTotal > 0 || stat.count > 0)
+    .filter((stat) => stat.actualTotal > 0)
     .slice(0, 12);
   if (!visible.length) {
     return `<div class="empty">선택한 월의 주요 상세 항목이 없습니다. 상세 내역 탭에서 직접 입력을 추가할 수 있습니다.</div>`;
   }
+  const layouts = buildResponsiveBoardTreemapLayouts(
+    visible.map((stat) => ({ value: stat.actualTotal })),
+    { wide: 24, medium: 48, mobile: 142 }
+  );
   return `
     <section class="board-top-panel">
       <div class="panel-head">
         <div>
           <h3>많이 쓴 세부항목 TOP</h3>
-          <p>선택 월에서 금액이 큰 세부항목을 바로 상세 내역으로 확인합니다.</p>
+          <p>실 지출액이 클수록 박스가 크게 표시됩니다.</p>
         </div>
-        <button type="button" class="primary-action" data-open-detail-month="${escapeHtml(selectedMonth)}">상세 내역에서 보기</button>
+        <div class="board-treemap-head-actions">
+          <span>실 지출 기준 · TOP ${visible.length.toLocaleString("ko-KR")}</span>
+          <button type="button" data-open-detail-month="${escapeHtml(selectedMonth)}">전체 보기 <i class="ti ti-chevron-right" aria-hidden="true"></i></button>
+        </div>
       </div>
-      <div class="board-top-grid">
-        ${visible.map((stat) => `
-          <button type="button" class="board-top-item ${categoryClass(stat.section.sector)}" data-board-top-sector="${escapeHtml(stat.section.sector)}" data-board-top-subcategory="${escapeHtml(stat.section.subcategory)}">
-            <span>${categoryChip(stat.section.sector, stat.section.subcategory)}</span>
-            <strong>${formatWon(stat.actualTotal)}</strong>
-            <small>${stat.count.toLocaleString("ko-KR")}건 · 총 결제 ${formatWon(stat.total)}</small>
+      <div class="board-top-grid board-treemap" role="region" aria-label="많이 쓴 세부항목 상위 ${visible.length.toLocaleString("ko-KR")}개">
+        ${visible.map((stat, index) => {
+          const subcategory = stat.section.subcategory || stat.section.title || "미분류";
+          const accessibleLabel = `${stat.section.sector} ${subcategory}, 실 지출 ${formatWon(stat.actualTotal)}, ${stat.count.toLocaleString("ko-KR")}건`;
+          return `
+          <button type="button" class="board-top-item board-treemap-tile ${categoryClass(stat.section.sector)}" style="${boardTreemapStyle(layouts, index)}" data-board-top-sector="${escapeHtml(stat.section.sector)}" data-board-top-subcategory="${escapeHtml(subcategory)}" title="${escapeHtml(accessibleLabel)}" aria-label="${escapeHtml(`${accessibleLabel}, 상세 내역 보기`)}">
+            <span class="board-treemap-content">
+              <span class="board-treemap-sector">${escapeHtml(stat.section.sector)}</span>
+              <strong class="board-treemap-title">${escapeHtml(subcategory)}</strong>
+              <b class="board-treemap-amount">
+                <span class="board-treemap-amount-full">${formatWon(stat.actualTotal)}</span>
+                <span class="board-treemap-amount-compact">${formatBoardTreemapWon(stat.actualTotal)}</span>
+              </b>
+              <small class="board-treemap-count">${stat.count.toLocaleString("ko-KR")}건</small>
+            </span>
           </button>
-        `).join("")}
+        `;
+        }).join("")}
       </div>
     </section>
   `;
@@ -142,114 +235,58 @@ function attachBoardAccordionHandlers() {
   });
 }
 
-function attachBoardSideHandlers() {
-  els.boardSideSummary.querySelectorAll("[data-open-income-month]").forEach((button) => {
-    button.addEventListener("click", () => {
-      openIncomeView({ month: button.dataset.openIncomeMonth || els.boardMonth.value, source: "board", scrollToRecords: true });
-    });
-  });
-  els.boardSideSummary.querySelectorAll("[data-side-sector]").forEach((button) => {
-    button.addEventListener("click", () => {
-      openDetailView(boardDetailOptions({ sector: button.dataset.sideSector }));
-    });
-  });
-}
-
 function attachBoardSummaryHandlers() {
   els.boardSectorSummary.querySelectorAll("[data-board-summary-sector]").forEach((node) => {
-    node.addEventListener("click", (event) => {
-      event.stopPropagation();
+    node.addEventListener("click", () => {
       openDetailView(boardDetailOptions({
         month: els.boardMonth.value,
         sector: node.dataset.boardSummarySector,
-        subcategory: node.dataset.boardSummarySubcategory || "all"
+        subcategory: "all"
       }));
-    });
-    node.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        event.stopPropagation();
-        openDetailView(boardDetailOptions({
-          month: els.boardMonth.value,
-          sector: node.dataset.boardSummarySector,
-          subcategory: node.dataset.boardSummarySubcategory || "all"
-        }));
-      }
     });
   });
 }
 
 function renderBoardSectorSummary(monthRows, selectedMonth) {
   const total = sumActual(monthRows);
-  const sectorRows = buildSectorSpendRows(monthRows);
+  const sectorRows = buildSectorSpendRows(monthRows).filter((item) => item.amount > 0);
   if (!sectorRows.length) return `<div class="empty compact-empty">선택 월의 섹터별 요약이 없습니다.</div>`;
   const previousMonth = previousMonthKey(selectedMonth);
   const previousRows = reportingExpenseRows(classified, { months: [previousMonth] });
+  const layouts = buildResponsiveBoardTreemapLayouts(
+    sectorRows.map((item) => ({ value: item.amount })),
+    { wide: 30, medium: 54, mobile: 118 }
+  );
   return `
     <section class="board-sector-summary-panel">
       <div class="panel-head">
         <div>
           <h3>섹터별 소비 요약</h3>
-          <p>선택 월의 소비 비중, 거래 건수, 전월 대비 변화를 섹터별로 봅니다.</p>
+          <p>선택 월의 실 지출 비중과 전월 대비 변화를 한눈에 비교합니다.</p>
         </div>
+        <span class="board-treemap-basis">실 지출 기준</span>
       </div>
-      <div class="board-sector-card-grid">
-        ${sectorRows.map((item) => {
-          const rows = monthRows.filter((row) => row.sector === item.sector);
+      <div class="board-sector-card-grid board-treemap" role="region" aria-label="선택 월 섹터별 실 지출 트리맵">
+        ${sectorRows.map((item, index) => {
           const previousAmount = sumActual(previousRows.filter((row) => row.sector === item.sector));
           const diff = item.amount - previousAmount;
           const trendClass = diff > 0 ? "negative" : diff < 0 ? "positive" : "neutral";
-          const topSubcategories = topSubcategorySummary(rows, 3);
+          const accessibleLabel = `${item.sector}, 실 지출 ${formatWon(item.amount)}, 전체의 ${formatPercent(item.amount, total)}, ${item.count.toLocaleString("ko-KR")}건, 전월 대비 ${formatSignedWon(diff)}`;
           return `
-            <article class="board-sector-card ${categoryClass(item.sector)}" data-board-summary-sector="${escapeHtml(item.sector)}" role="button" tabindex="0">
-              <div class="board-sector-card-head">
-                ${categoryChip(item.sector)}
-                <strong>${formatWon(item.amount)}</strong>
-              </div>
-              <div class="board-sector-card-meta">
-                <span class="board-sector-card-share">${formatPercent(item.amount, total)} · ${item.count.toLocaleString("ko-KR")}건</span>
-                <span class="board-sector-card-trend ${trendClass}">전월 대비 <b>${formatSignedWon(diff)}</b></span>
-              </div>
-              <div class="sector-top-list">
-                ${topSubcategories.map((sub) => `<button type="button" data-board-summary-sector="${escapeHtml(item.sector)}" data-board-summary-subcategory="${escapeHtml(sub.subcategory)}" title="${escapeHtml(sub.subcategory)}">${escapeHtml(sub.subcategory)} <b>${formatWon(sub.amount)}</b></button>`).join("") || "<span>세부항목 없음</span>"}
-              </div>
-            </article>
+            <button type="button" class="board-sector-card board-treemap-tile ${categoryClass(item.sector)}" style="${boardTreemapStyle(layouts, index)}" data-board-summary-sector="${escapeHtml(item.sector)}" title="${escapeHtml(accessibleLabel)}" aria-label="${escapeHtml(`${accessibleLabel}, 상세 내역 보기`)}">
+              <span class="board-treemap-content">
+                <span class="board-treemap-heading"><i class="${sectorIconClass(item.sector)}" aria-hidden="true"></i><b class="board-treemap-title">${escapeHtml(item.sector)}</b></span>
+                <strong class="board-treemap-amount">
+                  <span class="board-treemap-amount-full">${formatWon(item.amount)}</span>
+                  <span class="board-treemap-amount-compact">${formatBoardTreemapWon(item.amount)}</span>
+                </strong>
+                <small class="board-treemap-share">${formatPercent(item.amount, total)} · ${item.count.toLocaleString("ko-KR")}건</small>
+                <span class="board-treemap-trend ${trendClass}">전월 대비 <b>${formatSignedWon(diff)}</b></span>
+              </span>
+            </button>
           `;
         }).join("")}
       </div>
-    </section>
-  `;
-}
-
-function renderBoardSideSummary(sectorRows, selectedMonth, totals) {
-  const { totalSpend } = totals;
-  const topRows = sectorRows.slice(0, 5);
-  const topSector = sectorRows[0] || { sector: "-", amount: 0 };
-  const topRowsTotal = sum(topRows, "amount");
-  return `
-    <section class="side-summary-card">
-      <div class="side-summary-head">
-        <h3>선택 월 빠른 진단</h3>
-        <span>${escapeHtml(selectedMonth || "-")}</span>
-      </div>
-      <div class="side-summary-main">
-        <span>가장 큰 섹터</span>
-        <strong>${escapeHtml(topSector.sector)}</strong>
-        <em>${formatWon(topSector.amount)} · ${formatPercent(topSector.amount, totalSpend)}</em>
-      </div>
-      <div class="side-summary-pairs">
-        <div><span>비교 섹터</span><b>${sectorRows.length.toLocaleString("ko-KR")}개</b></div>
-        <div><span>TOP 5 합계</span><b>${formatWon(topRowsTotal)}</b></div>
-      </div>
-      <div class="side-top-list">
-        ${topRows.map((item) => `
-          <button type="button" data-side-sector="${escapeHtml(item.sector)}">
-            ${categoryChip(item.sector)}
-            <b>${formatWon(item.amount)}</b>
-          </button>
-        `).join("") || `<p>지출 내역 없음</p>`}
-      </div>
-      <button type="button" class="side-detail-button" data-side-sector="all">상세 내역에서 보기</button>
     </section>
   `;
 }
@@ -395,45 +432,6 @@ function sortTransactionRows(rows, sortMode = "date") {
     date: byDate
   };
   return [...rows].sort(sorters[sortMode] || byDate);
-}
-
-function renderSummaryPair(label, value, isAmount = true, options = {}) {
-  const attrs = options.incomeMonth ? ` data-open-income-month="${escapeHtml(options.incomeMonth)}"` : "";
-  const tagOpen = options.incomeMonth
-    ? `<button type="button" class="summary-pair-link"${attrs}>`
-    : "<div>";
-  const tagClose = options.incomeMonth ? "button" : "div";
-  return `
-    ${tagOpen}
-      <span>${escapeHtml(label)}</span>
-      <strong>${isAmount ? formatWon(value) : escapeHtml(value)}</strong>
-    </${tagClose}>
-  `;
-}
-
-function attachBoardFinalSummaryHandlers() {
-  els.boardSummary.querySelectorAll("[data-open-income-month]").forEach((button) => {
-    button.addEventListener("click", () => {
-      openIncomeView({ month: button.dataset.openIncomeMonth || els.boardMonth.value, source: "board", scrollToRecords: true });
-    });
-  });
-}
-
-function renderBoardFinalSummary({ selectedMonth, totalPayment, reimbursementTotal, totalSpend, fixedTotal, variableTotal, income, net }) {
-  return `
-    <section class="final-summary-card compact-summary-strip">
-      <div class="compact-summary-head">
-        <h3>월간 핵심 요약</h3>
-        <strong class="${net >= 0 ? "positive" : "negative"}">${formatSignedWon(net)}</strong>
-      </div>
-      <div class="compact-summary-grid">
-        ${renderSummaryPair("월", selectedMonth || "-", false)}
-        ${renderSummaryPair("총 결제액", totalPayment)}
-        ${renderSummaryPair("정산받은 금액", reimbursementTotal)}
-        ${renderSummaryPair("실 지출액", totalSpend)}
-      </div>
-    </section>
-  `;
 }
 
 function renderQuickAddForm(section, selectedMonth) {

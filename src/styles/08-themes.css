@@ -330,27 +330,12 @@ textarea,
 .category-chip.unknown,
 .subcategory-pill.unknown { background: var(--sector-unknown-bg); color: var(--sector-unknown-text); }
 
-.chart-grid,
-.balance-grid {
+.chart-grid {
   stroke: color-mix(in srgb, var(--border-subtle) 86%, transparent);
 }
 
-.chart-axis,
-.balance-zero-line {
+.chart-axis {
   stroke: color-mix(in srgb, var(--text-secondary) 76%, transparent);
-}
-
-.balance-chart-bg {
-  fill: color-mix(in srgb, var(--bg-muted) 64%, var(--bg-surface));
-  stroke: var(--border-subtle);
-}
-
-.balance-bar.good {
-  fill: var(--accent-positive);
-}
-
-.balance-bar.bad {
-  fill: var(--accent-negative);
 }
 
 .chart-dot.good {
@@ -375,7 +360,6 @@ textarea,
 
 .chart-label,
 .chart-value,
-.balance-axis-label,
 .chart-baseline-label {
   fill: var(--text-secondary);
 }
@@ -1764,10 +1748,7 @@ th.amount,
 .trend-chart-frame .chart-value,
 .trend-chart-frame .chart-baseline-label,
 .trend-chart-frame .trend-axis-label,
-.trend-chart-frame .trend-delta-label,
-.balance-chart text,
-.balance-chart .balance-axis-label,
-.balance-chart .balance-bar-tooltip-value {
+.trend-chart-frame .trend-delta-label {
   max-width: none;
   overflow: visible;
   text-overflow: clip;

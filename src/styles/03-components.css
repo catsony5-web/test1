@@ -502,7 +502,7 @@ button.board-metric {
 
 .board-detail-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.6fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
   align-items: start;
 }
@@ -570,6 +570,505 @@ button.board-metric {
   color: var(--text-sub);
   font-size: 12px;
   font-weight: 800;
+}
+
+.board-sector-summary-panel,
+.board-top-panel,
+.board-long-term-card {
+  border-radius: 8px;
+}
+
+.board-treemap-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.board-treemap-head-actions > span,
+.board-treemap-basis {
+  color: var(--text-sub);
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.board-treemap-head-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+  border-radius: 7px;
+  padding: 6px 9px;
+  color: var(--text-main);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.board-treemap {
+  position: relative;
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface-soft);
+  isolation: isolate;
+}
+
+.board-sector-card-grid.board-treemap {
+  height: clamp(270px, 21vw, 330px);
+}
+
+.board-top-grid.board-treemap {
+  height: clamp(230px, 18vw, 285px);
+}
+
+#boardView .board-treemap-tile {
+  --treemap-active-x: var(--treemap-x);
+  --treemap-active-y: var(--treemap-y);
+  --treemap-active-w: var(--treemap-w);
+  --treemap-active-h: var(--treemap-h);
+  --treemap-accent: var(--sector-unknown-text);
+  --treemap-surface: var(--sector-unknown-bg);
+  --treemap-outline: var(--sector-unknown-border);
+  position: absolute;
+  left: calc(var(--treemap-active-x) + 2px);
+  top: calc(var(--treemap-active-y) + 2px);
+  width: calc(var(--treemap-active-w) - 4px);
+  height: calc(var(--treemap-active-h) - 4px);
+  display: block;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--treemap-accent) 42%, var(--treemap-outline));
+  border-radius: 6px;
+  padding: 0;
+  background: color-mix(in srgb, var(--treemap-accent) 18%, var(--treemap-surface));
+  color: var(--text-main);
+  text-align: left;
+  white-space: normal;
+  box-shadow: none;
+  container-type: size;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.board-treemap-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: 12px;
+}
+
+#boardView .board-treemap-tile.fixed { --treemap-accent: var(--sector-fixed-text); --treemap-surface: var(--sector-fixed-bg); --treemap-outline: var(--sector-fixed-border); }
+#boardView .board-treemap-tile.food { --treemap-accent: var(--sector-food-text); --treemap-surface: var(--sector-food-bg); --treemap-outline: var(--sector-food-border); }
+#boardView .board-treemap-tile.household { --treemap-accent: var(--sector-household-text); --treemap-surface: var(--sector-household-bg); --treemap-outline: var(--sector-household-border); }
+#boardView .board-treemap-tile.shopping { --treemap-accent: var(--sector-shopping-text); --treemap-surface: var(--sector-shopping-bg); --treemap-outline: var(--sector-shopping-border); }
+#boardView .board-treemap-tile.personal { --treemap-accent: var(--sector-personal-text); --treemap-surface: var(--sector-personal-bg); --treemap-outline: var(--sector-personal-border); }
+#boardView .board-treemap-tile.selfdev { --treemap-accent: var(--sector-selfdev-text); --treemap-surface: var(--sector-selfdev-bg); --treemap-outline: var(--sector-selfdev-border); }
+#boardView .board-treemap-tile.gift { --treemap-accent: var(--sector-gift-text); --treemap-surface: var(--sector-gift-bg); --treemap-outline: var(--sector-gift-border); }
+#boardView .board-treemap-tile.transport { --treemap-accent: var(--sector-transport-text); --treemap-surface: var(--sector-transport-bg); --treemap-outline: var(--sector-transport-border); }
+#boardView .board-treemap-tile.saving { --treemap-accent: var(--sector-saving-text); --treemap-surface: var(--sector-saving-bg); --treemap-outline: var(--sector-saving-border); }
+#boardView .board-treemap-tile.income { --treemap-accent: var(--sector-income-text); --treemap-surface: var(--sector-income-bg); --treemap-outline: var(--sector-income-border); }
+#boardView .board-treemap-tile.etc { --treemap-accent: var(--sector-etc-text); --treemap-surface: var(--sector-etc-bg); --treemap-outline: var(--sector-etc-border); }
+#boardView .board-treemap-tile.unknown { --treemap-accent: var(--sector-unknown-text); --treemap-surface: var(--sector-unknown-bg); --treemap-outline: var(--sector-unknown-border); }
+
+#boardView .board-treemap-tile:hover,
+#boardView .board-treemap-tile:focus-visible {
+  z-index: 2;
+  border-color: color-mix(in srgb, var(--treemap-accent) 70%, var(--treemap-outline));
+  background: color-mix(in srgb, var(--treemap-accent) 25%, var(--treemap-surface));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--treemap-accent) 24%, transparent);
+  outline: none;
+  transform: none;
+}
+
+.board-treemap-heading {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.board-treemap-heading > i {
+  flex: 0 0 auto;
+  font-size: 19px;
+}
+
+#boardView .board-treemap-title,
+#boardView .board-treemap-amount,
+#boardView .board-treemap-sector,
+#boardView .board-treemap-count,
+#boardView .board-treemap-share,
+#boardView .board-treemap-trend {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#boardView .board-treemap-title {
+  color: var(--text-main);
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+#boardView .board-treemap-amount {
+  color: var(--text-main);
+  font-family: var(--font-number);
+  font-size: 20px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.board-treemap-amount-compact {
+  display: none;
+}
+
+#boardView .board-treemap-sector,
+#boardView .board-treemap-count,
+#boardView .board-treemap-share,
+#boardView .board-treemap-trend {
+  color: color-mix(in srgb, var(--text-main) 78%, var(--treemap-accent));
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+#boardView .board-treemap-trend {
+  margin-top: 3px;
+  padding-top: 7px;
+  border-top: 1px solid color-mix(in srgb, var(--treemap-accent) 30%, transparent);
+}
+
+#boardView .board-treemap-trend.negative { color: var(--status-negative-text); }
+#boardView .board-treemap-trend.positive { color: var(--status-positive-text); }
+#boardView .board-treemap-trend.neutral { color: var(--text-sub); }
+
+@container (max-width: 170px) {
+  #boardView .board-treemap-heading > i,
+  #boardView .board-treemap-share,
+  #boardView .board-treemap-trend,
+  #boardView .board-treemap-sector {
+    display: none;
+  }
+
+  #boardView .board-treemap-title { font-size: 13px; }
+  #boardView .board-treemap-amount { font-size: 15px; }
+  #boardView .board-treemap-amount-full { display: none; }
+  #boardView .board-treemap-amount-compact { display: inline; }
+}
+
+@container (max-height: 100px) {
+  #boardView .board-treemap-heading > i,
+  #boardView .board-treemap-share,
+  #boardView .board-treemap-trend,
+  #boardView .board-treemap-sector,
+  #boardView .board-treemap-count {
+    display: none;
+  }
+
+  #boardView .board-treemap-title { font-size: 13px; }
+  #boardView .board-treemap-amount { font-size: 15px; }
+}
+
+@container (max-width: 96px) {
+  #boardView .board-treemap-content {
+    gap: 3px;
+    padding: 7px;
+  }
+
+  #boardView .board-treemap-title { font-size: 11px; }
+  #boardView .board-treemap-amount { font-size: 12px; }
+}
+
+@container (max-width: 72px) {
+  #boardView .board-treemap-heading,
+  #boardView .board-treemap-title,
+  #boardView .board-treemap-amount,
+  #boardView .board-treemap-sector,
+  #boardView .board-treemap-count,
+  #boardView .board-treemap-share,
+  #boardView .board-treemap-trend {
+    display: none;
+  }
+}
+
+@container (max-height: 58px) {
+  #boardView .board-treemap-amount,
+  #boardView .board-treemap-count {
+    display: none;
+  }
+}
+
+.board-long-term-card {
+  min-width: 0;
+  border: 1px solid var(--border);
+  padding: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.board-long-term-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.board-long-term-head h3 {
+  color: var(--primary-navy);
+  font-size: 17px;
+}
+
+.board-long-term-head p,
+.board-long-term-head > span {
+  margin-top: 4px;
+  color: var(--text-sub);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.board-long-term-head > span {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.board-long-term-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(280px, 1.4fr) minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.board-long-term-item,
+button.board-long-term-item {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 7px;
+  min-width: 0;
+  min-height: 126px;
+  border: 0;
+  border-radius: 0;
+  padding: 10px 18px;
+  background: transparent;
+  color: var(--text-main);
+  text-align: left;
+  white-space: normal;
+  box-shadow: none;
+}
+
+.board-long-term-item + .board-long-term-item {
+  border-left: 1px solid var(--border);
+}
+
+button.board-long-term-item:hover,
+button.board-long-term-item:focus-visible {
+  background: color-mix(in srgb, var(--accent-blue) 6%, transparent);
+  outline: none;
+}
+
+.board-long-term-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: var(--text-sub);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.board-long-term-label i {
+  flex: 0 0 auto;
+  font-size: 17px;
+}
+
+.board-long-term-item > strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--primary-navy);
+  font-family: var(--font-number);
+  font-size: 22px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.board-long-term-item > small {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-sub);
+  font-size: 12px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.board-long-term-item > small.negative { color: var(--status-negative-text); }
+.board-long-term-item > small.positive { color: var(--status-positive-text); }
+
+.board-long-term-trend {
+  gap: 4px;
+}
+
+.board-long-term-sparkline {
+  display: block;
+  width: 100%;
+  height: 54px;
+  overflow: visible;
+}
+
+.board-long-term-sparkline-path {
+  fill: none;
+  stroke: var(--accent-blue);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.board-long-term-sparkline-dot {
+  fill: var(--bg-card);
+  stroke: var(--accent-blue);
+  stroke-width: 2.5;
+}
+
+.board-long-term-months {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.board-long-term-months button {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  min-height: 30px;
+  border: 0;
+  border-radius: 5px;
+  padding: 3px 2px;
+  background: transparent;
+  color: var(--text-sub);
+  text-align: center;
+  box-shadow: none;
+}
+
+.board-long-term-months button:hover,
+.board-long-term-months button:focus-visible {
+  background: color-mix(in srgb, var(--accent-blue) 8%, transparent);
+  color: var(--text-main);
+  outline: none;
+}
+
+.board-long-term-months span,
+.board-long-term-months b {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.board-long-term-months b {
+  color: var(--text-main);
+  font-family: var(--font-number);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 1199px) {
+  #boardView .board-treemap-tile {
+    --treemap-active-x: var(--treemap-medium-x);
+    --treemap-active-y: var(--treemap-medium-y);
+    --treemap-active-w: var(--treemap-medium-w);
+    --treemap-active-h: var(--treemap-medium-h);
+  }
+
+  .board-sector-card-grid.board-treemap {
+    height: clamp(340px, 42vw, 460px);
+  }
+
+  .board-top-grid.board-treemap {
+    height: clamp(380px, 48vw, 520px);
+  }
+
+  .board-long-term-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .board-long-term-item:nth-child(3) {
+    border-left: 0;
+  }
+
+  .board-long-term-item:nth-child(n + 3) {
+    border-top: 1px solid var(--border);
+  }
+}
+
+@media (max-width: 767px) {
+  .board-treemap-head-actions {
+    align-items: flex-end;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .board-treemap-basis {
+    align-self: flex-start;
+  }
+
+  #boardView .board-treemap-tile {
+    --treemap-active-x: var(--treemap-mobile-x);
+    --treemap-active-y: var(--treemap-mobile-y);
+    --treemap-active-w: var(--treemap-mobile-w);
+    --treemap-active-h: var(--treemap-mobile-h);
+  }
+
+  .board-sector-card-grid.board-treemap {
+    height: clamp(500px, 132vw, 620px);
+  }
+
+  .board-top-grid.board-treemap {
+    height: clamp(620px, 175vw, 760px);
+  }
+
+  #boardView .board-treemap-content {
+    padding: 9px;
+  }
+
+  .board-long-term-head {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .board-long-term-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .board-long-term-item,
+  button.board-long-term-item {
+    min-height: 112px;
+    border-left: 0 !important;
+    padding: 14px 8px;
+  }
+
+  .board-long-term-item + .board-long-term-item {
+    border-top: 1px solid var(--border);
+  }
+
+  .board-long-term-trend {
+    min-height: 176px;
+  }
 }
 
 .detail-filter-panel {

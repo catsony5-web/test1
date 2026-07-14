@@ -62,6 +62,109 @@ function attachBoardMetricHandlers() {
   });
 }
 
+function boardLongTermMonthKeys(selectedMonth, count, offset = 0) {
+  const anchor = isValidMonthKey(selectedMonth) ? selectedMonth : currentMonthKey();
+  return Array.from({ length: count }, (_, index) => shiftMonthKey(anchor, offset - (count - 1 - index)));
+}
+
+function formatBoardSignedPercent(value) {
+  const number = Number(value || 0);
+  const sign = number > 0 ? "+" : "";
+  return `${sign}${number.toLocaleString("ko-KR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
+}
+
+function renderBoardThreeMonthSparkline(points) {
+  const width = 240;
+  const height = 58;
+  const padX = 14;
+  const padY = 10;
+  const values = points.map((point) => Number(point.amount || 0));
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min;
+  const coordinates = points.map((point, index) => ({
+    ...point,
+    x: padX + index * ((width - padX * 2) / Math.max(points.length - 1, 1)),
+    y: range > 0
+      ? padY + (max - point.amount) / range * (height - padY * 2)
+      : height / 2
+  }));
+  const path = coordinates.map((point, index) => `${index ? "L" : "M"} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`).join(" ");
+  const ariaLabel = coordinates.map((point) => `${point.month} ${formatWon(point.amount)}`).join(", ");
+  return `
+    <svg class="board-long-term-sparkline" viewBox="0 0 ${width} ${height}" role="img" aria-label="최근 3개월 실 지출 변화: ${escapeHtml(ariaLabel)}">
+      <path class="board-long-term-sparkline-path" d="${path}"></path>
+      ${coordinates.map((point) => `
+        <g>
+          <title>${escapeHtml(point.month)} ${formatWon(point.amount)}</title>
+          <circle class="board-long-term-sparkline-dot" cx="${point.x.toFixed(2)}" cy="${point.y.toFixed(2)}" r="4"></circle>
+        </g>
+      `).join("")}
+    </svg>
+  `;
+}
+
+function renderBoardLongTermIndicators(activeRows, selectedMonth) {
+  const periodMonths = boardLongTermMonthKeys(selectedMonth, 12);
+  const previousMonths = boardLongTermMonthKeys(selectedMonth, 12, -12);
+  const periodMonthSet = new Set(periodMonths);
+  const previousMonthSet = new Set(previousMonths);
+  const periodRows = activeRows.filter((item) => periodMonthSet.has(item.month));
+  const previousRows = activeRows.filter((item) => previousMonthSet.has(item.month));
+  const monthSummaries = periodMonths.map((month) => ({
+    month,
+    amount: sumActual(periodRows.filter((item) => item.month === month))
+  }));
+  const total = sumActual(periodRows);
+  const previousTotal = sumActual(previousRows);
+  const average = Math.round(total / periodMonths.length);
+  const yearRate = previousTotal > 0 ? (total - previousTotal) / previousTotal * 100 : null;
+  const comparisonTone = yearRate === null || yearRate === 0 ? "neutral" : yearRate > 0 ? "negative" : "positive";
+  const topMonth = [...monthSummaries].sort((a, b) => b.amount - a.amount)[0] || { month: selectedMonth, amount: 0 };
+  const topSector = buildSectorSpendRows(periodRows).filter((item) => item.amount > 0)[0] || { sector: "-", amount: 0, count: 0 };
+  const recent = monthSummaries.slice(-3);
+  return `
+    <section class="board-long-term-card" aria-labelledby="boardLongTermTitle">
+      <div class="board-long-term-head">
+        <div>
+          <h3 id="boardLongTermTitle">장기 소비 지표</h3>
+          <p>선택 월을 포함한 최근 12개월의 실 지출 흐름입니다.</p>
+        </div>
+        <span>${escapeHtml(periodMonths[0])} ~ ${escapeHtml(periodMonths.at(-1))}</span>
+      </div>
+      <div class="board-long-term-grid">
+        <div class="board-long-term-item">
+          <span class="board-long-term-label"><i class="ti ti-chart-line" aria-hidden="true"></i>최근 12개월 월평균</span>
+          <strong>${formatWon(average)}</strong>
+          <small class="${comparisonTone}">${yearRate === null ? "전년 동기 비교 없음" : `전년 동기 대비 ${formatBoardSignedPercent(yearRate)}`}</small>
+        </div>
+        <div class="board-long-term-item board-long-term-trend">
+          <span class="board-long-term-label">최근 3개월 변화</span>
+          ${renderBoardThreeMonthSparkline(recent)}
+          <div class="board-long-term-months">
+            ${recent.map((point) => `
+              <button type="button" data-board-period-detail="${escapeHtml(point.month)}" aria-label="${escapeHtml(`${point.month} ${formatWon(point.amount)} 상세 내역 보기`)}">
+                <span>${escapeHtml(point.month)}</span>
+                <b>${formatWon(point.amount)}</b>
+              </button>
+            `).join("")}
+          </div>
+        </div>
+        <button type="button" class="board-long-term-item" data-board-period-detail="${escapeHtml(topMonth.month)}">
+          <span class="board-long-term-label"><i class="ti ti-calendar-month" aria-hidden="true"></i>가장 많이 쓴 달</span>
+          <strong>${escapeHtml(topMonth.month)}</strong>
+          <small>${formatWon(topMonth.amount)}</small>
+        </button>
+        <button type="button" class="board-long-term-item" data-board-period-sector="${escapeHtml(topSector.sector === "-" ? "all" : topSector.sector)}">
+          <span class="board-long-term-label"><i class="${sectorIconClass(topSector.sector)}" aria-hidden="true"></i>최대 소비 섹터</span>
+          <strong>${escapeHtml(topSector.sector)}</strong>
+          <small>월평균 ${formatWon(Math.round(topSector.amount / periodMonths.length))} · ${formatPercent(topSector.amount, total)}</small>
+        </button>
+      </div>
+    </section>
+  `;
+}
+
 function renderBoardPeriodStats(periodRows, periodMonths, preset, selectedMonth, options = {}) {
   const label = options.label || (preset === "all" ? "전체 기간" : preset === "year" ? "올해" : preset === "recent-24" ? "최근 2년" : "최근 1년");
   if (!periodMonths.length) {
