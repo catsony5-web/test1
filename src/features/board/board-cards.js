@@ -196,7 +196,7 @@ function renderBoardTopCategories(sectionStats, selectedMonth) {
           <button type="button" class="board-top-item board-treemap-tile ${categoryClass(stat.section.sector)}" style="${boardTreemapStyle(layouts, index)}" data-board-top-sector="${escapeHtml(stat.section.sector)}" data-board-top-subcategory="${escapeHtml(subcategory)}" title="${escapeHtml(accessibleLabel)}" aria-label="${escapeHtml(`${accessibleLabel}, 상세 내역 보기`)}">
             <span class="board-treemap-content">
               <span class="board-treemap-sector">${escapeHtml(stat.section.sector)}</span>
-              <strong class="board-treemap-title">${escapeHtml(subcategory)}</strong>
+              <span class="board-treemap-heading board-top-heading"><span class="board-treemap-icon" aria-hidden="true"><i class="ti ${subcategoryIconClass(stat.section.sector, subcategory)}"></i></span><strong class="board-treemap-title">${escapeHtml(subcategory)}</strong></span>
               <b class="board-treemap-amount">
                 <span class="board-treemap-amount-full">${formatWon(stat.actualTotal)}</span>
                 <span class="board-treemap-amount-compact">${formatBoardTreemapWon(stat.actualTotal)}</span>

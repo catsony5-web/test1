@@ -580,25 +580,31 @@ button.board-metric {
 
 .board-sector-summary-panel,
 .board-top-panel {
-  padding: 10px;
+  padding: 8px;
 }
 
 .board-sector-summary-panel > .panel-head,
 .board-top-panel > .panel-head {
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
+}
+
+.board-sector-summary-panel > .panel-head h3,
+.board-top-panel > .panel-head h3 {
+  font-size: 15px;
+  line-height: 1.2;
 }
 
 .board-treemap-head-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .board-treemap-head-actions > span,
 .board-treemap-basis {
   color: var(--text-sub);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
   white-space: nowrap;
 }
@@ -607,11 +613,11 @@ button.board-metric {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  min-height: 32px;
+  min-height: 28px;
   border-radius: 7px;
-  padding: 6px 9px;
+  padding: 4px 8px;
   color: var(--text-main);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
 }
 
@@ -627,11 +633,11 @@ button.board-metric {
 }
 
 .board-sector-card-grid.board-treemap {
-  height: 260px;
+  height: 270px;
 }
 
 .board-top-grid.board-treemap {
-  height: 196px;
+  height: 210px;
 }
 
 #boardView .board-treemap-tile {
@@ -665,15 +671,16 @@ button.board-metric {
 .board-treemap-content {
   position: absolute;
   inset: 0;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  padding: 12px;
+  padding: 9px;
   text-align: center;
 }
 
@@ -711,8 +718,8 @@ button.board-metric {
 
 .board-treemap-icon {
   display: grid;
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   flex: 0 0 auto;
   place-items: center;
   border-radius: 999px;
@@ -721,9 +728,9 @@ button.board-metric {
 }
 
 .board-treemap-icon > i {
-  width: 23px;
-  height: 23px;
-  font-size: 23px;
+  width: 22px;
+  height: 22px;
+  font-size: 22px;
 }
 
 #boardView .board-treemap-title,
@@ -742,7 +749,7 @@ button.board-metric {
 
 #boardView .board-treemap-title {
   color: #ffffff;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 900;
   line-height: 1.25;
 }
@@ -750,7 +757,7 @@ button.board-metric {
 #boardView .board-treemap-amount {
   color: #ffffff;
   font-family: var(--font-number);
-  font-size: 20px;
+  font-size: 21px;
   font-weight: 900;
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
@@ -765,7 +772,7 @@ button.board-metric {
 #boardView .board-treemap-share,
 #boardView .board-treemap-trend {
   color: rgba(255, 255, 255, 0.92);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 800;
   line-height: 1.3;
 }
@@ -807,8 +814,73 @@ button.board-metric {
   #boardView .board-treemap-amount-compact { display: inline; }
 }
 
-@container (max-height: 100px) {
-  #boardView .board-treemap-icon,
+@container (max-height: 154px) {
+  #boardView .board-treemap-trend,
+  #boardView .board-treemap-sector {
+    display: none;
+  }
+
+  #boardView .board-treemap-content {
+    gap: 5px;
+    padding: 10px;
+  }
+}
+
+@container (max-height: 124px) {
+  #boardView .board-treemap-share,
+  #boardView .board-treemap-count {
+    display: none;
+  }
+
+  #boardView .board-treemap-icon {
+    width: 34px;
+    height: 34px;
+  }
+
+  #boardView .board-treemap-icon > i {
+    width: 19px;
+    height: 19px;
+    font-size: 19px;
+  }
+
+  #boardView .board-treemap-title { font-size: 14px; }
+  #boardView .board-treemap-amount { font-size: 17px; }
+}
+
+@container (max-height: 96px) {
+  #boardView .board-treemap-content {
+    gap: 4px;
+    padding: 7px;
+  }
+
+  #boardView .board-treemap-icon {
+    width: 27px;
+    height: 27px;
+  }
+
+  #boardView .board-treemap-icon > i {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+  }
+
+  #boardView .board-treemap-title { font-size: 13px; }
+  #boardView .board-treemap-amount { font-size: 15px; }
+  #boardView .board-treemap-amount-full { display: none; }
+  #boardView .board-treemap-amount-compact { display: inline; }
+}
+
+@container (max-width: 112px) {
+  #boardView .board-treemap-content {
+    gap: 4px;
+    padding: 6px;
+  }
+
+  #boardView .board-treemap-heading {
+    flex-direction: column;
+    gap: 3px;
+  }
+
   #boardView .board-treemap-share,
   #boardView .board-treemap-trend,
   #boardView .board-treemap-sector,
@@ -816,29 +888,54 @@ button.board-metric {
     display: none;
   }
 
-  #boardView .board-treemap-title { font-size: 13px; }
-  #boardView .board-treemap-amount { font-size: 15px; }
-}
+  #boardView .board-treemap-icon {
+    width: 26px;
+    height: 26px;
+  }
 
-@container (max-width: 96px) {
-  #boardView .board-treemap-content {
-    gap: 3px;
-    padding: 7px;
+  #boardView .board-treemap-icon > i {
+    width: 15px;
+    height: 15px;
+    font-size: 15px;
   }
 
   #boardView .board-treemap-title { font-size: 11px; }
-  #boardView .board-treemap-amount { font-size: 12px; }
-
-  #boardView .board-treemap-icon,
-  #boardView .board-treemap-share,
-  #boardView .board-treemap-trend,
-  #boardView .board-treemap-sector {
-    display: none;
-  }
+  #boardView .board-treemap-amount { font-size: 13px; }
+  #boardView .board-treemap-amount-full { display: none; }
+  #boardView .board-treemap-amount-compact { display: inline; }
 }
 
-@container (max-width: 72px) {
-  #boardView .board-treemap-icon,
+@container (max-height: 68px) {
+  #boardView .board-treemap-content {
+    gap: 3px;
+    padding: 4px;
+  }
+
+  #boardView .board-treemap-share,
+  #boardView .board-treemap-trend,
+  #boardView .board-treemap-sector,
+  #boardView .board-treemap-count {
+    display: none;
+  }
+
+  #boardView .board-treemap-icon {
+    width: 21px;
+    height: 21px;
+  }
+
+  #boardView .board-treemap-icon > i {
+    width: 13px;
+    height: 13px;
+    font-size: 13px;
+  }
+
+  #boardView .board-treemap-title { font-size: 10px; }
+  #boardView .board-treemap-amount { font-size: 12px; }
+  #boardView .board-treemap-amount-full { display: none; }
+  #boardView .board-treemap-amount-compact { display: inline; }
+}
+
+@container (max-width: 76px) {
   #boardView .board-treemap-amount,
   #boardView .board-treemap-sector,
   #boardView .board-treemap-count,
@@ -847,22 +944,96 @@ button.board-metric {
     display: none;
   }
 
-  #boardView .board-treemap-content { padding: 4px; }
-  #boardView .board-treemap-heading { display: flex; }
-  #boardView .board-treemap-title { display: block; font-size: 10px; }
+  #boardView .board-treemap-content {
+    gap: 3px;
+    padding: 4px;
+  }
+
+  #boardView .board-treemap-heading {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  #boardView .board-treemap-icon {
+    display: grid;
+    width: 20px;
+    height: 20px;
+  }
+
+  #boardView .board-treemap-icon > i {
+    width: 12px;
+    height: 12px;
+    font-size: 12px;
+  }
+
+  #boardView .board-treemap-title {
+    display: block;
+    font-size: 10px;
+  }
 }
 
-@container (max-height: 58px) {
+@container (max-height: 46px) {
   #boardView .board-treemap-amount,
-  #boardView .board-treemap-count {
+  #boardView .board-treemap-sector,
+  #boardView .board-treemap-count,
+  #boardView .board-treemap-share,
+  #boardView .board-treemap-trend {
     display: none;
   }
+
+  #boardView .board-treemap-content {
+    gap: 2px;
+    padding: 2px;
+  }
+
+  #boardView .board-treemap-icon {
+    width: 17px;
+    height: 17px;
+  }
+
+  #boardView .board-treemap-icon > i {
+    width: 10px;
+    height: 10px;
+    font-size: 10px;
+  }
+
+  #boardView .board-treemap-title { font-size: 9px; }
+}
+
+@container (max-width: 44px) or (max-height: 28px) {
+  #boardView .board-treemap-title,
+  #boardView .board-treemap-amount,
+  #boardView .board-treemap-sector,
+  #boardView .board-treemap-count,
+  #boardView .board-treemap-share,
+  #boardView .board-treemap-trend {
+    display: none;
+  }
+
+  #boardView .board-treemap-content { padding: 1px; }
+  #boardView .board-treemap-heading { gap: 0; }
+
+  #boardView .board-treemap-icon {
+    display: grid;
+    width: min(16px, 82cqw, 82cqh);
+    height: min(16px, 82cqw, 82cqh);
+    background: transparent;
+    color: #ffffff;
+  }
+
+  #boardView .board-treemap-icon > i {
+    width: min(12px, 64cqw, 64cqh);
+    height: min(12px, 64cqw, 64cqh);
+    font-size: min(12px, 64cqw, 64cqh);
+  }
+
 }
 
 .board-long-term-card {
   min-width: 0;
   border: 1px solid var(--border);
-  padding: 12px;
+  padding: 9px;
   background: var(--surface);
   box-shadow: var(--shadow-sm);
 }
@@ -871,13 +1042,14 @@ button.board-metric {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 14px;
-  margin-bottom: 6px;
+  gap: 10px;
+  margin-bottom: 4px;
 }
 
 .board-long-term-head h3 {
   color: var(--primary-navy);
-  font-size: 17px;
+  font-size: 16px;
+  line-height: 1.2;
 }
 
 .board-long-term-head p,
@@ -903,12 +1075,12 @@ button.board-long-term-item {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 7px;
+  gap: 5px;
   min-width: 0;
-  min-height: 104px;
+  min-height: 100px;
   border: 0;
   border-radius: 0;
-  padding: 6px 14px;
+  padding: 4px 10px;
   background: transparent;
   color: var(--text-main);
   align-items: center;
@@ -933,14 +1105,14 @@ button.board-long-term-item:focus-visible {
   gap: 6px;
   min-width: 0;
   color: var(--text-sub);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 850;
   justify-content: center;
 }
 
 .board-long-term-label i {
   flex: 0 0 auto;
-  font-size: 17px;
+  font-size: 18px;
 }
 
 .board-long-term-item > strong {
@@ -948,7 +1120,7 @@ button.board-long-term-item:focus-visible {
   overflow: hidden;
   color: var(--primary-navy);
   font-family: var(--font-number);
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 900;
   font-variant-numeric: tabular-nums;
   text-overflow: ellipsis;
@@ -959,7 +1131,7 @@ button.board-long-term-item:focus-visible {
   min-width: 0;
   overflow: hidden;
   color: var(--text-sub);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 800;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -975,7 +1147,7 @@ button.board-long-term-item:focus-visible {
 .board-long-term-sparkline {
   display: block;
   width: 100%;
-  height: 44px;
+  height: 46px;
   overflow: visible;
 }
 
@@ -1003,10 +1175,10 @@ button.board-long-term-item:focus-visible {
   display: grid;
   gap: 2px;
   min-width: 0;
-  min-height: 26px;
+  min-height: 28px;
   border: 0;
   border-radius: 5px;
-  padding: 3px 2px;
+  padding: 2px;
   background: transparent;
   color: var(--text-sub);
   text-align: center;
@@ -1024,7 +1196,7 @@ button.board-long-term-item:focus-visible {
 .board-long-term-months b {
   min-width: 0;
   overflow: hidden;
-  font-size: 10px;
+  font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1032,7 +1204,7 @@ button.board-long-term-item:focus-visible {
 .board-long-term-months b {
   color: var(--text-main);
   font-family: var(--font-number);
-  font-size: 11px;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -1092,7 +1264,7 @@ button.board-long-term-item:focus-visible {
   }
 
   #boardView .board-treemap-content {
-    padding: 9px;
+    padding: min(8px, 4cqw, 4cqh);
   }
 
   .board-long-term-head {
@@ -1106,9 +1278,9 @@ button.board-long-term-item:focus-visible {
 
   .board-long-term-item,
   button.board-long-term-item {
-    min-height: 112px;
+    min-height: 108px;
     border-left: 0 !important;
-    padding: 14px 8px;
+    padding: 10px 6px;
   }
 
   .board-long-term-item + .board-long-term-item {
@@ -1116,7 +1288,7 @@ button.board-long-term-item:focus-visible {
   }
 
   .board-long-term-trend {
-    min-height: 176px;
+    min-height: 160px;
   }
 }
 
