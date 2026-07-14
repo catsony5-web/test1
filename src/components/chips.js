@@ -35,6 +35,7 @@ function sectorIconClass(sector) {
     "경조사/선물": "ti-category",
     "교통비": "ti-repeat",
     "저축": "ti-cash-banknote",
+    "수입": "ti-cash-plus",
     "기타 소비": "ti-dots",
     "미분류": "ti-alert-circle"
   }[sector] || "ti-category";
@@ -98,6 +99,7 @@ function subcategoryIconClass(sector, subcategory) {
 function categoryChip(sector, subcategory) {
   return `
     <span class="category-chip ${categoryClass(sector)}">
+      <i class="ti ${sectorIconClass(sector)} category-chip-icon" aria-hidden="true"></i>
       <b>${escapeHtml(sector || "미분류")}</b>
       ${subcategory ? `<small>${escapeHtml(subcategory)}</small>` : ""}
     </span>
@@ -105,10 +107,10 @@ function categoryChip(sector, subcategory) {
 }
 
 function subcategoryPill(sector, subcategory) {
-  return `<span class="subcategory-pill ${categoryClass(sector)}">${escapeHtml(subcategory || "-")}</span>`;
+  return `<span class="subcategory-pill ${categoryClass(sector)}"><i class="ti ${subcategoryIconClass(sector, subcategory)} subcategory-pill-icon" aria-hidden="true"></i>${escapeHtml(subcategory || "-")}</span>`;
 }
 
 function sectorTag(sector) {
   const className = categoryClass(sector);
-  return `<span class="tag ${className}">${escapeHtml(sector)}</span>`;
+  return `<span class="tag ${className}"><i class="ti ${sectorIconClass(sector)} sector-tag-icon" aria-hidden="true"></i>${escapeHtml(sector)}</span>`;
 }

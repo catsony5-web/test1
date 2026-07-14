@@ -13,15 +13,15 @@ const categories = {
 };
 
 const sectorThemes = {
-  "고정 주거비": { className: "fixed", background: "#f1f5f9", text: "#334155", bar: "#94a3b8" },
-  "식비": { className: "food", background: "#ecfdf3", text: "#047857", bar: "#34d399" },
-  "생활용품": { className: "household", background: "#f0fdfa", text: "#0f766e", bar: "#2dd4bf" },
-  "쇼핑": { className: "shopping", background: "#fff1f6", text: "#be185d", bar: "#f9a8d4" },
-  "개인관리": { className: "personal", background: "#f5f3ff", text: "#6d28d9", bar: "#c4b5fd" },
-  "자기개발": { className: "selfdev", background: "#eef2ff", text: "#4338ca", bar: "#818cf8" },
-  "교통비": { className: "transport", background: "#eff6ff", text: "#1d4ed8", bar: "#93c5fd" },
-  "기타 소비": { className: "etc", background: "#fffbeb", text: "#b45309", bar: "#fcd34d" },
-  "저축": { className: "saving", background: "#fefce8", text: "#854d0e", bar: "#fde68a" },
-  "수입": { className: "income", background: "#ecfdf5", text: "#047857", bar: "#10b981" },
-  "미분류": { className: "unknown", background: "#fff1f2", text: "#be123c", bar: "#fda4af" }
+  "고정 주거비": { className: "fixed", background: "#f0f2f3", text: "#4f5c63", bar: "#66737b" },
+  "식비": { className: "food", background: "#eef4f1", text: "#426b59", bar: "#4f7764" },
+  "생활용품": { className: "household", background: "#edf4f3", text: "#3f6f6b", bar: "#4c7773" },
+  "쇼핑": { className: "shopping", background: "#f7f0f1", text: "#83545c", bar: "#98666f" },
+  "개인관리": { className: "personal", background: "#f3f1f5", text: "#675b73", bar: "#776b82" },
+  "자기개발": { className: "selfdev", background: "#eff1f5", text: "#4c5e7a", bar: "#5f708d" },
+  "교통비": { className: "transport", background: "#eef2f5", text: "#47657b", bar: "#58768a" },
+  "기타 소비": { className: "etc", background: "#f3f2f0", text: "#5f5b56", bar: "#716d68" },
+  "저축": { className: "saving", background: "#f4f2ea", text: "#6e653f", bar: "#7d754f" },
+  "수입": { className: "income", background: "#edf4f0", text: "#2e664d", bar: "#3f765b" },
+  "미분류": { className: "unknown", background: "#f6f0f1", text: "#7a5357", bar: "#8a6266" }
 };

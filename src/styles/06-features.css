@@ -1216,18 +1216,18 @@ button.summary-metric-card:hover {
   stroke-width: 29;
 }
 
-.summary-donut-segment.fixed { stroke: color-mix(in srgb, var(--sector-fixed-text) 84%, var(--accent-blue)); }
-.summary-donut-segment.food { stroke: color-mix(in srgb, var(--sector-food-text) 82%, #10b981); }
-.summary-donut-segment.household { stroke: color-mix(in srgb, var(--sector-household-text) 82%, #14b8a6); }
-.summary-donut-segment.shopping { stroke: color-mix(in srgb, var(--sector-shopping-text) 82%, #ec4899); }
-.summary-donut-segment.personal { stroke: color-mix(in srgb, var(--sector-personal-text) 84%, #8b5cf6); }
-.summary-donut-segment.selfdev { stroke: color-mix(in srgb, var(--sector-selfdev-text) 84%, #6366f1); }
-.summary-donut-segment.gift { stroke: color-mix(in srgb, var(--sector-gift-text) 84%, #f97316); }
-.summary-donut-segment.transport { stroke: color-mix(in srgb, var(--sector-transport-text) 84%, #2563eb); }
-.summary-donut-segment.saving { stroke: color-mix(in srgb, var(--sector-saving-text) 82%, #f59e0b); }
-.summary-donut-segment.income { stroke: color-mix(in srgb, var(--sector-income-text) 82%, #22c55e); }
-.summary-donut-segment.etc { stroke: color-mix(in srgb, var(--sector-etc-text) 82%, #f97316); }
-.summary-donut-segment.unknown { stroke: color-mix(in srgb, var(--sector-unknown-text) 82%, #f43f5e); }
+.summary-donut-segment.fixed { stroke: var(--sector-fixed-solid); }
+.summary-donut-segment.food { stroke: var(--sector-food-solid); }
+.summary-donut-segment.household { stroke: var(--sector-household-solid); }
+.summary-donut-segment.shopping { stroke: var(--sector-shopping-solid); }
+.summary-donut-segment.personal { stroke: var(--sector-personal-solid); }
+.summary-donut-segment.selfdev { stroke: var(--sector-selfdev-solid); }
+.summary-donut-segment.gift { stroke: var(--sector-gift-solid); }
+.summary-donut-segment.transport { stroke: var(--sector-transport-solid); }
+.summary-donut-segment.saving { stroke: var(--sector-saving-solid); }
+.summary-donut-segment.income { stroke: var(--sector-income-solid); }
+.summary-donut-segment.etc { stroke: var(--sector-etc-solid); }
+.summary-donut-segment.unknown { stroke: var(--sector-unknown-solid); }
 
 .summary-donut-center {
   position: absolute;
@@ -3101,6 +3101,7 @@ button.calendar-summary-card:focus-visible {
   align-items: center;
   gap: 5px;
   max-width: 100%;
+  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
   border-radius: 999px;
   padding: 5px 9px;
   font-size: 12px;
@@ -3111,8 +3112,10 @@ button.calendar-summary-card:focus-visible {
 .subcategory-pill {
   display: inline-flex;
   align-items: center;
+  gap: 5px;
   max-width: 180px;
   overflow: hidden;
+  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
   border-radius: 999px;
   padding: 5px 9px;
   font-size: 12px;
@@ -3120,6 +3123,15 @@ button.calendar-summary-card:focus-visible {
   line-height: 1.1;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.category-chip-icon,
+.subcategory-pill-icon,
+.sector-tag-icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  font-size: 14px;
 }
 
 .category-chip small {
@@ -3668,7 +3680,9 @@ button.calendar-summary-card:focus-visible {
 .tag {
   display: inline-flex;
   align-items: center;
+  gap: 5px;
   min-height: 24px;
+  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
   border-radius: 999px;
   padding: 4px 9px;
   font-size: 12px;

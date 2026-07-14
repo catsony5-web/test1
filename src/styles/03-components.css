@@ -312,7 +312,7 @@ button.board-metric {
 
 .board-sector-card:hover,
 .board-sector-card:focus-visible {
-  border-color: #bfdbfe;
+  border-color: color-mix(in srgb, var(--accent-blue) 46%, var(--border-subtle));
   box-shadow: 0 10px 22px rgba(15, 23, 42, 0.07);
   transform: translateY(-1px);
   outline: none;
@@ -645,8 +645,7 @@ button.board-metric {
   --treemap-active-y: var(--treemap-y);
   --treemap-active-w: var(--treemap-w);
   --treemap-active-h: var(--treemap-h);
-  --treemap-color-start: #9ca3af;
-  --treemap-color-end: #858b94;
+  --treemap-color: var(--sector-etc-solid);
   position: absolute;
   left: calc(var(--treemap-active-x) + 2px);
   top: calc(var(--treemap-active-y) + 2px);
@@ -656,10 +655,10 @@ button.board-metric {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--treemap-color-start) 72%, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--treemap-color) 72%, var(--bg-card));
   border-radius: 6px;
   padding: 0;
-  background: linear-gradient(135deg, var(--treemap-color-start), var(--treemap-color-end));
+  background: var(--treemap-color);
   color: #ffffff;
   text-align: center;
   white-space: normal;
@@ -684,24 +683,24 @@ button.board-metric {
   text-align: center;
 }
 
-#boardView .board-treemap-tile.fixed { --treemap-color-start: #8a91de; --treemap-color-end: #6f78cf; }
-#boardView .board-treemap-tile.food { --treemap-color-start: #58a8ee; --treemap-color-end: #3589dd; }
-#boardView .board-treemap-tile.household { --treemap-color-start: #58c2bd; --treemap-color-end: #3baaa8; }
-#boardView .board-treemap-tile.shopping { --treemap-color-start: #f47d80; --treemap-color-end: #ed6267; }
-#boardView .board-treemap-tile.personal { --treemap-color-start: #f7ca61; --treemap-color-end: #edb743; }
-#boardView .board-treemap-tile.selfdev { --treemap-color-start: #8792df; --treemap-color-end: #6876ca; }
-#boardView .board-treemap-tile.gift { --treemap-color-start: #5ab6d4; --treemap-color-end: #429fc2; }
-#boardView .board-treemap-tile.transport { --treemap-color-start: #f7b35d; --treemap-color-end: #ef9e42; }
-#boardView .board-treemap-tile.saving { --treemap-color-start: #efc86e; --treemap-color-end: #daa94a; }
-#boardView .board-treemap-tile.income { --treemap-color-start: #4dbd99; --treemap-color-end: #2f9f7e; }
-#boardView .board-treemap-tile.etc { --treemap-color-start: #a7a9ae; --treemap-color-end: #8e9198; }
-#boardView .board-treemap-tile.unknown { --treemap-color-start: #bfc1c5; --treemap-color-end: #a6a9ae; }
+#boardView .board-treemap-tile.fixed { --treemap-color: var(--sector-fixed-solid); }
+#boardView .board-treemap-tile.food { --treemap-color: var(--sector-food-solid); }
+#boardView .board-treemap-tile.household { --treemap-color: var(--sector-household-solid); }
+#boardView .board-treemap-tile.shopping { --treemap-color: var(--sector-shopping-solid); }
+#boardView .board-treemap-tile.personal { --treemap-color: var(--sector-personal-solid); }
+#boardView .board-treemap-tile.selfdev { --treemap-color: var(--sector-selfdev-solid); }
+#boardView .board-treemap-tile.gift { --treemap-color: var(--sector-gift-solid); }
+#boardView .board-treemap-tile.transport { --treemap-color: var(--sector-transport-solid); }
+#boardView .board-treemap-tile.saving { --treemap-color: var(--sector-saving-solid); }
+#boardView .board-treemap-tile.income { --treemap-color: var(--sector-income-solid); }
+#boardView .board-treemap-tile.etc { --treemap-color: var(--sector-etc-solid); }
+#boardView .board-treemap-tile.unknown { --treemap-color: var(--sector-unknown-solid); }
 
 #boardView .board-treemap-tile:hover,
 #boardView .board-treemap-tile:focus-visible {
   z-index: 2;
   border-color: rgba(255, 255, 255, 0.84);
-  background: linear-gradient(135deg, color-mix(in srgb, var(--treemap-color-start) 88%, #ffffff), var(--treemap-color-end));
+  background: color-mix(in srgb, var(--treemap-color) 90%, #ffffff);
   box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.28);
   outline: none;
   transform: none;
@@ -724,7 +723,7 @@ button.board-metric {
   place-items: center;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.94);
-  color: var(--treemap-color-end);
+  color: var(--treemap-color);
 }
 
 .board-treemap-icon > i {
@@ -1597,8 +1596,8 @@ button.board-long-term-item:focus-visible {
 }
 
 .category-card.spotlight {
-  border-color: #60a5fa;
-  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.22), 0 14px 30px rgba(15, 23, 42, 0.08);
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-blue) 22%, transparent), var(--shadow-card);
 }
 
 .category-card.fixed { --category-accent: var(--sector-fixed-text); border-color: color-mix(in srgb, var(--sector-fixed-border) 78%, var(--border)); }
@@ -1624,8 +1623,8 @@ button.board-long-term-item:focus-visible {
 }
 
 .board-sector-accordion.spotlight {
-  border-color: #60a5fa;
-  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2), var(--shadow-sm);
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-blue) 20%, transparent), var(--shadow-sm);
 }
 
 .board-sector-accordion summary {
