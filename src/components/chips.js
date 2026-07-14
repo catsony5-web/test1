@@ -32,6 +32,7 @@ function sectorIconClass(sector) {
     "쇼핑": "ti-wallet",
     "개인관리": "ti-palette",
     "자기개발": "ti-notebook",
+    "경조사/선물": "ti-category",
     "교통비": "ti-repeat",
     "저축": "ti-cash-banknote",
     "기타 소비": "ti-dots",

@@ -182,7 +182,6 @@ function renderBoardTopCategories(sectionStats, selectedMonth) {
       <div class="panel-head">
         <div>
           <h3>많이 쓴 세부항목 TOP</h3>
-          <p>실 지출액이 클수록 박스가 크게 표시됩니다.</p>
         </div>
         <div class="board-treemap-head-actions">
           <span>실 지출 기준 · TOP ${visible.length.toLocaleString("ko-KR")}</span>
@@ -262,7 +261,6 @@ function renderBoardSectorSummary(monthRows, selectedMonth) {
       <div class="panel-head">
         <div>
           <h3>섹터별 소비 요약</h3>
-          <p>선택 월의 실 지출 비중과 전월 대비 변화를 한눈에 비교합니다.</p>
         </div>
         <span class="board-treemap-basis">실 지출 기준</span>
       </div>
@@ -275,7 +273,7 @@ function renderBoardSectorSummary(monthRows, selectedMonth) {
           return `
             <button type="button" class="board-sector-card board-treemap-tile ${categoryClass(item.sector)}" style="${boardTreemapStyle(layouts, index)}" data-board-summary-sector="${escapeHtml(item.sector)}" title="${escapeHtml(accessibleLabel)}" aria-label="${escapeHtml(`${accessibleLabel}, 상세 내역 보기`)}">
               <span class="board-treemap-content">
-                <span class="board-treemap-heading"><i class="${sectorIconClass(item.sector)}" aria-hidden="true"></i><b class="board-treemap-title">${escapeHtml(item.sector)}</b></span>
+                <span class="board-treemap-heading"><span class="board-treemap-icon" aria-hidden="true"><i class="ti ${sectorIconClass(item.sector)}"></i></span><b class="board-treemap-title">${escapeHtml(item.sector)}</b></span>
                 <strong class="board-treemap-amount">
                   <span class="board-treemap-amount-full">${formatWon(item.amount)}</span>
                   <span class="board-treemap-amount-compact">${formatBoardTreemapWon(item.amount)}</span>

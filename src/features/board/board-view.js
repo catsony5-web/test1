@@ -34,6 +34,12 @@ function renderBoard() {
   const net = income - totalSpend;
   const scheduledTotal = scheduledTotalForMonth(selectedMonth);
   const unknownTotal = sumActual(monthRows.filter((item) => item.sector === "미분류"));
+  const previousMonth = previousMonthKey(selectedMonth);
+  const previousMonthRows = active.filter((item) => item.month === previousMonth);
+  const previousTotalPayment = sum(previousMonthRows, "amount");
+  const previousReimbursementTotal = sumReimbursements(previousMonthRows);
+  const previousTotalSpend = sumActual(previousMonthRows);
+  const previousIncome = Number(monthlyIncome[previousMonth] || 0) + importedIncomeForMonth(previousMonth);
   const sectionStats = boardSections
     .filter((section) => section.key !== "etc-catchall" || (buckets[section.key] || []).length)
     .map((section) => buildBoardSectionStat(section, buckets[section.key] || []));
@@ -51,7 +57,15 @@ function renderBoard() {
     net,
     scheduledTotal,
     unknownTotal,
-    unknownCount: monthRows.filter((item) => item.sector === "미분류").length
+    previous: {
+      totalPayment: previousTotalPayment,
+      reimbursementTotal: previousReimbursementTotal,
+      totalSpend: previousTotalSpend,
+      income: previousIncome,
+      net: previousIncome - previousTotalSpend,
+      scheduledTotal: scheduledTotalForMonth(previousMonth),
+      unknownTotal: sumActual(previousMonthRows.filter((item) => item.sector === "미분류"))
+    }
   });
   els.boardSectorMap.innerHTML = "";
   els.boardSectorSummary.innerHTML = renderBoardSectorSummary(monthRows, selectedMonth);

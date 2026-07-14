@@ -11,36 +11,54 @@ function renderBoardMetric(label, amount, hint, tone) {
   `;
 }
 
-function renderBoardCoreMetrics({ selectedMonth, totalPayment, reimbursementTotal, totalSpend, fixedTotal, variableTotal, income, net, scheduledTotal, unknownTotal, unknownCount }) {
+function boardMetricTrend(current, previous) {
+  const currentValue = Number(current || 0);
+  const previousValue = Number(previous || 0);
+  if (!Number.isFinite(currentValue) || !Number.isFinite(previousValue) || previousValue === 0) {
+    return { text: "비교 없음", tone: "neutral", icon: "" };
+  }
+  const rate = (currentValue - previousValue) / Math.abs(previousValue) * 100;
+  if (Math.abs(rate) < 0.05) return { text: "0.0%", tone: "neutral", icon: "" };
+  return {
+    text: formatBoardSignedPercent(rate),
+    tone: rate > 0 ? "increase" : "decrease",
+    icon: "ti-chevron-down"
+  };
+}
+
+function renderBoardCoreMetrics({ selectedMonth, totalPayment, reimbursementTotal, totalSpend, income, net, scheduledTotal, unknownTotal, previous = {} }) {
   return [
-    renderBoardCoreMetric("실 지출액", formatWon(totalSpend), `총 결제 ${formatWon(totalPayment)} · 정산 ${formatWon(reimbursementTotal)}`, "navy", { month: selectedMonth }, "hero"),
-    renderBoardCoreMetric("잔액", formatSignedWon(net), "총수입 - 실 지출액", net >= 0 ? "green" : "red", {}, "hero"),
-    renderBoardCoreMetric("총수입", formatWon(income), `${selectedMonth || "-"} 입력/이체 수입`, "green", { incomeMonth: selectedMonth }, "primary"),
-    renderBoardCoreMetric("미분류", formatWon(unknownTotal), `확인 필요 ${unknownCount.toLocaleString("ko-KR")}건`, unknownTotal > 0 ? "red" : "green", { month: selectedMonth, sector: "미분류" }, "primary"),
-    renderBoardCoreMetric("예정 지출", formatWon(scheduledTotal), "실 지출 미포함 · 고정 지출 예정", scheduledTotal > 0 ? "blue" : "navy", {}, "compact"),
-    renderBoardCoreMetric("고정비", formatWon(fixedTotal), "주거비, 보험료, 통신비 등", "mint", { month: selectedMonth, sector: "고정 주거비" }, "compact"),
-    renderBoardCoreMetric("변동비", formatWon(variableTotal), "식비, 교통비, 생활비 등", "blue", { month: selectedMonth }, "compact")
+    renderBoardCoreMetric("실 지출액", formatWon(totalSpend), totalSpend, previous.totalSpend, "navy", { month: selectedMonth }, "major"),
+    renderBoardCoreMetric("총수입", formatWon(income), income, previous.income, "green", { incomeMonth: selectedMonth }, "major"),
+    renderBoardCoreMetric("잔액", formatSignedWon(net), net, previous.net, net < 0 ? "red" : "navy", {}, "major"),
+    renderBoardCoreMetric("총 결제액", formatWon(totalPayment), totalPayment, previous.totalPayment, "navy", { month: selectedMonth }, "minor"),
+    renderBoardCoreMetric("정산받은 금액", formatWon(reimbursementTotal), reimbursementTotal, previous.reimbursementTotal, "navy", { month: selectedMonth }, "minor"),
+    renderBoardCoreMetric("미분류", formatWon(unknownTotal), unknownTotal, previous.unknownTotal, "navy", { month: selectedMonth, sector: "미분류" }, "minor"),
+    renderBoardCoreMetric("예정 지출", formatWon(scheduledTotal), scheduledTotal, previous.scheduledTotal, "navy", {}, "minor")
   ].join("");
 }
 
-function renderBoardCoreMetric(label, value, hint, tone, detail = {}, variant = "primary") {
+function renderBoardCoreMetric(label, value, current, previous, tone, detail = {}, variant = "minor") {
   const attrs = detail.incomeMonth
     ? ` data-open-income-month="${escapeHtml(detail.incomeMonth)}"`
     : detail.month || detail.sector
     ? ` data-board-core-month="${escapeHtml(detail.month || "")}" data-board-core-sector="${escapeHtml(detail.sector || "all")}"`
     : "";
   const variantClass = `board-core-${escapeHtml(variant)}`;
+  const trend = boardMetricTrend(current, previous);
   const tagOpen = attrs
     ? `<button type="button" class="board-metric board-core-metric ${variantClass} ${escapeHtml(tone)}"${attrs}>`
     : `<article class="board-metric board-core-metric ${variantClass} ${escapeHtml(tone)}">`;
   const tagClose = attrs ? "button" : "article";
   return `
     ${tagOpen}
-      <span class="metric-dot"></span>
-      <div>
-        <small>${escapeHtml(label)}</small>
+      <div class="board-core-metric-content">
+        <small class="board-core-label">${escapeHtml(label)}</small>
         <strong>${escapeHtml(value)}</strong>
-        <em>${escapeHtml(hint)}</em>
+        <span class="board-core-trend-row">
+          <em>전월 대비</em>
+          <span class="board-core-trend ${trend.tone}">${escapeHtml(trend.text)}${trend.icon ? ` <i class="ti ${trend.icon}" aria-hidden="true"></i>` : ""}</span>
+        </span>
       </div>
     </${tagClose}>
   `;
@@ -128,9 +146,7 @@ function renderBoardLongTermIndicators(activeRows, selectedMonth) {
       <div class="board-long-term-head">
         <div>
           <h3 id="boardLongTermTitle">장기 소비 지표</h3>
-          <p>선택 월을 포함한 최근 12개월의 실 지출 흐름입니다.</p>
         </div>
-        <span>${escapeHtml(periodMonths[0])} ~ ${escapeHtml(periodMonths.at(-1))}</span>
       </div>
       <div class="board-long-term-grid">
         <div class="board-long-term-item">
@@ -156,7 +172,7 @@ function renderBoardLongTermIndicators(activeRows, selectedMonth) {
           <small>${formatWon(topMonth.amount)}</small>
         </button>
         <button type="button" class="board-long-term-item" data-board-period-sector="${escapeHtml(topSector.sector === "-" ? "all" : topSector.sector)}">
-          <span class="board-long-term-label"><i class="${sectorIconClass(topSector.sector)}" aria-hidden="true"></i>최대 소비 섹터</span>
+          <span class="board-long-term-label"><i class="ti ${sectorIconClass(topSector.sector)}" aria-hidden="true"></i>최대 소비 섹터</span>
           <strong>${escapeHtml(topSector.sector)}</strong>
           <small>월평균 ${formatWon(Math.round(topSector.amount / periodMonths.length))} · ${formatPercent(topSector.amount, total)}</small>
         </button>
