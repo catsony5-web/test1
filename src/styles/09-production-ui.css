@@ -2979,9 +2979,18 @@ body .snapshot-list {
 
 #monthlyView .monthly-legend-gap {
   display: inline-block;
+  position: relative;
   width: 18px;
-  height: 10px;
-  border-right: 2px dashed var(--text-secondary);
+  height: 12px;
+}
+
+#monthlyView .monthly-legend-gap::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  left: 50%;
+  border-left: 2px dashed var(--text-secondary);
+  transform: translateX(-50%);
 }
 
 #monthlyView .monthly-chart-scroll {
@@ -3056,9 +3065,16 @@ body .snapshot-list {
 #monthlyView .monthly-cash-bar.consumption { fill: var(--accent-blue); }
 #monthlyView .monthly-cash-bar.savings { fill: var(--accent-positive); }
 
+#monthlyView .monthly-balance-gap-outline {
+  stroke: var(--chart-surface);
+  stroke-width: 6;
+  stroke-linecap: round;
+}
+
 #monthlyView .monthly-balance-gap {
-  stroke-width: 2;
+  stroke-width: 2.25;
   stroke-dasharray: 3 3;
+  stroke-linecap: round;
 }
 
 #monthlyView .monthly-balance-gap.positive { stroke: var(--accent-positive); }

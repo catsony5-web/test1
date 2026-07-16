@@ -108,6 +108,9 @@ function renderMonthlyFlowChart(rows, availableWidth = 0) {
   const zeroBalanceY = balanceY(0);
   const labelEvery = Math.max(1, Math.ceil(rows.length / 12));
   const selected = rows.find((row) => row.month === focusedMonthlyMonth) || rows.at(-1);
+  const savingsLegendLabel = rows.every((row) => Number(row.actualSavings || 0) === 0)
+    ? "실제 저축 0원"
+    : "실제 저축";
   const points = rows.map((row, index) => ({
     row,
     x: padLeft + slotWidth * (index + 0.5),
@@ -131,7 +134,6 @@ function renderMonthlyFlowChart(rows, availableWidth = 0) {
     const allocated = row.consumptionSpend + row.actualSavings;
     const allocatedY = cashY(allocated);
     const incomeY = cashY(row.income);
-    const gapX = x + barWidth / 2 + 5;
     const persistent = focusedMonthlyMonth === row.month ? " is-persistent" : "";
     const showMonth = index % labelEvery === 0 || index === rows.length - 1;
     const ariaLabel = `${row.month}, 수입 ${formatWon(row.income)}, 소비지출 ${formatWon(row.consumptionSpend)}, 실제 저축 ${formatWon(row.actualSavings)}, 자유 잔액 ${formatSignedWon(row.freeBalance)}, 월 자산 증가 ${formatSignedWon(row.assetGrowth)}, 누적 자산 증가 ${formatSignedWon(row.cumulativeAssetGrowth)}`;
@@ -151,7 +153,8 @@ function renderMonthlyFlowChart(rows, availableWidth = 0) {
         <rect class="monthly-chart-hit-area" x="${x - slotWidth / 2}" y="${cashTop}" width="${slotWidth}" height="${balanceBottom - cashTop}"></rect>
         <rect class="monthly-cash-bar consumption" x="${startX}" y="${consumptionY}" width="${barWidth}" height="${Math.max(0, cashBottom - consumptionY)}" rx="3"></rect>
         <rect class="monthly-cash-bar savings" x="${startX}" y="${allocatedY}" width="${barWidth}" height="${Math.max(0, consumptionY - allocatedY)}" rx="3"></rect>
-        <line class="monthly-balance-gap ${row.freeBalance >= 0 ? "positive" : "negative"}" x1="${gapX}" y1="${incomeY}" x2="${gapX}" y2="${allocatedY}"></line>
+        <line class="monthly-balance-gap-outline" x1="${x}" y1="${incomeY}" x2="${x}" y2="${allocatedY}"></line>
+        <line class="monthly-balance-gap ${row.freeBalance >= 0 ? "positive" : "negative"}" x1="${x}" y1="${incomeY}" x2="${x}" y2="${allocatedY}"></line>
         <circle class="monthly-income-point" cx="${x}" cy="${incomeY}" r="3.5"></circle>
         <circle class="monthly-asset-point ${row.cumulativeAssetGrowth >= 0 ? "positive" : "negative"}" cx="${x}" cy="${balanceY(row.cumulativeAssetGrowth)}" r="4"></circle>
         ${showMonth ? `<text class="chart-label" x="${x}" y="${height - 14}" text-anchor="middle">${escapeHtml(row.month.slice(2))}</text>` : ""}
@@ -180,9 +183,9 @@ function renderMonthlyFlowChart(rows, availableWidth = 0) {
   return `
     <div class="monthly-chart-legend" aria-label="그래프 범례">
       <span><i class="monthly-legend-swatch consumption" aria-hidden="true"></i>소비지출</span>
-      <span><i class="monthly-legend-swatch savings" aria-hidden="true"></i>실제 저축</span>
+      <span><i class="monthly-legend-swatch savings" aria-hidden="true"></i>${savingsLegendLabel}</span>
       <span><i class="monthly-legend-line income" aria-hidden="true"></i>총수입</span>
-      <span><i class="monthly-legend-gap" aria-hidden="true"></i>자유 잔액 차이</span>
+      <span><i class="monthly-legend-gap" aria-hidden="true"></i>남은 금액 차이</span>
       <span><i class="monthly-legend-line asset" aria-hidden="true"></i>누적 자산 증가</span>
     </div>
     <div class="monthly-chart-scroll" data-monthly-chart-scroll>
