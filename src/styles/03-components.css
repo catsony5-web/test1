@@ -1140,7 +1140,9 @@ button.board-long-term-item:focus-visible {
 .board-long-term-item > small.positive { color: var(--status-positive-text); }
 
 .board-long-term-trend {
-  gap: 4px;
+  align-items: stretch;
+  gap: 5px;
+  padding-inline: 14px;
 }
 
 .board-long-term-sparkline {
@@ -1167,21 +1169,37 @@ button.board-long-term-item:focus-visible {
 .board-long-term-months {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 4px;
+  align-self: stretch;
+  width: 100%;
+  gap: 0;
+  margin-top: 1px;
 }
 
 .board-long-term-months button {
   display: grid;
-  gap: 2px;
+  align-content: center;
+  gap: 3px;
   min-width: 0;
-  min-height: 28px;
+  min-height: 38px;
   border: 0;
-  border-radius: 5px;
-  padding: 2px;
+  border-radius: 0;
+  padding: 4px 8px;
   background: transparent;
   color: var(--text-sub);
   text-align: center;
   box-shadow: none;
+}
+
+.board-long-term-months button + button {
+  border-left: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
+}
+
+.board-long-term-months button:first-child {
+  border-radius: 5px 0 0 5px;
+}
+
+.board-long-term-months button:last-child {
+  border-radius: 0 5px 5px 0;
 }
 
 .board-long-term-months button:hover,
@@ -1196,6 +1214,7 @@ button.board-long-term-item:focus-visible {
   min-width: 0;
   overflow: hidden;
   font-size: 11px;
+  line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1203,7 +1222,8 @@ button.board-long-term-item:focus-visible {
 .board-long-term-months b {
   color: var(--text-main);
   font-family: var(--font-number);
-  font-size: 12px;
+  font-size: clamp(12px, 0.82vw, 13px);
+  font-weight: 850;
   font-variant-numeric: tabular-nums;
 }
 
