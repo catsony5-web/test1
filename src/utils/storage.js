@@ -71,11 +71,21 @@ function saveSettings() {
   return writePrivateData(SETTINGS_STORAGE_KEY, appSettings);
 }
 
+const THEME_BROWSER_COLORS = Object.freeze({
+  minimal: "#1e5748",
+  warm: "#425a4e",
+  slate: "#324d5b",
+  dark: "#18211e",
+  "clear-aqua": "#317b9f",
+  "sunlit-balance": "#367d9c"
+});
+
 function applyAppSettings() {
   const theme = normalizeTheme(appSettings.theme);
   appSettings.theme = theme;
   document.documentElement.dataset.theme = theme;
   document.body.dataset.theme = theme;
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", THEME_BROWSER_COLORS[theme]);
   document.documentElement.style.setProperty("--app-bg-image", appSettings.backgroundImage ? `url("${appSettings.backgroundImage}")` : "none");
   document.documentElement.style.setProperty("--app-bg-opacity", String(clampNumber(appSettings.backgroundOpacity, 0, 0.45, 0.14)));
   document.documentElement.style.setProperty("--app-bg-blur", `${clampNumber(appSettings.backgroundBlur, 0, 18, 0)}px`);
@@ -85,7 +95,7 @@ function applyAppSettings() {
 
 
 function normalizeTheme(value) {
-  return ["minimal", "warm", "slate", "dark"].includes(value) ? value : "minimal";
+  return ["minimal", "warm", "slate", "dark", "clear-aqua", "sunlit-balance"].includes(value) ? value : "minimal";
 }
 
 function clampNumber(value, min, max, fallback) {
