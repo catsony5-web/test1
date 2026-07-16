@@ -78,7 +78,7 @@ function renderMonthlySelectedSummary(row) {
   `;
 }
 
-function renderMonthlyFlowChart(rows) {
+function renderMonthlyFlowChart(rows, availableWidth = 0) {
   const padLeft = 82;
   const padRight = 24;
   const cashTop = 44;
@@ -88,7 +88,11 @@ function renderMonthlyFlowChart(rows) {
   const balanceHeight = 108;
   const balanceBottom = balanceTop + balanceHeight;
   const height = 512;
-  const width = Math.max(860, padLeft + padRight + rows.length * 62);
+  const width = Math.max(
+    860,
+    Math.floor(Number(availableWidth) || 0),
+    padLeft + padRight + rows.length * 62
+  );
   const plotWidth = width - padLeft - padRight;
   const slotWidth = plotWidth / Math.max(rows.length, 1);
   const barWidth = Math.max(16, Math.min(26, slotWidth * 0.4));
@@ -113,7 +117,12 @@ function renderMonthlyFlowChart(rows) {
 
   const selectionBands = points.map(({ row, x }) => {
     const persistent = focusedMonthlyMonth === row.month ? " is-persistent" : "";
-    return `<rect class="monthly-selection-band${persistent}" data-chart-selection="${escapeHtml(row.month)}" x="${x - slotWidth * 0.43}" y="${cashTop}" width="${slotWidth * 0.86}" height="${balanceBottom - cashTop}" rx="10"></rect>`;
+    const selectionX = x - slotWidth * 0.43;
+    const selectionWidth = slotWidth * 0.86;
+    return `
+      <rect class="monthly-selection-band cash${persistent}" data-chart-selection="${escapeHtml(row.month)}" x="${selectionX}" y="${cashTop}" width="${selectionWidth}" height="${cashHeight}" rx="10"></rect>
+      <rect class="monthly-selection-band asset${persistent}" data-chart-selection="${escapeHtml(row.month)}" x="${selectionX}" y="${balanceTop}" width="${selectionWidth}" height="${balanceHeight}" rx="10"></rect>
+    `;
   }).join("");
 
   const cashBars = points.map(({ row, x }, index) => {

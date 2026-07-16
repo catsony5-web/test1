@@ -1,6 +1,43 @@
 let monthlyYearFilterInitialized = false;
+let monthlyChartResizeObserver = null;
+let monthlyChartResizeFrame = 0;
+let monthlyChartRenderedWidth = 0;
+let monthlyChartRows = [];
+
+function monthlyChartContainerWidth() {
+  return Math.max(0, Math.floor(els.monthlyFlowChart?.clientWidth || 0));
+}
+
+function observeMonthlyChartResize() {
+  if (monthlyChartResizeObserver || typeof ResizeObserver === "undefined" || !els.monthlyFlowChart) return;
+  monthlyChartResizeObserver = new ResizeObserver(([entry]) => {
+    const nextWidth = Math.max(0, Math.floor(entry?.contentRect?.width || 0));
+    const isMonthlyViewActive = document.querySelector("#monthlyView")?.classList.contains("active");
+    if (!isMonthlyViewActive || !monthlyChartRows.length || !nextWidth || Math.abs(nextWidth - monthlyChartRenderedWidth) < 2) return;
+    window.cancelAnimationFrame(monthlyChartResizeFrame);
+    monthlyChartResizeFrame = window.requestAnimationFrame(() => {
+      if (!monthlyChartRows.length || !document.querySelector("#monthlyView")?.classList.contains("active")) return;
+      const focusedChartMonth = document.activeElement?.closest?.("[data-chart-month]")?.dataset.chartMonth || "";
+      const currentScrollArea = els.monthlyFlowChart.querySelector("[data-monthly-chart-scroll]");
+      const currentScrollRange = Math.max(0, (currentScrollArea?.scrollWidth || 0) - (currentScrollArea?.clientWidth || 0));
+      const scrollRatio = currentScrollRange ? currentScrollArea.scrollLeft / currentScrollRange : 0;
+      renderMonthlyChart(monthlyChartRows, { scrollToFocused: false });
+      const nextScrollArea = els.monthlyFlowChart.querySelector("[data-monthly-chart-scroll]");
+      const nextScrollRange = Math.max(0, (nextScrollArea?.scrollWidth || 0) - (nextScrollArea?.clientWidth || 0));
+      if (nextScrollArea && nextScrollRange) nextScrollArea.scrollLeft = scrollRatio * nextScrollRange;
+      if (focusedChartMonth) {
+        els.monthlyFlowChart
+          .querySelector(`[data-chart-month="${cssEscape(focusedChartMonth)}"]`)
+          ?.focus({ preventScroll: true });
+      }
+    });
+  });
+  monthlyChartResizeObserver.observe(els.monthlyFlowChart);
+}
 
 function renderMonthlyFlow() {
+  monthlyChartRenderedWidth = monthlyChartContainerWidth();
+  observeMonthlyChartResize();
   const reportRows = reportingExpenseRows(classified);
   const allRows = buildMonthlyFlowRows(reportRows);
   els.monthlyFlowTable.className = "monthly-flow-table";
@@ -9,6 +46,7 @@ function renderMonthlyFlow() {
   renderIncomeBulkPreview(els.incomeBulkFeedback.textContent);
   const rows = filterMonthlyRows(allRows, reportRows);
   if (!allRows.length) {
+    monthlyChartRows = [];
     els.monthlyKpis.innerHTML = "";
     if (els.monthlyPeriodStats) els.monthlyPeriodStats.innerHTML = "";
     els.monthlyFlowChart.innerHTML = "";
@@ -17,6 +55,7 @@ function renderMonthlyFlow() {
     return;
   }
   if (!rows.length) {
+    monthlyChartRows = [];
     els.monthlyKpis.innerHTML = "";
     if (els.monthlyPeriodStats) els.monthlyPeriodStats.innerHTML = "";
     els.monthlyFlowChart.innerHTML = "";
@@ -166,10 +205,19 @@ function renderMonthlyFlow() {
     <tbody>${tableRows}</tbody>
   `;
 
-  els.monthlyFlowChart.innerHTML = renderMonthlyFlowChart(rows);
+  renderMonthlyChart(rows);
   attachMonthlyFlowHandlers();
-  if (focusedMonthlyMonth) {
-    setMonthlyFlowHighlight(focusedMonthlyMonth, { persistent: true });
+}
+
+function renderMonthlyChart(rows, options = {}) {
+  const chartWidth = monthlyChartContainerWidth();
+  monthlyChartRows = rows;
+  monthlyChartRenderedWidth = chartWidth;
+  els.monthlyFlowChart.innerHTML = renderMonthlyFlowChart(rows, chartWidth);
+  attachMonthlyChartHandlers();
+  if (!focusedMonthlyMonth) return;
+  setMonthlyFlowHighlight(focusedMonthlyMonth, { persistent: true });
+  if (options.scrollToFocused !== false) {
     requestAnimationFrame(() => scrollMonthlyChartToMonth(focusedMonthlyMonth));
   }
 }
@@ -209,6 +257,21 @@ function attachMonthlyFlowHandlers() {
       focusMonthlyTableRow(month);
     });
   });
+  els.monthlyFlowTable.querySelectorAll("[data-open-income-month]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      openIncomeViewForMonth(button.dataset.openIncomeMonth);
+    });
+  });
+  els.monthlyFlowTable.querySelectorAll("[data-open-detail-month]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      openDetailViewForMonthlyPayment(button.dataset.openDetailMonth);
+    });
+  });
+}
+
+function attachMonthlyChartHandlers() {
   els.monthlyFlowChart.querySelectorAll("[data-chart-month]").forEach((group) => {
     const month = group.dataset.chartMonth;
     group.addEventListener("mouseenter", () => setMonthlyFlowHighlight(month));
@@ -220,18 +283,6 @@ function attachMonthlyFlowHandlers() {
       if (event.key !== "Enter" && event.key !== " ") return;
       event.preventDefault();
       focusMonthlyTableRow(month);
-    });
-  });
-  els.monthlyFlowTable.querySelectorAll("[data-open-income-month]").forEach((button) => {
-    button.addEventListener("click", (event) => {
-      event.stopPropagation();
-      openIncomeViewForMonth(button.dataset.openIncomeMonth);
-    });
-  });
-  els.monthlyFlowTable.querySelectorAll("[data-open-detail-month]").forEach((button) => {
-    button.addEventListener("click", (event) => {
-      event.stopPropagation();
-      openDetailViewForMonthlyPayment(button.dataset.openDetailMonth);
     });
   });
 }

@@ -2989,7 +2989,7 @@ body .snapshot-list {
   max-width: 100%;
   overflow-x: auto;
   overscroll-behavior-inline: contain;
-  scrollbar-gutter: stable;
+  scrollbar-gutter: auto;
 }
 
 #monthlyView .monthly-flow-chart {
