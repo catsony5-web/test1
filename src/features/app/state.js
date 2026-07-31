@@ -12,6 +12,10 @@ function defaultAppSettings() {
       paymentDay: 25,
       weekendRule: "next-monday"
     },
+    analysis: {
+      targetRatios: {},
+      consumptionTypes: {}
+    },
     lastSavedAt: "",
     lastSnapshotAt: "",
     lastDailySnapshotDate: ""
@@ -89,6 +93,27 @@ const els = {
   boardSideSummary: document.querySelector("#boardSideSummary"),
   boardMapTopButton: document.querySelector("#boardMapTopButton"),
   boardSummary: document.querySelector("#boardSummary"),
+  monthlyAnalysisMonth: document.querySelector("#monthlyAnalysisMonth"),
+  monthlyAnalysisPrevMonth: document.querySelector("#monthlyAnalysisPrevMonth"),
+  monthlyAnalysisNextMonth: document.querySelector("#monthlyAnalysisNextMonth"),
+  monthlyAnalysisOpenDetails: document.querySelector("#monthlyAnalysisOpenDetails"),
+  monthlyAnalysisBody: document.querySelector("#monthlyAnalysisBody"),
+  spendingStructureMonth: document.querySelector("#spendingStructureMonth"),
+  spendingStructurePrevMonth: document.querySelector("#spendingStructurePrevMonth"),
+  spendingStructureNextMonth: document.querySelector("#spendingStructureNextMonth"),
+  spendingStructureBody: document.querySelector("#spendingStructureBody"),
+  spendingTargetOpenButton: document.querySelector("#spendingTargetOpenButton"),
+  spendingTargetDialog: document.querySelector("#spendingTargetDialog"),
+  spendingTargetDialogClose: document.querySelector("#spendingTargetDialogClose"),
+  spendingTargetForm: document.querySelector("#spendingTargetForm"),
+  spendingTargetFields: document.querySelector("#spendingTargetFields"),
+  spendingTargetSuggestionButton: document.querySelector("#spendingTargetSuggestionButton"),
+  spendingTargetSuggestionNote: document.querySelector("#spendingTargetSuggestionNote"),
+  spendingTargetTotal: document.querySelector("#spendingTargetTotal"),
+  spendingTypeFields: document.querySelector("#spendingTypeFields"),
+  spendingTypeResetButton: document.querySelector("#spendingTypeResetButton"),
+  spendingTargetFeedback: document.querySelector("#spendingTargetFeedback"),
+  spendingTargetCancelButton: document.querySelector("#spendingTargetCancelButton"),
   monthlyPrevYear: document.querySelector("#monthlyPrevYear"),
   monthlyNextYear: document.querySelector("#monthlyNextYear"),
   monthlyYearFilter: document.querySelector("#monthlyYearFilter"),
@@ -430,6 +455,8 @@ function getSharedSelectedMonth(fallback = "") {
     focusedMonthlyMonth,
     fallback,
     els.boardMonth?.value,
+    els.monthlyAnalysisMonth?.value,
+    els.spendingStructureMonth?.value,
     els.detailBulkMonth?.value,
     detailFilters.month !== "all" ? detailFilters.month : "",
     currentMonthKey()
@@ -460,6 +487,8 @@ function syncMonthSelectValue(select, month) {
 
 function syncSharedMonthControls(month = selectedAppMonth) {
   syncMonthSelectValue(els.boardMonth, month);
+  syncMonthSelectValue(els.monthlyAnalysisMonth, month);
+  syncMonthSelectValue(els.spendingStructureMonth, month);
   syncMonthSelectValue(els.calendarMonth, month);
   syncMonthSelectValue(els.summaryMonthSelect, month);
   syncMonthSelectValue(els.detailBulkMonth, month);

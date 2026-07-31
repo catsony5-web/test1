@@ -26,6 +26,8 @@ async function init() {
   setupAdminMenu();
   setupMobileNavigation();
   setupAppearanceControls();
+  setupMonthlyAnalysisControls();
+  setupSpendingStructureControls();
 
   els.fileInput.addEventListener("change", handleFile);
   els.exportButton.addEventListener("click", exportWorkbook);

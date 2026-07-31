@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>소비 분석</title>
   <meta name="theme-color" content="#365f7e">
-  <link rel="manifest" href="manifest.webmanifest?v=141-garden-analysis">
+  <link rel="manifest" href="manifest.webmanifest?v=146-professional-analysis">
   <link rel="stylesheet" href="src/styles/00-tokens.css?v=141-garden-analysis">
   <link rel="stylesheet" href="src/styles/01-base.css?v=136-mineral-layers">
   <link rel="stylesheet" href="src/styles/02-layout.css?v=76">
@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="src/styles/08-themes.css?v=141-garden-analysis">
   <link rel="stylesheet" href="assets/tabler/tabler-icons.min.css?v=135-subcategory-icons">
   <link rel="stylesheet" href="src/styles/09-production-ui.css?v=141-garden-analysis">
+  <link rel="stylesheet" href="src/styles/10-analysis.css?v=146-professional-analysis">
   <script src="assets/vendor/xlsx.full.min.js"></script>
 </head>
 <body data-app-name="소비 분석">
@@ -255,6 +256,8 @@
           <strong>소비 분석 메뉴</strong>
         </div>
         <button class="tab active" type="button" data-view="board" aria-current="page"><i class="nav-icon ti ti-layout-dashboard" aria-hidden="true"></i><span class="nav-label">대시보드</span></button>
+        <button class="tab" type="button" data-view="monthlyAnalysis"><i class="nav-icon ti ti-chart-line" aria-hidden="true"></i><span class="nav-label">월간 분석</span></button>
+        <button class="tab" type="button" data-view="spendingStructure"><i class="nav-icon ti ti-chart-pie" aria-hidden="true"></i><span class="nav-label">소비 구조 분석</span></button>
         <button class="tab" type="button" data-view="calendar"><i class="nav-icon ti ti-calendar-month" aria-hidden="true"></i><span class="nav-label">소비 달력</span></button>
         <button class="tab" type="button" data-view="details"><i class="nav-icon ti ti-list-details" aria-hidden="true"></i><span class="nav-label">상세 내역</span></button>
         <button class="tab" type="button" data-view="monthly"><i class="nav-icon ti ti-chart-line" aria-hidden="true"></i><span class="nav-label">년도 지출정리</span></button>
@@ -304,6 +307,83 @@
           <aside id="boardSideSummary" class="board-side-summary"></aside>
         </div>
         <button id="boardMapTopButton" class="board-map-top-button" type="button" hidden>소비 맵</button>
+      </section>
+
+      <section id="monthlyAnalysisView" class="view analysis-view">
+        <div class="section-head analysis-section-head">
+          <div>
+            <h2>월간 분석</h2>
+            <p>선택 월의 결과와 전년 동월 차이, 확인할 거래를 한 흐름으로 진단합니다.</p>
+          </div>
+          <div class="analysis-head-actions">
+            <div class="month-control-group">
+              <button id="monthlyAnalysisPrevMonth" type="button" class="month-step-button" title="이전 월" aria-label="이전 월"><i class="ti ti-chevron-left" aria-hidden="true"></i></button>
+              <label>월<select id="monthlyAnalysisMonth"></select></label>
+              <button id="monthlyAnalysisNextMonth" type="button" class="month-step-button" title="다음 월" aria-label="다음 월"><i class="ti ti-chevron-right" aria-hidden="true"></i></button>
+            </div>
+            <button id="monthlyAnalysisOpenDetails" class="primary-action" type="button"><i class="ti ti-list-details" aria-hidden="true"></i>거래 내역 확인</button>
+          </div>
+        </div>
+        <div id="monthlyAnalysisBody" class="analysis-view-body"></div>
+      </section>
+
+      <section id="spendingStructureView" class="view analysis-view">
+        <div class="section-head analysis-section-head">
+          <div>
+            <h2>소비 구조 분석</h2>
+            <p>수입 배분과 목표 대비 지출 구조를 진단하고 개선할 변화를 확인합니다.</p>
+          </div>
+          <div class="analysis-head-actions">
+            <div class="month-control-group">
+              <button id="spendingStructurePrevMonth" type="button" class="month-step-button" title="이전 월" aria-label="이전 월"><i class="ti ti-chevron-left" aria-hidden="true"></i></button>
+              <label>월<select id="spendingStructureMonth"></select></label>
+              <button id="spendingStructureNextMonth" type="button" class="month-step-button" title="다음 월" aria-label="다음 월"><i class="ti ti-chevron-right" aria-hidden="true"></i></button>
+            </div>
+            <button id="spendingTargetOpenButton" class="primary-action" type="button"><i class="ti ti-adjustments" aria-hidden="true"></i>목표 조정</button>
+          </div>
+        </div>
+        <div id="spendingStructureBody" class="analysis-view-body"></div>
+
+        <dialog id="spendingTargetDialog" class="analysis-target-dialog" aria-labelledby="spendingTargetDialogTitle">
+          <form id="spendingTargetForm">
+            <header class="analysis-dialog-head">
+              <div>
+                <span>소비 구조 기준</span>
+                <h2 id="spendingTargetDialogTitle">목표와 소비 유형 조정</h2>
+                <p>목표는 수입 대비 비율이며 필수·재량 구분은 세부항목별로 적용됩니다.</p>
+              </div>
+              <button id="spendingTargetDialogClose" type="button" aria-label="목표 설정 닫기"><i class="ti ti-x" aria-hidden="true"></i></button>
+            </header>
+            <div class="analysis-dialog-body">
+              <section aria-labelledby="spendingTargetFieldsTitle">
+                <div class="analysis-dialog-section-head">
+                  <div>
+                    <h3 id="spendingTargetFieldsTitle">섹터 소비 목표</h3>
+                    <p id="spendingTargetSuggestionNote"></p>
+                  </div>
+                  <button id="spendingTargetSuggestionButton" class="secondary-action" type="button"><i class="ti ti-sparkles" aria-hidden="true"></i>최근 기준 불러오기</button>
+                </div>
+                <div id="spendingTargetFields" class="analysis-target-inputs"></div>
+                <strong id="spendingTargetTotal" class="analysis-target-total"></strong>
+              </section>
+              <section aria-labelledby="spendingTypeFieldsTitle">
+                <div class="analysis-dialog-section-head">
+                  <div>
+                    <h3 id="spendingTypeFieldsTitle">필수·재량 소비 분류</h3>
+                    <p>필요에 따라 세부항목의 소비 유형을 바꿀 수 있습니다.</p>
+                  </div>
+                  <button id="spendingTypeResetButton" class="secondary-action" type="button"><i class="ti ti-refresh" aria-hidden="true"></i>기본값</button>
+                </div>
+                <div id="spendingTypeFields" class="analysis-type-fields"></div>
+              </section>
+            </div>
+            <p id="spendingTargetFeedback" class="analysis-dialog-feedback" role="status" aria-live="polite"></p>
+            <footer class="analysis-dialog-actions">
+              <button id="spendingTargetCancelButton" class="secondary-action" type="button">취소</button>
+              <button class="primary-action" type="submit"><i class="ti ti-shield-check" aria-hidden="true"></i>저장</button>
+            </footer>
+          </form>
+        </dialog>
       </section>
 
       <section id="monthlyView" class="view">
@@ -1030,6 +1110,8 @@
       </header>
       <nav class="mobile-more-menu" aria-label="추가 메뉴">
         <span class="mobile-more-label">분석과 기록</span>
+        <button type="button" data-mobile-view="monthlyAnalysis"><i class="ti ti-chart-line" aria-hidden="true"></i><span>월간 분석</span></button>
+        <button type="button" data-mobile-view="spendingStructure"><i class="ti ti-chart-pie" aria-hidden="true"></i><span>소비 구조 분석</span></button>
         <button type="button" data-mobile-view="monthly"><i class="ti ti-chart-line" aria-hidden="true"></i><span>년도 지출정리</span></button>
         <button type="button" data-mobile-view="summary"><i class="ti ti-chart-pie" aria-hidden="true"></i><span>월별 섹터 요약</span></button>
         <button type="button" data-mobile-view="ipo"><i class="ti ti-building-bank" aria-hidden="true"></i><span>공모주</span></button>
@@ -1062,20 +1144,20 @@
     </article>
   </template>
 
-  <script src="src/data/constants.js?v=141-garden-analysis"></script>
+  <script src="src/data/constants.js?v=146-professional-analysis"></script>
   <script src="src/data/categories.js?v=136-mineral-layers"></script>
   <script src="src/data/rules.js?v=93"></script>
   <script src="src/data/board-sections.js?v=86"></script>
   <script src="src/data/field-aliases.js?v=77"></script>
 
-  <script src="src/features/app/state.js?v=141-garden-analysis"></script>
+  <script src="src/features/app/state.js?v=146-professional-analysis"></script>
 
   <script src="src/utils/format.js?v=80"></script>
   <script src="src/utils/date.js?v=141-garden-analysis"></script>
   <script src="src/utils/dom.js?v=61"></script>
   <script src="src/utils/normalize.js?v=93"></script>
   <script src="src/utils/grouping.js?v=78"></script>
-  <script src="src/utils/storage.js?v=141-garden-analysis"></script>
+  <script src="src/utils/storage.js?v=146-professional-analysis"></script>
   <script src="src/utils/backup.js?v=141-garden-analysis"></script>
 
   <script src="src/components/chips.js?v=136-mineral-layers"></script>
@@ -1093,7 +1175,7 @@
   <script src="src/features/board/board-view.js?v=132-dashboard"></script>
   <script src="src/features/board/board-summary.js?v=132-dashboard"></script>
   <script src="src/features/board/board-cards.js?v=135-subcategory-icons"></script>
-  <script src="src/features/details/details-view.js?v=141-garden-analysis"></script>
+  <script src="src/features/details/details-view.js?v=146-professional-analysis"></script>
   <script src="src/features/summary/comparison-analysis.js?v=141-garden-analysis"></script>
   <script src="src/features/summary/summary-view.js?v=141-garden-analysis"></script>
   <script src="src/features/summary/sector-analysis.js?v=122"></script>
@@ -1105,6 +1187,9 @@
   <script src="src/features/income/income-list.js?v=66"></script>
   <script src="src/features/recurring/recurring-view.js?v=108"></script>
   <script src="src/features/calendar/calendar-view.js?v=141-garden-analysis"></script>
+  <script src="src/features/analysis/analysis-core.js?v=146-professional-analysis"></script>
+  <script src="src/features/analysis/monthly-analysis-view.js?v=146-professional-analysis"></script>
+  <script src="src/features/analysis/spending-structure-view.js?v=146-professional-analysis"></script>
   <script src="src/features/products/products-view.js?v=62"></script>
   <script src="src/features/ipo/ipo-view.js?v=109"></script>
   <script src="src/features/unknown/unknown-view.js?v=97"></script>
@@ -1112,7 +1197,7 @@
 
   <script src="src/features/app/navigation.js?v=112"></script>
   <script src="src/features/app/appearance.js?v=141-garden-analysis"></script>
-  <script src="src/features/app/render-all.js?v=106"></script>
-  <script src="src/features/app/init.js?v=141-garden-analysis"></script>
+  <script src="src/features/app/render-all.js?v=146-professional-analysis"></script>
+  <script src="src/features/app/init.js?v=146-professional-analysis"></script>
 </body>
 </html>

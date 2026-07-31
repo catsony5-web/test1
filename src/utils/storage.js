@@ -73,6 +73,7 @@ function normalizeAppSettings(value) {
   settings.backgroundOverlay = clampNumber(settings.backgroundOverlay, 0, 0.8, defaults.backgroundOverlay);
   settings.backgroundImage = typeof settings.backgroundImage === "string" ? settings.backgroundImage : "";
   settings.cardBilling = normalizeCardBillingSettings(settings.cardBilling);
+  settings.analysis = normalizeAnalysisSettings(settings.analysis);
   return settings;
 }
 
@@ -85,6 +86,29 @@ function normalizeCardBillingSettings(value) {
     paymentDay: Math.round(clampNumber(source.paymentDay, 1, 31, defaults.paymentDay)),
     weekendRule: source.weekendRule === "none" ? "none" : "next-monday"
   };
+}
+
+function normalizeAnalysisSettings(value) {
+  const source = value && typeof value === "object" ? value : {};
+  const validSectors = new Set(
+    Object.keys(categories).filter((sector) => !["저축", "수입", "미분류"].includes(sector))
+  );
+  const targetRatios = Object.fromEntries(
+    Object.entries(source.targetRatios && typeof source.targetRatios === "object" ? source.targetRatios : {})
+      .filter(([sector]) => validSectors.has(sector))
+      .map(([sector, ratio]) => [sector, clampNumber(ratio, 0, 100, 0)])
+      .filter(([, ratio]) => ratio > 0)
+  );
+  const validTypeKeys = new Set(
+    [...validSectors].flatMap((sector) =>
+      (categories[sector] || []).map((subcategory) => `${sector}::${subcategory}`)
+    )
+  );
+  const consumptionTypes = Object.fromEntries(
+    Object.entries(source.consumptionTypes && typeof source.consumptionTypes === "object" ? source.consumptionTypes : {})
+      .filter(([key, type]) => validTypeKeys.has(key) && ["essential", "discretionary"].includes(type))
+  );
+  return { targetRatios, consumptionTypes };
 }
 
 function saveSettings() {

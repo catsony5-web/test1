@@ -1,6 +1,8 @@
 function renderAll() {
   renderStatus();
   renderBoard();
+  renderMonthlyAnalysis();
+  renderSpendingStructureAnalysis();
   renderMonthlyFlow();
   renderSummary();
   renderDetailView();
@@ -18,6 +20,8 @@ function renderAll() {
 function renderView(viewName) {
   const renderers = {
     board: renderBoard,
+    monthlyAnalysis: renderMonthlyAnalysis,
+    spendingStructure: renderSpendingStructureAnalysis,
     monthly: renderMonthlyFlow,
     summary: renderSummary,
     details: renderDetailView,

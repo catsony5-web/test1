@@ -43,6 +43,12 @@ function captureDetailReturnState(sourceView = "board", sourceLabel = "", return
     },
     monthly: {
       month: returnTo.month || returnTo.monthly?.month || focusedMonthlyMonth || ""
+    },
+    monthlyAnalysis: {
+      month: returnTo.month || returnTo.monthlyAnalysis?.month || els.monthlyAnalysisMonth?.value || ""
+    },
+    spendingStructure: {
+      month: returnTo.month || returnTo.spendingStructure?.month || els.spendingStructureMonth?.value || ""
     }
   };
 }
@@ -52,7 +58,9 @@ function detailReturnLabel(view) {
     board: "대시보드",
     calendar: "소비 달력",
     summary: "월별 섹터 요약",
-    monthly: "년도 지출정리"
+    monthly: "년도 지출정리",
+    monthlyAnalysis: "월간 분석",
+    spendingStructure: "소비 구조 분석"
   }[view] || "이전 화면";
 }
 
@@ -62,7 +70,9 @@ function detailReturnButtonText(state = detailReturnState) {
     board: "대시보드로 돌아가기",
     calendar: "소비 달력으로 돌아가기",
     summary: "월별 섹터 요약으로 돌아가기",
-    monthly: "년도 지출정리로 돌아가기"
+    monthly: "년도 지출정리로 돌아가기",
+    monthlyAnalysis: "월간 분석으로 돌아가기",
+    spendingStructure: "소비 구조 분석으로 돌아가기"
   }[view] || `${state?.label || "이전 화면"}으로 돌아가기`;
 }
 
@@ -172,6 +182,16 @@ function returnFromDetailView() {
         .querySelector(`[data-month-row="${cssEscape(focusedMonthlyMonth)}"]`)
         ?.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
     });
+  } else if (view === "monthlyAnalysis") {
+    const month = state.monthlyAnalysis?.month || getSharedSelectedMonth(currentMonthKey());
+    if (month) setSharedSelectedMonth(month, { syncControls: false });
+    switchView("monthlyAnalysis");
+    renderMonthlyAnalysis();
+  } else if (view === "spendingStructure") {
+    const month = state.spendingStructure?.month || getSharedSelectedMonth(currentMonthKey());
+    if (month) setSharedSelectedMonth(month, { syncControls: false });
+    switchView("spendingStructure");
+    renderSpendingStructureAnalysis();
   } else {
     if (state.board) {
       if (els.boardMonth && state.board.month) els.boardMonth.value = state.board.month;
