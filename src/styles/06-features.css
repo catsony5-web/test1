@@ -2263,6 +2263,8 @@ button.calendar-summary-card:focus-visible {
 }
 
 .calendar-memo-card {
+  --calendar-memo-ink: #1f2937;
+  --calendar-memo-muted: #596572;
   position: relative;
   min-height: 230px;
   border: 1px solid color-mix(in srgb, #d6a900 34%, var(--border));
@@ -2272,6 +2274,7 @@ button.calendar-summary-card:focus-visible {
     linear-gradient(135deg, transparent calc(100% - 38px), rgba(255, 255, 255, 0.74) calc(100% - 37px), rgba(255, 255, 255, 0.92) 100%),
     repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.1) 0 31px, rgba(222, 178, 0, 0.12) 32px),
     #fff4a8;
+  color-scheme: light;
   box-shadow: 0 18px 34px rgba(110, 78, 12, 0.18), var(--shadow-sm);
 }
 
@@ -2327,7 +2330,7 @@ button.calendar-summary-card:focus-visible {
   border: 1px solid color-mix(in srgb, var(--border) 78%, #d6a900);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.62);
-  color: var(--text-primary);
+  color: var(--calendar-memo-ink);
   font-size: 12px;
   font-weight: 900;
 }
@@ -2390,7 +2393,7 @@ button.calendar-summary-card:focus-visible {
 }
 
 .calendar-memo-head span {
-  color: color-mix(in srgb, var(--text-secondary) 78%, #7c5f00);
+  color: var(--calendar-memo-muted);
   font-size: 11px;
   font-weight: 800;
 }
@@ -2400,7 +2403,7 @@ button.calendar-summary-card:focus-visible {
   max-height: 240px;
   overflow: auto;
   padding: 2px 4px 8px;
-  color: #1f2937;
+  color: var(--calendar-memo-ink);
   font-size: 16px;
   line-height: 1.62;
   outline: none;
@@ -2409,7 +2412,7 @@ button.calendar-summary-card:focus-visible {
 
 .calendar-memo-editor:empty::before {
   content: "이번 달 예산 체크 포인트를 적어보세요.";
-  color: rgba(31, 41, 55, 0.45);
+  color: var(--calendar-memo-muted);
   font-weight: 700;
 }
 
