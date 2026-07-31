@@ -645,10 +645,14 @@ function filterMonthlyRows(rows, reportRows = reportingExpenseRows(classified)) 
 
 function monthlyMonthsForFilter(rows) {
   const mode = els.monthlyYearFilter.value || "all";
+  const meaningfulRows = rows.filter(monthlyRowHasActivity);
+  const lastActivityMonth = meaningfulRows.at(-1)?.month || rows.at(-1).month;
   if (mode === "all") return monthlyMonthKeysBetween(rows[0].month, rows.at(-1).month);
   if (mode.startsWith("year:")) {
     const year = mode.slice(5);
-    return Array.from({ length: 12 }, (_, index) => `${year}-${String(index + 1).padStart(2, "0")}`);
+    const startMonth = `${year}-01`;
+    const endMonth = [`${year}-12`, lastActivityMonth].sort()[0];
+    return startMonth <= endMonth ? monthlyMonthKeysBetween(startMonth, endMonth) : [];
   }
   if (mode === "range") {
     const startYear = Number(els.monthlyStartYear?.value || 0);
@@ -656,7 +660,9 @@ function monthlyMonthsForFilter(rows) {
     if (!startYear || !endYear) return monthlyMonthKeysBetween(rows[0].month, rows.at(-1).month);
     const minYear = Math.min(startYear, endYear);
     const maxYear = Math.max(startYear, endYear);
-    return monthlyMonthKeysBetween(`${minYear}-01`, `${maxYear}-12`);
+    const startMonth = `${minYear}-01`;
+    const endMonth = [`${maxYear}-12`, lastActivityMonth].sort()[0];
+    return startMonth <= endMonth ? monthlyMonthKeysBetween(startMonth, endMonth) : [];
   }
   return monthlyMonthKeysBetween(rows[0].month, rows.at(-1).month);
 }
@@ -675,7 +681,7 @@ function latestMeaningfulMonthlyRow(rows) {
 }
 
 function monthlyRowHasActivity(row) {
-  return [row.totalPayment, row.consumptionSpend, row.actualSavings, row.income, row.scheduled]
+  return [row.totalPayment, row.consumptionSpend, row.actualSavings, row.income]
     .some((value) => Number(value || 0) !== 0);
 }
 

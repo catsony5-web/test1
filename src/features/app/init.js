@@ -66,6 +66,7 @@ async function init() {
   els.calendarMonth.addEventListener("change", () => {
     setSharedSelectedMonth(els.calendarMonth.value);
     selectedCalendarDate = "";
+    calendarBillingExpanded = false;
     renderCalendar();
   });
   els.calendarShowIncome?.addEventListener("change", () => {
@@ -134,7 +135,7 @@ async function init() {
       closeSummarySectorPicker();
     }
   });
-  els.summaryComparePreviousButton.addEventListener("click", () => setSummaryComparisonMode("previous"));
+  els.summaryCompareYearButton.addEventListener("click", () => setSummaryComparisonMode("year-over-year"));
   els.summaryCompareCustomButton.addEventListener("click", () => setSummaryComparisonMode("custom"));
   els.summaryComparisonMonthSelect.addEventListener("change", () => {
     selectedSummaryComparisonMonth = els.summaryComparisonMonthSelect.value;

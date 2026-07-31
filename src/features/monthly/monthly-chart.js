@@ -34,6 +34,26 @@ function monthlySvgPath(points) {
   return points.map((point, index) => `${index === 0 ? "M" : "L"}${point.x.toFixed(2)} ${point.y.toFixed(2)}`).join(" ");
 }
 
+function monthlyIncomeAllocation(row) {
+  const income = Math.max(0, Number(row.income || 0));
+  const consumption = Math.max(0, Number(row.consumptionSpend || 0));
+  const savings = Math.max(0, Number(row.actualSavings || 0));
+  const used = consumption + savings;
+  const free = Math.max(0, income - used);
+  const deficit = Math.max(0, used - income);
+  const base = Math.max(income, used, 1);
+  return {
+    income,
+    consumption,
+    savings,
+    free,
+    deficit,
+    consumptionRatio: consumption / base,
+    savingsRatio: savings / base,
+    freeRatio: free / base
+  };
+}
+
 function renderMonthlySelectedSummary(row) {
   const delta = Number(row.consumptionDelta || 0);
   const deltaText = row.consumptionDelta === null
@@ -79,14 +99,14 @@ function renderMonthlySelectedSummary(row) {
 }
 
 function renderMonthlyFlowChart(rows, availableWidth = 0) {
-  const padLeft = 82;
+  const padLeft = 78;
   const padRight = 24;
-  const cashTop = 44;
-  const cashHeight = 226;
-  const cashBottom = cashTop + cashHeight;
-  const balanceTop = 344;
-  const balanceHeight = 108;
-  const balanceBottom = balanceTop + balanceHeight;
+  const allocationTop = 52;
+  const allocationHeight = 214;
+  const allocationBottom = allocationTop + allocationHeight;
+  const assetTop = 344;
+  const assetHeight = 108;
+  const assetBottom = assetTop + assetHeight;
   const height = 512;
   const width = Math.max(
     860,
@@ -95,27 +115,20 @@ function renderMonthlyFlowChart(rows, availableWidth = 0) {
   );
   const plotWidth = width - padLeft - padRight;
   const slotWidth = plotWidth / Math.max(rows.length, 1);
-  const barWidth = Math.max(16, Math.min(26, slotWidth * 0.4));
-  const cashValues = rows.flatMap((row) => [row.consumptionSpend + row.actualSavings, row.income]);
-  const cashStep = monthlyChartStep(Math.max(...cashValues, 1), 4);
-  const cashMax = Math.max(cashStep, Math.ceil(Math.max(...cashValues, 0) / cashStep) * cashStep);
-  const cashY = (value) => cashTop + (cashMax - Number(value || 0)) / cashMax * cashHeight;
-  const cashTicks = monthlyChartTickValues(0, cashMax, cashStep);
-  const balanceBounds = monthlySignedChartBounds(rows.map((row) => row.cumulativeAssetGrowth));
-  const balanceRange = balanceBounds.max - balanceBounds.min || balanceBounds.step;
-  const balanceY = (value) => balanceTop + (balanceBounds.max - Number(value || 0)) / balanceRange * balanceHeight;
-  const balanceTicks = monthlyChartTickValues(balanceBounds.min, balanceBounds.max, balanceBounds.step);
-  const zeroBalanceY = balanceY(0);
+  const barWidth = Math.max(20, Math.min(34, slotWidth * 0.52));
+  const percentY = (ratio) => allocationBottom - Math.max(0, Math.min(1, Number(ratio || 0))) * allocationHeight;
+  const assetBounds = monthlySignedChartBounds(rows.map((row) => row.cumulativeAssetGrowth));
+  const assetRange = assetBounds.max - assetBounds.min || assetBounds.step;
+  const assetY = (value) => assetTop + (assetBounds.max - Number(value || 0)) / assetRange * assetHeight;
+  const assetTicks = monthlyChartTickValues(assetBounds.min, assetBounds.max, assetBounds.step);
+  const zeroAssetY = assetY(0);
   const labelEvery = Math.max(1, Math.ceil(rows.length / 12));
   const selected = rows.find((row) => row.month === focusedMonthlyMonth) || rows.at(-1);
-  const savingsLegendLabel = rows.every((row) => Number(row.actualSavings || 0) === 0)
-    ? "실제 저축 0원"
-    : "실제 저축";
   const points = rows.map((row, index) => ({
     row,
+    allocation: monthlyIncomeAllocation(row),
     x: padLeft + slotWidth * (index + 0.5),
-    incomeY: cashY(row.income),
-    assetY: balanceY(row.cumulativeAssetGrowth)
+    assetY: assetY(row.cumulativeAssetGrowth)
   }));
 
   const selectionBands = points.map(({ row, x }) => {
@@ -123,17 +136,19 @@ function renderMonthlyFlowChart(rows, availableWidth = 0) {
     const selectionX = x - slotWidth * 0.43;
     const selectionWidth = slotWidth * 0.86;
     return `
-      <rect class="monthly-selection-band cash${persistent}" data-chart-selection="${escapeHtml(row.month)}" x="${selectionX}" y="${cashTop}" width="${selectionWidth}" height="${cashHeight}" rx="10"></rect>
-      <rect class="monthly-selection-band asset${persistent}" data-chart-selection="${escapeHtml(row.month)}" x="${selectionX}" y="${balanceTop}" width="${selectionWidth}" height="${balanceHeight}" rx="10"></rect>
+      <rect class="monthly-selection-band allocation${persistent}" data-chart-selection="${escapeHtml(row.month)}" x="${selectionX}" y="${allocationTop - 8}" width="${selectionWidth}" height="${allocationHeight + 16}" rx="10"></rect>
+      <rect class="monthly-selection-band asset${persistent}" data-chart-selection="${escapeHtml(row.month)}" x="${selectionX}" y="${assetTop}" width="${selectionWidth}" height="${assetHeight}" rx="10"></rect>
     `;
   }).join("");
 
-  const cashBars = points.map(({ row, x }, index) => {
+  const allocationBars = points.map(({ row, allocation, x }, index) => {
     const startX = x - barWidth / 2;
-    const consumptionY = cashY(row.consumptionSpend);
-    const allocated = row.consumptionSpend + row.actualSavings;
-    const allocatedY = cashY(allocated);
-    const incomeY = cashY(row.income);
+    const consumptionHeight = allocation.consumptionRatio * allocationHeight;
+    const savingsHeight = allocation.savingsRatio * allocationHeight;
+    const freeHeight = allocation.freeRatio * allocationHeight;
+    const consumptionY = allocationBottom - consumptionHeight;
+    const savingsY = consumptionY - savingsHeight;
+    const freeY = savingsY - freeHeight;
     const persistent = focusedMonthlyMonth === row.month ? " is-persistent" : "";
     const showMonth = index % labelEvery === 0 || index === rows.length - 1;
     const ariaLabel = `${row.month}, 수입 ${formatWon(row.income)}, 소비지출 ${formatWon(row.consumptionSpend)}, 실제 저축 ${formatWon(row.actualSavings)}, 자유 잔액 ${formatSignedWon(row.freeBalance)}, 월 자산 증가 ${formatSignedWon(row.assetGrowth)}, 누적 자산 증가 ${formatSignedWon(row.cumulativeAssetGrowth)}`;
@@ -150,24 +165,27 @@ function renderMonthlyFlowChart(rows, availableWidth = 0) {
         data-chart-consumption-delta="${row.consumptionDelta === null ? "" : escapeHtml(String(row.consumptionDelta))}"
         tabindex="0" role="button" aria-label="${escapeHtml(ariaLabel)}">
         <title>${escapeHtml(ariaLabel)}</title>
-        <rect class="monthly-chart-hit-area" x="${x - slotWidth / 2}" y="${cashTop}" width="${slotWidth}" height="${balanceBottom - cashTop}"></rect>
-        <rect class="monthly-cash-bar consumption" x="${startX}" y="${consumptionY}" width="${barWidth}" height="${Math.max(0, cashBottom - consumptionY)}" rx="3"></rect>
-        <rect class="monthly-cash-bar savings" x="${startX}" y="${allocatedY}" width="${barWidth}" height="${Math.max(0, consumptionY - allocatedY)}" rx="3"></rect>
-        <line class="monthly-balance-gap-outline" x1="${x}" y1="${incomeY}" x2="${x}" y2="${allocatedY}"></line>
-        <line class="monthly-balance-gap ${row.freeBalance >= 0 ? "positive" : "negative"}" x1="${x}" y1="${incomeY}" x2="${x}" y2="${allocatedY}"></line>
-        <circle class="monthly-income-point" cx="${x}" cy="${incomeY}" r="3.5"></circle>
-        <circle class="monthly-asset-point ${row.cumulativeAssetGrowth >= 0 ? "positive" : "negative"}" cx="${x}" cy="${balanceY(row.cumulativeAssetGrowth)}" r="4"></circle>
+        <rect class="monthly-chart-hit-area" x="${x - slotWidth / 2}" y="${allocationTop - 10}" width="${slotWidth}" height="${assetBottom - allocationTop + 10}"></rect>
+        <rect class="monthly-allocation-track" x="${startX}" y="${allocationTop}" width="${barWidth}" height="${allocationHeight}" rx="5"></rect>
+        ${consumptionHeight > 0 ? `<rect class="monthly-allocation-bar consumption" x="${startX}" y="${consumptionY}" width="${barWidth}" height="${consumptionHeight}" rx="3"></rect>` : ""}
+        ${savingsHeight > 0 ? `<rect class="monthly-allocation-bar savings" x="${startX}" y="${savingsY}" width="${barWidth}" height="${savingsHeight}" rx="3"></rect>` : ""}
+        ${freeHeight > 0 ? `<rect class="monthly-allocation-bar free" x="${startX}" y="${freeY}" width="${barWidth}" height="${freeHeight}" rx="3"></rect>` : ""}
+        ${allocation.deficit > 0 ? `
+          <rect class="monthly-allocation-over" x="${startX - 2}" y="${allocationTop - 2}" width="${barWidth + 4}" height="${allocationHeight + 4}" rx="6"></rect>
+          <circle class="monthly-allocation-deficit-dot" cx="${x}" cy="${allocationTop - 8}" r="4"></circle>
+        ` : ""}
+        <circle class="monthly-asset-point ${row.cumulativeAssetGrowth >= 0 ? "positive" : "negative"}" cx="${x}" cy="${assetY(row.cumulativeAssetGrowth)}" r="4"></circle>
         ${showMonth ? `<text class="chart-label" x="${x}" y="${height - 14}" text-anchor="middle">${escapeHtml(row.month.slice(2))}</text>` : ""}
       </g>
     `;
   }).join("");
 
-  const tooltips = points.map(({ row, x }) => {
-    const tooltipWidth = 220;
+  const tooltips = points.map(({ row, allocation, x }) => {
+    const tooltipWidth = 230;
     const tooltipHeight = 144;
     const tooltipX = Math.min(width - padRight - tooltipWidth, Math.max(padLeft, x + 12));
     return `
-      <g class="monthly-flow-tooltip" data-chart-tooltip="${escapeHtml(row.month)}" transform="translate(${tooltipX} ${cashTop + 10})" aria-hidden="true">
+      <g class="monthly-flow-tooltip" data-chart-tooltip="${escapeHtml(row.month)}" transform="translate(${tooltipX} ${allocationTop + 8})" aria-hidden="true">
         <rect class="monthly-flow-tooltip-bg" width="${tooltipWidth}" height="${tooltipHeight}" rx="10"></rect>
         <text class="monthly-flow-tooltip-month" x="12" y="20">${escapeHtml(row.month)}</text>
         <text class="monthly-flow-tooltip-line income" x="12" y="42">수입 ${escapeHtml(formatWon(row.income))}</text>
@@ -175,44 +193,44 @@ function renderMonthlyFlowChart(rows, availableWidth = 0) {
         <text class="monthly-flow-tooltip-line savings" x="12" y="82">저축 ${escapeHtml(formatWon(row.actualSavings))} · ${escapeHtml(monthlySavingsRateLabel(row.actualSavings, row.income))}</text>
         <text class="monthly-flow-tooltip-line ${row.freeBalance >= 0 ? "positive" : "negative"}" x="12" y="102">자유 잔액 ${escapeHtml(formatSignedWon(row.freeBalance))}</text>
         <text class="monthly-flow-tooltip-line ${row.assetGrowth >= 0 ? "positive" : "negative"}" x="12" y="122">자산 증가 ${escapeHtml(formatSignedWon(row.assetGrowth))}</text>
-        <text class="monthly-flow-tooltip-line ${row.cumulativeAssetGrowth >= 0 ? "positive" : "negative"}" x="12" y="140">누적 ${escapeHtml(formatSignedWon(row.cumulativeAssetGrowth))}</text>
+        <text class="monthly-flow-tooltip-line ${allocation.deficit > 0 ? "negative" : "positive"}" x="12" y="140">${allocation.deficit > 0 ? `수입 초과 ${escapeHtml(formatWon(allocation.deficit))}` : `누적 ${escapeHtml(formatSignedWon(row.cumulativeAssetGrowth))}`}</text>
       </g>
     `;
   }).join("");
 
+  const percentTicks = [0, 0.25, 0.5, 0.75, 1];
   return `
     <div class="monthly-chart-legend" aria-label="그래프 범례">
       <span><i class="monthly-legend-swatch consumption" aria-hidden="true"></i>소비지출</span>
-      <span><i class="monthly-legend-swatch savings" aria-hidden="true"></i>${savingsLegendLabel}</span>
-      <span><i class="monthly-legend-line income" aria-hidden="true"></i>총수입</span>
-      <span><i class="monthly-legend-gap" aria-hidden="true"></i>남은 금액 차이</span>
+      <span><i class="monthly-legend-swatch savings" aria-hidden="true"></i>실제 저축</span>
+      <span><i class="monthly-legend-swatch free" aria-hidden="true"></i>자유 잔액</span>
+      <span><i class="monthly-legend-outline deficit" aria-hidden="true"></i>수입 초과</span>
       <span><i class="monthly-legend-line asset" aria-hidden="true"></i>누적 자산 증가</span>
     </div>
     <div class="monthly-chart-scroll" data-monthly-chart-scroll>
-      <svg class="monthly-flow-chart" style="min-width:${width}px" viewBox="0 0 ${width} ${height}" role="img" aria-label="월별 수입, 소비지출, 실제 저축, 자유 잔액과 누적 자산 증가 그래프">
-        <rect class="monthly-chart-zone cash" x="0" y="24" width="${width}" height="${cashBottom - 14}" rx="12"></rect>
-        <rect class="monthly-chart-zone asset" x="0" y="${balanceTop - 22}" width="${width}" height="${balanceHeight + 42}" rx="12"></rect>
-        <text class="monthly-chart-section-label" x="${padLeft}" y="18">월별 수입 배분</text>
-        <text class="monthly-chart-section-label" x="${padLeft}" y="${balanceTop - 28}">연간 누적 자산 증가</text>
-        ${cashTicks.map((value) => {
-          const y = cashY(value);
+      <svg class="monthly-flow-chart" style="min-width:${width}px" viewBox="0 0 ${width} ${height}" role="img" aria-label="월별 수입의 소비지출, 실제 저축, 자유 잔액 배분과 누적 자산 증가 그래프">
+        <rect class="monthly-chart-zone allocation" x="0" y="24" width="${width}" height="${allocationBottom - 12}" rx="12"></rect>
+        <rect class="monthly-chart-zone asset" x="0" y="${assetTop - 22}" width="${width}" height="${assetHeight + 42}" rx="12"></rect>
+        <text class="monthly-chart-section-label" x="${padLeft}" y="18">월별 수입 배분 · 100%</text>
+        <text class="monthly-chart-section-label" x="${padLeft}" y="${assetTop - 28}">연간 누적 자산 증가</text>
+        ${percentTicks.map((ratio) => {
+          const y = percentY(ratio);
           return `
-            <line class="chart-grid monthly-cash-grid" x1="${padLeft}" y1="${y}" x2="${width - padRight}" y2="${y}"></line>
-            <text class="monthly-axis-label" x="${padLeft - 10}" y="${y + 4}" text-anchor="end">${escapeHtml(formatMonthlyAxisWon(value, false))}</text>
+            <line class="chart-grid monthly-allocation-grid" x1="${padLeft}" y1="${y}" x2="${width - padRight}" y2="${y}"></line>
+            <text class="monthly-axis-label" x="${padLeft - 10}" y="${y + 4}" text-anchor="end">${Math.round(ratio * 100)}%</text>
           `;
         }).join("")}
-        ${balanceTicks.map((value) => {
-          const y = balanceY(value);
+        ${assetTicks.map((value) => {
+          const y = assetY(value);
           return `
             <line class="chart-grid monthly-balance-grid ${value === 0 ? "zero" : ""}" x1="${padLeft}" y1="${y}" x2="${width - padRight}" y2="${y}"></line>
             <text class="monthly-axis-label" x="${padLeft - 10}" y="${y + 4}" text-anchor="end">${escapeHtml(formatMonthlyAxisWon(value))}</text>
           `;
         }).join("")}
         ${selectionBands}
-        <path class="monthly-income-line" d="${monthlySvgPath(points.map(({ x, incomeY }) => ({ x, y: incomeY })))}"></path>
-        <path class="monthly-asset-line" d="${monthlySvgPath(points.map(({ x, assetY }) => ({ x, y: assetY })))}"></path>
-        <line class="monthly-balance-zero-line" x1="${padLeft}" y1="${zeroBalanceY}" x2="${width - padRight}" y2="${zeroBalanceY}"></line>
-        ${cashBars}
+        <path class="monthly-asset-line" d="${monthlySvgPath(points.map(({ x, assetY: y }) => ({ x, y })))}"></path>
+        <line class="monthly-balance-zero-line" x1="${padLeft}" y1="${zeroAssetY}" x2="${width - padRight}" y2="${zeroAssetY}"></line>
+        ${allocationBars}
         ${tooltips}
       </svg>
     </div>

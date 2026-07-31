@@ -13,7 +13,7 @@ function renderSummary() {
   });
   renderSummaryComparisonNotice(comparison);
   const matrixRows = buildSummaryMatrixRows(rangedActive, months, sectorNames);
-  renderSectorTrend(rangedActive, months, sectorNames, selectedSector, selectedMonth, comparison);
+  renderSectorTrend(active, months, sectorNames, selectedSector, selectedMonth, comparison);
   renderSectorAnalysis(rangedActive, selectedMonth, selectedSector, comparison);
   renderSummaryMetricCards(matrixRows, sectorNames, selectedMonth, selectedSector, comparison);
   renderSummarySectorShare(matrixRows, sectorNames, selectedMonth, selectedSector, comparison);
@@ -86,16 +86,16 @@ function moveSummaryMonth(control, offset) {
 }
 
 function updateSummaryComparisonControls(allMonths, selectedMonth) {
-  selectedSummaryComparisonMode = selectedSummaryComparisonMode === "custom" ? "custom" : "previous";
+  selectedSummaryComparisonMode = selectedSummaryComparisonMode === "custom" ? "custom" : "year-over-year";
   const customMonths = allMonths.filter((month) => month !== selectedMonth);
-  const previousMonth = previousMonthKey(selectedMonth);
+  const yearAgoMonth = shiftMonthKey(selectedMonth, -12);
   if (!customMonths.includes(selectedSummaryComparisonMonth)) {
-    selectedSummaryComparisonMonth = customMonths.includes(previousMonth)
-      ? previousMonth
+    selectedSummaryComparisonMonth = customMonths.includes(yearAgoMonth)
+      ? yearAgoMonth
       : customMonths.filter((month) => month < selectedMonth).at(-1) || customMonths[0] || "";
   }
 
-  els.summaryComparePreviousButton?.setAttribute("aria-pressed", selectedSummaryComparisonMode === "previous" ? "true" : "false");
+  els.summaryCompareYearButton?.setAttribute("aria-pressed", selectedSummaryComparisonMode === "year-over-year" ? "true" : "false");
   els.summaryCompareCustomButton?.setAttribute("aria-pressed", selectedSummaryComparisonMode === "custom" ? "true" : "false");
   if (els.summaryComparisonMonthField) els.summaryComparisonMonthField.hidden = selectedSummaryComparisonMode !== "custom";
   if (els.summaryComparisonMonthSelect) {
@@ -105,11 +105,11 @@ function updateSummaryComparisonControls(allMonths, selectedMonth) {
     els.summaryComparisonMonthSelect.value = selectedSummaryComparisonMonth;
     els.summaryComparisonMonthSelect.disabled = !customMonths.length;
   }
-  return selectedSummaryComparisonMode === "custom" ? selectedSummaryComparisonMonth : previousMonth;
+  return selectedSummaryComparisonMode === "custom" ? selectedSummaryComparisonMonth : yearAgoMonth;
 }
 
 function setSummaryComparisonMode(mode) {
-  const nextMode = mode === "custom" ? "custom" : "previous";
+  const nextMode = mode === "custom" ? "custom" : "year-over-year";
   if (selectedSummaryComparisonMode === nextMode) return;
   selectedSummaryComparisonMode = nextMode;
   renderSummary();

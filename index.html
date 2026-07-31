@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>소비 분석</title>
-  <meta name="theme-color" content="#1e5748">
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="src/styles/00-tokens.css?v=138-summer-themes">
+  <meta name="theme-color" content="#365f7e">
+  <link rel="manifest" href="manifest.webmanifest?v=141-garden-analysis">
+  <link rel="stylesheet" href="src/styles/00-tokens.css?v=141-garden-analysis">
   <link rel="stylesheet" href="src/styles/01-base.css?v=136-mineral-layers">
   <link rel="stylesheet" href="src/styles/02-layout.css?v=76">
   <link rel="stylesheet" href="src/styles/03-components.css?v=140-long-term-trend">
@@ -14,9 +14,9 @@
   <link rel="stylesheet" href="src/styles/05-charts.css?v=125">
   <link rel="stylesheet" href="src/styles/06-features.css?v=136-mineral-layers">
   <link rel="stylesheet" href="src/styles/07-responsive.css?v=125">
-  <link rel="stylesheet" href="src/styles/08-themes.css?v=138-summer-themes">
+  <link rel="stylesheet" href="src/styles/08-themes.css?v=141-garden-analysis">
   <link rel="stylesheet" href="assets/tabler/tabler-icons.min.css?v=135-subcategory-icons">
-  <link rel="stylesheet" href="src/styles/09-production-ui.css?v=139-income-flow">
+  <link rel="stylesheet" href="src/styles/09-production-ui.css?v=141-garden-analysis">
   <script src="assets/vendor/xlsx.full.min.js"></script>
 </head>
 <body data-app-name="소비 분석">
@@ -85,7 +85,30 @@
                     <span>편안하고 따뜻한 소비 흐름</span>
                     <span class="theme-choice-swatches" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
                   </button>
+                  <button type="button" class="theme-choice" data-theme-choice="garden-ink" aria-pressed="false">
+                    <strong>정원 그늘 · Garden &amp; Ink</strong>
+                    <span>잉크 블루와 라군, 베리 포인트</span>
+                    <span class="theme-choice-swatches" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+                  </button>
                 </div>
+              </div>
+              <div class="admin-menu-section card-billing-settings-section">
+                <div class="admin-section-heading">
+                  <span class="admin-menu-label">신용카드 결제 주기</span>
+                  <p class="admin-menu-help">소비 달력의 카드 예상 결제액 계산 기준입니다.</p>
+                </div>
+                <div class="card-billing-settings-grid">
+                  <label>이용 시작일<input id="cardBillingStartDay" type="number" min="1" max="31" inputmode="numeric" value="14"></label>
+                  <label>이용 종료일<input id="cardBillingEndDay" type="number" min="1" max="31" inputmode="numeric" value="13"></label>
+                  <label>결제일<input id="cardBillingPaymentDay" type="number" min="1" max="31" inputmode="numeric" value="25"></label>
+                  <label>주말 결제일
+                    <select id="cardBillingWeekendRule">
+                      <option value="next-monday">다음 월요일</option>
+                      <option value="none">그대로 표시</option>
+                    </select>
+                  </label>
+                </div>
+                <p id="cardBillingSettingsStatus" class="card-billing-settings-status" aria-live="polite"></p>
               </div>
               <div class="admin-menu-section background-settings-section">
                 <div class="admin-section-heading">
@@ -308,7 +331,7 @@
               <div class="monthly-chart-head">
                 <div>
                   <h3>수입 배분과 자산 추이</h3>
-                  <p>소비·저축 배분과 누적 자산 흐름을 비교합니다.</p>
+                  <p>수입을 소비·실제 저축·자유 잔액으로 나누고 누적 자산 흐름을 비교합니다.</p>
                 </div>
               </div>
               <div id="monthlyFlowChart" class="monthly-chart"></div>
@@ -472,7 +495,7 @@
           </select>
         </label>
         <div class="summary-subtabs" role="tablist" aria-label="월별 섹터 요약 보기">
-          <button id="summaryTabTrend" class="summary-subtab active" type="button" role="tab" tabindex="0" aria-selected="true" aria-controls="summarySubtabTrend" data-summary-subtab="trend"><span class="summary-subtab-index">1</span><span class="summary-subtab-text">섹터별 월별 증감</span></button>
+          <button id="summaryTabTrend" class="summary-subtab active" type="button" role="tab" tabindex="0" aria-selected="true" aria-controls="summarySubtabTrend" data-summary-subtab="trend"><span class="summary-subtab-index">1</span><span class="summary-subtab-text">섹터별 전년 비교</span></button>
           <button id="summaryTabShare" class="summary-subtab" type="button" role="tab" tabindex="-1" aria-selected="false" aria-controls="summarySubtabShare" data-summary-subtab="share"><span class="summary-subtab-index">2</span><span class="summary-subtab-text">선택 월 섹터 비교</span></button>
           <button id="summaryTabDetail" class="summary-subtab" type="button" role="tab" tabindex="-1" aria-selected="false" aria-controls="summarySubtabDetail" data-summary-subtab="detail"><span class="summary-subtab-index">3</span><span class="summary-subtab-text">상세 섹터 비교</span></button>
           <button id="summaryTabReport" class="summary-subtab" type="button" role="tab" tabindex="-1" aria-selected="false" aria-controls="summarySubtabReport" data-summary-subtab="report"><span class="summary-subtab-index">4</span><span class="summary-subtab-text">각 섹터 리포트</span></button>
@@ -503,7 +526,7 @@
             <div class="summary-context-control summary-context-comparison">
               <span>비교 기준</span>
               <div class="summary-comparison-segment" role="group" aria-label="비교 기준">
-                <button id="summaryComparePreviousButton" type="button" aria-pressed="true">전월</button>
+                <button id="summaryCompareYearButton" type="button" aria-pressed="true">전년 동월</button>
                 <button id="summaryCompareCustomButton" type="button" aria-pressed="false">비교월</button>
               </div>
             </div>
@@ -519,8 +542,8 @@
           <section class="sector-trend-panel">
             <div class="panel-head sector-trend-head">
               <div>
-                <h3>섹터별 월별 증감</h3>
-                <p>기간과 섹터를 선택해 전월 대비 소비가 얼마나 늘거나 줄었는지 확인합니다.</p>
+                <h3>섹터별 전년 동월 비교</h3>
+                <p>선택 기간의 월별 소비를 전년 같은 달과 나란히 비교합니다.</p>
               </div>
             </div>
             <div id="sectorTrendChart" class="sector-trend-chart"></div>
@@ -761,7 +784,15 @@
             <p>카드 내역 엑셀이 없는 과거 소비 기록을 붙여넣고, 선택한 분류로 한 번에 저장합니다.</p>
           </div>
         </div>
-        <section class="detail-bulk-panel detail-bulk-workspace">
+        <div class="detail-bulk-tabs" role="tablist" aria-label="과거 거래 입력 화면">
+          <button id="detailBulkInputTab" class="active" type="button" role="tab" aria-selected="true" aria-controls="detailBulkInputPanel" data-detail-bulk-tab="input">
+            <i class="ti ti-file-plus" aria-hidden="true"></i><span>일괄 입력</span>
+          </button>
+          <button id="detailBulkRecordsTab" type="button" role="tab" aria-selected="false" aria-controls="detailBulkRecordsPanel" data-detail-bulk-tab="records" tabindex="-1">
+            <i class="ti ti-history" aria-hidden="true"></i><span>전체 기록</span><strong id="detailBulkTabRecordCount">0건</strong>
+          </button>
+        </div>
+        <section id="detailBulkInputPanel" class="detail-bulk-panel detail-bulk-workspace" role="tabpanel" aria-labelledby="detailBulkInputTab" data-detail-bulk-panel="input">
           <div class="detail-bulk-head">
             <div>
               <h3>과거 거래 일괄 입력</h3>
@@ -790,7 +821,7 @@
             <table id="detailBulkPreview"></table>
           </div>
         </section>
-        <section class="detail-bulk-records-panel">
+        <section id="detailBulkRecordsPanel" class="detail-bulk-records-panel" role="tabpanel" aria-labelledby="detailBulkRecordsTab" data-detail-bulk-panel="records" hidden>
           <div class="detail-bulk-records-head">
             <div>
               <h3>전체 과거 거래 기록</h3>
@@ -831,6 +862,7 @@
         <div class="calendar-layout">
           <div id="calendarCurrentMonthLabel" class="calendar-current-month" aria-live="polite"></div>
           <div id="calendarMonthSummary" class="calendar-summary-grid"></div>
+          <section id="calendarBillingDetail" class="calendar-billing-detail" aria-live="polite" hidden></section>
           <div class="calendar-quick-actions" aria-label="소비 달력 빠른 작업">
             <button type="button" data-calendar-action="import">
               <i class="ti ti-file-spreadsheet" aria-hidden="true"></i>
@@ -1030,21 +1062,21 @@
     </article>
   </template>
 
-  <script src="src/data/constants.js?v=120"></script>
+  <script src="src/data/constants.js?v=141-garden-analysis"></script>
   <script src="src/data/categories.js?v=136-mineral-layers"></script>
   <script src="src/data/rules.js?v=93"></script>
   <script src="src/data/board-sections.js?v=86"></script>
   <script src="src/data/field-aliases.js?v=77"></script>
 
-  <script src="src/features/app/state.js?v=125"></script>
+  <script src="src/features/app/state.js?v=141-garden-analysis"></script>
 
   <script src="src/utils/format.js?v=80"></script>
-  <script src="src/utils/date.js?v=61"></script>
+  <script src="src/utils/date.js?v=141-garden-analysis"></script>
   <script src="src/utils/dom.js?v=61"></script>
   <script src="src/utils/normalize.js?v=93"></script>
   <script src="src/utils/grouping.js?v=78"></script>
-  <script src="src/utils/storage.js?v=138-summer-themes"></script>
-  <script src="src/utils/backup.js?v=100"></script>
+  <script src="src/utils/storage.js?v=141-garden-analysis"></script>
+  <script src="src/utils/backup.js?v=141-garden-analysis"></script>
 
   <script src="src/components/chips.js?v=136-mineral-layers"></script>
   <script src="src/components/tables.js?v=61"></script>
@@ -1061,26 +1093,26 @@
   <script src="src/features/board/board-view.js?v=132-dashboard"></script>
   <script src="src/features/board/board-summary.js?v=132-dashboard"></script>
   <script src="src/features/board/board-cards.js?v=135-subcategory-icons"></script>
-  <script src="src/features/details/details-view.js?v=122"></script>
-  <script src="src/features/summary/comparison-analysis.js?v=122"></script>
-  <script src="src/features/summary/summary-view.js?v=122"></script>
+  <script src="src/features/details/details-view.js?v=141-garden-analysis"></script>
+  <script src="src/features/summary/comparison-analysis.js?v=141-garden-analysis"></script>
+  <script src="src/features/summary/summary-view.js?v=141-garden-analysis"></script>
   <script src="src/features/summary/sector-analysis.js?v=122"></script>
-  <script src="src/features/summary/summary-chart.js?v=122"></script>
-  <script src="src/features/monthly/monthly-flow.js?v=139-income-flow"></script>
-  <script src="src/features/monthly/monthly-chart.js?v=139-income-flow"></script>
+  <script src="src/features/summary/summary-chart.js?v=141-garden-analysis"></script>
+  <script src="src/features/monthly/monthly-flow.js?v=141-garden-analysis"></script>
+  <script src="src/features/monthly/monthly-chart.js?v=141-garden-analysis"></script>
   <script src="src/features/income/income-entry.js?v=61"></script>
   <script src="src/features/income/income-bulk.js?v=61"></script>
   <script src="src/features/income/income-list.js?v=66"></script>
   <script src="src/features/recurring/recurring-view.js?v=108"></script>
-  <script src="src/features/calendar/calendar-view.js?v=102"></script>
+  <script src="src/features/calendar/calendar-view.js?v=141-garden-analysis"></script>
   <script src="src/features/products/products-view.js?v=62"></script>
   <script src="src/features/ipo/ipo-view.js?v=109"></script>
   <script src="src/features/unknown/unknown-view.js?v=97"></script>
   <script src="src/features/transactions/transactions-view.js?v=77"></script>
 
   <script src="src/features/app/navigation.js?v=112"></script>
-  <script src="src/features/app/appearance.js?v=112"></script>
+  <script src="src/features/app/appearance.js?v=141-garden-analysis"></script>
   <script src="src/features/app/render-all.js?v=106"></script>
-  <script src="src/features/app/init.js?v=125"></script>
+  <script src="src/features/app/init.js?v=141-garden-analysis"></script>
 </body>
 </html>

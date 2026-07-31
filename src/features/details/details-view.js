@@ -337,6 +337,43 @@ function renderDetailBulkView() {
   fillDetailBulkListFilters();
   renderDetailBulkPreview();
   renderDetailBulkSavedRecords();
+  syncDetailBulkSubtabs();
+}
+
+function selectDetailBulkSubtab(subtab, { focus = false } = {}) {
+  selectedDetailBulkSubtab = subtab === "records" ? "records" : "input";
+  syncDetailBulkSubtabs();
+  if (focus) {
+    [...els.detailBulkTabs]
+      .find((button) => button.dataset.detailBulkTab === selectedDetailBulkSubtab)
+      ?.focus();
+  }
+}
+
+function syncDetailBulkSubtabs() {
+  const validTabs = ["input", "records"];
+  if (!validTabs.includes(selectedDetailBulkSubtab)) selectedDetailBulkSubtab = "input";
+  [...els.detailBulkTabs].forEach((button) => {
+    const isActive = button.dataset.detailBulkTab === selectedDetailBulkSubtab;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-selected", String(isActive));
+    button.tabIndex = isActive ? 0 : -1;
+    button.onclick = () => selectDetailBulkSubtab(button.dataset.detailBulkTab);
+    button.onkeydown = (event) => {
+      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+      event.preventDefault();
+      const currentIndex = validTabs.indexOf(button.dataset.detailBulkTab);
+      const nextIndex = event.key === "Home"
+        ? 0
+        : event.key === "End"
+          ? validTabs.length - 1
+          : (currentIndex + (event.key === "ArrowRight" ? 1 : -1) + validTabs.length) % validTabs.length;
+      selectDetailBulkSubtab(validTabs[nextIndex], { focus: true });
+    };
+  });
+  [...els.detailBulkPanels].forEach((panel) => {
+    panel.hidden = panel.dataset.detailBulkPanel !== selectedDetailBulkSubtab;
+  });
 }
 
 function fillDetailBulkMonthControl() {
@@ -505,6 +542,7 @@ async function handleDetailBulkSave() {
   await saveTransactions();
   await saveReimbursements();
   await saveImportMeta();
+  selectedDetailBulkSubtab = "records";
   reclassify();
 }
 
@@ -779,6 +817,9 @@ function renderDetailBulkSavedRecords() {
 
   if (els.detailBulkRecordCount) {
     els.detailBulkRecordCount.textContent = `${rows.length.toLocaleString("ko-KR")}건`;
+  }
+  if (els.detailBulkTabRecordCount) {
+    els.detailBulkTabRecordCount.textContent = `${allRows.length.toLocaleString("ko-KR")}건`;
   }
 
   if (!allRows.length) {

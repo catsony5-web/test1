@@ -19,6 +19,10 @@ function renderCalendar() {
 
   if (!selectedMonth) {
     els.calendarMonthSummary.innerHTML = "";
+    if (els.calendarBillingDetail) {
+      els.calendarBillingDetail.hidden = true;
+      els.calendarBillingDetail.innerHTML = "";
+    }
     if (els.calendarMonthlyMemo) els.calendarMonthlyMemo.innerHTML = "";
     if (els.calendarCurrentMonthLabel) els.calendarCurrentMonthLabel.innerHTML = "";
     els.spendingCalendar.innerHTML = `<div class="empty">카드/이체 내역을 불러오거나 직접 추가하면 소비 달력이 표시됩니다.</div>`;
@@ -39,7 +43,9 @@ function renderCalendar() {
   const scheduledRows = recurringOccurrencesForMonth(selectedMonth);
   const pendingScheduledRows = scheduledRows.filter((item) => !item.posted);
   const scheduledByDate = groupBy(scheduledRows, (item) => item.date);
-  els.calendarMonthSummary.innerHTML = renderCalendarMonthSummary(selectedMonth, monthRows, byDate, dayCount, pendingScheduledRows, calendarShowIncome);
+  const billingModel = buildCalendarCardBillingModel(selectedMonth);
+  els.calendarMonthSummary.innerHTML = renderCalendarMonthSummary(selectedMonth, monthRows, byDate, dayCount, pendingScheduledRows, calendarShowIncome, billingModel);
+  renderCalendarBillingDetail(billingModel);
   renderCalendarMonthlyMemo(selectedMonth);
   renderCalendarCurrentMonthLabel(selectedMonth, pendingScheduledRows);
   attachCalendarSummaryHandlers(selectedMonth);
@@ -324,12 +330,103 @@ function scheduleCalendarMemoSave(month, options = {}) {
   }, options.immediate ? 0 : 450);
 }
 
-function renderCalendarMonthSummary(month, monthRows, byDate, dayCount, scheduledRows = [], showIncome = true) {
+function calendarLocalDateKey(date) {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0")
+  ].join("-");
+}
+
+function calendarDateForMonthDay(month, day) {
+  const [year, monthNumber] = String(month || "").split("-").map(Number);
+  if (!year || !monthNumber) return "";
+  const lastDay = new Date(year, monthNumber, 0).getDate();
+  return calendarLocalDateKey(new Date(year, monthNumber - 1, Math.min(lastDay, Math.max(1, Number(day || 1)))));
+}
+
+function adjustCalendarBillingPaymentDate(dateKey, weekendRule) {
+  if (weekendRule !== "next-monday") return dateKey;
+  const [year, month, day] = String(dateKey || "").split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  if (date.getDay() === 6) date.setDate(date.getDate() + 2);
+  else if (date.getDay() === 0) date.setDate(date.getDate() + 1);
+  return calendarLocalDateKey(date);
+}
+
+function formatCalendarMonthDay(dateKey) {
+  const [, month, day] = String(dateKey || "").split("-");
+  return month && day ? `${Number(month)}.${Number(day)}` : "-";
+}
+
+function buildCalendarCardBillingModel(billingMonth) {
+  const settings = normalizeCardBillingSettings(appSettings.cardBilling);
+  const startMonth = settings.startDay > settings.endDay ? shiftMonthKey(billingMonth, -1) : billingMonth;
+  const periodStart = calendarDateForMonthDay(startMonth, settings.startDay);
+  const periodEnd = calendarDateForMonthDay(billingMonth, settings.endDay);
+  const scheduledPaymentDate = calendarDateForMonthDay(billingMonth, settings.paymentDay);
+  const paymentDate = adjustCalendarBillingPaymentDate(scheduledPaymentDate, settings.weekendRule);
+  const rows = reportingExpenseRows(classified)
+    .filter((item) => {
+      const date = normalizeDateKey(item.approvalDate);
+      return item.sourceType === "card"
+        && date
+        && date >= periodStart
+        && date <= periodEnd;
+    })
+    .sort((a, b) => `${a.approvalDate} ${a.approvalTime}`.localeCompare(`${b.approvalDate} ${b.approvalTime}`, "ko-KR"));
+  const netAmount = rows.reduce((total, item) => total + Number(item.amount || 0), 0);
+  return {
+    billingMonth,
+    settings,
+    periodStart,
+    periodEnd,
+    scheduledPaymentDate,
+    paymentDate,
+    rows,
+    netAmount,
+    expectedAmount: Math.max(0, netAmount)
+  };
+}
+
+function renderCalendarBillingDetail(model) {
+  if (!els.calendarBillingDetail) return;
+  els.calendarBillingDetail.hidden = !calendarBillingExpanded;
+  if (!calendarBillingExpanded) {
+    els.calendarBillingDetail.innerHTML = "";
+    return;
+  }
+  const weekendAdjusted = model.paymentDate !== model.scheduledPaymentDate;
+  els.calendarBillingDetail.innerHTML = `
+    <div class="calendar-billing-detail-head">
+      <div>
+        <span>신용카드 예상 결제</span>
+        <h3>${escapeHtml(formatCalendarMonthDay(model.paymentDate))} · ${formatWon(model.expectedAmount)}</h3>
+        <p>${escapeHtml(formatCalendarMonthDay(model.periodStart))}~${escapeHtml(formatCalendarMonthDay(model.periodEnd))} 이용분 · ${model.rows.length.toLocaleString("ko-KR")}건${weekendAdjusted ? " · 주말 다음 월요일 적용" : ""}</p>
+      </div>
+      <div class="calendar-billing-detail-actions">
+        <button type="button" data-open-card-billing-settings><i class="ti ti-settings" aria-hidden="true"></i><span>결제 주기</span></button>
+        <button type="button" class="icon-button" data-close-card-billing aria-label="카드 예상 결제 내역 닫기" title="닫기"><i class="ti ti-x" aria-hidden="true"></i></button>
+      </div>
+    </div>
+    <div class="calendar-billing-list" role="list" aria-label="카드 예상 결제 거래">
+      ${model.rows.length ? model.rows.map((item) => `
+        <article class="calendar-billing-row" role="listitem">
+          <time datetime="${escapeHtml(normalizeDateKey(item.approvalDate))}">${escapeHtml(normalizeDateKey(item.approvalDate).slice(5).replace("-", "."))}</time>
+          <strong title="${escapeHtml(item.merchant || "")}">${escapeHtml(item.merchant || "가맹점 정보 없음")}</strong>
+          ${categoryChip(item.sector || "미분류")}
+          <span class="${Number(item.amount || 0) < 0 ? "negative" : ""}">${formatSignedWon(item.amount)}</span>
+        </article>
+      `).join("") : `<div class="empty compact-empty">이 결제 주기에 포함되는 카드 거래가 없습니다.</div>`}
+    </div>
+  `;
+}
+
+function renderCalendarMonthSummary(month, monthRows, byDate, dayCount, scheduledRows = [], showIncome = true, billingModel = buildCalendarCardBillingModel(month)) {
   const totalSpend = sumActual(monthRows);
   const scheduledTotal = sum(scheduledRows, "amount");
   const totalIncome = importedIncomeForMonth(month) + Number(monthlyIncome[month] || 0);
   const balance = totalIncome - totalSpend;
-  const expectedBalance = balance - scheduledTotal;
   const spendDayCount = Math.max(1, [...byDate.values()].filter((rows) => rows.length).length || dayCount || 1);
   const avgSpend = Math.round(totalSpend / spendDayCount);
   const dailyTotals = [...byDate.entries()]
@@ -341,9 +438,15 @@ function renderCalendarMonthSummary(month, monthRows, byDate, dayCount, schedule
     renderCalendarMetric("총 지출", formatWon(totalSpend), `${month} 실 지출 합계`, "spend", { priority: "core", key: "spend" }),
     ...(showIncome ? [
       renderCalendarMetric("총 수입", formatWon(totalIncome), "수입 입력 + 이체 입금", "income", { incomeMonth: month, priority: "core", key: "income" }),
-      renderCalendarMetric("잔액", formatSignedWon(balance), "총 수입 - 총 지출", balance >= 0 ? "positive" : "negative", { priority: "core", key: "balance" }),
-      renderCalendarMetric("예상 잔액", formatSignedWon(expectedBalance), "잔액 - 예정 지출", expectedBalance >= 0 ? "positive" : "negative", { priority: "core", key: "expected-balance" })
-    ] : [])
+      renderCalendarMetric("잔액", formatSignedWon(balance), "총 수입 - 총 지출", balance >= 0 ? "positive" : "negative", { priority: "core", key: "balance" })
+    ] : []),
+    renderCalendarMetric(
+      "카드 예상 결제",
+      formatWon(billingModel.expectedAmount),
+      `${formatCalendarMonthDay(billingModel.periodStart)}~${formatCalendarMonthDay(billingModel.periodEnd)} · ${formatCalendarMonthDay(billingModel.paymentDate)} 결제`,
+      "card-billing",
+      { priority: "core", key: "card-billing", action: "card-billing", expanded: calendarBillingExpanded }
+    )
   ];
   const supportMetrics = [
     renderCalendarMetric("고정 지출 예정", formatWon(scheduledTotal), `${scheduledRows.length.toLocaleString("ko-KR")}건 · 실 지출 미포함`, "scheduled", { priority: "support", key: "scheduled" }),
@@ -363,12 +466,15 @@ function renderCalendarMonthSummary(month, monthRows, byDate, dayCount, schedule
 
 function renderCalendarMetric(label, value, hint, tone, options = {}) {
   const attrs = options.incomeMonth ? ` data-open-income-month="${escapeHtml(options.incomeMonth)}"` : "";
+  const actionAttr = options.action ? ` data-calendar-summary-action="${escapeHtml(options.action)}"` : "";
   const metricAttr = options.key ? ` data-calendar-metric="${escapeHtml(options.key)}"` : "";
   const priorityClass = options.priority ? ` is-${escapeHtml(options.priority)}` : "";
-  const tagOpen = options.incomeMonth
-    ? `<button type="button" class="calendar-summary-card ${escapeHtml(tone)}${priorityClass}"${attrs}${metricAttr}>`
+  const isButton = Boolean(options.incomeMonth || options.action);
+  const expandedAttr = options.action ? ` aria-expanded="${options.expanded ? "true" : "false"}"` : "";
+  const tagOpen = isButton
+    ? `<button type="button" class="calendar-summary-card ${escapeHtml(tone)}${priorityClass}"${attrs}${actionAttr}${metricAttr}${expandedAttr}>`
     : `<article class="calendar-summary-card ${escapeHtml(tone)}${priorityClass}"${metricAttr}>`;
-  const tagClose = options.incomeMonth ? "button" : "article";
+  const tagClose = isButton ? "button" : "article";
   return `
     ${tagOpen}
       <span>${escapeHtml(label)}</span>
@@ -387,6 +493,28 @@ function attachCalendarSummaryHandlers(selectedMonth) {
         selectedDate: selectedCalendarDate,
         scrollToRecords: true
       });
+    });
+  });
+  els.calendarMonthSummary.querySelectorAll('[data-calendar-summary-action="card-billing"]').forEach((button) => {
+    button.addEventListener("click", () => {
+      calendarBillingExpanded = !calendarBillingExpanded;
+      renderCalendar();
+      if (calendarBillingExpanded) {
+        requestAnimationFrame(() => els.calendarBillingDetail?.scrollIntoView({ behavior: "smooth", block: "nearest" }));
+      }
+    });
+  });
+  els.calendarBillingDetail?.querySelector("[data-close-card-billing]")?.addEventListener("click", () => {
+    calendarBillingExpanded = false;
+    renderCalendar();
+    requestAnimationFrame(() => els.calendarMonthSummary?.querySelector('[data-calendar-summary-action="card-billing"]')?.focus());
+  });
+  els.calendarBillingDetail?.querySelector("[data-open-card-billing-settings]")?.addEventListener("click", (event) => {
+    setAdminTab("screen");
+    openAdminMenu({ returnFocus: event.currentTarget });
+    requestAnimationFrame(() => {
+      document.querySelector(".card-billing-settings-section")?.scrollIntoView({ block: "nearest" });
+      els.cardBillingStartDay?.focus();
     });
   });
 }

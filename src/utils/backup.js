@@ -467,7 +467,7 @@ function applyRestorePayload(payload, scopes, options = {}) {
   }
   if (selected.includes("settings")) {
     const incoming = bundle.sections.settings?.settings && typeof bundle.sections.settings.settings === "object" ? bundle.sections.settings.settings : {};
-    appSettings = { ...defaultAppSettings(), ...incoming };
+    appSettings = normalizeAppSettings(incoming);
     applyAppSettings();
   }
   if (selected.includes("importedExcelTransactions")) {

@@ -57,14 +57,34 @@ async function migrateCategorySystem() {
 
 async function loadSettings() {
   const stored = await safeLoad(SETTINGS_STORAGE_KEY, {});
+  return normalizeAppSettings(stored);
+}
+
+function normalizeAppSettings(value) {
   const defaults = defaultAppSettings();
-  const settings = stored && typeof stored === "object" ? { ...defaults, ...stored } : defaults;
-  settings.theme = normalizeTheme(settings.theme);
+  const source = value && typeof value === "object" ? value : {};
+  const settings = { ...defaults, ...source };
+  settings.theme = Number(source.themeRevision || 0) >= defaults.themeRevision
+    ? normalizeTheme(settings.theme)
+    : defaults.theme;
+  settings.themeRevision = defaults.themeRevision;
   settings.backgroundOpacity = clampNumber(settings.backgroundOpacity, 0, 0.45, defaults.backgroundOpacity);
   settings.backgroundBlur = clampNumber(settings.backgroundBlur, 0, 18, defaults.backgroundBlur);
   settings.backgroundOverlay = clampNumber(settings.backgroundOverlay, 0, 0.8, defaults.backgroundOverlay);
   settings.backgroundImage = typeof settings.backgroundImage === "string" ? settings.backgroundImage : "";
+  settings.cardBilling = normalizeCardBillingSettings(settings.cardBilling);
   return settings;
+}
+
+function normalizeCardBillingSettings(value) {
+  const defaults = defaultAppSettings().cardBilling;
+  const source = value && typeof value === "object" ? value : {};
+  return {
+    startDay: Math.round(clampNumber(source.startDay, 1, 31, defaults.startDay)),
+    endDay: Math.round(clampNumber(source.endDay, 1, 31, defaults.endDay)),
+    paymentDay: Math.round(clampNumber(source.paymentDay, 1, 31, defaults.paymentDay)),
+    weekendRule: source.weekendRule === "none" ? "none" : "next-monday"
+  };
 }
 
 function saveSettings() {
@@ -77,7 +97,8 @@ const THEME_BROWSER_COLORS = Object.freeze({
   slate: "#324d5b",
   dark: "#18211e",
   "clear-aqua": "#317b9f",
-  "sunlit-balance": "#367d9c"
+  "sunlit-balance": "#367d9c",
+  "garden-ink": "#365f7e"
 });
 
 function applyAppSettings() {
@@ -95,7 +116,9 @@ function applyAppSettings() {
 
 
 function normalizeTheme(value) {
-  return ["minimal", "warm", "slate", "dark", "clear-aqua", "sunlit-balance"].includes(value) ? value : "minimal";
+  return ["minimal", "warm", "slate", "dark", "clear-aqua", "sunlit-balance", "garden-ink"].includes(value)
+    ? value
+    : "garden-ink";
 }
 
 function clampNumber(value, min, max, fallback) {

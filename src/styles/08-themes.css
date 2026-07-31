@@ -232,6 +232,13 @@ textarea,
   --theme-preview-4: #d97870;
 }
 
+.theme-choice[data-theme-choice="garden-ink"] {
+  --theme-preview-1: #365f7e;
+  --theme-preview-2: #4995a6;
+  --theme-preview-3: #2f7b70;
+  --theme-preview-4: #b65d71;
+}
+
 .background-settings {
   display: grid;
   gap: 10px;

@@ -1,10 +1,17 @@
 function defaultAppSettings() {
   return {
-    theme: "minimal",
+    theme: "garden-ink",
+    themeRevision: 1,
     backgroundImage: "",
     backgroundOpacity: 0.14,
     backgroundBlur: 0,
     backgroundOverlay: 0.28,
+    cardBilling: {
+      startDay: 14,
+      endDay: 13,
+      paymentDay: 25,
+      weekendRule: "next-monday"
+    },
     lastSavedAt: "",
     lastSnapshotAt: "",
     lastDailySnapshotDate: ""
@@ -41,6 +48,11 @@ const els = {
   backgroundBlurValue: document.querySelector("#backgroundBlurValue"),
   backgroundOverlayValue: document.querySelector("#backgroundOverlayValue"),
   backgroundSettingsStatus: document.querySelector("#backgroundSettingsStatus"),
+  cardBillingStartDay: document.querySelector("#cardBillingStartDay"),
+  cardBillingEndDay: document.querySelector("#cardBillingEndDay"),
+  cardBillingPaymentDay: document.querySelector("#cardBillingPaymentDay"),
+  cardBillingWeekendRule: document.querySelector("#cardBillingWeekendRule"),
+  cardBillingSettingsStatus: document.querySelector("#cardBillingSettingsStatus"),
   adminMenuButton: document.querySelector("#adminMenuButton"),
   adminMenuCloseButton: document.querySelector("#adminMenuCloseButton"),
   adminMenuBackdrop: document.querySelector("#adminMenuBackdrop"),
@@ -113,7 +125,7 @@ const els = {
   summarySectorPickerIcon: document.querySelector("#summarySectorPickerIcon"),
   summarySectorPickerText: document.querySelector("#summarySectorPickerText"),
   summarySectorPickerMenu: document.querySelector("#summarySectorPickerMenu"),
-  summaryComparePreviousButton: document.querySelector("#summaryComparePreviousButton"),
+  summaryCompareYearButton: document.querySelector("#summaryCompareYearButton"),
   summaryCompareCustomButton: document.querySelector("#summaryCompareCustomButton"),
   summaryComparisonMonthField: document.querySelector("#summaryComparisonMonthField"),
   summaryComparisonMonthSelect: document.querySelector("#summaryComparisonMonthSelect"),
@@ -166,12 +178,16 @@ const els = {
   detailBulkListSearch: document.querySelector("#detailBulkListSearch"),
   detailBulkListSort: document.querySelector("#detailBulkListSort"),
   detailBulkRecordCount: document.querySelector("#detailBulkRecordCount"),
+  detailBulkTabRecordCount: document.querySelector("#detailBulkTabRecordCount"),
   detailBulkRecordList: document.querySelector("#detailBulkRecordList"),
+  detailBulkTabs: document.querySelectorAll("[data-detail-bulk-tab]"),
+  detailBulkPanels: document.querySelectorAll("[data-detail-bulk-panel]"),
   calendarMonth: document.querySelector("#calendarMonth"),
   calendarShowIncome: document.querySelector("#calendarShowIncome"),
   calendarPrevMonth: document.querySelector("#calendarPrevMonth"),
   calendarNextMonth: document.querySelector("#calendarNextMonth"),
   calendarMonthSummary: document.querySelector("#calendarMonthSummary"),
+  calendarBillingDetail: document.querySelector("#calendarBillingDetail"),
   calendarMonthlyMemo: document.querySelector("#calendarMonthlyMemo"),
   calendarCurrentMonthLabel: document.querySelector("#calendarCurrentMonthLabel"),
   spendingCalendar: document.querySelector("#spendingCalendar"),
@@ -335,6 +351,7 @@ let calendarEditFeedback = null;
 let calendarDetailReturnState = null;
 let calendarMemoSaveTimer = null;
 let calendarMemoSelectionRange = null;
+let calendarBillingExpanded = false;
 let currentFileName = "";
 let boardExpandedSectors = new Set();
 let boardExpandedMonth = "";
@@ -353,6 +370,7 @@ let selectedIpoCalendarDate = "";
 let selectedIpoCalendarRecordId = "";
 let selectedIpoCalendarEventKey = "";
 let editingDetailBulkRecordKey = "";
+let selectedDetailBulkSubtab = "input";
 let editingIncomeKey = "";
 let editingRecurringId = "";
 let preferredIncomeMonth = "";
@@ -367,7 +385,7 @@ let selectedSummaryMonth = "";
 let selectedSummaryRangePreset = "recent-12";
 let selectedSummaryStartMonth = "";
 let selectedSummaryEndMonth = "";
-let selectedSummaryComparisonMode = "previous";
+let selectedSummaryComparisonMode = "year-over-year";
 let selectedSummaryComparisonMonth = "";
 let selectedSummarySubtab = "trend";
 let expandedSummaryDetailSector = "";

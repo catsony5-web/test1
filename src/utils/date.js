@@ -16,6 +16,7 @@ function moveCalendarMonth(offset) {
   selectedCalendarMonth = shiftMonthKey(current, offset);
   setSharedSelectedMonth(selectedCalendarMonth, { syncControls: false });
   selectedCalendarDate = "";
+  calendarBillingExpanded = false;
   renderCalendar();
 }
 

@@ -38,6 +38,27 @@ function setupAppearanceControls() {
     });
     control.addEventListener("change", () => saveSettings());
   });
+
+  [
+    els.cardBillingStartDay,
+    els.cardBillingEndDay,
+    els.cardBillingPaymentDay,
+    els.cardBillingWeekendRule
+  ].forEach((control) => {
+    control?.addEventListener("change", saveCardBillingSettings);
+  });
+}
+
+async function saveCardBillingSettings() {
+  appSettings.cardBilling = normalizeCardBillingSettings({
+    startDay: els.cardBillingStartDay?.value,
+    endDay: els.cardBillingEndDay?.value,
+    paymentDay: els.cardBillingPaymentDay?.value,
+    weekendRule: els.cardBillingWeekendRule?.value
+  });
+  syncCardBillingControls();
+  await saveSettings();
+  if (document.querySelector("#calendarView")?.classList.contains("active")) renderCalendar();
 }
 
 async function handleBackgroundImageSelection(event) {
@@ -90,6 +111,21 @@ function syncAppearanceControls() {
     els.backgroundPreview.classList.toggle("has-image", Boolean(image));
   }
   if (els.applyBackgroundButton) els.applyBackgroundButton.disabled = !pendingBackgroundImageData;
+  syncCardBillingControls();
+}
+
+function syncCardBillingControls() {
+  const settings = normalizeCardBillingSettings(appSettings.cardBilling);
+  appSettings.cardBilling = settings;
+  if (els.cardBillingStartDay) els.cardBillingStartDay.value = settings.startDay;
+  if (els.cardBillingEndDay) els.cardBillingEndDay.value = settings.endDay;
+  if (els.cardBillingPaymentDay) els.cardBillingPaymentDay.value = settings.paymentDay;
+  if (els.cardBillingWeekendRule) els.cardBillingWeekendRule.value = settings.weekendRule;
+  if (els.cardBillingSettingsStatus) {
+    const weekendText = settings.weekendRule === "next-monday" ? "주말은 다음 월요일" : "주말도 지정일";
+    const endPrefix = settings.startDay > settings.endDay ? "다음 달 " : "";
+    els.cardBillingSettingsStatus.textContent = `매월 ${settings.startDay}일~${endPrefix}${settings.endDay}일 사용분 · ${settings.paymentDay}일 결제 · ${weekendText}`;
+  }
 }
 
 function setBackgroundStatus(message) {
