@@ -276,6 +276,7 @@ async function init() {
   });
   els.ipoCalendarCompactView?.addEventListener("click", () => setIpoCalendarDensity("compact"));
   els.ipoCalendarFullView?.addEventListener("click", () => setIpoCalendarDensity("full"));
+  els.ipoCalendarGrid?.addEventListener("keydown", handleIpoCalendarGridKeydown);
   els.selectChangedIpoSchedules?.addEventListener("click", toggleIpoScheduleSelection);
   els.applySelectedIpoSchedules?.addEventListener("click", () => applyIpoScheduleUpdates([...selectedIpoScheduleIds]));
   els.prevIpoCalendarMonth?.addEventListener("click", () => moveIpoCalendarMonth(-1));

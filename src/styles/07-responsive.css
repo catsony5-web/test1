@@ -326,21 +326,33 @@
     padding: 5px 6px;
   }
 
-  .ipo-calendar-event small,
-  .ipo-calendar-event b {
-    display: none;
-  }
-
   .ipo-calendar-grid[data-density="compact"] .ipo-calendar-cell {
     gap: 4px;
     min-height: 96px;
     padding: 5px;
   }
 
+  .ipo-calendar-grid {
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .ipo-calendar-grid .ipo-calendar-weekdays,
+  .ipo-calendar-grid .ipo-calendar-month-grid {
+    min-width: 700px;
+  }
+
+  .ipo-calendar-grid[data-density="full"] .ipo-calendar-weekdays,
+  .ipo-calendar-grid[data-density="full"] .ipo-calendar-month-grid {
+    min-width: 840px;
+  }
+
   .ipo-calendar-grid[data-density="compact"] .ipo-calendar-event {
     grid-template-columns: 1fr;
     gap: 2px;
-    min-height: 34px;
+    min-height: 42px;
     padding: 4px;
   }
 
@@ -351,7 +363,7 @@
   }
 
   .ipo-calendar-grid[data-density="compact"] .ipo-calendar-event strong {
-    font-size: 9px;
+    font-size: 10px;
   }
 
   .ipo-calendar-detail-grid {

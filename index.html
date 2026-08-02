@@ -13,12 +13,12 @@
   <link rel="stylesheet" href="src/styles/03-components.css?v=140-long-term-trend">
   <link rel="stylesheet" href="src/styles/04-forms-tables.css?v=83">
   <link rel="stylesheet" href="src/styles/05-charts.css?v=156-loan-sharing">
-  <link rel="stylesheet" href="src/styles/06-features.css?v=162-ipo-calendar-compact">
-  <link rel="stylesheet" href="src/styles/07-responsive.css?v=162-ipo-calendar-compact">
+  <link rel="stylesheet" href="src/styles/06-features.css?v=164-ipo-calendar-readable-full-3line">
+  <link rel="stylesheet" href="src/styles/07-responsive.css?v=164-ipo-calendar-readable-full-3line">
   <link rel="stylesheet" href="src/styles/08-themes.css?v=151-loan-repayments">
   <link rel="stylesheet" href="assets/tabler/tabler-icons.min.css?v=135-subcategory-icons">
-  <link rel="stylesheet" href="src/styles/09-production-ui.css?v=160-sector-comparison">
-  <link rel="stylesheet" href="src/styles/10-analysis.css?v=160-analysis-clarity">
+  <link rel="stylesheet" href="src/styles/09-production-ui.css?v=161-sector-comparison">
+  <link rel="stylesheet" href="src/styles/10-analysis.css?v=161-analysis-clarity">
   <script src="assets/vendor/xlsx.full.min.js"></script>
 </head>
 <body data-app-name="소비 분석">
@@ -791,7 +791,7 @@
             <div id="ipoCalendarSyncMeta" class="ipo-calendar-sync-meta" aria-live="polite">공개 일정을 확인하는 중입니다.</div>
             <div id="ipoCumulativePerformance" class="ipo-cumulative-performance" aria-label="전체 기간 누적 공모주 성과"></div>
             <div class="ipo-calendar-body">
-              <div id="ipoCalendarGrid" class="ipo-calendar-grid"></div>
+              <div id="ipoCalendarGrid" class="ipo-calendar-grid" role="region" tabindex="0" aria-label="공모주 월간 달력. 작은 화면에서는 좌우로 스크롤할 수 있습니다."></div>
               <aside id="ipoCalendarDetail" class="ipo-calendar-detail" aria-live="polite"></aside>
             </div>
           </section>
@@ -1323,7 +1323,7 @@
     </article>
   </template>
 
-  <script src="src/data/constants.js?v=158-ipo-custom-range"></script>
+  <script src="src/data/constants.js?v=164-ipo-calendar-readable-full-3line"></script>
   <script src="src/data/categories.js?v=136-mineral-layers"></script>
   <script src="src/data/rules.js?v=93"></script>
   <script src="src/data/board-sections.js?v=151-loan-repayments"></script>
@@ -1358,7 +1358,7 @@
   <script src="src/features/summary/comparison-analysis.js?v=151-loan-repayments"></script>
   <script src="src/features/summary/summary-view.js?v=151-loan-repayments"></script>
   <script src="src/features/summary/sector-analysis.js?v=151-loan-repayments"></script>
-  <script src="src/features/summary/summary-chart.js?v=160-sector-comparison"></script>
+  <script src="src/features/summary/summary-chart.js?v=161-sector-comparison"></script>
   <script src="src/features/monthly/monthly-flow.js?v=156-loan-sharing"></script>
   <script src="src/features/monthly/monthly-chart.js?v=156-loan-sharing"></script>
   <script src="src/features/income/income-entry.js?v=61"></script>
@@ -1370,13 +1370,13 @@
   <script src="src/features/analysis/monthly-analysis-view.js?v=156-loan-sharing"></script>
   <script src="src/features/analysis/spending-structure-view.js?v=156-loan-sharing"></script>
   <script src="src/features/products/products-view.js?v=62"></script>
-  <script src="src/features/ipo/ipo-view.js?v=162-ipo-calendar-compact"></script>
+  <script src="src/features/ipo/ipo-view.js?v=164-ipo-calendar-readable-full-3line"></script>
   <script src="src/features/unknown/unknown-view.js?v=97"></script>
   <script src="src/features/transactions/transactions-view.js?v=77"></script>
 
   <script src="src/features/app/navigation.js?v=112"></script>
   <script src="src/features/app/appearance.js?v=141-garden-analysis"></script>
   <script src="src/features/app/render-all.js?v=151-loan-repayments"></script>
-  <script src="src/features/app/init.js?v=162-ipo-calendar-compact"></script>
+  <script src="src/features/app/init.js?v=164-ipo-calendar-readable-full-3line"></script>
 </body>
 </html>

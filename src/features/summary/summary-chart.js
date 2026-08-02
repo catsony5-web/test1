@@ -1,4 +1,5 @@
 function renderSectorTrend(activeRows, months, sectorNames, selectedSector, selectedMonth, comparison) {
+  syncSectorTrendHeading(selectedSector, comparison);
   const selectableSectors = sectorNames.filter((sector) => sector !== "수입");
   if (!activeRows.length || !selectableSectors.length) {
     els.sectorTrendChart.innerHTML = `<div class="empty">섹터별 그래프를 보려면 먼저 엑셀 파일을 불러오세요.</div>`;
@@ -24,6 +25,17 @@ function renderSectorTrend(activeRows, months, sectorNames, selectedSector, sele
   });
   els.sectorTrendChart.innerHTML = renderSectorTrendChart(points, selectedSector, selectedMonth, comparison);
   attachSectorTrendHandlers(comparison);
+}
+
+function syncSectorTrendHeading(selectedSector, comparison) {
+  const sector = selectedSector || "선택 섹터";
+  const comparisonLabel = comparison?.comparisonLabel || "비교 기준";
+  const title = document.querySelector("#sectorTrendTitle");
+  const description = document.querySelector("#sectorTrendDescription");
+  if (title) title.textContent = `월별 섹터 요약 · ${sector}`;
+  if (description) {
+    description.textContent = `선택 기간의 월별 ${sector} 지출을 ${comparisonLabel} 기준으로 나란히 비교합니다.`;
+  }
 }
 
 function summaryComparisonMonthOffset(comparison) {
@@ -103,14 +115,22 @@ function renderSectorTrendChart(points, sector, selectedMonth = "", comparison) 
     : 0;
   const selectedPoint = points.find((point) => point.month === selectedMonth) || points.at(-1);
   const selectedDelta = selectedPoint.currentAmount - selectedPoint.comparisonAmount;
-  const comparisonName = comparison.mode === "custom" ? "비교 간격" : "전년 동월";
-  const selectedCopy = !selectedPoint.comparisonExists
-    ? "비교 기록 없음"
-    : selectedDelta > 0
-      ? `${comparisonName}보다 증가`
-      : selectedDelta < 0
-        ? `${comparisonName}보다 감소`
-        : `${comparisonName}과 동일`;
+  const comparisonName = comparison.comparisonLabel || (comparison.mode === "custom" ? "비교월" : "전년 동월");
+  const selectedChange = formatSummaryComparisonChange(selectedPoint.currentAmount, selectedPoint.comparisonAmount);
+  const deltaDirection = selectedDelta > 0 ? "증가" : selectedDelta < 0 ? "감소" : "변화 없음";
+  const deltaAmountText = !selectedPoint.comparisonExists
+    ? "-"
+    : selectedDelta
+      ? `${formatWon(Math.abs(selectedDelta))} ${deltaDirection}`
+      : deltaDirection;
+  const deltaComparisonText = !selectedPoint.comparisonExists
+    ? `${selectedPoint.comparisonMonth} 기록 없음`
+    : selectedDelta
+      ? `${selectedChange.rateLabel} · ${comparisonName}보다 ${selectedDelta > 0 ? "더 지출" : "적게 지출"}`
+      : `${comparisonName}과 동일`;
+  const deltaIcon = !selectedPoint.comparisonExists || selectedDelta === 0
+    ? "ti-arrows-exchange"
+    : "ti-chevron-down";
   const insightItems = [
     {
       label: "선택 월",
@@ -183,9 +203,12 @@ function renderSectorTrendChart(points, sector, selectedMonth = "", comparison) 
 
   return `
     <div class="trend-chart-topline">
-      <div class="trend-chart-meta">
-        ${categoryChip(sector)}
-        <span>${escapeHtml(points[0].month)} - ${escapeHtml(points.at(-1).month)} · ${points.length.toLocaleString("ko-KR")}개월</span>
+      <div class="trend-chart-heading">
+        <h4>${escapeHtml(sector)} 월별 지출</h4>
+        <div class="trend-chart-meta">
+          ${categoryChip(sector)}
+          <span>${escapeHtml(points[0].month)} - ${escapeHtml(points.at(-1).month)} · ${points.length.toLocaleString("ko-KR")}개월</span>
+        </div>
       </div>
       <div class="trend-legend">
         <span><b class="legend-comparison"></b>${escapeHtml(comparisonName)}</span>
@@ -209,17 +232,32 @@ function renderSectorTrendChart(points, sector, selectedMonth = "", comparison) 
           ${bars}
         </svg>
       </div>
-      <aside class="trend-selected-inspector" aria-label="선택한 달 요약">
-        <span>선택한 달</span>
-        <h4><i class="ti ti-calendar-month" aria-hidden="true"></i>${escapeHtml(selectedPoint.month)}</h4>
-        <div class="trend-selected-delta ${selectedPoint.comparisonExists ? (selectedDelta > 0 ? "up" : selectedDelta < 0 ? "down" : "neutral") : "neutral"}">
-          <span>${escapeHtml(selectedCopy)}</span>
-          <strong>${selectedPoint.comparisonExists ? formatSignedWon(selectedDelta) : "-"}</strong>
+      <aside class="trend-selected-inspector" aria-labelledby="trendSelectedComparisonTitle">
+        <header class="trend-selected-inspector-head">
+          <span>선택 섹터 비교</span>
+          <h4 id="trendSelectedComparisonTitle">${escapeHtml(sector)} 비교</h4>
+        </header>
+        <div class="trend-period-card current">
+          <div class="trend-period-heading">
+            <span class="trend-period-badge">선택 월</span>
+            <strong>${escapeHtml(selectedPoint.month)} ${escapeHtml(sector)}</strong>
+          </div>
+          <b class="trend-period-amount">${formatWon(selectedPoint.currentAmount)}</b>
         </div>
-        <dl>
-          <div><dt>${escapeHtml(selectedPoint.month)} ${escapeHtml(sector)}</dt><dd>${formatWon(selectedPoint.currentAmount)}</dd></div>
-          <div><dt>${escapeHtml(selectedPoint.comparisonMonth)} ${escapeHtml(sector)}</dt><dd>${selectedPoint.comparisonExists ? formatWon(selectedPoint.comparisonAmount) : "-"}</dd></div>
-        </dl>
+        <div class="trend-period-card comparison">
+          <div class="trend-period-heading">
+            <span class="trend-period-badge">${escapeHtml(comparisonName)}</span>
+            <strong>${escapeHtml(selectedPoint.comparisonMonth)} ${escapeHtml(sector)}</strong>
+          </div>
+          <b class="trend-period-amount">${selectedPoint.comparisonExists ? formatWon(selectedPoint.comparisonAmount) : "-"}</b>
+        </div>
+        <div class="trend-selected-delta ${selectedPoint.comparisonExists ? (selectedDelta > 0 ? "up" : selectedDelta < 0 ? "down" : "neutral") : "neutral"}">
+          <span class="trend-delta-icon"><i class="ti ${deltaIcon}" aria-hidden="true"></i></span>
+          <div>
+            <strong>${escapeHtml(deltaAmountText)}</strong>
+            <small>${escapeHtml(deltaComparisonText)}</small>
+          </div>
+        </div>
         <button type="button" data-trend-detail-month="${escapeHtml(selectedPoint.month)}" data-trend-detail-sector="${escapeHtml(sector)}">상세 내역 보기 <i class="ti ti-chevron-right" aria-hidden="true"></i></button>
       </aside>
     </div>

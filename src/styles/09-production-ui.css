@@ -1570,6 +1570,19 @@
   min-height: 28px;
 }
 
+#summaryView .trend-chart-heading {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+#summaryView .trend-chart-heading h4 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 850;
+}
+
 #summaryView .trend-insight-row {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1617,8 +1630,8 @@
 
 #summaryView .trend-workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(220px, 260px);
-  gap: 14px;
+  grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
+  gap: 16px;
   align-items: stretch;
   min-width: 0;
 }
@@ -1660,43 +1673,148 @@
 #summaryView .trend-selected-inspector {
   display: grid;
   align-content: start;
-  gap: 16px;
+  gap: 12px;
   min-width: 0;
   border: 1px solid var(--border-subtle);
   border-radius: 8px;
-  padding: 18px;
+  padding: 16px;
   background: var(--bg-card);
 }
 
-#summaryView .trend-selected-inspector > span,
-#summaryView .trend-selected-delta span,
-#summaryView .trend-selected-inspector dt {
+#summaryView .trend-selected-inspector-head {
+  display: grid;
+  gap: 3px;
+}
+
+#summaryView .trend-selected-inspector-head > span {
   color: var(--text-secondary);
   font-size: 12px;
   font-weight: 750;
 }
 
-#summaryView .trend-selected-inspector h4 {
-  display: flex;
-  gap: 8px;
-  align-items: center;
+#summaryView .trend-selected-inspector-head h4 {
+  margin: 0;
   color: var(--text-primary);
-  font-family: var(--font-number);
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 850;
+}
+
+#summaryView .trend-period-card {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 14px;
+  background: color-mix(in srgb, var(--bg-muted) 52%, var(--bg-card));
+}
+
+#summaryView .trend-period-card.current {
+  border-color: color-mix(in srgb, var(--accent-positive) 24%, var(--border-subtle));
+  background: color-mix(in srgb, var(--status-positive-bg) 42%, var(--bg-card));
+}
+
+#summaryView .trend-period-card.comparison {
+  border-color: color-mix(in srgb, var(--accent-blue) 24%, var(--border-subtle));
+  background: color-mix(in srgb, var(--accent-blue) 6%, var(--bg-card));
+}
+
+#summaryView .trend-period-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+#summaryView .trend-period-heading strong {
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 820;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#summaryView .trend-period-badge {
+  flex: 0 0 auto;
+  border-radius: 5px;
+  padding: 4px 7px;
+  background: var(--accent-positive);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+#summaryView .trend-period-card.comparison .trend-period-badge {
+  background: var(--accent-blue);
+}
+
+#summaryView .trend-period-amount {
+  color: var(--accent-positive);
+  font-family: var(--font-number);
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1.12;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#summaryView .trend-period-card.comparison .trend-period-amount {
+  color: var(--accent-blue);
 }
 
 #summaryView .trend-selected-delta {
   display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  min-width: 0;
+  padding: 4px 2px;
+}
+
+#summaryView .trend-delta-icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--status-positive-bg);
+  color: var(--accent-positive);
+  font-size: 23px;
+}
+
+#summaryView .trend-selected-delta.up .trend-delta-icon {
+  background: var(--status-negative-bg);
+  color: var(--accent-negative);
+}
+
+#summaryView .trend-selected-delta.up .trend-delta-icon i {
+  transform: rotate(180deg);
+}
+
+#summaryView .trend-selected-delta.neutral .trend-delta-icon {
+  background: var(--bg-muted);
+  color: var(--text-secondary);
+}
+
+#summaryView .trend-selected-delta > div {
+  display: grid;
   gap: 4px;
-  border-bottom: 1px solid var(--border-subtle);
-  padding-bottom: 14px;
+  min-width: 0;
 }
 
 #summaryView .trend-selected-delta strong {
   font-family: var(--font-number);
-  font-size: 24px;
-  font-weight: 850;
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+#summaryView .trend-selected-delta small {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 750;
 }
 
 #summaryView .trend-selected-delta.up strong {
@@ -1705,23 +1823,6 @@
 
 #summaryView .trend-selected-delta.down strong {
   color: var(--accent-positive);
-}
-
-#summaryView .trend-selected-inspector dl {
-  display: grid;
-  gap: 10px;
-}
-
-#summaryView .trend-selected-inspector dl div {
-  display: grid;
-  gap: 3px;
-}
-
-#summaryView .trend-selected-inspector dd {
-  color: var(--text-primary);
-  font-family: var(--font-number);
-  font-size: 15px;
-  font-weight: 800;
 }
 
 #summaryView .trend-selected-inspector button,
@@ -2198,16 +2299,14 @@
   }
 
   #summaryView .trend-selected-inspector {
-    grid-template-columns: minmax(150px, 0.6fr) minmax(180px, 0.8fr) minmax(220px, 1.2fr) minmax(180px, 0.8fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: center;
   }
 
-  #summaryView .trend-selected-inspector > span {
-    display: none;
-  }
-
-  #summaryView .trend-selected-inspector dl {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  #summaryView .trend-selected-inspector-head,
+  #summaryView .trend-selected-delta,
+  #summaryView .trend-selected-inspector > button {
+    grid-column: 1 / -1;
   }
 }
 
@@ -2286,8 +2385,14 @@
     grid-template-columns: 1fr;
   }
 
-  #summaryView .trend-selected-inspector > span {
-    display: block;
+  #summaryView .trend-selected-inspector-head,
+  #summaryView .trend-selected-delta,
+  #summaryView .trend-selected-inspector > button {
+    grid-column: auto;
+  }
+
+  #summaryView .trend-period-amount {
+    font-size: 24px;
   }
 
   #summaryView .summary-ranking-row {

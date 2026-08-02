@@ -845,6 +845,18 @@ function setIpoCalendarDensity(mode) {
   renderIpoCalendar();
 }
 
+function handleIpoCalendarGridKeydown(event) {
+  if (
+    event.target !== els.ipoCalendarGrid
+    || !window.matchMedia("(max-width: 767px)").matches
+    || !["ArrowLeft", "ArrowRight"].includes(event.key)
+  ) return;
+  event.preventDefault();
+  const direction = event.key === "ArrowLeft" ? -1 : 1;
+  const distance = Math.max(120, Math.round(els.ipoCalendarGrid.clientWidth * 0.8));
+  els.ipoCalendarGrid.scrollBy({ left: direction * distance, behavior: "auto" });
+}
+
 function syncIpoCalendarDensityControls() {
   [
     [els.ipoCalendarCompactView, "compact"],
@@ -982,28 +994,36 @@ function buildIpoScheduleCalendarEvents(item) {
   ].filter(Boolean);
 }
 
+function renderIpoCalendarEventAriaLabel(event, details = []) {
+  const visibleDetails = ipoCalendarDensity === "compact" ? [] : details.filter(Boolean);
+  const label = [event.item.company, event.type, ...visibleDetails, formatIpoDisplayDate(event.date)].join(" · ");
+  return ` aria-label="${escapeHtml(label)}"`;
+}
+
 function renderIpoCalendarEvent(event) {
   if (event.publicSchedule) {
+    const broker = event.item.broker || "주관사 미정";
+    const price = renderIpoSchedulePrice(event.item);
     return `
-      <button class="ipo-calendar-event ${escapeHtml(ipoCalendarEventClass(event))} ${isSelectedIpoCalendarEvent(event) ? "selected" : ""}" type="button" data-ipo-calendar-date="${escapeHtml(event.date)}" data-ipo-calendar-record="${escapeHtml(event.item.id)}" data-ipo-calendar-event="${escapeHtml(event.key)}">
-        <span class="ipo-event-type">${escapeHtml(event.type)}</span>
+      <button class="ipo-calendar-event ${escapeHtml(ipoCalendarEventClass(event))} ${isSelectedIpoCalendarEvent(event) ? "selected" : ""}"${renderIpoCalendarEventAriaLabel(event, [broker, price])} type="button" data-ipo-calendar-date="${escapeHtml(event.date)}" data-ipo-calendar-record="${escapeHtml(event.item.id)}" data-ipo-calendar-event="${escapeHtml(event.key)}">
         <strong>${escapeHtml(event.item.company)}</strong>
-        <small>${escapeHtml([event.item.broker, "KRX 공개"].filter(Boolean).join(" · "))}</small>
-        <b>${escapeHtml(renderIpoSchedulePrice(event.item))}</b>
+        <span class="ipo-event-type">${escapeHtml(event.type)}</span>
+        <small>${escapeHtml(broker)}</small>
+        <b>${escapeHtml(price)}</b>
       </button>
     `;
   }
-  const status = ipoStatus(event.item);
+  const broker = event.item.broker || "주관사 미정";
   const isSaleEvent = ipoCalendarEventIncludesSale(event);
   const settlementProfit = Number(event.item.settlementProfit || 0);
   const amount = isSaleEvent
     ? formatSignedWon(settlementProfit)
     : formatWon(event.item.offerPrice || event.item.depositAmount || 0);
   return `
-    <button class="ipo-calendar-event ${escapeHtml(ipoCalendarEventClass(event))} ${isSelectedIpoCalendarEvent(event) ? "selected" : ""}" type="button" data-ipo-calendar-date="${escapeHtml(event.date)}" data-ipo-calendar-record="${escapeHtml(event.item.id)}" data-ipo-calendar-event="${escapeHtml(event.key)}">
-      <span class="ipo-event-type">${escapeHtml(event.type)}</span>
+    <button class="ipo-calendar-event ${escapeHtml(ipoCalendarEventClass(event))} ${isSelectedIpoCalendarEvent(event) ? "selected" : ""}"${renderIpoCalendarEventAriaLabel(event, [broker, amount])} type="button" data-ipo-calendar-date="${escapeHtml(event.date)}" data-ipo-calendar-record="${escapeHtml(event.item.id)}" data-ipo-calendar-event="${escapeHtml(event.key)}">
       <strong>${escapeHtml(event.item.company)}</strong>
-      <small>${escapeHtml([event.item.broker, status.label].filter(Boolean).join(" · "))}</small>
+      <span class="ipo-event-type">${escapeHtml(event.type)}</span>
+      <small>${escapeHtml(broker)}</small>
       <b class="${settlementProfit > 0 && isSaleEvent ? "positive" : settlementProfit < 0 && isSaleEvent ? "negative" : ""}">${escapeHtml(amount)}</b>
     </button>
   `;

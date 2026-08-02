@@ -509,6 +509,20 @@
   font-variant-numeric: tabular-nums;
 }
 
+#monthlyAnalysisView .analysis-insight-panel .analysis-panel-head h3 {
+  font-size: 20px;
+}
+
+#monthlyAnalysisView .analysis-insight-panel .analysis-insight-copy strong {
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+#monthlyAnalysisView .analysis-insight-panel .analysis-insight-amount {
+  font-size: 18px;
+  font-weight: 850;
+}
+
 .analysis-row-action {
   grid-column: 2;
   display: inline-flex;

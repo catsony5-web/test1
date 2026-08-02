@@ -1092,6 +1092,11 @@ button.summary-metric-card:hover {
   min-width: 0;
 }
 
+.ipo-calendar-grid:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 3px;
+}
+
 .ipo-calendar-weekdays,
 .ipo-calendar-month-grid {
   display: grid;
@@ -1192,15 +1197,6 @@ button.summary-metric-card:hover {
   border-left-style: solid;
 }
 
-.ipo-calendar-event.public-schedule::after {
-  content: "공개";
-  justify-self: end;
-  margin-top: -19px;
-  color: var(--text-sub);
-  font-size: 9px;
-  font-weight: 900;
-}
-
 .ipo-calendar-event.cancelled {
   opacity: 0.66;
   text-decoration: line-through;
@@ -1215,6 +1211,51 @@ button.summary-metric-card:hover {
   white-space: nowrap;
 }
 
+.ipo-calendar-grid[data-density="full"] .ipo-calendar-event {
+  grid-template-areas:
+    "name"
+    "broker"
+    "type"
+    "price";
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 4px;
+  padding: 7px;
+}
+
+.ipo-calendar-grid[data-density="full"] .ipo-calendar-event strong {
+  display: -webkit-box;
+  grid-area: name;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+  line-height: 1.3;
+  text-overflow: clip;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.ipo-calendar-grid[data-density="full"] .ipo-calendar-event .ipo-event-type {
+  grid-area: type;
+}
+
+.ipo-calendar-grid[data-density="full"] .ipo-calendar-event small {
+  display: -webkit-box;
+  grid-area: broker;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+  text-overflow: clip;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.ipo-calendar-grid[data-density="full"] .ipo-calendar-event b {
+  grid-area: price;
+  line-height: 1.25;
+  white-space: normal;
+}
+
 .ipo-calendar-grid[data-density="compact"] .ipo-calendar-cell {
   gap: 5px;
   min-height: 104px;
@@ -1226,29 +1267,39 @@ button.summary-metric-card:hover {
 }
 
 .ipo-calendar-grid[data-density="compact"] .ipo-calendar-event {
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: 6px;
-  min-height: 31px;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-items: start;
+  gap: 3px;
+  min-height: 42px;
   border-radius: 8px;
-  padding: 4px 6px;
+  padding: 5px 6px;
 }
 
 .ipo-calendar-grid[data-density="compact"] .ipo-calendar-event .ipo-event-type {
-  max-width: 70px;
+  grid-row: 2;
+  max-width: 100%;
   overflow: hidden;
-  padding: 3px 5px;
+  padding: 2px 5px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .ipo-calendar-grid[data-density="compact"] .ipo-calendar-event strong {
+  display: -webkit-box;
+  grid-row: 1;
+  overflow: hidden;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   font-size: 11px;
 }
 
 .ipo-calendar-grid[data-density="compact"] .ipo-calendar-event small,
-.ipo-calendar-grid[data-density="compact"] .ipo-calendar-event b,
-.ipo-calendar-grid[data-density="compact"] .ipo-calendar-event.public-schedule::after {
+.ipo-calendar-grid[data-density="compact"] .ipo-calendar-event b {
   display: none;
 }
 
