@@ -1,3 +1,45 @@
+function calendarSpendLevel(amount) {
+  const value = Math.max(0, Number(amount) || 0);
+  if (value >= 300000) return 4;
+  if (value >= 100000) return 3;
+  if (value >= 50000) return 2;
+  if (value > 0) return 1;
+  return 0;
+}
+
+function calendarCellAriaLabel(dateKey, actualTotal, rows, incomeRows, pendingRows, postedRows) {
+  const parts = [
+    dateKey,
+    actualTotal > 0 ? `실 지출 ${formatWon(actualTotal)}` : "실 지출 없음"
+  ];
+  if (rows.length) parts.push(`거래 ${rows.length.toLocaleString("ko-KR")}건`);
+  if (incomeRows.length) parts.push(`수입 ${formatWon(sum(incomeRows, "amount"))}`);
+  if (pendingRows.length) parts.push(`고정 지출 예정 ${formatWon(sum(pendingRows, "amount"))}`);
+  if (postedRows.length) parts.push(`고정 지출 반영 ${postedRows.length.toLocaleString("ko-KR")}건`);
+  return parts.join(", ");
+}
+
+function renderCalendarHeatLegend() {
+  const items = [
+    { level: 0, text: "0", label: "실 지출 없음" },
+    { level: 1, text: "<5만", label: "실 지출 1원 이상 5만원 미만" },
+    { level: 2, text: "<10만", label: "실 지출 5만원 이상 10만원 미만" },
+    { level: 3, text: "<30만", label: "실 지출 10만원 이상 30만원 미만" },
+    { level: 4, text: "30만+", label: "실 지출 30만원 이상" }
+  ];
+  return `
+    <div class="calendar-heat-legend" role="list" aria-label="일별 실 지출 색상 기준">
+      <strong>일 실지출</strong>
+      ${items.map((item) => `
+        <span role="listitem" aria-label="${escapeHtml(item.label)}" title="${escapeHtml(item.label)}">
+          <i data-spend-level="${item.level}" aria-hidden="true"></i>
+          <span aria-hidden="true">${escapeHtml(item.text)}</span>
+        </span>
+      `).join("")}
+    </div>
+  `;
+}
+
 function renderCalendar() {
   const active = reportingExpenseRows(classified);
   const months = appMonthOptions([
@@ -71,8 +113,10 @@ function renderCalendar() {
     const total = sumActual(rows);
     const plannedTotal = sum(pendingPlannedRows, "amount");
     const isSelected = activeDate === dateKey;
+    const spendLevel = calendarSpendLevel(total);
+    const ariaLabel = calendarCellAriaLabel(dateKey, total, rows, dayIncomeRows, pendingPlannedRows, postedPlannedRows);
     cells.push(`
-      <button class="calendar-cell ${rows.length ? "has-spend" : ""} ${pendingPlannedRows.length ? "has-scheduled" : ""} ${plannedRows.some((item) => item.posted) ? "has-posted-scheduled" : ""} ${isSelected ? "selected" : ""}" type="button" data-calendar-date="${escapeHtml(dateKey)}">
+      <button class="calendar-cell ${rows.length ? "has-spend" : ""} ${pendingPlannedRows.length ? "has-scheduled" : ""} ${plannedRows.some((item) => item.posted) ? "has-posted-scheduled" : ""} ${isSelected ? "selected" : ""}" type="button" data-calendar-date="${escapeHtml(dateKey)}" data-spend-level="${spendLevel}" aria-label="${escapeHtml(ariaLabel)}">
         <span class="calendar-day">${day}</span>
         ${rows.length ? `<strong>${formatWon(total)}</strong>` : ""}
         ${dayIncomeRows.length ? `<em class="calendar-income-label">수입 ${formatWon(sum(dayIncomeRows, "amount"))}</em>` : ""}
@@ -114,6 +158,7 @@ function renderCalendarCurrentMonthLabel(month, scheduledRows = []) {
       <strong>${escapeHtml(year)}년 ${escapeHtml(monthNumber)}월</strong>
       <span>선택 월 소비 달력</span>
     </div>
+    ${renderCalendarHeatLegend()}
     <div class="calendar-current-month-actions">
       ${calendarDetailReturnState ? `<button type="button" class="calendar-detail-return-button" data-calendar-return-detail>← 상세내역으로 돌아가기</button>` : ""}
       ${scheduledCount ? `<em>고정 지출 예정 ${scheduledCount.toLocaleString("ko-KR")}건 · ${formatWon(scheduledTotal)}</em>` : `<em>고정 지출 일정은 등록된 날에만 표시됩니다.</em>`}
