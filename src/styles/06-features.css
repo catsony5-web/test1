@@ -498,7 +498,7 @@ button.summary-metric-card:hover {
 
 .ipo-calendar-toolbar {
   display: flex;
-  align-items: end;
+  align-items: center;
   justify-content: flex-end;
   gap: 12px;
   min-width: 0;
@@ -525,6 +525,34 @@ button.summary-metric-card:hover {
   height: 16px;
   margin: 0;
   accent-color: var(--accent-blue);
+}
+
+.ipo-calendar-view-modes {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(52px, 1fr));
+  gap: 3px;
+  min-height: 38px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-soft);
+  padding: 3px;
+}
+
+.ipo-calendar-view-modes button {
+  min-height: 30px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-sub);
+  font-size: 12px;
+  font-weight: 900;
+  padding: 0 10px;
+}
+
+.ipo-calendar-view-modes button.active {
+  background: var(--surface);
+  box-shadow: 0 1px 4px color-mix(in srgb, var(--text-main) 10%, transparent);
+  color: var(--primary-blue);
 }
 
 .ipo-calendar-sync-meta {
@@ -1187,6 +1215,43 @@ button.summary-metric-card:hover {
   white-space: nowrap;
 }
 
+.ipo-calendar-grid[data-density="compact"] .ipo-calendar-cell {
+  gap: 5px;
+  min-height: 104px;
+  padding: 8px;
+}
+
+.ipo-calendar-grid[data-density="compact"] .ipo-calendar-day-events {
+  gap: 4px;
+}
+
+.ipo-calendar-grid[data-density="compact"] .ipo-calendar-event {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  min-height: 31px;
+  border-radius: 8px;
+  padding: 4px 6px;
+}
+
+.ipo-calendar-grid[data-density="compact"] .ipo-calendar-event .ipo-event-type {
+  max-width: 70px;
+  overflow: hidden;
+  padding: 3px 5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ipo-calendar-grid[data-density="compact"] .ipo-calendar-event strong {
+  font-size: 11px;
+}
+
+.ipo-calendar-grid[data-density="compact"] .ipo-calendar-event small,
+.ipo-calendar-grid[data-density="compact"] .ipo-calendar-event b,
+.ipo-calendar-grid[data-density="compact"] .ipo-calendar-event.public-schedule::after {
+  display: none;
+}
+
 .ipo-calendar-event strong {
   color: var(--text-main);
   font-size: 12px;
@@ -1268,11 +1333,20 @@ button.summary-metric-card:hover {
 }
 
 .ipo-calendar-more {
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-width: 0;
+  min-height: 24px;
+  width: 100%;
+  border: 1px dashed color-mix(in srgb, var(--accent-blue) 30%, var(--border));
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--accent-blue) 5%, var(--surface));
   color: var(--text-sub);
   font-size: 11px;
   font-weight: 900;
+  padding: 2px 5px;
+  cursor: pointer;
 }
 
 .ipo-profit-stack {
@@ -1297,6 +1371,11 @@ button.summary-metric-card:hover {
 .ipo-calendar-detail {
   display: grid;
   gap: 14px;
+  position: sticky;
+  top: 12px;
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
+  scrollbar-gutter: stable;
   padding: 16px;
   min-width: 0;
 }

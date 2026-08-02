@@ -13,6 +13,7 @@ const IPO_SCHEDULE_MANAGED_FIELDS = [
   { local: "listingDate", source: "listingDate", label: "상장 예정일" },
   { local: "offerPrice", source: "offerPrice", label: "확정 공모가", requireValue: true }
 ];
+const IPO_CALENDAR_COMPACT_EVENT_LIMIT = 2;
 
 function handleIpoSubmit(event) {
   event.preventDefault();
@@ -827,6 +828,8 @@ function renderIpoSummaryCard(label, value, hint, amount = 0, navigation = null)
 function renderIpoCalendar() {
   if (!els.ipoCalendarGrid) return;
   if (els.ipoPublicScheduleToggle) els.ipoPublicScheduleToggle.checked = showPublicIpoSchedules;
+  syncIpoCalendarDensityControls();
+  els.ipoCalendarGrid.dataset.density = ipoCalendarDensity;
   syncIpoCalendarMonthOptions();
   const month = selectedIpoCalendarMonth || currentMonthKey();
   const events = buildIpoCalendarEvents();
@@ -835,6 +838,23 @@ function renderIpoCalendar() {
   els.ipoCalendarGrid.innerHTML = renderIpoCalendarMonth(month, monthlyEvents);
   renderIpoCalendarDetail(month, monthlyEvents);
   attachIpoCalendarHandlers();
+}
+
+function setIpoCalendarDensity(mode) {
+  ipoCalendarDensity = mode === "full" ? "full" : "compact";
+  renderIpoCalendar();
+}
+
+function syncIpoCalendarDensityControls() {
+  [
+    [els.ipoCalendarCompactView, "compact"],
+    [els.ipoCalendarFullView, "full"]
+  ].forEach(([button, mode]) => {
+    if (!button) return;
+    const isActive = ipoCalendarDensity === mode;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
+  });
 }
 
 function syncIpoCalendarMonthOptions() {
@@ -896,6 +916,8 @@ function renderIpoCalendarMonth(month, events) {
     const dayEvents = eventsByDate.get(date) || [];
     cells.push(renderIpoCalendarDay(date, dayEvents));
   }
+  const trailingDays = (7 - (leadingDays + daysInMonth) % 7) % 7;
+  for (let i = 0; i < trailingDays; i += 1) cells.push(`<div class="ipo-calendar-cell muted" aria-hidden="true"></div>`);
   return `
     <div class="ipo-calendar-weekdays">
       ${["일", "월", "화", "수", "목", "금", "토"].map((day) => `<span>${day}</span>`).join("")}
@@ -909,12 +931,15 @@ function renderIpoCalendarMonth(month, events) {
 
 function renderIpoCalendarDay(date, events) {
   const isSelected = date === selectedIpoCalendarDate;
+  const compact = ipoCalendarDensity === "compact";
+  const visibleEvents = compact ? events.slice(0, IPO_CALENDAR_COMPACT_EVENT_LIMIT) : events;
+  const hiddenCount = events.length - visibleEvents.length;
   return `
     <div class="ipo-calendar-cell ${events.length ? "has-event" : ""} ${isSelected ? "selected" : ""}" data-ipo-calendar-date="${escapeHtml(date)}">
       <strong>${Number(date.slice(-2))}</strong>
       <div class="ipo-calendar-day-events">
-        ${events.slice(0, 4).map(renderIpoCalendarEvent).join("")}
-        ${events.length > 4 ? `<span class="ipo-calendar-more">+${events.length - 4}건</span>` : ""}
+        ${visibleEvents.map(renderIpoCalendarEvent).join("")}
+        ${hiddenCount > 0 ? `<button class="ipo-calendar-more" type="button" data-ipo-calendar-date="${escapeHtml(date)}" aria-label="${escapeHtml(formatIpoDisplayDate(date))}의 나머지 일정 ${hiddenCount}건 보기">+${hiddenCount}건</button>` : ""}
       </div>
     </div>
   `;
@@ -1115,7 +1140,7 @@ function renderIpoPublicScheduleDetail(event) {
 function attachIpoCalendarHandlers() {
   els.ipoCalendarGrid.querySelectorAll("[data-ipo-calendar-date]").forEach((node) => {
     node.addEventListener("click", (event) => {
-      if (node.classList.contains("ipo-calendar-event")) event.stopPropagation();
+      if (node.classList.contains("ipo-calendar-event") || node.classList.contains("ipo-calendar-more")) event.stopPropagation();
       const target = event.currentTarget;
       selectedIpoCalendarDate = target.dataset.ipoCalendarDate || "";
       selectedIpoCalendarRecordId = target.dataset.ipoCalendarRecord || "";

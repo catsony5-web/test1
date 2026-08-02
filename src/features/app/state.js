@@ -290,6 +290,8 @@ const els = {
   nextIpoCalendarMonth: document.querySelector("#nextIpoCalendarMonth"),
   ipoCumulativePerformance: document.querySelector("#ipoCumulativePerformance"),
   ipoPublicScheduleToggle: document.querySelector("#ipoPublicScheduleToggle"),
+  ipoCalendarCompactView: document.querySelector("#ipoCalendarCompactView"),
+  ipoCalendarFullView: document.querySelector("#ipoCalendarFullView"),
   ipoCalendarSyncMeta: document.querySelector("#ipoCalendarSyncMeta"),
   ipoPerformanceYearFilter: document.querySelector("#ipoPerformanceYearFilter"),
   ipoPerformanceCustomRange: document.querySelector("#ipoPerformanceCustomRange"),
@@ -485,6 +487,7 @@ let selectedIpoCalendarMonth = "";
 let selectedIpoCalendarDate = "";
 let selectedIpoCalendarRecordId = "";
 let selectedIpoCalendarEventKey = "";
+let ipoCalendarDensity = "compact";
 let editingDetailBulkRecordKey = "";
 let selectedDetailBulkSubtab = "input";
 let editingIncomeKey = "";

@@ -221,6 +221,10 @@
     justify-content: center;
   }
 
+  .ipo-calendar-view-modes {
+    width: 100%;
+  }
+
   .ipo-calendar-controls {
     grid-template-columns: 38px minmax(0, 1fr) 38px;
   }
@@ -302,6 +306,12 @@
     grid-template-columns: 1fr;
   }
 
+  .ipo-calendar-detail {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+
   .ipo-calendar-weekdays span {
     padding: 8px 3px;
     font-size: 11px;
@@ -319,6 +329,29 @@
   .ipo-calendar-event small,
   .ipo-calendar-event b {
     display: none;
+  }
+
+  .ipo-calendar-grid[data-density="compact"] .ipo-calendar-cell {
+    gap: 4px;
+    min-height: 96px;
+    padding: 5px;
+  }
+
+  .ipo-calendar-grid[data-density="compact"] .ipo-calendar-event {
+    grid-template-columns: 1fr;
+    gap: 2px;
+    min-height: 34px;
+    padding: 4px;
+  }
+
+  .ipo-calendar-grid[data-density="compact"] .ipo-calendar-event .ipo-event-type {
+    max-width: 100%;
+    font-size: 8px;
+    padding: 2px 4px;
+  }
+
+  .ipo-calendar-grid[data-density="compact"] .ipo-calendar-event strong {
+    font-size: 9px;
   }
 
   .ipo-calendar-detail-grid {
