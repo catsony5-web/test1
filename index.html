@@ -12,8 +12,8 @@
   <link rel="stylesheet" href="src/styles/03-components.css?v=140-long-term-trend">
   <link rel="stylesheet" href="src/styles/04-forms-tables.css?v=83">
   <link rel="stylesheet" href="src/styles/05-charts.css?v=156-loan-sharing">
-  <link rel="stylesheet" href="src/styles/06-features.css?v=157-ipo-status-jump">
-  <link rel="stylesheet" href="src/styles/07-responsive.css?v=156-loan-sharing-ipo">
+  <link rel="stylesheet" href="src/styles/06-features.css?v=158-ipo-custom-range">
+  <link rel="stylesheet" href="src/styles/07-responsive.css?v=158-ipo-custom-range">
   <link rel="stylesheet" href="src/styles/08-themes.css?v=151-loan-repayments">
   <link rel="stylesheet" href="assets/tabler/tabler-icons.min.css?v=135-subcategory-icons">
   <link rel="stylesheet" href="src/styles/09-production-ui.css?v=151-loan-repayments">
@@ -788,9 +788,25 @@
                 <h3>월별 손익과 누적 정산손익</h3>
                 <p>매도일 기준 최종 정산손익의 월별 변화와 전체 누적 흐름을 함께 확인합니다.</p>
               </div>
-              <label class="ipo-performance-filter">기간
-                <select id="ipoPerformanceYearFilter" aria-label="공모주 누적 성과 기간"></select>
-              </label>
+              <div class="ipo-performance-controls">
+                <label class="ipo-performance-filter">기간
+                  <select id="ipoPerformanceYearFilter" aria-label="공모주 누적 성과 기간"></select>
+                </label>
+                <div id="ipoPerformanceCustomRange" class="ipo-performance-custom-range" hidden>
+                  <label>시작 월
+                    <input id="ipoPerformanceStartMonth" type="month" aria-describedby="ipoPerformanceRangeFeedback">
+                  </label>
+                  <span aria-hidden="true">~</span>
+                  <label>종료 월
+                    <input id="ipoPerformanceEndMonth" type="month" aria-describedby="ipoPerformanceRangeFeedback">
+                  </label>
+                </div>
+                <button id="resetIpoPerformanceRange" class="ipo-performance-reset" type="button" hidden>
+                  <i class="ti ti-refresh" aria-hidden="true"></i>
+                  전체 기간
+                </button>
+                <p id="ipoPerformanceRangeFeedback" class="ipo-performance-range-feedback" aria-live="polite"></p>
+              </div>
             </div>
             <div class="ipo-performance-legend" aria-label="그래프 범례">
               <span><i class="ipo-performance-bar-swatch" aria-hidden="true"></i>월 정산손익</span>
@@ -1282,20 +1298,20 @@
     </article>
   </template>
 
-  <script src="src/data/constants.js?v=156-loan-sharing"></script>
+  <script src="src/data/constants.js?v=158-ipo-custom-range"></script>
   <script src="src/data/categories.js?v=136-mineral-layers"></script>
   <script src="src/data/rules.js?v=93"></script>
   <script src="src/data/board-sections.js?v=151-loan-repayments"></script>
   <script src="src/data/field-aliases.js?v=77"></script>
 
-  <script src="src/features/app/state.js?v=157-loan-sharing-ipo-jump"></script>
+  <script src="src/features/app/state.js?v=158-ipo-custom-range"></script>
 
   <script src="src/utils/format.js?v=80"></script>
   <script src="src/utils/date.js?v=141-garden-analysis"></script>
   <script src="src/utils/dom.js?v=61"></script>
   <script src="src/utils/normalize.js?v=156-loan-sharing"></script>
   <script src="src/utils/grouping.js?v=156-loan-sharing"></script>
-  <script src="src/utils/storage.js?v=156-loan-sharing"></script>
+  <script src="src/utils/storage.js?v=158-ipo-custom-range"></script>
   <script src="src/utils/backup.js?v=156-loan-sharing"></script>
 
   <script src="src/components/chips.js?v=136-mineral-layers"></script>
@@ -1329,13 +1345,13 @@
   <script src="src/features/analysis/monthly-analysis-view.js?v=156-loan-sharing"></script>
   <script src="src/features/analysis/spending-structure-view.js?v=156-loan-sharing"></script>
   <script src="src/features/products/products-view.js?v=62"></script>
-  <script src="src/features/ipo/ipo-view.js?v=157-ipo-status-jump"></script>
+  <script src="src/features/ipo/ipo-view.js?v=158-ipo-custom-range"></script>
   <script src="src/features/unknown/unknown-view.js?v=97"></script>
   <script src="src/features/transactions/transactions-view.js?v=77"></script>
 
   <script src="src/features/app/navigation.js?v=112"></script>
   <script src="src/features/app/appearance.js?v=141-garden-analysis"></script>
   <script src="src/features/app/render-all.js?v=151-loan-repayments"></script>
-  <script src="src/features/app/init.js?v=156-loan-sharing-ipo"></script>
+  <script src="src/features/app/init.js?v=158-ipo-custom-range"></script>
 </body>
 </html>

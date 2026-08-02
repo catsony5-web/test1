@@ -43,6 +43,22 @@ assert.equal(year2024.months.find((item) => item.key === "2024-07").maxGain.comp
 const invalidYear = buildPerformance(records, "2030");
 assert.equal(invalidYear.selectedYear, "all", "기록에 없는 연도 필터는 전체 기간으로 복구해야 한다.");
 
+const customRange = buildPerformance(records, "custom", "2024-08", "2024-10");
+assert.equal(customRange.selectedPeriod, "custom");
+assert.equal(customRange.months.length, 3, "직접 설정은 시작 월과 종료 월을 모두 포함해야 한다.");
+assert.equal(customRange.realizedCount, 2);
+assert.equal(customRange.months[0].cumulativeProfit, -4000, "직접 설정 누적은 선택한 시작 월에서 0원 기준으로 다시 계산해야 한다.");
+assert.equal(customRange.months.at(-1).cumulativeProfit, 2000);
+
+const reversedRange = buildPerformance(records, "custom", "2024-10", "2024-08");
+assert.equal(reversedRange.rangeIssue, "order", "시작 월이 종료 월보다 늦으면 오류 상태를 반환해야 한다.");
+assert.equal(reversedRange.months.length, 0);
+
+const emptyRange = buildPerformance(records, "custom", "2024-09", "2024-09");
+assert.equal(emptyRange.rangeIssue, "");
+assert.equal(emptyRange.months.length, 1);
+assert.equal(emptyRange.realizedCount, 0, "기록이 없는 유효 기간은 빈 기간으로 구분해야 한다.");
+
 const empty = buildPerformance([], "all");
 assert.equal(empty.months.length, 0);
 assert.equal(empty.settlementProfit, 0);

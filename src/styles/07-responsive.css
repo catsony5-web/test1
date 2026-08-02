@@ -234,8 +234,25 @@
   }
 
   .ipo-performance-head,
+  .ipo-performance-controls,
   .ipo-performance-filter {
     width: 100%;
+  }
+
+  .ipo-performance-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .ipo-performance-custom-range {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  }
+
+  .ipo-performance-reset {
+    width: 100%;
+  }
+
+  .ipo-performance-range-feedback {
+    text-align: left;
   }
 
   .ipo-performance-overview {

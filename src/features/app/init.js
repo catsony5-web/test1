@@ -9,6 +9,7 @@ function registerPwa() {
 
 async function init() {
   await hydrateStoredData();
+  hydrateIpoPerformanceSelection();
   await migrateCategorySystem();
   await ensureAutoPostedRecurringExpenses();
   fillCategorySelects(els.ruleSector, els.ruleSubcategory);
@@ -272,11 +273,10 @@ async function init() {
     selectedIpoCalendarMonth = els.ipoCalendarMonthSelect.value;
     renderIpoView();
   });
-  els.ipoPerformanceYearFilter?.addEventListener("change", () => {
-    selectedIpoPerformanceYear = els.ipoPerformanceYearFilter.value || "all";
-    selectedIpoPerformanceMonth = "";
-    renderIpoView();
-  });
+  els.ipoPerformanceYearFilter?.addEventListener("change", handleIpoPerformancePeriodChange);
+  els.ipoPerformanceStartMonth?.addEventListener("change", handleIpoPerformanceRangeChange);
+  els.ipoPerformanceEndMonth?.addEventListener("change", handleIpoPerformanceRangeChange);
+  els.resetIpoPerformanceRange?.addEventListener("click", resetIpoPerformanceRange);
   els.ruleForm.addEventListener("submit", (event) => {
     event.preventDefault();
     const keyword = els.ruleKeyword.value.trim();

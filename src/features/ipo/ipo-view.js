@@ -401,18 +401,104 @@ function renderIpoCumulativePerformance() {
   `;
 }
 
-function buildIpoMonthlyPerformance(records = [], yearFilter = "all") {
-  const realized = (Array.isArray(records) ? records : [])
+function hydrateIpoPerformanceSelection() {
+  const preference = appSettings.ipoPerformance || defaultAppSettings().ipoPerformance;
+  selectedIpoPerformancePeriod = preference.filter || "all";
+  selectedIpoPerformanceStartMonth = preference.startMonth || "";
+  selectedIpoPerformanceEndMonth = preference.endMonth || "";
+}
+
+async function persistIpoPerformanceSelection() {
+  appSettings.ipoPerformance = {
+    filter: selectedIpoPerformancePeriod,
+    startMonth: selectedIpoPerformanceStartMonth,
+    endMonth: selectedIpoPerformanceEndMonth
+  };
+  await saveSettings();
+}
+
+function isIpoPerformanceMonthKey(value) {
+  const text = String(value || "");
+  const monthNumber = Number(text.slice(5));
+  return /^\d{4}-\d{2}$/.test(text) && monthNumber >= 1 && monthNumber <= 12;
+}
+
+function getIpoPerformanceRangeIssue(startMonth, endMonth) {
+  if (!isIpoPerformanceMonthKey(startMonth) || !isIpoPerformanceMonthKey(endMonth)) return "missing";
+  if (startMonth > endMonth) return "order";
+  return "";
+}
+
+function getIpoRealizedRecords(records = []) {
+  return (Array.isArray(records) ? records : [])
     .filter((item) => isIpoRealized(item) && /^\d{4}-\d{2}-\d{2}$/.test(String(item.sellDate || "")))
     .sort((a, b) => a.sellDate.localeCompare(b.sellDate));
+}
+
+function getIpoPerformanceMonthBounds(records = []) {
+  const realized = getIpoRealizedRecords(records);
+  return {
+    startMonth: realized.length ? monthKey(realized[0].sellDate) : "",
+    endMonth: realized.length ? monthKey(realized.at(-1).sellDate) : ""
+  };
+}
+
+async function handleIpoPerformancePeriodChange() {
+  selectedIpoPerformancePeriod = els.ipoPerformanceYearFilter?.value || "all";
+  if (selectedIpoPerformancePeriod === "custom") {
+    const bounds = getIpoPerformanceMonthBounds(ipoRecords);
+    if (!isIpoPerformanceMonthKey(selectedIpoPerformanceStartMonth)) {
+      selectedIpoPerformanceStartMonth = bounds.startMonth;
+    }
+    if (!isIpoPerformanceMonthKey(selectedIpoPerformanceEndMonth)) {
+      selectedIpoPerformanceEndMonth = bounds.endMonth;
+    }
+  }
+  selectedIpoPerformanceMonth = "";
+  renderIpoView();
+  await persistIpoPerformanceSelection();
+}
+
+async function handleIpoPerformanceRangeChange() {
+  selectedIpoPerformanceStartMonth = els.ipoPerformanceStartMonth?.value || "";
+  selectedIpoPerformanceEndMonth = els.ipoPerformanceEndMonth?.value || "";
+  selectedIpoPerformanceMonth = "";
+  renderIpoView();
+  await persistIpoPerformanceSelection();
+}
+
+async function resetIpoPerformanceRange() {
+  selectedIpoPerformancePeriod = "all";
+  selectedIpoPerformanceMonth = "";
+  renderIpoView();
+  await persistIpoPerformanceSelection();
+}
+
+function buildIpoMonthlyPerformance(records = [], periodFilter = "all", customStartMonth = "", customEndMonth = "") {
+  const realized = getIpoRealizedRecords(records);
   const years = [...new Set(realized.map((item) => item.sellDate.slice(0, 4)))].sort();
-  const selectedYear = yearFilter !== "all" && years.includes(String(yearFilter)) ? String(yearFilter) : "all";
-  const scopedRecords = selectedYear === "all"
+  const requestedPeriod = String(periodFilter || "all");
+  const selectedPeriod = requestedPeriod === "custom"
+    ? "custom"
+    : requestedPeriod !== "all" && years.includes(requestedPeriod) ? requestedPeriod : "all";
+  const rangeStart = selectedPeriod === "custom" ? String(customStartMonth || "") : "";
+  const rangeEnd = selectedPeriod === "custom" ? String(customEndMonth || "") : "";
+  const rangeIssue = selectedPeriod === "custom" ? getIpoPerformanceRangeIssue(rangeStart, rangeEnd) : "";
+  const scopedRecords = selectedPeriod === "all"
     ? realized
-    : realized.filter((item) => item.sellDate.startsWith(`${selectedYear}-`));
+    : selectedPeriod === "custom"
+      ? rangeIssue ? [] : realized.filter((item) => {
+        const key = monthKey(item.sellDate);
+        return key >= rangeStart && key <= rangeEnd;
+      })
+      : realized.filter((item) => item.sellDate.startsWith(`${selectedPeriod}-`));
   const monthKeys = [];
 
-  if (scopedRecords.length && selectedYear === "all") {
+  if (selectedPeriod === "custom" && !rangeIssue) {
+    for (let cursor = rangeStart, guard = 0; cursor <= rangeEnd && guard < 600; cursor = shiftMonthKey(cursor, 1), guard += 1) {
+      monthKeys.push(cursor);
+    }
+  } else if (scopedRecords.length && selectedPeriod === "all") {
     const firstMonth = monthKey(scopedRecords[0].sellDate);
     const lastMonth = monthKey(scopedRecords.at(-1).sellDate);
     for (let cursor = firstMonth, guard = 0; cursor <= lastMonth && guard < 600; cursor = shiftMonthKey(cursor, 1), guard += 1) {
@@ -420,7 +506,7 @@ function buildIpoMonthlyPerformance(records = [], yearFilter = "all") {
     }
   } else if (scopedRecords.length) {
     for (let month = 1; month <= 12; month += 1) {
-      monthKeys.push(`${selectedYear}-${String(month).padStart(2, "0")}`);
+      monthKeys.push(`${selectedPeriod}-${String(month).padStart(2, "0")}`);
     }
   }
 
@@ -450,7 +536,13 @@ function buildIpoMonthlyPerformance(records = [], yearFilter = "all") {
 
   return {
     years,
-    selectedYear,
+    selectedYear: selectedPeriod,
+    selectedPeriod,
+    rangeStart,
+    rangeEnd,
+    rangeIssue,
+    availableStartMonth: realized.length ? monthKey(realized[0].sellDate) : "",
+    availableEndMonth: realized.length ? monthKey(realized.at(-1).sellDate) : "",
     months,
     realizedCount: scopedRecords.length,
     settlementProfit: cumulativeProfit,
@@ -461,14 +553,28 @@ function buildIpoMonthlyPerformance(records = [], yearFilter = "all") {
 
 function renderIpoPerformance() {
   if (!els.ipoPerformanceChart || !els.ipoPerformanceDetail) return;
-  const performance = buildIpoMonthlyPerformance(ipoRecords, selectedIpoPerformanceYear);
-  selectedIpoPerformanceYear = performance.selectedYear;
-  syncIpoPerformanceYearFilter(performance.years);
+  const performance = buildIpoMonthlyPerformance(
+    ipoRecords,
+    selectedIpoPerformancePeriod,
+    selectedIpoPerformanceStartMonth,
+    selectedIpoPerformanceEndMonth
+  );
+  selectedIpoPerformancePeriod = performance.selectedPeriod;
+  syncIpoPerformancePeriodControls(performance);
 
-  if (!performance.months.length) {
+  const emptyMessage = performance.rangeIssue === "missing"
+    ? "시작 월과 종료 월을 모두 선택해 주세요."
+    : performance.rangeIssue === "order"
+      ? "시작 월은 종료 월보다 빠르거나 같아야 합니다."
+      : performance.selectedPeriod === "custom" && !performance.realizedCount
+        ? "선택 기간에 실현 기록이 없습니다."
+        : !performance.months.length
+          ? "매도 완료 기록이 쌓이면 월별 손익과 누적 정산손익을 그래프로 보여드립니다."
+          : "";
+  if (emptyMessage) {
     selectedIpoPerformanceMonth = "";
     els.ipoPerformanceChart.innerHTML = `
-      <div class="empty compact-empty">매도 완료 기록이 쌓이면 월별 손익과 누적 정산손익을 그래프로 보여드립니다.</div>
+      <div class="empty compact-empty" role="status">${escapeHtml(emptyMessage)}</div>
     `;
     els.ipoPerformanceDetail.innerHTML = "";
     return;
@@ -483,13 +589,35 @@ function renderIpoPerformance() {
   attachIpoPerformanceHandlers();
 }
 
-function syncIpoPerformanceYearFilter(years) {
+function syncIpoPerformancePeriodControls(performance) {
   if (!els.ipoPerformanceYearFilter) return;
   els.ipoPerformanceYearFilter.innerHTML = [
     `<option value="all">전체 기간</option>`,
-    ...years.map((year) => `<option value="${escapeHtml(year)}">${escapeHtml(year)}년</option>`)
+    ...performance.years.map((year) => `<option value="${escapeHtml(year)}">${escapeHtml(year)}년</option>`),
+    `<option value="custom">직접 설정</option>`
   ].join("");
-  els.ipoPerformanceYearFilter.value = selectedIpoPerformanceYear;
+  els.ipoPerformanceYearFilter.value = selectedIpoPerformancePeriod;
+
+  const isCustom = selectedIpoPerformancePeriod === "custom";
+  if (els.ipoPerformanceCustomRange) els.ipoPerformanceCustomRange.hidden = !isCustom;
+  if (els.resetIpoPerformanceRange) els.resetIpoPerformanceRange.hidden = selectedIpoPerformancePeriod === "all";
+  [els.ipoPerformanceStartMonth, els.ipoPerformanceEndMonth].filter(Boolean).forEach((input) => {
+    input.min = performance.availableStartMonth;
+    input.max = performance.availableEndMonth;
+    input.disabled = !isCustom;
+  });
+  if (els.ipoPerformanceStartMonth) els.ipoPerformanceStartMonth.value = selectedIpoPerformanceStartMonth;
+  if (els.ipoPerformanceEndMonth) els.ipoPerformanceEndMonth.value = selectedIpoPerformanceEndMonth;
+
+  const feedback = performance.rangeIssue === "missing"
+    ? "시작 월과 종료 월을 모두 선택해 주세요."
+    : performance.rangeIssue === "order"
+      ? "시작 월은 종료 월보다 빠르거나 같아야 합니다."
+      : "";
+  if (els.ipoPerformanceRangeFeedback) els.ipoPerformanceRangeFeedback.textContent = feedback;
+  [els.ipoPerformanceStartMonth, els.ipoPerformanceEndMonth].filter(Boolean).forEach((input) => {
+    input.setAttribute("aria-invalid", feedback ? "true" : "false");
+  });
 }
 
 function ipoPerformanceChartStep(maxValue, targetTicks = 3) {
@@ -540,7 +668,11 @@ function renderIpoPerformanceChart(performance) {
   const periodRange = activeMonths.length
     ? `${activeMonths[0].key} ~ ${activeMonths.at(-1).key}`
     : "매도 기록 없음";
-  const periodLabel = performance.selectedYear === "all" ? "전체 기간" : `${performance.selectedYear}년`;
+  const periodLabel = performance.selectedPeriod === "all"
+    ? "전체 기간"
+    : performance.selectedPeriod === "custom"
+      ? `${performance.rangeStart} ~ ${performance.rangeEnd}`
+      : `${performance.selectedPeriod}년`;
   const totalTone = performance.settlementProfit > 0 ? "positive" : performance.settlementProfit < 0 ? "negative" : "";
   const monthlyTicks = [monthlyLimit, 0, -monthlyLimit];
   const cumulativeTicks = [...new Set([safeCumulativeMax, 0, safeCumulativeMin])]
@@ -588,7 +720,7 @@ function renderIpoPerformanceChart(performance) {
         ${points.map((point) => {
           const tone = point.cumulativeProfit > 0 ? "positive" : point.cumulativeProfit < 0 ? "negative" : "neutral";
           const selected = point.key === selectedIpoPerformanceMonth ? " selected" : "";
-          const monthLabel = performance.selectedYear === "all"
+          const monthLabel = performance.selectedPeriod === "all" || performance.selectedPeriod === "custom"
             ? point.key.slice(2).replace("-", ".")
             : `${Number(point.key.slice(5))}월`;
           const ariaLabel = `${formatIpoMonthLabel(point.key)}, 월 정산손익 ${formatSignedWon(point.profit)}, 선택 기간 누적 ${formatSignedWon(point.cumulativeProfit)}, 실현 ${point.count}건`;

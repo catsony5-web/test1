@@ -16,6 +16,11 @@ function defaultAppSettings() {
       targetRatios: {},
       consumptionTypes: {}
     },
+    ipoPerformance: {
+      filter: "all",
+      startMonth: "",
+      endMonth: ""
+    },
     lastSavedAt: "",
     lastSnapshotAt: "",
     lastDailySnapshotDate: ""
@@ -285,6 +290,11 @@ const els = {
   nextIpoCalendarMonth: document.querySelector("#nextIpoCalendarMonth"),
   ipoCumulativePerformance: document.querySelector("#ipoCumulativePerformance"),
   ipoPerformanceYearFilter: document.querySelector("#ipoPerformanceYearFilter"),
+  ipoPerformanceCustomRange: document.querySelector("#ipoPerformanceCustomRange"),
+  ipoPerformanceStartMonth: document.querySelector("#ipoPerformanceStartMonth"),
+  ipoPerformanceEndMonth: document.querySelector("#ipoPerformanceEndMonth"),
+  resetIpoPerformanceRange: document.querySelector("#resetIpoPerformanceRange"),
+  ipoPerformanceRangeFeedback: document.querySelector("#ipoPerformanceRangeFeedback"),
   ipoPerformanceChart: document.querySelector("#ipoPerformanceChart"),
   ipoPerformanceDetail: document.querySelector("#ipoPerformanceDetail"),
   ipoCalendarGrid: document.querySelector("#ipoCalendarGrid"),
@@ -459,7 +469,9 @@ let ipoImageDraftData = "";
 let ipoImageDraftName = "";
 let selectedIpoSubtab = "dashboard";
 let selectedIpoSummaryGroup = "";
-let selectedIpoPerformanceYear = "all";
+let selectedIpoPerformancePeriod = "all";
+let selectedIpoPerformanceStartMonth = "";
+let selectedIpoPerformanceEndMonth = "";
 let selectedIpoPerformanceMonth = "";
 let selectedIpoCalendarMonth = "";
 let selectedIpoCalendarDate = "";

@@ -74,6 +74,7 @@ function normalizeAppSettings(value) {
   settings.backgroundImage = typeof settings.backgroundImage === "string" ? settings.backgroundImage : "";
   settings.cardBilling = normalizeCardBillingSettings(settings.cardBilling);
   settings.analysis = normalizeAnalysisSettings(settings.analysis);
+  settings.ipoPerformance = normalizeIpoPerformanceSettings(settings.ipoPerformance);
   return settings;
 }
 
@@ -109,6 +110,25 @@ function normalizeAnalysisSettings(value) {
       .filter(([key, type]) => validTypeKeys.has(key) && ["essential", "discretionary"].includes(type))
   );
   return { targetRatios, consumptionTypes };
+}
+
+function normalizeIpoPerformanceSettings(value) {
+  const defaults = defaultAppSettings().ipoPerformance;
+  const source = value && typeof value === "object" ? value : {};
+  const filter = source.filter === "custom" || /^\d{4}$/.test(String(source.filter || ""))
+    ? String(source.filter)
+    : "all";
+  const normalizeMonth = (month) => {
+    const text = String(month || "");
+    const monthNumber = Number(text.slice(5));
+    return /^\d{4}-\d{2}$/.test(text) && monthNumber >= 1 && monthNumber <= 12 ? text : "";
+  };
+  return {
+    ...defaults,
+    filter,
+    startMonth: normalizeMonth(source.startMonth),
+    endMonth: normalizeMonth(source.endMonth)
+  };
 }
 
 function saveSettings() {

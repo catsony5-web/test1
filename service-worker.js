@@ -1,4 +1,4 @@
-const CACHE_NAME = "monthly-card-budget-v157";
+const CACHE_NAME = "monthly-card-budget-v158";
 const APP_FILES = [
   "./",
   "./index.html",
