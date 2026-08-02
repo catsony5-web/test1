@@ -23,10 +23,10 @@ function renderFoodAnalysisBody(activeRows, month, comparison) {
   const foodRows = activeRows.filter((item) => item.month === month && item.sector === "식비");
   const amountBySubcategory = Object.fromEntries(categories["식비"].map((subcategory) => [subcategory, 0]));
   foodRows.forEach((item) => {
-    amountBySubcategory[item.subcategory] = (amountBySubcategory[item.subcategory] || 0) + actualAmount(item);
+    amountBySubcategory[item.subcategory] = (amountBySubcategory[item.subcategory] || 0) + consumptionAmount(item);
   });
 
-  const total = sumActual(foodRows);
+  const total = sumConsumption(foodRows);
   const outside = sumValues(amountBySubcategory, ["외식-혼자", "외식-친구", "외식-단체", "배달-혼자", "배달-친구", "배달-단체"]);
   const grocery = sumValues(amountBySubcategory, ["장보기/마트"]);
   const solo = sumValues(amountBySubcategory, ["외식-혼자", "배달-혼자"]);
@@ -69,12 +69,12 @@ function renderFoodAnalysisBody(activeRows, month, comparison) {
 
 function renderGenericSectorAnalysisBody(activeRows, month, sector, comparison) {
   const rows = activeRows.filter((item) => item.month === month && item.sector === sector);
-  const total = sumActual(rows);
+  const total = sumConsumption(rows);
   if (!total) {
     return `${renderSummaryComparisonDriverPanel(comparison, { idPrefix: "report" })}<div class="empty compact-empty">선택한 월의 ${escapeHtml(sector)} 데이터가 없습니다.</div>`;
   }
   const details = [...groupBy(rows, (item) => item.subcategory || "미분류").entries()]
-    .map(([subcategory, subRows]) => ({ subcategory, amount: sumActual(subRows), count: subRows.length }))
+    .map(([subcategory, subRows]) => ({ subcategory, amount: sumConsumption(subRows), count: subRows.length }))
     .sort((a, b) => b.amount - a.amount);
   const maxDetailAmount = Math.max(...details.map((item) => item.amount), 1);
   return `
@@ -103,7 +103,7 @@ function renderGenericSectorAnalysisBody(activeRows, month, sector, comparison) 
 
 function renderSectorAnalysisOverview(sector, total, count, topDetail, month) {
   const monthRows = reportingExpenseRows(classified, { months: [month] });
-  const monthTotal = sumActual(monthRows);
+  const monthTotal = sumConsumption(monthRows);
   return `
     <section class="sector-analysis-overview ${categoryClass(sector)}">
       <div>

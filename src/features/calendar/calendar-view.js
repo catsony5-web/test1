@@ -612,14 +612,17 @@ function renderDayTimeline(dateKey, rows, scheduledRows = [], incomeRows = []) {
               <span class="scheduled-badge ${escapeHtml(item.postingStatusClass || "")}">${escapeHtml(item.postingStatusLabel || (item.posted ? "반영 완료" : "예정"))}</span>
               ${item.autoPost ? `<span class="scheduled-badge soft">자동 반영</span>` : `<span class="scheduled-badge muted">수동 반영</span>`}
               ${categoryChip(item.sector, item.subcategory)}
+              ${item.recurringType === "loan" ? `<span class="scheduled-badge soft">원금 소비 제외</span>` : ""}
             </div>
-            ${item.memo ? `<p>${escapeHtml(item.memo)}</p>` : ""}
+            ${item.recurringType === "loan" ? `<p>원금 ${formatWon(item.postedTransaction?.loanPrincipalAmount ?? item.loanPrincipalAmount)} · 이자 ${formatWon(item.postedTransaction?.loanInterestAmount ?? item.loanInterestAmount)}</p>` : item.memo ? `<p>${escapeHtml(item.memo)}</p>` : ""}
           </div>
           <div class="scheduled-actions">
-            <b>${formatWon(item.amount)}</b>
-            ${item.canManualPost ? `<button type="button" data-post-recurring="${escapeHtml(item.id)}" data-post-month="${escapeHtml(item.month)}">실제 지출로 반영</button>` : ""}
-            ${item.postedTransaction?.recordKey ? `<button type="button" data-calendar-edit-posted="${escapeHtml(item.postedTransaction.recordKey)}">실제 내역 수정</button>` : ""}
-            <button type="button" data-edit-recurring="${escapeHtml(item.id)}">고정 지출 수정</button>
+            <b>${formatWon(item.postedTransaction?.amount ?? item.amount)}</b>
+            ${item.canManualPost ? `<button type="button" data-post-recurring="${escapeHtml(item.id)}" data-post-month="${escapeHtml(item.month)}">${item.recurringType === "loan" ? "상환 확인" : "실제 지출로 반영"}</button>` : ""}
+            ${item.postedTransaction?.recordKey ? item.recurringType === "loan"
+              ? `<button type="button" data-edit-loan-payment="${escapeHtml(item.id)}" data-post-month="${escapeHtml(item.month)}" data-loan-payment-record="${escapeHtml(item.postedTransaction.recordKey)}">상환 내역 수정</button>`
+              : `<button type="button" data-calendar-edit-posted="${escapeHtml(item.postedTransaction.recordKey)}">실제 내역 수정</button>` : ""}
+            <button type="button" data-edit-recurring="${escapeHtml(item.id)}">${item.recurringType === "loan" ? "대출 정보 수정" : "고정 지출 수정"}</button>
           </div>
         </article>
       `).join("")}
@@ -632,7 +635,7 @@ function renderDayTimeline(dateKey, rows, scheduledRows = [], incomeRows = []) {
 
 function renderCalendarTransactionCard(item, duplicateMeta = null) {
   const editRecordKey = item.installmentSourceRecordKey || item.recordKey;
-  const isEditing = calendarEditingRecordKey === editRecordKey;
+  const isEditing = calendarEditingRecordKey === editRecordKey && !isLoanRepaymentTransaction(item);
   const isUnknown = item.sector === "미분류" || item.status === "미분류";
   const suggestion = item.suggestion || null;
   const reimbursement = reimbursementFor(item);
@@ -649,14 +652,18 @@ function renderCalendarTransactionCard(item, duplicateMeta = null) {
           ${item.manualSector ? `<span class="manual-entry-badge">직접 수정</span>` : ""}
           ${installmentText ? `<span class="installment-badge">${escapeHtml(installmentText)}</span>` : ""}
         </div>
-        <p>총 결제 ${formatWon(item.amount)}${reimbursement ? ` · 정산 ${formatWon(reimbursement)}` : ""}</p>
+        <p>${isLoanRepaymentTransaction(item)
+          ? `총 상환 ${formatWon(item.amount)} · 원금 ${formatWon(item.loanPrincipalAmount)} · 이자 ${formatWon(item.loanInterestAmount)}`
+          : `총 결제 ${formatWon(item.amount)}${reimbursement ? ` · 정산 ${formatWon(reimbursement)}` : ""}`}</p>
         ${isUnknown ? renderCalendarSuggestion(suggestion) : ""}
       </div>
       <div class="timeline-amount-actions">
         <b>${formatWon(actualAmount(item))}</b>
         <div class="timeline-actions">
           ${isUnknown && suggestion ? `<button type="button" class="calendar-suggestion-button" data-calendar-apply-suggestion="${escapeHtml(editRecordKey)}" data-sector="${escapeHtml(suggestion.sector)}" data-subcategory="${escapeHtml(suggestion.subcategory)}">추천 적용</button>` : ""}
-          <button type="button" class="calendar-edit-button" data-calendar-edit="${escapeHtml(editRecordKey)}">${isUnknown ? "빠른 분류" : "수정"}</button>
+          ${isLoanRepaymentTransaction(item)
+            ? `<button type="button" class="calendar-edit-button" data-edit-loan-payment="${escapeHtml(item.recurringId)}" data-post-month="${escapeHtml(item.month)}" data-loan-payment-record="${escapeHtml(item.recordKey)}">상환 내역 수정</button>`
+            : `<button type="button" class="calendar-edit-button" data-calendar-edit="${escapeHtml(editRecordKey)}">${isUnknown ? "빠른 분류" : "수정"}</button>`}
           <button type="button" class="calendar-detail-button" data-calendar-detail="${escapeHtml(editRecordKey)}">상세 내역</button>
         </div>
       </div>
@@ -800,6 +807,11 @@ function attachCalendarTimelineHandlers(root) {
   root.querySelectorAll("[data-calendar-card]").forEach((card) => {
     card.addEventListener("click", (event) => {
       if (event.target.closest("button, input, select, textarea, form, a")) return;
+      const item = calendarClassifiedItem(card.dataset.calendarCard);
+      if (item && isLoanRepaymentTransaction(item)) {
+        openLoanPaymentDialog(item.recurringId, item.month, item.recordKey);
+        return;
+      }
       calendarEditingRecordKey = card.dataset.calendarCard;
       calendarEditFeedback = null;
       renderCalendar();

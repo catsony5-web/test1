@@ -71,11 +71,12 @@ function renderMonthlyFlow() {
   const totalPayment = sum(rows, "totalPayment");
   const totalConsumption = sum(rows, "consumptionSpend");
   const totalSavings = sum(rows, "actualSavings");
+  const totalDebtRepayment = sum(rows, "debtRepayment");
   const totalIncome = sum(rows, "income");
   const totalReimbursement = sum(rows, "reimbursement");
   const totalScheduled = sum(rows, "scheduled");
   const periodAssetGrowth = totalIncome - totalConsumption;
-  const totalFreeBalance = periodAssetGrowth - totalSavings;
+  const totalFreeBalance = periodAssetGrowth - totalSavings - totalDebtRepayment;
   const averageConsumption = Math.round(totalConsumption / Math.max(rows.length, 1));
   const averageSavings = Math.round(totalSavings / Math.max(rows.length, 1));
   const rangeLabel = currentMonthlyRangeLabel();
@@ -114,7 +115,14 @@ function renderMonthlyFlow() {
         <div>
           <span>기간 자유 잔액</span>
           <strong class="${freeBalanceTone}">${formatSignedWon(totalFreeBalance)}</strong>
-          <small>수입 - 소비 - 실제 저축</small>
+          <small>수입 - 소비 - 저축 - 부채 상환</small>
+        </div>
+      `,
+      `
+        <div>
+          <span>기간 부채 상환</span>
+          <strong>${formatWon(totalDebtRepayment)}</strong>
+          <small>소비지출에서 제외된 대출 원금</small>
         </div>
       `,
       `
@@ -144,6 +152,7 @@ function renderMonthlyFlow() {
   const maxAbs = Math.max(...rows.map((row) => Math.abs(row.freeBalance)), 1);
   const maxConsumption = Math.max(...rows.map((row) => row.consumptionSpend), 1);
   const maxSavings = Math.max(...rows.map((row) => row.actualSavings), 1);
+  const maxDebtRepayment = Math.max(...rows.map((row) => row.debtRepayment), 1);
   const maxIncome = Math.max(...rows.map((row) => row.income), 1);
   const tableRows = rows.map((row) => `
     <tr class="monthly-flow-row ${focusedMonthlyMonth === row.month ? "is-linked-focus" : ""} ${monthlyRowHasActivity(row) ? "" : "is-empty-month"}" data-month-row="${escapeHtml(row.month)}" tabindex="0">
@@ -175,6 +184,13 @@ function renderMonthlyFlow() {
           <small class="monthly-savings-rate-inline">저축률 ${monthlySavingsRateLabel(row.actualSavings, row.income)}</small>
         </div>
       </td>
+      <td class="amount debt-cell" data-label="부채 상환">
+        <div class="monthly-table-value">
+          <span class="monthly-table-meter debt" style="--monthly-meter: ${monthlyMeterPercent(row.debtRepayment, maxDebtRepayment)}%"></span>
+          <strong>${formatWon(row.debtRepayment)}</strong>
+          <small class="monthly-savings-rate-inline">대출 원금</small>
+        </div>
+      </td>
       ${hasScheduledExpenses ? `<td class="amount scheduled-amount" data-label="예정 지출">${formatWon(row.scheduled)}</td>` : ""}
       <td class="net-wrap-cell balance-cell" data-label="자유 잔액">
         <div class="net-cell ${row.freeBalance >= 0 ? "plus" : "minus"}">
@@ -195,6 +211,7 @@ function renderMonthlyFlow() {
         <th class="amount income-cell" scope="col">총수입</th>
         <th class="amount consumption-cell" scope="col">소비지출</th>
         <th class="amount savings-cell" scope="col">실제 저축</th>
+        <th class="amount debt-cell" scope="col">부채 상환</th>
         ${hasScheduledExpenses ? `<th class="amount scheduled-amount" scope="col">예정 지출</th>` : ""}
         <th class="net-wrap-cell balance-cell" scope="col">자유 잔액</th>
         <th class="amount savings-rate-cell" scope="col">저축률</th>
@@ -396,6 +413,7 @@ function updateMonthlyChartSelectedSummary(month) {
     income: Number(group.dataset.chartIncome || 0),
     consumption: Number(group.dataset.chartConsumption || 0),
     savings: Number(group.dataset.chartSavings || 0),
+    debt: Number(group.dataset.chartDebt || 0),
     balance: Number(group.dataset.chartBalance || 0),
     growth: Number(group.dataset.chartGrowth || 0),
     asset: Number(group.dataset.chartAsset || 0),
@@ -407,6 +425,7 @@ function updateMonthlyChartSelectedSummary(month) {
     income: formatWon(values.income),
     consumption: formatWon(values.consumption),
     savings: formatWon(values.savings),
+    debt: formatWon(values.debt),
     balance: formatSignedWon(values.balance),
     growth: formatSignedWon(values.growth),
     asset: formatSignedWon(values.asset),
@@ -532,9 +551,10 @@ function buildMonthlyFlowRow(month, reportRows) {
   const income = importedIncome + manualIncome;
   const totalPayment = sum(expenses, "amount");
   const reimbursement = sumReimbursements(expenses);
-  const consumptionSpend = sumActual(consumptionExpenses);
+  const consumptionSpend = sumConsumption(consumptionExpenses);
   const actualSavings = sumActual(savingsExpenses);
-  const freeBalance = income - consumptionSpend - actualSavings;
+  const debtRepayment = sumDebtPrincipal(expenses);
+  const freeBalance = income - consumptionSpend - actualSavings - debtRepayment;
   const assetGrowth = income - consumptionSpend;
   const scheduled = scheduledTotalForMonth(month);
   return {
@@ -543,6 +563,7 @@ function buildMonthlyFlowRow(month, reportRows) {
     reimbursement,
     consumptionSpend,
     actualSavings,
+    debtRepayment,
     income,
     freeBalance,
     assetGrowth,
@@ -634,6 +655,7 @@ function filterMonthlyRows(rows, reportRows = reportingExpenseRows(classified)) 
       totalPaymentDelta: previousRow ? base.totalPayment - previousRow.totalPayment : null,
       consumptionDelta: previousRow ? base.consumptionSpend - previousRow.consumptionSpend : null,
       savingsDelta: previousRow ? base.actualSavings - previousRow.actualSavings : null,
+      debtRepaymentDelta: previousRow ? base.debtRepayment - previousRow.debtRepayment : null,
       incomeDelta: previousRow ? base.income - previousRow.income : null,
       freeBalanceDelta: previousRow ? base.freeBalance - previousRow.freeBalance : null,
       assetGrowthDelta: previousRow ? base.assetGrowth - previousRow.assetGrowth : null
@@ -681,7 +703,7 @@ function latestMeaningfulMonthlyRow(rows) {
 }
 
 function monthlyRowHasActivity(row) {
-  return [row.totalPayment, row.consumptionSpend, row.actualSavings, row.income]
+  return [row.totalPayment, row.consumptionSpend, row.actualSavings, row.debtRepayment, row.income]
     .some((value) => Number(value || 0) !== 0);
 }
 

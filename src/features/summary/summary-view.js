@@ -321,12 +321,12 @@ function buildSummaryMatrixRows(activeRows, months, sectorNames) {
     const counts = {};
     sectorNames.forEach((sector) => {
       const rows = monthRows.filter((item) => item.sector === sector);
-      amounts[sector] = sumActual(rows);
+      amounts[sector] = sumConsumption(rows);
       counts[sector] = rows.length;
     });
     return {
       month,
-      total: sumActual(monthRows),
+      total: sumConsumption(monthRows),
       amounts,
       counts,
       rows: monthRows
@@ -575,7 +575,7 @@ function renderSelectedMonthDetail(activeRows, month, sectorNames, comparison) {
   }
 
   const monthRows = activeRows.filter((item) => item.month === month);
-  const monthTotal = sumActual(monthRows);
+  const monthTotal = sumConsumption(monthRows);
   els.selectedMonthDetailTitle.textContent = "월별 섹터 매트릭스";
   const sectorRows = sectorNames
     .map((sector) => ({
@@ -584,7 +584,7 @@ function renderSelectedMonthDetail(activeRows, month, sectorNames, comparison) {
       comparison: comparisonBreakdownForSector(comparison, sector)
     }))
     .filter((item) => item.rows.length)
-    .sort((a, b) => sumActual(b.rows) - sumActual(a.rows));
+    .sort((a, b) => sumConsumption(b.rows) - sumConsumption(a.rows));
   const availableSectors = sectorRows.map((item) => item.sector);
   if (!availableSectors.includes(expandedSummaryDetailSector)) {
     expandedSummaryDetailSector = availableSectors.includes(selectedSummarySector)
@@ -608,10 +608,10 @@ function renderSelectedMonthDetail(activeRows, month, sectorNames, comparison) {
 }
 
 function renderSelectedSectorCard(sector, rows, monthTotal, isExpanded, sectorComparison) {
-  const amount = sumActual(rows);
+  const amount = sumConsumption(rows);
   const grouped = groupBy(rows, summaryDisplaySubcategory);
   const details = [...grouped.entries()]
-    .map(([subcategory, subRows]) => ({ subcategory, amount: sumActual(subRows), count: subRows.length }))
+    .map(([subcategory, subRows]) => ({ subcategory, amount: sumConsumption(subRows), count: subRows.length }))
     .sort((a, b) => b.amount - a.amount);
   const visible = details.slice(0, 3).map((item) => ({
     ...item,
@@ -681,7 +681,7 @@ function buildSelectedDetailRows(monthRows, monthTotal) {
   return [...grouped.entries()]
     .map(([key, rows]) => {
       const [sector, subcategory] = key.split("|");
-      const amount = sumActual(rows);
+      const amount = sumConsumption(rows);
       return { 섹터: sector, 세부항목: subcategory, 금액: amount, 건수: rows.length, 비중: formatPercent(amount, monthTotal) };
     })
     .sort((a, b) => b.금액 - a.금액);

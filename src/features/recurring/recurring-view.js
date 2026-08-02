@@ -1,3 +1,24 @@
+function setRecurringTab(tab, options = {}) {
+  const nextTab = tab === "loan" ? "loan" : "expense";
+  activeRecurringTab = nextTab;
+  els.recurringTabButtons.forEach((button) => {
+    const selected = button.dataset.recurringTab === nextTab;
+    button.classList.toggle("active", selected);
+    button.setAttribute("aria-selected", String(selected));
+    button.tabIndex = selected ? 0 : -1;
+    if (selected && options.focus) button.focus();
+  });
+  els.recurringPanels.forEach((panel) => {
+    panel.hidden = panel.dataset.recurringPanel !== nextTab;
+  });
+}
+
+function updateLoanScheduledTotal() {
+  const total = toNumber(els.loanPrincipalAmount?.value) + toNumber(els.loanInterestAmount?.value);
+  if (els.loanScheduledTotal) els.loanScheduledTotal.textContent = formatWon(total);
+  return total;
+}
+
 function fillRecurringCategorySelects(preferred = { sector: "고정 주거비", subcategory: "보험료" }) {
   const sectors = Object.keys(categories).filter((sector) => !["수입", "미분류"].includes(sector));
   els.recurringSector.innerHTML = sectors.map((sector) => `<option value="${escapeHtml(sector)}">${escapeHtml(sector)}</option>`).join("");
@@ -27,6 +48,7 @@ async function handleRecurringSubmit(event) {
   const item = normalizeRecurringExpense({
     ...(original || {}),
     id: original?.id || `recurring-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    recurringType: "expense",
     name,
     amount,
     dayOfMonth,
@@ -72,12 +94,15 @@ async function syncPostedRecurringTransactions(recurringItem) {
       return record;
     }
 
+    const isLoan = recurringItem.recurringType === "loan";
     const nextRecord = {
       ...normalized,
       merchant: recurringItem.name,
-      amount: Number(recurringItem.amount || 0),
+      amount: isLoan ? normalized.amount : Number(recurringItem.amount || 0),
       manualSector: recurringItem.sector,
       manualSubcategory: recurringItem.subcategory,
+      recurringType: recurringItem.recurringType,
+      loanType: isLoan ? recurringItem.loanType : "",
       memo: recurringItem.memo || "",
       updatedAt: syncedAt
     };
@@ -85,12 +110,13 @@ async function syncPostedRecurringTransactions(recurringItem) {
 
     const changed = [
       "merchant",
-      "amount",
       "manualSector",
       "manualSubcategory",
+      "recurringType",
+      "loanType",
       "memo",
       "recordKey"
-    ].some((key) => normalized[key] !== nextRecord[key]);
+    ].concat(isLoan ? [] : ["amount"]).some((key) => normalized[key] !== nextRecord[key]);
 
     if (!changed) return normalized;
     updated += 1;
@@ -104,6 +130,7 @@ async function syncPostedRecurringTransactions(recurringItem) {
     ) {
       return true;
     }
+    if (recurringItem.recurringType === "loan") return true;
     if (isRecurringActiveForMonth(recurringItem, normalized.month)) return true;
     removed += 1;
     return false;
@@ -428,10 +455,112 @@ function resetRecurringForm() {
   els.cancelRecurringEditButton.hidden = true;
 }
 
+function resetLoanForm() {
+  editingLoanId = "";
+  els.loanId.value = "";
+  els.loanForm.reset();
+  els.loanPaymentType.value = "이체";
+  els.loanStartMonth.value = selectedCalendarMonth || els.boardMonth.value || currentMonthKey();
+  els.loanMaturityMonth.value = "";
+  els.loanShowOnCalendar.checked = true;
+  els.saveLoanButton.textContent = "대출 상환 저장";
+  els.cancelLoanEditButton.hidden = true;
+  updateLoanScheduledTotal();
+}
+
+async function handleLoanSubmit(event) {
+  event.preventDefault();
+  const name = els.loanName.value.trim();
+  const loanOpeningBalance = toNumber(els.loanOpeningBalance.value);
+  const loanPrincipalAmount = toNumber(els.loanPrincipalAmount.value);
+  const loanInterestAmount = toNumber(els.loanInterestAmount.value);
+  const dayOfMonth = Number(els.loanDay.value);
+  const startMonth = monthKey(els.loanStartMonth.value);
+  const endMonth = monthKey(els.loanMaturityMonth.value);
+  const original = recurringExpenses.find((item) => item.id === els.loanId.value && item.recurringType === "loan");
+  if (!name || !loanOpeningBalance || !Number.isInteger(dayOfMonth) || dayOfMonth < 1 || dayOfMonth > 31 || !startMonth || loanPrincipalAmount + loanInterestAmount <= 0) {
+    alert("대출명, 남은 원금, 상환일, 원금·이자 기본값, 추적 시작 월을 입력해주세요.");
+    return;
+  }
+  if (endMonth && endMonth < startMonth) {
+    alert("만기 월은 추적 시작 월보다 빠를 수 없습니다.");
+    return;
+  }
+  const paidPrincipal = original ? loanPaidPrincipal(original.id) : 0;
+  if (original && loanOpeningBalance < paidPrincipal) {
+    alert(`추적 시작 시 남은 원금은 이미 반영한 원금 합계 ${formatWon(paidPrincipal)}보다 작을 수 없습니다.`);
+    return;
+  }
+
+  const now = new Date().toISOString();
+  await createAutoSnapshot(original ? "대출 상환 수정 전" : "대출 상환 저장 전");
+  const item = normalizeRecurringExpense({
+    ...(original || {}),
+    id: original?.id || `recurring-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    recurringType: "loan",
+    name,
+    dayOfMonth,
+    paymentType: els.loanPaymentType.value,
+    startMonth,
+    endMonth,
+    memo: els.loanMemo.value.trim(),
+    showOnCalendar: els.loanShowOnCalendar.checked,
+    autoPost: false,
+    paused: original?.paused || false,
+    loanType: els.loanType.value,
+    loanOpeningBalance,
+    loanPrincipalAmount,
+    loanInterestAmount,
+    loanInterestRate: toNumber(els.loanInterestRate.value),
+    loanMaturityMonth: endMonth,
+    createdAt: original?.createdAt || now,
+    updatedAt: now
+  });
+
+  recurringExpenses = original
+    ? recurringExpenses.map((expense) => expense.id === original.id ? item : expense)
+    : [item, ...recurringExpenses];
+  await saveRecurringExpenses();
+  if (original) await syncPostedRecurringTransactions(item);
+  resetLoanForm();
+  renderAll();
+  setRecurringTab("loan");
+}
+
+function editLoanRepayment(id, options = {}) {
+  const item = recurringExpenses.find((expense) => expense.id === id && expense.recurringType === "loan");
+  if (!item) return;
+  if (options.switchView !== false && !isViewActive("recurring")) switchView("recurring");
+  setRecurringTab("loan");
+  editingLoanId = id;
+  els.loanId.value = item.id;
+  els.loanName.value = item.name;
+  els.loanType.value = item.loanType || "신용대출";
+  els.loanOpeningBalance.value = formatPlainNumber(item.loanOpeningBalance);
+  els.loanInterestRate.value = item.loanInterestRate || "";
+  els.loanDay.value = item.dayOfMonth;
+  els.loanPaymentType.value = item.paymentType || "이체";
+  els.loanPrincipalAmount.value = formatPlainNumber(item.loanPrincipalAmount);
+  els.loanInterestAmount.value = formatPlainNumber(item.loanInterestAmount);
+  els.loanStartMonth.value = item.startMonth;
+  els.loanMaturityMonth.value = item.loanMaturityMonth || item.endMonth || "";
+  els.loanMemo.value = item.memo || "";
+  els.loanShowOnCalendar.checked = item.showOnCalendar !== false;
+  els.saveLoanButton.textContent = "수정 저장";
+  els.cancelLoanEditButton.hidden = false;
+  updateLoanScheduledTotal();
+  document.querySelector("#recurringView")?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 function editRecurringExpense(id, options = {}) {
   const item = recurringExpenses.find((expense) => expense.id === id);
   if (!item) return;
+  if (item.recurringType === "loan") {
+    editLoanRepayment(id, options);
+    return;
+  }
   if (options.switchView !== false && !isViewActive("recurring")) switchView("recurring");
+  setRecurringTab("expense");
   editingRecurringId = id;
   els.recurringId.value = item.id;
   els.recurringName.value = item.name;
@@ -452,10 +581,12 @@ function editRecurringExpense(id, options = {}) {
 async function deleteRecurringExpense(id) {
   const item = recurringExpenses.find((expense) => expense.id === id);
   if (!item) return;
-  if (!confirm(`"${item.name}" 고정 지출을 삭제할까요?`)) return;
+  const label = item.recurringType === "loan" ? "대출 상환" : "고정 지출";
+  if (!confirm(`"${item.name}" ${label}을 삭제할까요?\n이미 반영한 월별 거래는 유지됩니다.`)) return;
   await createAutoSnapshot("고정 지출 삭제 전");
   recurringExpenses = recurringExpenses.filter((expense) => expense.id !== id);
   if (editingRecurringId === id) resetRecurringForm();
+  if (editingLoanId === id) resetLoanForm();
   await saveRecurringExpenses();
   renderAll();
 }
@@ -469,8 +600,15 @@ async function toggleRecurringPaused(id) {
   renderAll();
 }
 
-function buildRecurringTransaction(item, targetMonth) {
+function buildRecurringTransaction(item, targetMonth, options = {}) {
   const approvalDate = getRecurringDateForMonth(targetMonth, item.dayOfMonth);
+  const isLoan = item.recurringType === "loan";
+  const loanPrincipalAmount = isLoan
+    ? Math.max(0, toNumber(options.loanPrincipalAmount ?? item.loanPrincipalAmount))
+    : 0;
+  const loanInterestAmount = isLoan
+    ? Math.max(0, toNumber(options.loanInterestAmount ?? item.loanInterestAmount))
+    : 0;
   const transaction = {
     sourceType: "recurring",
     flow: "expense",
@@ -479,7 +617,7 @@ function buildRecurringTransaction(item, targetMonth) {
     month: targetMonth,
     approvalTime: "",
     merchant: item.name,
-    amount: Number(item.amount || 0),
+    amount: isLoan ? loanPrincipalAmount + loanInterestAmount : Number(item.amount || 0),
     installment: "",
     approvalNo: `recurring-${item.id}-${targetMonth}`,
     cancel: "",
@@ -489,6 +627,10 @@ function buildRecurringTransaction(item, targetMonth) {
     sourceFile: "고정 지출",
     importedAt: new Date().toISOString(),
     recurringId: item.id,
+    recurringType: item.recurringType,
+    loanType: isLoan ? item.loanType : "",
+    loanPrincipalAmount,
+    loanInterestAmount,
     memo: item.memo || ""
   };
   transaction.recordKey = createRecordKey(transaction);
@@ -510,7 +652,7 @@ function recurringMonthsThrough(item, throughMonth = currentMonthKey()) {
 async function ensureAutoPostedRecurringExpenses(options = {}) {
   const throughMonth = monthKey(options.throughMonth) || currentMonthKey();
   const candidates = recurringExpenses
-    .filter((item) => item.autoPost === true && !item.paused)
+    .filter((item) => item.recurringType !== "loan" && item.autoPost === true && !item.paused)
     .flatMap((item) => recurringMonthsThrough(item, throughMonth)
       .filter((month) => !findPostedRecurringTransaction(item.id, month) && !findDeletedRecurringTransaction(item.id, month))
       .map((month) => buildRecurringTransaction(item, month)));
@@ -524,10 +666,213 @@ async function ensureAutoPostedRecurringExpenses(options = {}) {
   return mergeResult;
 }
 
+function loanPaidPrincipal(recurringId, options = {}) {
+  if (!recurringId) return 0;
+  const throughMonth = monthKey(options.throughMonth);
+  const excludedRecordKey = options.excludeRecordKey || "";
+  return transactions
+    .map(normalizeStoredTransaction)
+    .filter((record) => record.recurringId === recurringId && record.recurringType === "loan")
+    .filter((record) => !isCanceled(record.cancel) && (!throughMonth || record.month <= throughMonth))
+    .filter((record) => !excludedRecordKey || record.recordKey !== excludedRecordKey)
+    .reduce((total, record) => total + Math.max(0, Number(record.loanPrincipalAmount || 0)), 0);
+}
+
+function loanRemainingPrincipal(item, throughMonth, options = {}) {
+  if (!item || item.recurringType !== "loan") return 0;
+  const paidPrincipal = loanPaidPrincipal(item.id, {
+    throughMonth,
+    excludeRecordKey: options.excludeRecordKey
+  });
+  return Math.max(0, Number(item.loanOpeningBalance || 0) - paidPrincipal);
+}
+
+function loanAvailablePrincipal(item, options = {}) {
+  if (!item || item.recurringType !== "loan") return 0;
+  return Math.max(0, Number(item.loanOpeningBalance || 0) - loanPaidPrincipal(item.id, options));
+}
+
+function loanPrincipalAtStartOfMonth(item, month) {
+  if (!item || item.recurringType !== "loan" || !isValidMonthKey(month)) return 0;
+  return loanRemainingPrincipal(item, shiftMonthKey(month, -1));
+}
+
+function loanScheduledAmountsForMonth(item, month) {
+  if (!item || item.recurringType !== "loan" || !isValidMonthKey(month)) {
+    return { principal: 0, interest: 0, amount: 0 };
+  }
+  const posted = findPostedRecurringTransaction(item.id, month);
+  if (posted) {
+    const principal = Math.max(0, Number(posted.loanPrincipalAmount || 0));
+    const interest = Math.max(0, Number(posted.loanInterestAmount || 0));
+    return { principal, interest, amount: principal + interest };
+  }
+  if (item.paused || (item.startMonth && item.startMonth > month) || (item.endMonth && item.endMonth < month)) {
+    return { principal: 0, interest: 0, amount: 0 };
+  }
+  const monthAvailable = loanPrincipalAtStartOfMonth(item, month);
+  const globallyAvailable = loanAvailablePrincipal(item);
+  const principal = Math.min(
+    Math.max(0, Number(item.loanPrincipalAmount || 0)),
+    monthAvailable,
+    globallyAvailable
+  );
+  const interest = monthAvailable > 0 && globallyAvailable > 0
+    ? Math.max(0, Number(item.loanInterestAmount || 0))
+    : 0;
+  return { principal, interest, amount: principal + interest };
+}
+
+function updateLoanPaymentPreview() {
+  const item = recurringExpenses.find((expense) => expense.id === els.loanPaymentRecurringId.value);
+  const principal = Math.max(0, toNumber(els.loanPaymentPrincipal.value));
+  const interest = Math.max(0, toNumber(els.loanPaymentInterest.value));
+  els.loanPaymentTotal.textContent = formatWon(principal + interest);
+  if (!item) {
+    els.loanPaymentRemaining.textContent = "대출 정보 없음";
+    els.loanPaymentFinalRemaining.textContent = "대출 정보 없음";
+    return;
+  }
+  const monthAvailable = loanRemainingPrincipal(item, els.loanPaymentMonth.value, {
+    excludeRecordKey: els.loanPaymentRecordKey.value
+  });
+  const finalAvailable = loanAvailablePrincipal(item, {
+    excludeRecordKey: els.loanPaymentRecordKey.value
+  });
+  els.loanPaymentRemaining.textContent = formatWon(Math.max(0, monthAvailable - principal));
+  els.loanPaymentFinalRemaining.textContent = formatWon(Math.max(0, finalAvailable - principal));
+}
+
+function closeLoanPaymentDialog() {
+  if (els.loanPaymentDialog.open && typeof els.loanPaymentDialog.close === "function") {
+    els.loanPaymentDialog.close();
+  } else {
+    els.loanPaymentDialog.removeAttribute("open");
+  }
+  els.loanPaymentForm.reset();
+}
+
+function openLoanPaymentDialog(id, month, recordKey = "") {
+  const targetMonth = monthKey(month) || els.recurringMonthFilter.value || currentMonthKey();
+  const directExisting = recordKey
+    ? transactions.map(normalizeStoredTransaction).find((record) => record.recordKey === recordKey) || null
+    : null;
+  const existing = directExisting || findPostedRecurringTransaction(id, targetMonth) || null;
+  const recurringId = id || existing?.recurringId || "";
+  const item = recurringExpenses.find((expense) => expense.id === recurringId && expense.recurringType === "loan");
+  if ((!item && !existing) || !targetMonth) return;
+  const displayName = item?.name || existing?.merchant || "대출";
+  els.loanPaymentRecurringId.value = recurringId;
+  els.loanPaymentRecordKey.value = existing?.recordKey || "";
+  els.loanPaymentMonth.value = targetMonth;
+  const scheduled = item ? loanScheduledAmountsForMonth(item, targetMonth) : { principal: 0, interest: 0 };
+  els.loanPaymentPrincipal.value = formatPlainNumber(existing?.loanPrincipalAmount ?? scheduled.principal);
+  els.loanPaymentInterest.value = formatPlainNumber(existing?.loanInterestAmount ?? scheduled.interest);
+  els.loanPaymentDialogTitle.textContent = existing ? `${displayName} 상환 수정` : `${displayName} 상환 반영`;
+  els.loanPaymentDialogDescription.textContent = `${targetMonth} 명세서 기준으로 원금과 이자를 확인해주세요.`;
+  els.saveLoanPaymentButton.textContent = existing ? "상환 수정" : "상환 반영";
+  els.deleteLoanPaymentButton.hidden = !existing;
+  updateLoanPaymentPreview();
+  if (!els.loanPaymentDialog.open && typeof els.loanPaymentDialog.showModal === "function") {
+    els.loanPaymentDialog.showModal();
+  } else if (!els.loanPaymentDialog.open) {
+    els.loanPaymentDialog.setAttribute("open", "");
+  }
+  requestAnimationFrame(() => els.loanPaymentPrincipal.focus());
+}
+
+async function deleteLoanPayment() {
+  const recordKey = els.loanPaymentRecordKey.value;
+  if (!recordKey) return;
+  const existing = transactions
+    .map(normalizeStoredTransaction)
+    .find((record) => record.recordKey === recordKey);
+  if (!existing) {
+    alert("삭제할 대출 상환 내역을 찾지 못했습니다.");
+    return;
+  }
+  if (!confirm(`"${existing.merchant || "대출"}" ${existing.month} 상환 내역을 삭제할까요?\n대출 등록 정보는 유지됩니다.`)) return;
+  await deleteCalendarTransactions([recordKey], {
+    snapshotReason: "대출 상환 내역 삭제 전",
+    feedbackMessage: "대출 상환 내역을 삭제했습니다."
+  });
+  closeLoanPaymentDialog();
+  renderAll();
+}
+
+async function handleLoanPaymentSubmit(event) {
+  event.preventDefault();
+  const existingRecordKey = els.loanPaymentRecordKey.value;
+  const existing = existingRecordKey
+    ? transactions.map(normalizeStoredTransaction).find((record) => record.recordKey === existingRecordKey) || null
+    : null;
+  const item = recurringExpenses.find((expense) => expense.id === els.loanPaymentRecurringId.value && expense.recurringType === "loan");
+  const targetMonth = monthKey(els.loanPaymentMonth.value);
+  const principal = Math.max(0, toNumber(els.loanPaymentPrincipal.value));
+  const interest = Math.max(0, toNumber(els.loanPaymentInterest.value));
+  if ((!item && !existing) || !targetMonth || principal + interest <= 0) {
+    alert("원금과 이자를 확인해주세요.");
+    return;
+  }
+  if (existingRecordKey && !existing) {
+    alert("수정할 대출 상환 내역을 찾지 못했습니다.");
+    return;
+  }
+  if (item) {
+    const available = loanAvailablePrincipal(item, { excludeRecordKey: existingRecordKey });
+    if (principal > available) {
+      alert(`원금은 전체 상환 내역을 반영한 남은 원금 ${formatWon(available)}을 초과할 수 없습니다.`);
+      return;
+    }
+  }
+
+  await createAutoSnapshot(existingRecordKey ? "대출 상환 내역 수정 전" : "대출 상환 반영 전");
+  const nextTransaction = item
+    ? buildRecurringTransaction(item, targetMonth, {
+        loanPrincipalAmount: principal,
+        loanInterestAmount: interest
+      })
+    : normalizeStoredTransaction({
+        ...existing,
+        amount: principal + interest,
+        loanPrincipalAmount: principal,
+        loanInterestAmount: interest,
+        updatedAt: new Date().toISOString()
+      });
+  if (existingRecordKey) {
+    const updatedAt = new Date().toISOString();
+    transactions = transactions.map((record) => {
+      const normalized = normalizeStoredTransaction(record);
+      if (normalized.recordKey !== existingRecordKey) return record;
+      return normalizeStoredTransaction({
+        ...nextTransaction,
+        importedAt: normalized.importedAt || nextTransaction.importedAt,
+        createdAt: normalized.createdAt || normalized.importedAt || nextTransaction.importedAt,
+        updatedAt
+      });
+    });
+  } else {
+    const mergeResult = mergeTransactions(transactions, [nextTransaction]);
+    if (!mergeResult.added) {
+      alert(`이미 ${targetMonth}에 반영된 대출 상환입니다.`);
+      return;
+    }
+    transactions = mergeResult.records;
+  }
+  await saveTransactions();
+  reclassify();
+  closeLoanPaymentDialog();
+  renderAll();
+}
+
 async function postRecurringExpense(id, month, options = {}) {
   const item = recurringExpenses.find((expense) => expense.id === id);
   const targetMonth = monthKey(month) || selectedCalendarMonth || els.recurringMonthFilter.value || currentMonthKey();
   if (!item || !targetMonth) return { added: 0, skipped: 0 };
+  if (item.recurringType === "loan") {
+    openLoanPaymentDialog(item.id, targetMonth);
+    return { added: 0, skipped: 0, pendingConfirmation: true };
+  }
   if (findPostedRecurringTransaction(item.id, targetMonth)) {
     if (!options.silent) alert(`이미 ${targetMonth}에 반영된 고정 지출입니다.`);
     return { added: 0, skipped: 1 };
@@ -581,7 +926,14 @@ function recurringPostingStatus(item, month) {
     return { active, posted, postedTransaction, canManualPost: false, label: "반영 완료", className: "posted" };
   }
   if (!active) {
-    return { active, posted, postedTransaction, canManualPost: false, label: item.paused ? "일시중지" : "종료됨", className: "muted" };
+    const inactiveLabel = item.paused
+      ? "일시중지"
+      : item.startMonth && item.startMonth > month
+        ? "시작 전"
+        : item.recurringType === "loan" && loanAvailablePrincipal(item) <= 0
+          ? "상환 완료"
+          : "종료됨";
+    return { active, posted, postedTransaction, canManualPost: false, label: inactiveLabel, className: "muted" };
   }
   if (item.autoPost) {
     return {
@@ -599,28 +951,114 @@ function recurringPostingStatus(item, month) {
 function renderRecurring() {
   if (!els.recurringList) return;
   const selectedMonth = syncRecurringMonthFilter();
-  const monthOccurrences = recurringOccurrencesForMonth(selectedMonth);
+  setRecurringTab(activeRecurringTab);
+  const expenseDefinitions = recurringExpenses.filter((item) => item.recurringType !== "loan");
+  const loanDefinitions = recurringExpenses.filter((item) => item.recurringType === "loan");
+  const monthOccurrences = recurringOccurrencesForMonth(selectedMonth)
+    .filter((item) => item.recurringType !== "loan");
   const pendingItems = monthOccurrences.filter((item) => !item.posted);
   const autoPostedItems = monthOccurrences.filter((item) => item.autoPost && item.posted);
   const manualPendingItems = monthOccurrences.filter((item) => !item.autoPost && !item.posted);
-  els.recurringListSummary.textContent = `${recurringExpenses.length.toLocaleString("ko-KR")}건 등록`;
+  els.recurringListSummary.textContent = `${expenseDefinitions.length.toLocaleString("ko-KR")}건 등록`;
   els.recurringSummaryCards.innerHTML = [
     renderRecurringSummaryCard("미반영 예정", formatWon(sum(pendingItems, "amount")), `${pendingItems.length.toLocaleString("ko-KR")}건 · 실제 합산 전`),
     renderRecurringSummaryCard("자동 반영 완료", `${autoPostedItems.length.toLocaleString("ko-KR")}건`, formatWon(sum(autoPostedItems, "amount"))),
     renderRecurringSummaryCard("수동 반영 필요", `${manualPendingItems.length.toLocaleString("ko-KR")}건`, manualPendingItems.length ? "달력/목록에서 반영 가능" : "반영 대기 없음")
   ].join("");
 
-  if (!recurringExpenses.length) {
+  if (!expenseDefinitions.length) {
     els.recurringList.innerHTML = `<div class="empty">등록된 고정 지출이 없습니다. 카드값, 보험료, 월세 같은 반복 지출을 추가해보세요.</div>`;
+  } else {
+    els.recurringList.innerHTML = expenseDefinitions
+      .slice()
+      .sort((a, b) => Number(a.dayOfMonth || 0) - Number(b.dayOfMonth || 0) || a.name.localeCompare(b.name, "ko-KR"))
+      .map((item) => renderRecurringCard(item, selectedMonth))
+      .join("");
+    attachRecurringHandlers(els.recurringList);
+  }
+  renderLoanRepayments(selectedMonth, loanDefinitions);
+}
+
+function renderLoanRepayments(month, loanDefinitions) {
+  if (!els.loanList || !els.loanSummaryCards) return;
+  const monthOccurrences = recurringOccurrencesForMonth(month, { showHidden: true })
+    .filter((item) => item.recurringType === "loan");
+  const postedRecords = transactions
+    .map(normalizeStoredTransaction)
+    .filter((item) => item.recurringType === "loan" && item.month === month && !isCanceled(item.cancel));
+  const postedCashOutflow = sum(postedRecords, "amount");
+  const pendingCashOutflow = sum(monthOccurrences.filter((occurrence) => !occurrence.posted), "amount");
+  const monthCashOutflow = postedCashOutflow + pendingCashOutflow;
+  const postedInterest = sumConsumption(postedRecords);
+  const postedPrincipal = sumDebtPrincipal(postedRecords);
+  const pendingCount = monthOccurrences.filter((occurrence) => !occurrence.posted).length;
+  const remainingPrincipal = loanDefinitions.reduce((total, item) => total + loanRemainingPrincipal(item, month), 0);
+  els.loanSummaryCards.innerHTML = [
+    renderRecurringSummaryCard("이번 달 현금 유출", formatWon(monthCashOutflow), `${postedRecords.length.toLocaleString("ko-KR")}건 반영 · ${pendingCount.toLocaleString("ko-KR")}건 예정`),
+    renderRecurringSummaryCard("소비지출 반영", formatWon(postedInterest), "반영 완료된 이자"),
+    renderRecurringSummaryCard("부채 감소", formatWon(postedPrincipal), "반영 완료된 원금"),
+    renderRecurringSummaryCard("남은 원금", formatWon(remainingPrincipal), `${loanDefinitions.length.toLocaleString("ko-KR")}건 합계`)
+  ].join("");
+  els.loanListSummary.textContent = `${loanDefinitions.length.toLocaleString("ko-KR")}건 등록`;
+  if (!loanDefinitions.length) {
+    els.loanList.innerHTML = `<div class="empty">등록된 대출이 없습니다. 신용대출이나 학자금대출의 남은 원금과 월별 상환 기본값을 추가해보세요.</div>`;
     return;
   }
-
-  els.recurringList.innerHTML = recurringExpenses
+  els.loanList.innerHTML = loanDefinitions
     .slice()
     .sort((a, b) => Number(a.dayOfMonth || 0) - Number(b.dayOfMonth || 0) || a.name.localeCompare(b.name, "ko-KR"))
-    .map((item) => renderRecurringCard(item, selectedMonth))
+    .map((item) => renderLoanCard(item, month))
     .join("");
-  attachRecurringHandlers();
+  attachRecurringHandlers(els.loanList);
+}
+
+function renderLoanCard(item, month) {
+  const status = recurringPostingStatus(item, month);
+  const posted = status.postedTransaction;
+  const scheduled = loanScheduledAmountsForMonth(item, month);
+  const principal = Number(posted?.loanPrincipalAmount ?? scheduled.principal);
+  const interest = Number(posted?.loanInterestAmount ?? scheduled.interest);
+  const total = principal + interest;
+  const principalRatio = total > 0 ? principal / total * 100 : 0;
+  const remaining = loanRemainingPrincipal(item, month);
+  return `
+    <article class="recurring-card loan-card ${item.paused ? "paused" : ""}">
+      <div class="recurring-card-main">
+        <div>
+          <span class="scheduled-badge">${escapeHtml(item.loanType || "대출")}</span>
+          <h3>${escapeHtml(item.name)}</h3>
+          <p>${escapeHtml(item.paymentType || "이체")} · 매월 ${Number(item.dayOfMonth || 1)}일 · ${escapeHtml(month)}</p>
+        </div>
+        <div class="loan-card-amount"><span>월 상환액</span><strong>${formatWon(total)}</strong></div>
+      </div>
+      <div class="loan-split-bar" aria-label="원금 ${formatWon(principal)}, 이자 ${formatWon(interest)}">
+        <span class="principal" style="width:${Math.max(0, Math.min(100, principalRatio))}%"></span>
+        <span class="interest" style="width:${Math.max(0, 100 - principalRatio)}%"></span>
+      </div>
+      <div class="loan-split-values">
+        <span><i class="principal" aria-hidden="true"></i>원금 <strong>${formatWon(principal)}</strong></span>
+        <span><i class="interest" aria-hidden="true"></i>이자 <strong>${formatWon(interest)}</strong></span>
+      </div>
+      <div class="recurring-card-tags">
+        <span class="scheduled-badge soft">원금 소비 제외</span>
+        <span class="scheduled-badge ${escapeHtml(status.className)}">${escapeHtml(status.label)}</span>
+        ${item.showOnCalendar ? `<span class="scheduled-badge soft">달력 표시</span>` : `<span class="scheduled-badge muted">달력 숨김</span>`}
+      </div>
+      <dl class="recurring-meta loan-meta">
+        <div><dt>남은 원금</dt><dd>${formatWon(remaining)}</dd></div>
+        <div><dt>금리</dt><dd>${Number(item.loanInterestRate || 0).toLocaleString("ko-KR")}%</dd></div>
+        <div><dt>만기</dt><dd>${escapeHtml(item.loanMaturityMonth || "미설정")}</dd></div>
+        <div><dt>메모</dt><dd>${escapeHtml(item.memo || "-")}</dd></div>
+      </dl>
+      <div class="recurring-actions">
+        ${status.canManualPost ? `<button type="button" class="primary-action" data-post-recurring="${escapeHtml(item.id)}" data-post-month="${escapeHtml(month)}">이번 달 상환 확인</button>` : ""}
+        ${status.posted ? `<button type="button" data-edit-loan-payment="${escapeHtml(item.id)}" data-post-month="${escapeHtml(month)}">상환 내역 수정</button>` : ""}
+        <button type="button" data-edit-recurring="${escapeHtml(item.id)}">대출 정보 수정</button>
+        <button type="button" data-toggle-recurring="${escapeHtml(item.id)}">${item.paused ? "다시 활성화" : "일시중지"}</button>
+        <button type="button" class="danger-outline" data-delete-recurring="${escapeHtml(item.id)}">삭제</button>
+      </div>
+    </article>
+  `;
 }
 
 function renderRecurringSummaryCard(label, value, hint) {
@@ -641,7 +1079,7 @@ function renderRecurringCard(item, month) {
     <article class="recurring-card ${item.paused ? "paused" : ""}">
       <div class="recurring-card-main">
         <div>
-          <span class="scheduled-badge">${item.paused ? "일시중지" : active ? "진행 중" : "종료됨"}</span>
+          <span class="scheduled-badge">${item.paused ? "일시중지" : active ? "진행 중" : escapeHtml(status.label)}</span>
           <h3>${escapeHtml(item.name)}</h3>
           <p>${escapeHtml(item.paymentType || "카드")} · 매월 ${Number(item.dayOfMonth || 1)}일${scheduledDate ? ` · ${escapeHtml(scheduledDate)}` : ""}</p>
         </div>
@@ -681,6 +1119,13 @@ function attachRecurringHandlers(root = els.recurringList) {
   root.querySelectorAll("[data-post-recurring]").forEach((button) => {
     button.addEventListener("click", () => postRecurringExpense(button.dataset.postRecurring, button.dataset.postMonth));
   });
+  root.querySelectorAll("[data-edit-loan-payment]").forEach((button) => {
+    button.addEventListener("click", () => openLoanPaymentDialog(
+      button.dataset.editLoanPayment,
+      button.dataset.postMonth,
+      button.dataset.loanPaymentRecord
+    ));
+  });
 }
 
 function syncRecurringMonthFilter() {
@@ -706,8 +1151,14 @@ function recurringOccurrencesForMonth(month, options = {}) {
     .filter((item) => showHidden || item.showOnCalendar !== false)
     .map((item) => {
       const status = recurringPostingStatus(item, month);
+      const scheduled = item.recurringType === "loan" ? loanScheduledAmountsForMonth(item, month) : null;
       return {
         ...item,
+        ...(scheduled ? {
+          amount: scheduled.amount,
+          loanPrincipalAmount: scheduled.principal,
+          loanInterestAmount: scheduled.interest
+        } : {}),
         date: getRecurringDateForMonth(month, item.dayOfMonth),
         month,
         postedTransaction: status.postedTransaction,
@@ -724,6 +1175,10 @@ function isRecurringActiveForMonth(item, month) {
   if (!item || item.paused || !/^\d{4}-\d{2}$/.test(month)) return false;
   if (item.startMonth && item.startMonth > month) return false;
   if (item.endMonth && item.endMonth < month) return false;
+  if (item.recurringType === "loan") {
+    if (findPostedRecurringTransaction(item.id, month)) return true;
+    return loanPrincipalAtStartOfMonth(item, month) > 0 && loanAvailablePrincipal(item) > 0;
+  }
   return true;
 }
 

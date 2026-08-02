@@ -26,13 +26,14 @@ function boardMetricTrend(current, previous) {
   };
 }
 
-function renderBoardCoreMetrics({ selectedMonth, totalPayment, reimbursementTotal, totalSpend, income, net, scheduledTotal, unknownTotal, previous = {} }) {
+function renderBoardCoreMetrics({ selectedMonth, totalPayment, reimbursementTotal, totalSpend, debtRepayment, income, net, scheduledTotal, unknownTotal, previous = {} }) {
   return [
-    renderBoardCoreMetric("실 지출액", formatWon(totalSpend), totalSpend, previous.totalSpend, "navy", { month: selectedMonth }, "major"),
+    renderBoardCoreMetric("현금 유출", formatWon(totalSpend), totalSpend, previous.totalSpend, "navy", { month: selectedMonth }, "major"),
     renderBoardCoreMetric("총수입", formatWon(income), income, previous.income, "green", { incomeMonth: selectedMonth }, "major"),
     renderBoardCoreMetric("잔액", formatSignedWon(net), net, previous.net, net < 0 ? "red" : "navy", {}, "major"),
     renderBoardCoreMetric("총 결제액", formatWon(totalPayment), totalPayment, previous.totalPayment, "navy", { month: selectedMonth }, "minor"),
     renderBoardCoreMetric("정산받은 금액", formatWon(reimbursementTotal), reimbursementTotal, previous.reimbursementTotal, "navy", { month: selectedMonth }, "minor"),
+    renderBoardCoreMetric("부채 상환", formatWon(debtRepayment), debtRepayment, previous.debtRepayment, "green", {}, "minor"),
     renderBoardCoreMetric("미분류", formatWon(unknownTotal), unknownTotal, previous.unknownTotal, "navy", { month: selectedMonth, sector: "미분류" }, "minor"),
     renderBoardCoreMetric("예정 지출", formatWon(scheduledTotal), scheduledTotal, previous.scheduledTotal, "navy", {}, "minor")
   ].join("");
@@ -131,10 +132,10 @@ function renderBoardLongTermIndicators(activeRows, selectedMonth) {
   const previousRows = activeRows.filter((item) => previousMonthSet.has(item.month));
   const monthSummaries = periodMonths.map((month) => ({
     month,
-    amount: sumActual(periodRows.filter((item) => item.month === month))
+    amount: sumConsumption(periodRows.filter((item) => item.month === month))
   }));
-  const total = sumActual(periodRows);
-  const previousTotal = sumActual(previousRows);
+  const total = sumConsumption(periodRows);
+  const previousTotal = sumConsumption(previousRows);
   const average = Math.round(total / periodMonths.length);
   const yearRate = previousTotal > 0 ? (total - previousTotal) / previousTotal * 100 : null;
   const comparisonTone = yearRate === null || yearRate === 0 ? "neutral" : yearRate > 0 ? "negative" : "positive";
@@ -198,13 +199,15 @@ function renderBoardPeriodStats(periodRows, periodMonths, preset, selectedMonth,
   }
   const monthSummaries = periodMonths.map((month) => {
     const rows = periodRows.filter((item) => item.month === month);
-    const spend = sumActual(rows);
+    const spend = sumConsumption(rows);
+    const debt = sumDebtPrincipal(rows);
     const income = Number(monthlyIncome[month] || 0) + importedIncomeForMonth(month);
-    return { month, amount: spend, income, net: income - spend, count: rows.length };
+    return { month, amount: spend, income, debt, net: income - spend - debt, count: rows.length };
   });
-  const total = sumActual(periodRows);
+  const total = sumConsumption(periodRows);
+  const debtRepayment = sumDebtPrincipal(periodRows);
   const totalIncome = periodMonths.reduce((amount, month) => amount + Number(monthlyIncome[month] || 0) + importedIncomeForMonth(month), 0);
-  const periodNet = totalIncome - total;
+  const periodNet = totalIncome - total - debtRepayment;
   const average = Math.round(total / Math.max(periodMonths.length, 1));
   const topMonth = [...monthSummaries].sort((a, b) => b.amount - a.amount)[0] || { month: selectedMonth, amount: 0 };
   const lowMonth = [...monthSummaries].sort((a, b) => a.amount - b.amount)[0] || { month: selectedMonth, amount: 0 };
@@ -220,9 +223,9 @@ function renderBoardPeriodStats(periodRows, periodMonths, preset, selectedMonth,
       </div>
       <div class="board-period-grid">
         <button type="button" data-board-period-detail="${escapeHtml(periodMonths.at(-1) || selectedMonth || "")}">
-          <span>기간 총 실지출</span>
+          <span>기간 분석 반영액</span>
           <strong>${formatWon(total)}</strong>
-          <small>${periodRows.length.toLocaleString("ko-KR")}건 누적</small>
+          <small>대출 원금 제외 · ${periodRows.length.toLocaleString("ko-KR")}건</small>
         </button>
         <button type="button" data-open-income-month="${escapeHtml(periodMonths.at(-1) || selectedMonth || "")}">
           <span>기간 총수입</span>
@@ -232,10 +235,10 @@ function renderBoardPeriodStats(periodRows, periodMonths, preset, selectedMonth,
         <div>
           <span>기간 잔액</span>
           <strong class="${periodNet >= 0 ? "positive" : "negative"}">${formatSignedWon(periodNet)}</strong>
-          <small>총수입 - 실지출</small>
+          <small>총수입 - 분석 반영액 - 부채 상환 ${formatWon(debtRepayment)}</small>
         </div>
         <div>
-          <span>월평균 실지출</span>
+          <span>월평균 분석 반영액</span>
           <strong>${formatWon(average)}</strong>
           <small>기간 월수 기준</small>
         </div>

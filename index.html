@@ -7,16 +7,16 @@
   <meta name="theme-color" content="#365f7e">
   <link rel="manifest" href="manifest.webmanifest?v=146-professional-analysis">
   <link rel="stylesheet" href="src/styles/00-tokens.css?v=150-theme-refresh">
-  <link rel="stylesheet" href="src/styles/01-base.css?v=136-mineral-layers">
+  <link rel="stylesheet" href="src/styles/01-base.css?v=151-loan-repayments">
   <link rel="stylesheet" href="src/styles/02-layout.css?v=76">
   <link rel="stylesheet" href="src/styles/03-components.css?v=140-long-term-trend">
   <link rel="stylesheet" href="src/styles/04-forms-tables.css?v=83">
-  <link rel="stylesheet" href="src/styles/05-charts.css?v=125">
+  <link rel="stylesheet" href="src/styles/05-charts.css?v=151-loan-repayments">
   <link rel="stylesheet" href="src/styles/06-features.css?v=142-memo-contrast">
-  <link rel="stylesheet" href="src/styles/07-responsive.css?v=125">
-  <link rel="stylesheet" href="src/styles/08-themes.css?v=150-theme-refresh">
+  <link rel="stylesheet" href="src/styles/07-responsive.css?v=151-loan-repayments">
+  <link rel="stylesheet" href="src/styles/08-themes.css?v=151-loan-repayments">
   <link rel="stylesheet" href="assets/tabler/tabler-icons.min.css?v=135-subcategory-icons">
-  <link rel="stylesheet" href="src/styles/09-production-ui.css?v=150-theme-refresh">
+  <link rel="stylesheet" href="src/styles/09-production-ui.css?v=151-loan-repayments">
   <link rel="stylesheet" href="src/styles/10-analysis.css?v=146-professional-analysis">
   <script src="assets/vendor/xlsx.full.min.js"></script>
 </head>
@@ -383,7 +383,7 @@
       <section id="monthlyView" class="view">
         <div class="section-head">
           <h2>년도 지출정리</h2>
-          <p>연도별 흐름 안에서 월별 수입, 소비, 실제 저축과 누적 자산 증가를 비교합니다.</p>
+          <p>연도별 흐름 안에서 월별 수입, 소비, 실제 저축, 부채 상환과 누적 자산 증가를 비교합니다.</p>
         </div>
         <div class="monthly-overview">
           <div class="monthly-filterbar">
@@ -405,7 +405,7 @@
               <div class="monthly-chart-head">
                 <div>
                   <h3>수입 배분과 자산 추이</h3>
-                  <p>수입을 소비·실제 저축·자유 잔액으로 나누고 누적 자산 흐름을 비교합니다.</p>
+                  <p>수입을 소비·실제 저축·부채 상환·자유 잔액으로 나누고 누적 자산 흐름을 비교합니다.</p>
                 </div>
               </div>
               <div id="monthlyFlowChart" class="monthly-chart"></div>
@@ -414,11 +414,11 @@
               <div class="monthly-table-head">
                 <div>
                   <h3 id="monthlyTableTitle">월별 숫자 상세</h3>
-                  <p>수입 · 소비 · 실제 저축 · 자유 잔액 · 저축률 · 누적 자산 증가</p>
+                  <p>수입 · 소비 · 실제 저축 · 부채 상환 · 자유 잔액 · 저축률 · 누적 자산 증가</p>
                 </div>
               </div>
-              <div class="table-wrap monthly-table-wrap" role="region" aria-label="월별 수입, 소비와 저축 표" tabindex="0">
-                <table id="monthlyFlowTable" aria-label="월별 수입, 소비, 실제 저축과 누적 자산 증가"></table>
+              <div class="table-wrap monthly-table-wrap" role="region" aria-label="월별 수입, 소비, 저축과 부채 상환 표" tabindex="0">
+                <table id="monthlyFlowTable" aria-label="월별 수입, 소비, 실제 저축, 부채 상환과 누적 자산 증가"></table>
               </div>
             </section>
           </div>
@@ -491,11 +491,20 @@
       <section id="recurringView" class="view">
         <div class="section-head">
           <h2>고정 지출</h2>
-          <p>매월 반복되는 카드값, 보험료, 월세, 통신비 같은 예정 지출을 미리 등록합니다.</p>
+          <p>반복 지출과 대출 상환을 구분해 예정 현금 유출을 관리합니다.</p>
           <label>보기 월<select id="recurringMonthFilter"></select></label>
         </div>
-        <div id="recurringSummaryCards" class="recurring-summary-grid"></div>
-        <div class="recurring-layout">
+        <div class="recurring-subtabs" role="tablist" aria-label="고정 지출 종류">
+          <button id="recurringExpenseTab" class="recurring-subtab active" type="button" role="tab" aria-selected="true" aria-controls="recurringExpensePanel" data-recurring-tab="expense">
+            <i class="ti ti-repeat" aria-hidden="true"></i> 일반 고정 지출
+          </button>
+          <button id="recurringLoanTab" class="recurring-subtab" type="button" role="tab" aria-selected="false" aria-controls="recurringLoanPanel" data-recurring-tab="loan" tabindex="-1">
+            <i class="ti ti-building-bank" aria-hidden="true"></i> 대출 상환
+          </button>
+        </div>
+        <div id="recurringExpensePanel" role="tabpanel" aria-labelledby="recurringExpenseTab" data-recurring-panel="expense">
+          <div id="recurringSummaryCards" class="recurring-summary-grid"></div>
+          <div class="recurring-layout">
           <form id="recurringForm" class="recurring-form">
             <div class="panel-head">
               <div>
@@ -548,6 +557,50 @@
             </div>
             <div id="recurringList" class="recurring-list"></div>
           </section>
+          </div>
+        </div>
+        <div id="recurringLoanPanel" role="tabpanel" aria-labelledby="recurringLoanTab" data-recurring-panel="loan" hidden>
+          <div class="loan-guidance" role="note">
+            <i class="ti ti-info-circle" aria-hidden="true"></i>
+            <span><strong>전체 상환액</strong>은 자유 잔액에서 차감하고, <strong>이자만 소비지출</strong>로 집계합니다. 원금은 부채 감소로 따로 표시합니다.</span>
+          </div>
+          <div id="loanSummaryCards" class="recurring-summary-grid loan-summary-grid"></div>
+          <div class="recurring-layout loan-layout">
+            <form id="loanForm" class="recurring-form loan-form">
+              <div class="panel-head recurring-form-head">
+                <div>
+                  <h3>대출 상환 등록</h3>
+                  <p>월별 기본값을 저장하고 실제 반영 시 원금과 이자를 확인합니다.</p>
+                </div>
+                <button id="cancelLoanEditButton" type="button" hidden>수정 취소</button>
+              </div>
+              <input id="loanId" type="hidden">
+              <label>대출명<input id="loanName" type="text" placeholder="예: 생활비 신용대출" required></label>
+              <label>대출 종류<select id="loanType"><option value="신용대출">신용대출</option><option value="학자금대출">학자금대출</option><option value="주택담보대출">주택담보대출</option><option value="기타">기타</option></select></label>
+              <label>추적 시작 시 남은 원금<input id="loanOpeningBalance" type="text" inputmode="numeric" placeholder="예: 12600000" required></label>
+              <label>금리(연 %)<input id="loanInterestRate" type="number" min="0" step="0.01" placeholder="예: 4.8"></label>
+              <label>매월 상환일<input id="loanDay" type="number" min="1" max="31" placeholder="예: 25" required></label>
+              <label>결제 방식<select id="loanPaymentType"><option value="이체">이체</option><option value="카드">카드</option><option value="현금">현금</option><option value="기타">기타</option></select></label>
+              <label>월 원금 기본값<input id="loanPrincipalAmount" type="text" inputmode="numeric" placeholder="예: 400000" required></label>
+              <label>월 이자 기본값<input id="loanInterestAmount" type="text" inputmode="numeric" placeholder="예: 50000" required></label>
+              <div class="loan-total-preview" aria-live="polite"><span>월 상환 예정액</span><strong id="loanScheduledTotal">0원</strong></div>
+              <label>추적 시작 월<input id="loanStartMonth" type="month" required></label>
+              <label>만기 월 선택사항<input id="loanMaturityMonth" type="month"><small>비워두면 종료 없이 계속 추적합니다.</small></label>
+              <label class="wide-field">메모<input id="loanMemo" type="text" placeholder="필요한 메모"></label>
+              <label class="check-line wide-field"><input id="loanShowOnCalendar" type="checkbox" checked> 소비 달력에 전체 상환 예정액 표시</label>
+              <button id="saveLoanButton" type="submit" class="primary-action">대출 상환 저장</button>
+            </form>
+            <section class="recurring-list-panel loan-list-panel">
+              <div class="panel-head">
+                <div>
+                  <h3>등록된 대출</h3>
+                  <p>선택한 달의 원금·이자를 확인한 뒤 실제 상환으로 반영합니다.</p>
+                </div>
+                <strong id="loanListSummary">0건</strong>
+              </div>
+              <div id="loanList" class="recurring-list loan-list"></div>
+            </section>
+          </div>
         </div>
       </section>
 
@@ -1086,6 +1139,35 @@
     </section>
   </main>
 
+  <dialog id="loanPaymentDialog" class="loan-payment-dialog" aria-labelledby="loanPaymentDialogTitle" aria-describedby="loanPaymentDialogDescription">
+    <form id="loanPaymentForm" class="loan-payment-form">
+      <div class="panel-head">
+        <div>
+          <span class="scheduled-badge">월별 상환 확인</span>
+          <h3 id="loanPaymentDialogTitle">대출 상환 반영</h3>
+          <p id="loanPaymentDialogDescription">명세서 기준으로 원금과 이자를 확인해주세요.</p>
+        </div>
+        <button id="closeLoanPaymentDialogButton" type="button" aria-label="닫기"><i class="ti ti-x" aria-hidden="true"></i></button>
+      </div>
+      <input id="loanPaymentRecurringId" type="hidden">
+      <input id="loanPaymentRecordKey" type="hidden">
+      <label>반영 월<input id="loanPaymentMonth" type="month" readonly></label>
+      <label>원금<input id="loanPaymentPrincipal" type="text" inputmode="numeric"></label>
+      <label>이자<input id="loanPaymentInterest" type="text" inputmode="numeric"></label>
+      <div class="loan-payment-preview">
+        <div><span>이번 달 현금 유출</span><strong id="loanPaymentTotal">0원</strong></div>
+        <div><span>해당 월 말 남은 원금</span><strong id="loanPaymentRemaining">0원</strong></div>
+        <div><span>전체 반영 후 남은 원금</span><strong id="loanPaymentFinalRemaining">0원</strong></div>
+      </div>
+      <p class="loan-payment-rule"><i class="ti ti-check" aria-hidden="true"></i> 원금은 소비지출에서 제외되고 부채 상환으로 반영됩니다.</p>
+      <div class="loan-payment-actions">
+        <button id="deleteLoanPaymentButton" type="button" class="danger-outline" hidden>상환 내역 삭제</button>
+        <button id="cancelLoanPaymentButton" type="button">취소</button>
+        <button id="saveLoanPaymentButton" type="submit" class="primary-action">상환 반영</button>
+      </div>
+    </form>
+  </dialog>
+
   <nav class="mobile-bottom-nav" aria-label="모바일 주요 메뉴">
     <button class="mobile-nav-button active" type="button" data-mobile-view="board" aria-current="page"><i class="ti ti-layout-dashboard" aria-hidden="true"></i><span>대시보드</span></button>
     <button class="mobile-nav-button" type="button" data-mobile-view="calendar"><i class="ti ti-calendar-month" aria-hidden="true"></i><span>소비 달력</span></button>
@@ -1141,18 +1223,18 @@
   <script src="src/data/constants.js?v=146-professional-analysis"></script>
   <script src="src/data/categories.js?v=136-mineral-layers"></script>
   <script src="src/data/rules.js?v=93"></script>
-  <script src="src/data/board-sections.js?v=86"></script>
+  <script src="src/data/board-sections.js?v=151-loan-repayments"></script>
   <script src="src/data/field-aliases.js?v=77"></script>
 
-  <script src="src/features/app/state.js?v=147-detail-master"></script>
+  <script src="src/features/app/state.js?v=151-loan-repayments"></script>
 
   <script src="src/utils/format.js?v=80"></script>
   <script src="src/utils/date.js?v=141-garden-analysis"></script>
   <script src="src/utils/dom.js?v=61"></script>
-  <script src="src/utils/normalize.js?v=93"></script>
-  <script src="src/utils/grouping.js?v=78"></script>
-  <script src="src/utils/storage.js?v=150-theme-refresh"></script>
-  <script src="src/utils/backup.js?v=141-garden-analysis"></script>
+  <script src="src/utils/normalize.js?v=151-loan-repayments"></script>
+  <script src="src/utils/grouping.js?v=151-loan-repayments"></script>
+  <script src="src/utils/storage.js?v=151-loan-repayments"></script>
+  <script src="src/utils/backup.js?v=151-loan-repayments"></script>
 
   <script src="src/components/chips.js?v=136-mineral-layers"></script>
   <script src="src/components/tables.js?v=61"></script>
@@ -1166,24 +1248,24 @@
   <script src="src/features/classification/smart-suggestions.js?v=61"></script>
   <script src="src/features/classification/rules-manager.js?v=61"></script>
 
-  <script src="src/features/board/board-view.js?v=132-dashboard"></script>
-  <script src="src/features/board/board-summary.js?v=132-dashboard"></script>
-  <script src="src/features/board/board-cards.js?v=147-detail-master"></script>
-  <script src="src/features/details/details-view.js?v=147-detail-master"></script>
-  <script src="src/features/summary/comparison-analysis.js?v=141-garden-analysis"></script>
-  <script src="src/features/summary/summary-view.js?v=141-garden-analysis"></script>
-  <script src="src/features/summary/sector-analysis.js?v=122"></script>
-  <script src="src/features/summary/summary-chart.js?v=141-garden-analysis"></script>
-  <script src="src/features/monthly/monthly-flow.js?v=141-garden-analysis"></script>
-  <script src="src/features/monthly/monthly-chart.js?v=141-garden-analysis"></script>
+  <script src="src/features/board/board-view.js?v=151-loan-repayments"></script>
+  <script src="src/features/board/board-summary.js?v=151-loan-repayments"></script>
+  <script src="src/features/board/board-cards.js?v=151-loan-repayments"></script>
+  <script src="src/features/details/details-view.js?v=151-loan-repayments"></script>
+  <script src="src/features/summary/comparison-analysis.js?v=151-loan-repayments"></script>
+  <script src="src/features/summary/summary-view.js?v=151-loan-repayments"></script>
+  <script src="src/features/summary/sector-analysis.js?v=151-loan-repayments"></script>
+  <script src="src/features/summary/summary-chart.js?v=151-loan-repayments"></script>
+  <script src="src/features/monthly/monthly-flow.js?v=151-loan-repayments"></script>
+  <script src="src/features/monthly/monthly-chart.js?v=151-loan-repayments"></script>
   <script src="src/features/income/income-entry.js?v=61"></script>
   <script src="src/features/income/income-bulk.js?v=61"></script>
   <script src="src/features/income/income-list.js?v=66"></script>
-  <script src="src/features/recurring/recurring-view.js?v=108"></script>
-  <script src="src/features/calendar/calendar-view.js?v=148-calendar-heatmap"></script>
-  <script src="src/features/analysis/analysis-core.js?v=146-professional-analysis"></script>
-  <script src="src/features/analysis/monthly-analysis-view.js?v=146-professional-analysis"></script>
-  <script src="src/features/analysis/spending-structure-view.js?v=146-professional-analysis"></script>
+  <script src="src/features/recurring/recurring-view.js?v=151-loan-repayments"></script>
+  <script src="src/features/calendar/calendar-view.js?v=151-loan-repayments"></script>
+  <script src="src/features/analysis/analysis-core.js?v=151-loan-repayments"></script>
+  <script src="src/features/analysis/monthly-analysis-view.js?v=151-loan-repayments"></script>
+  <script src="src/features/analysis/spending-structure-view.js?v=151-loan-repayments"></script>
   <script src="src/features/products/products-view.js?v=62"></script>
   <script src="src/features/ipo/ipo-view.js?v=109"></script>
   <script src="src/features/unknown/unknown-view.js?v=97"></script>
@@ -1191,7 +1273,7 @@
 
   <script src="src/features/app/navigation.js?v=112"></script>
   <script src="src/features/app/appearance.js?v=141-garden-analysis"></script>
-  <script src="src/features/app/render-all.js?v=146-professional-analysis"></script>
-  <script src="src/features/app/init.js?v=146-professional-analysis"></script>
+  <script src="src/features/app/render-all.js?v=151-loan-repayments"></script>
+  <script src="src/features/app/init.js?v=151-loan-repayments"></script>
 </body>
 </html>

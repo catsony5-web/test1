@@ -322,6 +322,44 @@ const els = {
   recurringList: document.querySelector("#recurringList"),
   saveRecurringButton: document.querySelector("#saveRecurringButton"),
   cancelRecurringEditButton: document.querySelector("#cancelRecurringEditButton"),
+  recurringTabButtons: [...document.querySelectorAll("[data-recurring-tab]")],
+  recurringPanels: [...document.querySelectorAll("[data-recurring-panel]")],
+  loanSummaryCards: document.querySelector("#loanSummaryCards"),
+  loanForm: document.querySelector("#loanForm"),
+  loanId: document.querySelector("#loanId"),
+  loanName: document.querySelector("#loanName"),
+  loanType: document.querySelector("#loanType"),
+  loanOpeningBalance: document.querySelector("#loanOpeningBalance"),
+  loanInterestRate: document.querySelector("#loanInterestRate"),
+  loanDay: document.querySelector("#loanDay"),
+  loanPaymentType: document.querySelector("#loanPaymentType"),
+  loanPrincipalAmount: document.querySelector("#loanPrincipalAmount"),
+  loanInterestAmount: document.querySelector("#loanInterestAmount"),
+  loanScheduledTotal: document.querySelector("#loanScheduledTotal"),
+  loanStartMonth: document.querySelector("#loanStartMonth"),
+  loanMaturityMonth: document.querySelector("#loanMaturityMonth"),
+  loanMemo: document.querySelector("#loanMemo"),
+  loanShowOnCalendar: document.querySelector("#loanShowOnCalendar"),
+  saveLoanButton: document.querySelector("#saveLoanButton"),
+  cancelLoanEditButton: document.querySelector("#cancelLoanEditButton"),
+  loanListSummary: document.querySelector("#loanListSummary"),
+  loanList: document.querySelector("#loanList"),
+  loanPaymentDialog: document.querySelector("#loanPaymentDialog"),
+  loanPaymentForm: document.querySelector("#loanPaymentForm"),
+  loanPaymentDialogTitle: document.querySelector("#loanPaymentDialogTitle"),
+  loanPaymentDialogDescription: document.querySelector("#loanPaymentDialogDescription"),
+  loanPaymentRecurringId: document.querySelector("#loanPaymentRecurringId"),
+  loanPaymentRecordKey: document.querySelector("#loanPaymentRecordKey"),
+  loanPaymentMonth: document.querySelector("#loanPaymentMonth"),
+  loanPaymentPrincipal: document.querySelector("#loanPaymentPrincipal"),
+  loanPaymentInterest: document.querySelector("#loanPaymentInterest"),
+  loanPaymentTotal: document.querySelector("#loanPaymentTotal"),
+  loanPaymentRemaining: document.querySelector("#loanPaymentRemaining"),
+  loanPaymentFinalRemaining: document.querySelector("#loanPaymentFinalRemaining"),
+  saveLoanPaymentButton: document.querySelector("#saveLoanPaymentButton"),
+  deleteLoanPaymentButton: document.querySelector("#deleteLoanPaymentButton"),
+  closeLoanPaymentDialogButton: document.querySelector("#closeLoanPaymentDialogButton"),
+  cancelLoanPaymentButton: document.querySelector("#cancelLoanPaymentButton"),
   unknownList: document.querySelector("#unknownList"),
   rulesTable: document.querySelector("#rulesTable"),
   transactionsTable: document.querySelector("#transactionsTable"),
@@ -383,6 +421,8 @@ let boardExpandedMonth = "";
 let boardHighlightSector = "";
 let incomeBulkRows = [];
 let recurringBulkRows = [];
+let activeRecurringTab = "expense";
+let editingLoanId = "";
 let detailBulkRows = [];
 let ipoPasteRows = [];
 let ipoCalendarCandidates = [];

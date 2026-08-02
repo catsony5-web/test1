@@ -154,6 +154,8 @@ button:disabled {
 input[type="text"],
 input[type="date"],
 input[type="time"],
+input[type="month"],
+input[type="number"],
 input[type="file"],
 select,
 textarea {

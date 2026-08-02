@@ -21,7 +21,7 @@ function sumValues(source, keys) {
 }
 
 function hasStructuredInstallment(item) {
-  return Boolean(item?.installmentEnabled && Number(item.installmentMonths || 0) > 1);
+  return Boolean(!isLoanRepaymentTransaction(item) && item?.installmentEnabled && Number(item.installmentMonths || 0) > 1);
 }
 
 function installmentBaseAmount(item) {
@@ -90,4 +90,33 @@ function reportingExpenseRows(rows, options = {}) {
     .filter((item) => item.status !== "취소/제외" && item.flow !== "income")
     .flatMap((item) => hasStructuredInstallment(item) ? expandInstallmentRows(item) : [item])
     .filter((item) => !monthSet || monthSet.has(item.month));
+}
+
+function isLoanRepaymentTransaction(item) {
+  return item?.recurringType === "loan" || Number(item?.loanPrincipalAmount || 0) > 0;
+}
+
+function loanPrincipalActualAmount(item) {
+  if (!isLoanRepaymentTransaction(item)) return 0;
+  return Math.min(
+    Math.max(0, actualAmount(item)),
+    Math.max(0, Number(item?.loanPrincipalAmount || 0))
+  );
+}
+
+function loanInterestActualAmount(item) {
+  if (!isLoanRepaymentTransaction(item)) return 0;
+  return Math.max(0, actualAmount(item) - loanPrincipalActualAmount(item));
+}
+
+function consumptionAmount(item) {
+  return isLoanRepaymentTransaction(item) ? loanInterestActualAmount(item) : actualAmount(item);
+}
+
+function sumConsumption(items) {
+  return items.reduce((total, item) => total + consumptionAmount(item), 0);
+}
+
+function sumDebtPrincipal(items) {
+  return items.reduce((total, item) => total + loanPrincipalActualAmount(item), 0);
 }

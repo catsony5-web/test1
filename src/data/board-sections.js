@@ -3,6 +3,7 @@ const boardSections = [
   { key: "rent", group: "고정비", title: "월세", sector: "고정 주거비", subcategory: "월세", match: (item) => item.subcategory === "월세" },
   { key: "utilities", group: "고정비", title: "관리비 (전기+가스)", sector: "고정 주거비", subcategory: "전기", match: (item) => ["전기", "가스"].includes(item.subcategory) },
   { key: "communications", group: "고정비", title: "통신비", sector: "고정 주거비", subcategory: "통신비", match: (item) => item.sector === "고정 주거비" && item.subcategory === "통신비" },
+  { key: "loan-interest", group: "고정비", title: "대출 이자", sector: "고정 주거비", subcategory: "대출이자", match: (item) => item.sector === "고정 주거비" && item.subcategory === "대출이자" },
   { key: "saving", group: "고정비", title: "저축", sector: "저축", subcategory: "적금/예금", match: (item) => item.sector === "저축" },
   { key: "dining-solo", group: "변동비", title: "외식-혼자", sector: "식비", subcategory: "외식-혼자", match: (item) => item.sector === "식비" && item.subcategory === "외식-혼자" },
   { key: "dining-friends", group: "변동비", title: "외식-친구", sector: "식비", subcategory: "외식-친구", match: (item) => item.sector === "식비" && item.subcategory === "외식-친구" },

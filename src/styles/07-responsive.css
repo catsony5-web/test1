@@ -44,6 +44,12 @@
       "list";
   }
 
+  .loan-layout {
+    grid-template-areas:
+      "form"
+      "list";
+  }
+
   .board-side-summary {
     position: static;
   }
@@ -329,6 +335,9 @@
   .recurring-form,
   .recurring-meta,
   .recurring-card-main,
+  .recurring-meta.loan-meta,
+  .loan-payment-form,
+  .loan-payment-preview,
   .scheduled-detail-item,
   .paste-entry,
   .recurring-bulk-panel,
@@ -344,6 +353,42 @@
   .assign-controls,
   .rule-form {
     grid-template-columns: 1fr;
+  }
+
+  .recurring-subtabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .recurring-subtab {
+    justify-content: center;
+    padding-inline: 8px;
+  }
+
+  .loan-guidance {
+    align-items: flex-start;
+  }
+
+  .loan-card-amount {
+    text-align: left;
+  }
+
+  .loan-payment-form > label,
+  .loan-payment-form > .panel-head,
+  .loan-payment-preview,
+  .loan-payment-rule,
+  .loan-payment-actions {
+    grid-column: auto;
+  }
+
+  .loan-payment-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .loan-payment-actions .danger-outline {
+    margin-right: 0;
   }
 
   .recurring-bulk-panel {
@@ -636,7 +681,7 @@
   }
 
   .transaction-row .actual::before {
-    content: "실 지출액";
+    content: "분석 반영액";
     color: var(--text-sub);
     font-size: 12px;
     font-weight: 700;

@@ -180,7 +180,7 @@ function renderSpendingAllocation(structure) {
       <div class="analysis-definition-row">
         <span><b>필수 소비</b> 주거·공과금·장보기 등</span>
         <span><b>재량 소비</b> 외식·쇼핑·여가 등</span>
-        <span><b>자산 형성</b> 실제 저축 + 자유 잔액</span>
+        <span><b>자산 형성</b> 실제 저축 + 부채 상환 + 자유 잔액</span>
         <button type="button" data-open-spending-targets>분류 기준 조정</button>
       </div>
     </div>
@@ -259,7 +259,7 @@ function renderSpendingConcentration(structure) {
       <div class="analysis-concentration-metrics">
         ${renderConcentrationMetric("ti-shopping-cart", "상위 3개 가맹점", analysisPercentText(topThreeRate), `${formatWon(topThreeAmount)} / ${formatWon(structure.consumptionSpend)}`, topThreeRate)}
         ${renderConcentrationMetric("ti-building-bank", "고정비 비중", analysisPercentText(analysisPercent(structure.fixedCost, structure.consumptionSpend)), `${formatWon(structure.fixedCost)} / ${formatWon(structure.consumptionSpend)}`, analysisPercent(structure.fixedCost, structure.consumptionSpend))}
-        ${renderConcentrationMetric("ti-repeat", "반복 결제", `${recurringRows.length.toLocaleString("ko-KR")}건`, `이번 달 ${formatWon(sumActual(recurringRows))}`, analysisPercent(sumActual(recurringRows), structure.consumptionSpend))}
+        ${renderConcentrationMetric("ti-repeat", "반복 결제", `${recurringRows.length.toLocaleString("ko-KR")}건`, `이번 달 ${formatWon(sumConsumption(recurringRows))}`, analysisPercent(sumConsumption(recurringRows), structure.consumptionSpend))}
       </div>
       <div class="analysis-merchant-list" role="list" aria-label="상위 가맹점">
         ${topThree.length ? topThree.map((item, index) => `

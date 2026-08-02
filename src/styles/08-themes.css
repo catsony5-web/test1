@@ -82,6 +82,8 @@ button,
 input[type="text"],
 input[type="date"],
 input[type="time"],
+input[type="month"],
+input[type="number"],
 input[type="file"],
 select,
 textarea {
@@ -120,6 +122,8 @@ button.summary-metric-card:hover,
 input[type="text"],
 input[type="date"],
 input[type="time"],
+input[type="month"],
+input[type="number"],
 input[type="file"],
 select,
 textarea,
@@ -1468,6 +1472,8 @@ th.amount {
 input[type="text"],
 input[type="date"],
 input[type="time"],
+input[type="month"],
+input[type="number"],
 input[type="file"],
 select,
 textarea,
@@ -1874,7 +1880,7 @@ th.amount,
   word-break: keep-all;
 }
 
-/* Dashboard metrics mirror the reference: three primary values followed by four compact values. */
+/* Dashboard metrics mirror the reference: three primary values followed by five compact values. */
 #boardMetrics.board-metric-grid,
 .detail-metric-grid {
   display: grid;
@@ -1882,7 +1888,7 @@ th.amount,
 }
 
 #boardMetrics.board-metric-grid {
-  grid-template-columns: repeat(3, minmax(150px, 1.35fr)) repeat(4, minmax(86px, 0.72fr));
+  grid-template-columns: repeat(3, minmax(150px, 1.35fr)) repeat(5, minmax(78px, 0.68fr));
   gap: 0;
   overflow: hidden;
   border: 1px solid var(--border-subtle);
@@ -2172,7 +2178,7 @@ th.amount,
   }
 
   #boardMetrics.board-metric-grid {
-    grid-template-columns: repeat(3, minmax(140px, 1.25fr)) repeat(4, minmax(78px, 0.68fr));
+    grid-template-columns: repeat(3, minmax(140px, 1.25fr)) repeat(5, minmax(72px, 0.64fr));
   }
 
   #boardMetrics .board-core-metric {
@@ -2333,10 +2339,6 @@ th.amount,
   #boardMetrics .board-core-metric:nth-child(3),
   #boardMetrics .board-core-metric:nth-child(4) {
     border-top: 1px solid var(--border-subtle);
-  }
-
-  #boardMetrics .board-core-metric:nth-child(7) {
-    grid-column: 1 / -1;
   }
 
   .detail-metric-grid .priority-metric,

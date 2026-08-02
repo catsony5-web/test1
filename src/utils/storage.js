@@ -640,16 +640,24 @@ function sanitizeCalendarMemoHtml(html) {
 }
 
 function normalizeRecurringExpense(item) {
+  const recurringType = item?.recurringType === "loan" ? "loan" : "expense";
   const startMonth = monthKey(item?.startMonth) || currentMonthKey();
-  const endMonth = monthKey(item?.endMonth);
+  const endMonth = monthKey(item?.endMonth || item?.loanMaturityMonth);
   const assignment = normalizeCategoryAssignment(item?.sector, item?.subcategory, `${item?.name || ""} ${item?.memo || ""}`);
-  const sector = categories[assignment.sector] && !["수입", "미분류"].includes(assignment.sector) ? assignment.sector : "고정 주거비";
+  const assignedSector = categories[assignment.sector] && !["수입", "미분류"].includes(assignment.sector) ? assignment.sector : "고정 주거비";
+  const sector = recurringType === "loan" ? "고정 주거비" : assignedSector;
   const subcategoryOptions = categories[sector] || [];
-  const subcategory = subcategoryOptions.includes(assignment.subcategory) ? assignment.subcategory : subcategoryOptions[0] || "";
+  const assignedSubcategory = subcategoryOptions.includes(assignment.subcategory) ? assignment.subcategory : subcategoryOptions[0] || "";
+  const subcategory = recurringType === "loan" && subcategoryOptions.includes("대출이자") ? "대출이자" : assignedSubcategory;
+  const loanPrincipalAmount = recurringType === "loan" ? Math.max(0, toNumber(item?.loanPrincipalAmount)) : 0;
+  const loanInterestAmount = recurringType === "loan" ? Math.max(0, toNumber(item?.loanInterestAmount)) : 0;
   return {
     id: item?.id || `recurring-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    recurringType,
     name: String(item?.name || "").trim(),
-    amount: Math.max(0, toNumber(item?.amount)),
+    amount: recurringType === "loan"
+      ? loanPrincipalAmount + loanInterestAmount
+      : Math.max(0, toNumber(item?.amount)),
     dayOfMonth: Math.max(1, Math.min(31, Number(item?.dayOfMonth || 1))),
     sector,
     subcategory,
@@ -658,8 +666,14 @@ function normalizeRecurringExpense(item) {
     endMonth: endMonth && endMonth >= startMonth ? endMonth : "",
     memo: String(item?.memo || "").trim(),
     showOnCalendar: item?.showOnCalendar !== false,
-    autoPost: item?.autoPost === true,
+    autoPost: recurringType === "loan" ? false : item?.autoPost === true,
     paused: item?.paused === true,
+    loanType: recurringType === "loan" ? String(item?.loanType || "신용대출").trim() : "",
+    loanOpeningBalance: recurringType === "loan" ? Math.max(0, toNumber(item?.loanOpeningBalance)) : 0,
+    loanPrincipalAmount,
+    loanInterestAmount,
+    loanInterestRate: recurringType === "loan" ? Math.max(0, toNumber(item?.loanInterestRate)) : 0,
+    loanMaturityMonth: recurringType === "loan" && endMonth && endMonth >= startMonth ? endMonth : "",
     createdAt: item?.createdAt || new Date().toISOString(),
     updatedAt: item?.updatedAt || item?.createdAt || new Date().toISOString()
   };

@@ -41,7 +41,7 @@ function renderView(viewName) {
 function renderStatus() {
   const active = reportingExpenseRows(classified);
   const unknown = active.filter((item) => item.status === "미분류");
-  const total = sumActual(active);
+  const total = sumConsumption(active);
   const importText = currentFileName
     ? `${currentFileName} · 추가 ${Number(importMeta.lastAddedCount || 0).toLocaleString("ko-KR")}건 / 중복 ${Number(importMeta.lastSkippedCount || 0).toLocaleString("ko-KR")}건`
     : "아직 불러온 파일 없음";

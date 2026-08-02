@@ -25,20 +25,22 @@ function renderBoard() {
   const variableSections = boardSections.filter((section) => section.group === "변동비");
   const fixedRows = fixedSections.flatMap((section) => buckets[section.key] || []);
   const variableRows = variableSections.flatMap((section) => buckets[section.key] || []);
-  const fixedTotal = sumActual(fixedRows);
-  const variableTotal = sumActual(variableRows);
+  const fixedTotal = sumConsumption(fixedRows);
+  const variableTotal = sumConsumption(variableRows);
   const totalPayment = sum(monthRows, "amount");
   const reimbursementTotal = sumReimbursements(monthRows);
-  const totalSpend = fixedTotal + variableTotal;
+  const totalSpend = sumActual(monthRows);
+  const debtRepayment = sumDebtPrincipal(monthRows);
   const income = Number(monthlyIncome[selectedMonth] || 0) + importedIncomeForMonth(selectedMonth);
   const net = income - totalSpend;
   const scheduledTotal = scheduledTotalForMonth(selectedMonth);
-  const unknownTotal = sumActual(monthRows.filter((item) => item.sector === "미분류"));
+  const unknownTotal = sumConsumption(monthRows.filter((item) => item.sector === "미분류"));
   const previousMonth = previousMonthKey(selectedMonth);
   const previousMonthRows = active.filter((item) => item.month === previousMonth);
   const previousTotalPayment = sum(previousMonthRows, "amount");
   const previousReimbursementTotal = sumReimbursements(previousMonthRows);
   const previousTotalSpend = sumActual(previousMonthRows);
+  const previousDebtRepayment = sumDebtPrincipal(previousMonthRows);
   const previousIncome = Number(monthlyIncome[previousMonth] || 0) + importedIncomeForMonth(previousMonth);
   const sectionStats = boardSections
     .filter((section) => section.key !== "etc-catchall" || (buckets[section.key] || []).length)
@@ -51,6 +53,7 @@ function renderBoard() {
     totalPayment,
     reimbursementTotal,
     totalSpend,
+    debtRepayment,
     fixedTotal,
     variableTotal,
     income,
@@ -62,9 +65,10 @@ function renderBoard() {
       reimbursementTotal: previousReimbursementTotal,
       totalSpend: previousTotalSpend,
       income: previousIncome,
+      debtRepayment: previousDebtRepayment,
       net: previousIncome - previousTotalSpend,
       scheduledTotal: scheduledTotalForMonth(previousMonth),
-      unknownTotal: sumActual(previousMonthRows.filter((item) => item.sector === "미분류"))
+      unknownTotal: sumConsumption(previousMonthRows.filter((item) => item.sector === "미분류"))
     }
   });
   els.boardSectorMap.innerHTML = "";
@@ -172,7 +176,7 @@ function renderBoardEmptyWorkspace(selectedMonth) {
         </div>
         <dl class="board-empty-overview-grid">
           <div>
-            <dt>실 지출액</dt>
+            <dt>현금 유출</dt>
             <dd>0원</dd>
             <span>총 결제 0원 · 정산 0원</span>
           </div>
@@ -184,7 +188,7 @@ function renderBoardEmptyWorkspace(selectedMonth) {
           <div>
             <dt>잔액</dt>
             <dd class="positive">0원</dd>
-            <span>수입 - 실 지출액</span>
+            <span>수입 - 현금 유출</span>
           </div>
         </dl>
       </section>
@@ -261,7 +265,7 @@ function renderSectorSpendMap(rows, selectedMonth) {
         <div class="sector-map-head">
           <div>
             <h3>섹터별 소비 맵</h3>
-            <p>선택 월의 섹터별 실 지출액 비중을 박스 크기로 보여줍니다.</p>
+            <p>선택 월의 섹터별 소비지출 비중을 박스 크기로 보여줍니다.</p>
           </div>
         </div>
         <div class="empty compact-empty">선택한 월의 지출 내역이 없습니다.</div>
@@ -276,7 +280,7 @@ function renderSectorSpendMap(rows, selectedMonth) {
       <div class="sector-map-head">
         <div>
           <h3>섹터별 소비 맵</h3>
-          <p>${escapeHtml(selectedMonth || "-")} 실 지출액 기준 비중을 박스 크기로 보여줍니다.</p>
+          <p>${escapeHtml(selectedMonth || "-")} 소비지출 기준 비중을 박스 크기로 보여줍니다.</p>
         </div>
         <strong>${formatWon(total)}</strong>
       </div>
@@ -303,7 +307,7 @@ function buildSectorSpendRows(rows) {
   return [...grouped.entries()]
     .map(([sector, sectorRows]) => ({
       sector,
-      amount: sumActual(sectorRows),
+      amount: sumConsumption(sectorRows),
       count: sectorRows.length
     }))
     .filter((item) => item.amount > 0 || item.count > 0)

@@ -18,6 +18,7 @@ async function init() {
   syncManualCategoryControls();
   els.incomeEntryDate.value = defaultDateForMonth(currentMonthKey());
   els.recurringStartMonth.value = currentMonthKey();
+  els.loanStartMonth.value = currentMonthKey();
   await saveRules();
 
   document.querySelectorAll(".tab").forEach((tab) => {
@@ -95,12 +96,40 @@ async function init() {
   els.clearIncomeBulkButton.addEventListener("click", clearIncomeBulkInput);
   els.saveIncomeBulkButton.addEventListener("click", handleIncomeBulkSave);
   els.recurringForm.addEventListener("submit", handleRecurringSubmit);
+  els.recurringTabButtons.forEach((button, index) => {
+    button.addEventListener("click", () => setRecurringTab(button.dataset.recurringTab));
+    button.addEventListener("keydown", (event) => {
+      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+      event.preventDefault();
+      const lastIndex = els.recurringTabButtons.length - 1;
+      const nextIndex = event.key === "Home"
+        ? 0
+        : event.key === "End"
+          ? lastIndex
+          : (index + (event.key === "ArrowRight" ? 1 : -1) + els.recurringTabButtons.length) % els.recurringTabButtons.length;
+      setRecurringTab(els.recurringTabButtons[nextIndex].dataset.recurringTab, { focus: true });
+    });
+  });
   els.recurringSector.addEventListener("change", () => updateSubcategorySelect(els.recurringSector, els.recurringSubcategory));
   els.recurringMonthFilter.addEventListener("change", renderRecurring);
   els.cancelRecurringEditButton.addEventListener("click", resetRecurringForm);
   els.parseRecurringBulkButton.addEventListener("click", handleRecurringBulkParse);
   els.clearRecurringBulkButton.addEventListener("click", clearRecurringBulkInput);
   els.saveRecurringBulkButton.addEventListener("click", handleRecurringBulkSave);
+  els.loanForm.addEventListener("submit", handleLoanSubmit);
+  els.cancelLoanEditButton.addEventListener("click", resetLoanForm);
+  els.loanPrincipalAmount.addEventListener("input", updateLoanScheduledTotal);
+  els.loanInterestAmount.addEventListener("input", updateLoanScheduledTotal);
+  els.loanPaymentForm.addEventListener("submit", handleLoanPaymentSubmit);
+  els.loanPaymentPrincipal.addEventListener("input", updateLoanPaymentPreview);
+  els.loanPaymentInterest.addEventListener("input", updateLoanPaymentPreview);
+  els.closeLoanPaymentDialogButton.addEventListener("click", closeLoanPaymentDialog);
+  els.cancelLoanPaymentButton.addEventListener("click", closeLoanPaymentDialog);
+  els.deleteLoanPaymentButton.addEventListener("click", deleteLoanPayment);
+  els.loanPaymentDialog.addEventListener("cancel", (event) => {
+    event.preventDefault();
+    closeLoanPaymentDialog();
+  });
   els.summarySectorPickerButton.addEventListener("click", toggleSummarySectorPicker);
   els.summarySectorPickerButton.addEventListener("keydown", (event) => {
     if (event.key === "ArrowDown") {

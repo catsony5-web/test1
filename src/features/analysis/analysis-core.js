@@ -124,7 +124,7 @@ function analysisTotalsBy(rows, getKey) {
   rows.forEach((item) => {
     const key = getKey(item);
     if (!key) return;
-    totals.set(key, Number(totals.get(key) || 0) + actualAmount(item));
+    totals.set(key, Number(totals.get(key) || 0) + consumptionAmount(item));
   });
   return totals;
 }
@@ -148,10 +148,11 @@ function buildAnalysisMonthSnapshot(month) {
   const unknownRows = consumptionRows.filter((item) => item.sector === "미분류" || item.status === "미분류");
   const fixedRows = consumptionRows.filter(analysisIsFixedCostTransaction);
   const income = analysisIncomeForMonth(month);
-  const consumptionSpend = sumActual(consumptionRows);
+  const consumptionSpend = sumConsumption(consumptionRows);
   const actualSavings = sumActual(savingsRows);
-  const freeBalance = income - consumptionSpend - actualSavings;
-  const assetFormation = actualSavings + freeBalance;
+  const debtRepayment = sumDebtPrincipal(expenseRows);
+  const freeBalance = income - consumptionSpend - actualSavings - debtRepayment;
+  const assetFormation = actualSavings + debtRepayment + freeBalance;
   const sectorTotals = analysisTotalsBy(consumptionRows, (item) => item.sector);
   const subcategoryTotals = analysisTotalsBy(
     consumptionRows,
@@ -171,11 +172,12 @@ function buildAnalysisMonthSnapshot(month) {
     income,
     consumptionSpend,
     actualSavings,
+    debtRepayment,
     freeBalance,
     assetFormation,
     assetFormationRate: analysisPercent(assetFormation, income),
-    fixedCost: sumActual(fixedRows),
-    fixedCostRate: analysisPercent(sumActual(fixedRows), income),
+    fixedCost: sumConsumption(fixedRows),
+    fixedCostRate: analysisPercent(sumConsumption(fixedRows), income),
     totalPayment: sum(expenseRows, "amount"),
     reimbursement: sumReimbursements(expenseRows),
     sectorTotals,
@@ -230,9 +232,9 @@ function buildAnalysisStructure(month) {
     const type = analysisConsumptionTypeFor(item);
     (groups[type] || groups.discretionary).push(item);
   });
-  const essential = sumActual(groups.essential);
-  const discretionary = sumActual(groups.discretionary);
-  const unknown = sumActual(groups.unknown);
+  const essential = sumConsumption(groups.essential);
+  const discretionary = sumConsumption(groups.discretionary);
+  const unknown = sumConsumption(groups.unknown);
   const assetFormation = snapshot.assetFormation;
   const overrun = Math.max(0, -assetFormation);
   const allocationBase = Math.max(snapshot.income, snapshot.consumptionSpend, 1);
@@ -358,7 +360,7 @@ function buildAnalysisChangeInsights(month) {
   );
   if (newSubscriptionRows.length && hasSixMonthCoverage) {
     const merchantNames = unique(newSubscriptionRows.map(analysisMerchantName));
-    const amount = sumActual(newSubscriptionRows);
+    const amount = sumConsumption(newSubscriptionRows);
     const id = analysisInsightId("subscription-new", "기타 소비", "구독료");
     seen.add(id);
     insights.push({

@@ -676,6 +676,10 @@ function exportWorkbook() {
     "월 할부 예상액": installmentMonthlyAmount(item) || "",
     "정산받은 금액": reimbursementFor(item),
     "실 지출액": actualAmount(item),
+    "소비지출액": consumptionAmount(item),
+    "대출 원금": item.loanPrincipalAmount || "",
+    "대출 이자": item.loanInterestAmount || "",
+    "대출 종류": item.loanType || "",
     취소여부: item.cancel,
     섹터: item.sector,
     세부항목: item.subcategory,
@@ -706,6 +710,7 @@ function exportWorkbook() {
     메모: product.memo
   }));
   const recurringRows = recurringExpenses.map((item) => ({
+    유형: item.recurringType === "loan" ? "대출 상환" : "일반 고정 지출",
     지출명: item.name,
     금액: item.amount,
     매월지출일: item.dayOfMonth,
@@ -716,6 +721,12 @@ function exportWorkbook() {
     종료월: item.endMonth,
     달력표시: item.showOnCalendar ? "예" : "아니오",
     자동반영: item.autoPost ? "예" : "아니오",
+    대출종류: item.loanType || "",
+    등록시남은원금: item.loanOpeningBalance || "",
+    월원금기본값: item.loanPrincipalAmount || "",
+    월이자기본값: item.loanInterestAmount || "",
+    금리: item.loanInterestRate || "",
+    만기월: item.loanMaturityMonth || "",
     상태: item.paused ? "일시중지" : "진행",
     메모: item.memo
   }));
@@ -734,7 +745,7 @@ function buildAllDetailSummaryRows() {
   return [...grouped.entries()]
     .map(([key, rows]) => {
       const [month, sector, subcategory] = key.split("|");
-      return { 월: month, 섹터: sector, 세부항목: subcategory, 금액: sumActual(rows), 건수: rows.length };
+      return { 월: month, 섹터: sector, 세부항목: subcategory, 금액: sumConsumption(rows), 건수: rows.length };
     })
     .sort((a, b) => `${a.월}|${a.섹터}|${a.세부항목}`.localeCompare(`${b.월}|${b.섹터}|${b.세부항목}`, "ko-KR"));
 }

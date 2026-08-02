@@ -3449,6 +3449,7 @@ body .snapshot-list {
 
 #monthlyView .monthly-legend-swatch.consumption { background: var(--accent-blue); }
 #monthlyView .monthly-legend-swatch.savings { background: var(--accent-positive); }
+#monthlyView .monthly-legend-swatch.debt { background: var(--accent-warning); }
 
 #monthlyView .monthly-legend-line {
   display: inline-block;
@@ -3588,6 +3589,7 @@ body .snapshot-list {
 
 #monthlyView .monthly-flow-tooltip-line.consumption { fill: var(--accent-blue); }
 #monthlyView .monthly-flow-tooltip-line.savings { fill: var(--accent-positive); }
+#monthlyView .monthly-flow-tooltip-line.debt { fill: var(--accent-warning); }
 #monthlyView .monthly-flow-tooltip-line.income { fill: var(--text-primary); }
 #monthlyView .monthly-flow-tooltip-line.positive { fill: var(--accent-positive); }
 #monthlyView .monthly-flow-tooltip-line.negative { fill: var(--accent-negative); }
@@ -3624,7 +3626,7 @@ body .snapshot-list {
 
 #monthlyView .monthly-selected-summary dl {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   margin: 0;
 }
 
@@ -3739,6 +3741,7 @@ body .snapshot-list {
 
 #monthlyView .monthly-table-meter.consumption { background: color-mix(in srgb, var(--accent-blue) 60%, transparent); }
 #monthlyView .monthly-table-meter.savings { background: color-mix(in srgb, var(--accent-positive) 60%, transparent); }
+#monthlyView .monthly-table-meter.debt { background: color-mix(in srgb, var(--accent-warning) 66%, transparent); }
 #monthlyView .monthly-table-meter.income { background: color-mix(in srgb, var(--accent-positive) 60%, transparent); }
 
 #monthlyView .monthly-savings-rate-inline {
@@ -4260,6 +4263,10 @@ body .snapshot-list {
 
 #monthlyView .monthly-allocation-bar.savings {
   fill: var(--accent-positive);
+}
+
+#monthlyView .monthly-allocation-bar.debt {
+  fill: var(--accent-warning);
 }
 
 #monthlyView .monthly-allocation-bar.free {

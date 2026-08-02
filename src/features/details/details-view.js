@@ -781,7 +781,7 @@ function renderDetailBulkPreview() {
     els.detailBulkPreview.innerHTML = `<tbody><tr><td class="empty">파싱 결과가 여기에 표시됩니다.</td></tr></tbody>`;
     return;
   }
-  const header = ["상태", "날짜", "월", "내용", "총 결제액", "정산받은 금액", "실 지출액", "섹터", "세부항목", "할부", "개월", "시작 월", "월 반영액", "삭제"]
+  const header = ["상태", "날짜", "월", "내용", "총 결제액", "정산받은 금액", "분석 반영액", "섹터", "세부항목", "할부", "개월", "시작 월", "월 반영액", "삭제"]
     .map((label) => `<th>${escapeHtml(label)}</th>`)
     .join("");
   const body = detailBulkRows.map((row, index) => {
@@ -1159,7 +1159,7 @@ function filteredDetailRows(activeRows) {
     if (!detailFilters.unknownOnly && detailFilters.sector !== "all" && item.sector !== detailFilters.sector) return false;
     if (detailFilters.subcategory !== "all" && item.subcategory !== detailFilters.subcategory) return false;
     if (detailFilters.reimbursedOnly && reimbursementFor(item) <= 0) return false;
-    if (detailFilters.hideZero && actualAmount(item) <= 0) return false;
+    if (detailFilters.hideZero && consumptionAmount(item) <= 0) return false;
     if (!search) return true;
     return normalizeKeyText([
       item.approvalDate,
@@ -1188,18 +1188,18 @@ function filteredDetailScheduledRows() {
 function renderDetailMetrics(rows, scheduledRows = []) {
   const totalPayment = sum(rows, "amount");
   const reimbursementTotal = sumReimbursements(rows);
-  const actualTotal = sumActual(rows);
+  const actualTotal = sumConsumption(rows);
   const scheduledTotal = sum(scheduledRows, "amount");
-  const top = [...rows].sort((a, b) => actualAmount(b) - actualAmount(a))[0];
+  const top = [...rows].sort((a, b) => consumptionAmount(b) - consumptionAmount(a))[0];
   const average = rows.length ? Math.round(actualTotal / rows.length) : 0;
   return [
     renderDetailMetric("총 결제액", formatWon(totalPayment), "필터 내 결제 합계", "navy", { priority: true }),
-    renderDetailMetric("실 지출액", formatWon(actualTotal), "총 결제액 - 정산받은 금액", "green", { priority: true }),
-    renderDetailMetric("최고 지출", formatWon(top ? actualAmount(top) : 0), top ? top.merchant : "거래 없음", "navy", { priority: true }),
+    renderDetailMetric("분석 반영액", formatWon(actualTotal), "대출 원금 제외", "green", { priority: true }),
+    renderDetailMetric("최고 지출", formatWon(top ? consumptionAmount(top) : 0), top ? top.merchant : "거래 없음", "navy", { priority: true }),
     renderDetailMetric("필터 내 거래", `${rows.length.toLocaleString("ko-KR")}건`, "현재 조건에 맞는 지출 건수", "blue", { compact: true }),
     renderDetailMetric("정산받은 금액", formatWon(reimbursementTotal), "수정 가능한 정산 합계", "mint", { compact: true }),
     renderDetailMetric("예정 지출", formatWon(scheduledTotal), `${scheduledRows.length.toLocaleString("ko-KR")}건 · 실제 합산 제외`, "blue", { compact: true }),
-    renderDetailMetric("평균 실지출", formatWon(average), "거래 1건당 평균", "red", { compact: true })
+    renderDetailMetric("평균 반영액", formatWon(average), "거래 1건당 평균", "red", { compact: true })
   ].join("");
 }
 
@@ -1251,7 +1251,7 @@ function renderDetailGrid(rows, selectedMonth) {
 
   const selectedStat = resolveDetailSelectedStat(sectionStats);
   const sectorGroups = buildDetailSectorGroups(sectionStats);
-  const filteredActualTotal = sumActual(rows);
+  const filteredActualTotal = sumConsumption(rows);
   const limit = detailFocusRecordKey ? 0 : 8;
   return `
     <section class="detail-results-panel">
@@ -1384,7 +1384,7 @@ function renderDetailExpandedSection(stat, selectedMonth, filterText) {
   }
   const total = sum(stat.rows, "amount");
   const reimbursementTotal = sumReimbursements(stat.rows);
-  const actualTotal = sumActual(stat.rows);
+  const actualTotal = sumConsumption(stat.rows);
   return `
     <section class="detail-results-panel detail-full-panel">
       <div class="panel-head detail-full-head">
@@ -1398,7 +1398,7 @@ function renderDetailExpandedSection(stat, selectedMonth, filterText) {
       <div class="detail-full-summary">
         <div><span>총 결제액</span><strong>${formatWon(total)}</strong></div>
         <div><span>정산받은 금액</span><strong>${formatWon(reimbursementTotal)}</strong></div>
-        <div><span>실 지출액</span><strong>${formatWon(actualTotal)}</strong></div>
+        <div><span>분석 반영액</span><strong>${formatWon(actualTotal)}</strong></div>
         <div><span>거래 수</span><strong>${stat.rows.length.toLocaleString("ko-KR")}건</strong></div>
       </div>
       <div class="detail-full-card">

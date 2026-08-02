@@ -48,7 +48,7 @@ function buildSummaryComparisonGroups(currentRows, comparisonRows, keyGetter) {
       label: key,
       currentCount: currentItems.length,
       comparisonCount: comparisonItems.length,
-      ...formatSummaryComparisonChange(sumActual(currentItems), sumActual(comparisonItems))
+      ...formatSummaryComparisonChange(sumConsumption(currentItems), sumConsumption(comparisonItems))
     };
   }).sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
 }
@@ -71,7 +71,7 @@ function comparisonBreakdownForSector(model, sector) {
     comparisonExists: model.comparisonExists,
     currentRows,
     comparisonRows,
-    ...formatSummaryComparisonChange(sumActual(currentRows), sumActual(comparisonRows)),
+    ...formatSummaryComparisonChange(sumConsumption(currentRows), sumConsumption(comparisonRows)),
     subcategories: buildSummaryComparisonGroups(currentRows, comparisonRows, comparisonSubcategoryLabel),
     merchants: buildSummaryComparisonGroups(currentRows, comparisonRows, comparisonMerchantLabel)
   };
@@ -91,7 +91,7 @@ function buildSummaryComparison(activeRows, selectedMonth, selectedSector, optio
       sector,
       currentCount: currentSectorRows.length,
       comparisonCount: comparisonSectorRows.length,
-      ...formatSummaryComparisonChange(sumActual(currentSectorRows), sumActual(comparisonSectorRows))
+      ...formatSummaryComparisonChange(sumConsumption(currentSectorRows), sumConsumption(comparisonSectorRows))
     };
   });
   const model = {
@@ -106,7 +106,7 @@ function buildSummaryComparison(activeRows, selectedMonth, selectedSector, optio
     currentExists: activeRows.some((item) => item.month === selectedMonth),
     comparisonExists: activeRows.some((item) => item.month === comparisonMonth),
     sectorDeltas,
-    totalChange: formatSummaryComparisonChange(sumActual(currentRows), sumActual(comparisonRows))
+    totalChange: formatSummaryComparisonChange(sumConsumption(currentRows), sumConsumption(comparisonRows))
   };
   model.selectedSectorChange = comparisonBreakdownForSector(model, selectedSector);
   return model;

@@ -4,7 +4,7 @@ function buildBoardSectionStat(section, rows) {
     rows,
     total: sum(rows, "amount"),
     reimbursementTotal: sumReimbursements(rows),
-    actualTotal: sumActual(rows),
+    actualTotal: sumConsumption(rows),
     count: rows.length
   };
 }
@@ -247,7 +247,7 @@ function attachBoardSummaryHandlers() {
 }
 
 function renderBoardSectorSummary(monthRows, selectedMonth) {
-  const total = sumActual(monthRows);
+  const total = sumConsumption(monthRows);
   const sectorRows = buildSectorSpendRows(monthRows).filter((item) => item.amount > 0);
   if (!sectorRows.length) return `<div class="empty compact-empty">선택 월의 섹터별 요약이 없습니다.</div>`;
   const previousMonth = previousMonthKey(selectedMonth);
@@ -266,7 +266,7 @@ function renderBoardSectorSummary(monthRows, selectedMonth) {
       </div>
       <div class="board-sector-card-grid board-treemap" role="region" aria-label="선택 월 섹터별 실 지출 트리맵">
         ${sectorRows.map((item, index) => {
-          const previousAmount = sumActual(previousRows.filter((row) => row.sector === item.sector));
+          const previousAmount = sumConsumption(previousRows.filter((row) => row.sector === item.sector));
           const diff = item.amount - previousAmount;
           const trendClass = diff > 0 ? "negative" : diff < 0 ? "positive" : "neutral";
           const accessibleLabel = `${item.sector}, 실 지출 ${formatWon(item.amount)}, 전체의 ${formatPercent(item.amount, total)}, ${item.count.toLocaleString("ko-KR")}건, 전월 대비 ${formatSignedWon(diff)}`;
@@ -291,7 +291,7 @@ function renderBoardSectorSummary(monthRows, selectedMonth) {
 
 function topSubcategorySummary(rows, limit = 3) {
   return [...groupBy(rows, (item) => item.subcategory || "미분류").entries()]
-    .map(([subcategory, subRows]) => ({ subcategory, amount: sumActual(subRows), count: subRows.length }))
+    .map(([subcategory, subRows]) => ({ subcategory, amount: sumConsumption(subRows), count: subRows.length }))
     .sort((a, b) => b.amount - a.amount)
     .slice(0, limit);
 }
@@ -321,13 +321,13 @@ function renderLedgerSection(section, rows, selectedMonth, sortMode = "date", op
   const hiddenCount = Math.max(0, sortedRows.length - visibleRows.length);
   const total = sum(sortedRows, "amount");
   const reimbursementTotal = sumReimbursements(sortedRows);
-  const actualTotal = sumActual(sortedRows);
+  const actualTotal = sumConsumption(sortedRows);
   const canOpenFullView = Boolean(options.fullViewButton && !options.fullMode);
   const calendarLinks = Boolean(options.fullMode || options.calendarLinks);
   const bodyRows = visibleRows.map((item) => {
     const installmentText = installmentSummaryText(item);
-    const reimbursementDisabled = item.isInstallmentOccurrence || !reimbursementEditMode;
-    const canEditInstallment = Boolean(options.fullMode && !item.isInstallmentOccurrence);
+    const reimbursementDisabled = isLoanRepaymentTransaction(item) || item.isInstallmentOccurrence || !reimbursementEditMode;
+    const canEditInstallment = Boolean(options.fullMode && !item.isInstallmentOccurrence && !isLoanRepaymentTransaction(item));
     const isInstallmentEditing = canEditInstallment && detailInstallmentEditRecordKey === item.recordKey;
     const calendarRecordKey = item.installmentSourceRecordKey || item.recordKey;
     const calendarLinkAttrs = calendarLinks
@@ -337,7 +337,7 @@ function renderLedgerSection(section, rows, selectedMonth, sortMode = "date", op
     <div class="transaction-row ${categoryClass(item.sector)} ${calendarLinks ? "detail-calendar-link" : ""} ${detailFocusRecordKey === item.recordKey ? "is-detail-focused" : ""}" data-detail-record-key="${escapeHtml(item.recordKey)}"${calendarLinkAttrs}>
       <span class="date">${escapeHtml(item.approvalDate)}</span>
       <span class="merchant" title="${escapeHtml(item.merchant)}">
-        ${escapeHtml(item.merchant)}${item.status === "직접입력" ? `<em class="manual-badge">직접 입력</em>` : ""}
+        ${escapeHtml(item.merchant)}${item.status === "직접입력" ? `<em class="manual-badge">직접 입력</em>` : ""}${isLoanRepaymentTransaction(item) ? `<em class="manual-badge">대출 상환 · 원금 ${formatWon(item.loanPrincipalAmount)}</em>` : ""}
         ${installmentText ? `<em class="installment-badge">${escapeHtml(installmentText)}</em>` : ""}
         ${canEditInstallment ? `<button type="button" class="detail-installment-edit-button ${isInstallmentEditing ? "is-active" : ""}" data-detail-installment-edit="${escapeHtml(item.recordKey)}" title="할부 설정 수정">${isInstallmentEditing ? "수정 중" : "수정"}</button>` : ""}
       </span>
@@ -345,7 +345,7 @@ function renderLedgerSection(section, rows, selectedMonth, sortMode = "date", op
       <span class="amount reimbursement">
         <input class="reimbursement-input" type="text" inputmode="numeric" data-record-key="${escapeHtml(item.recordKey)}" value="${formatPlainNumber(reimbursementFor(item))}" aria-label="${escapeHtml(item.merchant)} 정산받은 금액" ${reimbursementDisabled ? "disabled" : ""}>
       </span>
-      <span class="amount actual strong">${formatWon(actualAmount(item))}</span>
+      <span class="amount actual strong">${formatWon(consumptionAmount(item))}</span>
     </div>
     ${isInstallmentEditing ? renderInstallmentInlineControls(item) : ""}
   `;
@@ -382,7 +382,7 @@ function renderLedgerSection(section, rows, selectedMonth, sortMode = "date", op
           <span>내용</span>
           <span class="amount">총 결제액</span>
           <span class="amount">정산받은 금액</span>
-          <span class="amount">실 지출액</span>
+          <span class="amount">분석 반영액</span>
         </div>
         ${bodyRows || `<div class="ledger-empty">내역 없음</div>`}
       </div>
@@ -429,8 +429,8 @@ function sortTransactionRows(rows, sortMode = "date") {
   const byRecent = (a, b) =>
     `${b.approvalDate} ${b.approvalTime} ${b.importedAt || ""}`.localeCompare(`${a.approvalDate} ${a.approvalTime} ${a.importedAt || ""}`, "ko-KR");
   const sorters = {
-    "amount-desc": (a, b) => actualAmount(b) - actualAmount(a) || byDate(a, b),
-    "amount-asc": (a, b) => actualAmount(a) - actualAmount(b) || byDate(a, b),
+    "amount-desc": (a, b) => consumptionAmount(b) - consumptionAmount(a) || byDate(a, b),
+    "amount-asc": (a, b) => consumptionAmount(a) - consumptionAmount(b) || byDate(a, b),
     recent: byRecent,
     date: byDate
   };
@@ -445,7 +445,7 @@ function renderQuickAddForm(section, selectedMonth) {
         ${categoryChip(section.sector, section.subcategory)}
         <span>이 카드 기준으로 자동 분류됩니다.</span>
       </div>
-      <p class="quick-add-hint">실 지출액은 총 결제액에서 정산받은 금액을 뺀 값으로 자동 계산됩니다.</p>
+      <p class="quick-add-hint">분석 반영액은 총 결제액에서 정산금을 빼며, 대출 상환은 이자만 반영합니다.</p>
       <label>
         날짜
         <input name="date" type="date" value="${escapeHtml(defaultDate)}" required>
@@ -539,6 +539,7 @@ async function saveInstallmentSettings(recordKey, row) {
   const index = transactions.findIndex((item) => normalizeStoredTransaction(item).recordKey === recordKey);
   if (index < 0) return;
   const original = normalizeStoredTransaction(transactions[index]);
+  if (isLoanRepaymentTransaction(original)) return;
   const enabled = Boolean(row.querySelector('[data-installment-field="enabled"]')?.checked);
   const months = Math.max(0, Number(row.querySelector('[data-installment-field="months"]')?.value || 0));
   const startMonth = row.querySelector('[data-installment-field="startMonth"]')?.value || original.month;

@@ -16,8 +16,8 @@ function renderSectorTrend(activeRows, months, sectorNames, selectedSector, sele
     return {
       month,
       comparisonMonth,
-      currentAmount: sumActual(currentRows),
-      comparisonAmount: sumActual(comparisonRows),
+      currentAmount: sumConsumption(currentRows),
+      comparisonAmount: sumConsumption(comparisonRows),
       currentExists: activeRows.some((item) => item.month === month),
       comparisonExists: activeRows.some((item) => item.month === comparisonMonth)
     };
