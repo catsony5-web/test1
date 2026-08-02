@@ -419,6 +419,7 @@ let selectedAppMonth = "";
 let detailReturnState = null;
 let detailFocusRecordKey = "";
 let detailExpandedSectionKey = "";
+let detailSelectedSectionKey = "";
 let detailInstallmentEditRecordKey = "";
 const detailFilters = {
   month: "",

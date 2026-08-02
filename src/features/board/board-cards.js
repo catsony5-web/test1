@@ -323,17 +323,18 @@ function renderLedgerSection(section, rows, selectedMonth, sortMode = "date", op
   const reimbursementTotal = sumReimbursements(sortedRows);
   const actualTotal = sumActual(sortedRows);
   const canOpenFullView = Boolean(options.fullViewButton && !options.fullMode);
+  const calendarLinks = Boolean(options.fullMode || options.calendarLinks);
   const bodyRows = visibleRows.map((item) => {
     const installmentText = installmentSummaryText(item);
     const reimbursementDisabled = item.isInstallmentOccurrence || !reimbursementEditMode;
     const canEditInstallment = Boolean(options.fullMode && !item.isInstallmentOccurrence);
     const isInstallmentEditing = canEditInstallment && detailInstallmentEditRecordKey === item.recordKey;
     const calendarRecordKey = item.installmentSourceRecordKey || item.recordKey;
-    const calendarLinkAttrs = options.fullMode
+    const calendarLinkAttrs = calendarLinks
       ? ` data-detail-open-calendar="${escapeHtml(calendarRecordKey)}" data-detail-calendar-date="${escapeHtml(item.approvalDate)}" data-detail-calendar-month="${escapeHtml(item.month)}" role="button" tabindex="0" title="소비 달력에서 이 거래 수정"`
       : "";
     return `
-    <div class="transaction-row ${categoryClass(item.sector)} ${options.fullMode ? "detail-calendar-link" : ""} ${detailFocusRecordKey === item.recordKey ? "is-detail-focused" : ""}" data-detail-record-key="${escapeHtml(item.recordKey)}"${calendarLinkAttrs}>
+    <div class="transaction-row ${categoryClass(item.sector)} ${calendarLinks ? "detail-calendar-link" : ""} ${detailFocusRecordKey === item.recordKey ? "is-detail-focused" : ""}" data-detail-record-key="${escapeHtml(item.recordKey)}"${calendarLinkAttrs}>
       <span class="date">${escapeHtml(item.approvalDate)}</span>
       <span class="merchant" title="${escapeHtml(item.merchant)}">
         ${escapeHtml(item.merchant)}${item.status === "직접입력" ? `<em class="manual-badge">직접 입력</em>` : ""}
@@ -351,11 +352,15 @@ function renderLedgerSection(section, rows, selectedMonth, sortMode = "date", op
   }).join("");
 
   return `
-    <section class="ledger-section category-card ${categoryClass(section.sector)} ${hiddenCount > 0 ? "is-truncated-card" : ""} ${options.fullMode ? "is-full-card" : ""}" data-ledger-sector="${escapeHtml(section.sector)}">
+    <section class="ledger-section category-card ${categoryClass(section.sector)} ${hiddenCount > 0 ? "is-truncated-card" : ""} ${options.fullMode ? "is-full-card" : ""} ${options.masterDetail ? "is-master-detail-card" : ""}" data-ledger-sector="${escapeHtml(section.sector)}">
       <div class="category-card-head">
-        <div>
-          <h4>${escapeHtml(section.title)}</h4>
-          <p>${sortedRows.length.toLocaleString("ko-KR")}건 · 정산 ${formatWon(reimbursementTotal)}</p>
+        <div class="category-title-block ${options.masterDetail ? "detail-ledger-heading" : ""}">
+          ${options.masterDetail ? `<span class="detail-ledger-icon ${categoryClass(section.sector)}" aria-hidden="true"><i class="ti ${subcategoryIconClass(section.sector, section.subcategory)}"></i></span>` : ""}
+          <div>
+            ${options.contextLabel ? `<span class="detail-ledger-breadcrumb">${escapeHtml(options.contextLabel)} <i class="ti ti-chevron-right" aria-hidden="true"></i></span>` : ""}
+            <h4>${escapeHtml(section.title)}</h4>
+            <p>${sortedRows.length.toLocaleString("ko-KR")}건 · 정산 ${formatWon(reimbursementTotal)}</p>
+          </div>
         </div>
         <div class="category-actions">
           <strong>${formatWon(actualTotal)}</strong>

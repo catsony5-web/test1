@@ -88,6 +88,7 @@ function applyDetailNavigationFilters(options, sourceView = "board") {
 
   detailFocusRecordKey = options.transactionId || options.recordKey || "";
   detailExpandedSectionKey = "";
+  detailSelectedSectionKey = "";
   detailInstallmentEditRecordKey = "";
   detailFilters.month = has("month") ? options.month || "all" : fallbackMonth || "all";
   if (detailFilters.month !== "all") setSharedSelectedMonth(detailFilters.month, { syncControls: false });
@@ -156,6 +157,7 @@ function returnFromDetailView() {
   const view = state.view || "board";
   detailFocusRecordKey = "";
   detailExpandedSectionKey = "";
+  detailSelectedSectionKey = "";
   detailInstallmentEditRecordKey = "";
   if (view === "calendar") {
     selectedCalendarMonth = state.calendar?.month || selectedCalendarMonth;
@@ -220,6 +222,7 @@ function openCalendarTransactionFromDetail(recordKey, options = {}) {
   calendarDetailReturnState = {
     recordKey,
     expandedSectionKey: detailExpandedSectionKey,
+    selectedSectionKey: detailSelectedSectionKey,
     filters: { ...detailFilters }
   };
   selectedCalendarMonth = month;
@@ -264,7 +267,8 @@ function returnToDetailFromCalendar() {
   detailFilters.unknownOnly = detailFilters.sector === "미분류";
   detailFilters.reimbursedOnly = false;
   detailFilters.hideZero = Object.prototype.hasOwnProperty.call(filters, "hideZero") ? Boolean(filters.hideZero) : true;
-  detailExpandedSectionKey = section?.key || state.expandedSectionKey || "";
+  detailSelectedSectionKey = section?.key || state.selectedSectionKey || state.expandedSectionKey || "";
+  detailExpandedSectionKey = state.expandedSectionKey || "";
   detailFocusRecordKey = state.recordKey;
   detailInstallmentEditRecordKey = "";
 
@@ -313,6 +317,7 @@ function resetDetailFilters() {
   const currentMonth = detailFilters.month || els.detailMonth?.value || "all";
   detailFocusRecordKey = "";
   detailExpandedSectionKey = "";
+  detailSelectedSectionKey = "";
   detailInstallmentEditRecordKey = "";
   detailFilters.month = currentMonth;
   detailFilters.sector = "all";
@@ -1235,12 +1240,18 @@ function renderDetailGrid(rows, selectedMonth) {
 
   if (detailExpandedSectionKey) {
     const expanded = sectionStats.find((stat) => stat.section.key === detailExpandedSectionKey);
-    if (expanded) return renderDetailExpandedSection(expanded, selectedMonth, filterText);
+    if (expanded) {
+      detailSelectedSectionKey = expanded.section.key;
+      return renderDetailExpandedSection(expanded, selectedMonth, filterText);
+    }
     detailExpandedSectionKey = "";
     detailInstallmentEditRecordKey = "";
   }
   detailInstallmentEditRecordKey = "";
 
+  const selectedStat = resolveDetailSelectedStat(sectionStats);
+  const sectorGroups = buildDetailSectorGroups(sectionStats);
+  const filteredActualTotal = sumActual(rows);
   const limit = detailFocusRecordKey ? 0 : 8;
   return `
     <section class="detail-results-panel">
@@ -1250,17 +1261,121 @@ function renderDetailGrid(rows, selectedMonth) {
           <p>${escapeHtml(filterText)} · 섹터별 카드에서 내역을 훑어보고, 전체 보기에서 정산금과 할부 정보를 수정합니다.</p>
         </div>
       </div>
-      <div class="category-grid detail-category-grid">
-        ${sectionStats.map((stat) => renderLedgerSection(stat.section, stat.rows, selectedMonth, detailFilters.sort, {
+      <div class="detail-master-detail">
+        <nav class="detail-master-list" aria-label="섹터와 세부항목 선택">
+          ${sectorGroups.map((group) => renderDetailSectorGroup(group, selectedStat, filteredActualTotal)).join("")}
+        </nav>
+        <div class="detail-master-pane" aria-live="polite">
+          ${renderLedgerSection(selectedStat.section, selectedStat.rows, selectedMonth, detailFilters.sort, {
           limit,
           fullViewButton: true,
+          calendarLinks: true,
+          masterDetail: true,
+          contextLabel: selectedStat.section.sector,
           reimbursementHint: reimbursementEditMode
             ? "정산받은 금액을 입력하면 변경 내용이 바로 저장됩니다."
             : "정산받은 금액은 전체 보기에서 정산금 수정 버튼을 켠 뒤 수정할 수 있습니다."
-        })).join("")}
+          })}
+        </div>
       </div>
     </section>
   `;
+}
+
+function resolveDetailSelectedStat(sectionStats) {
+  const focusedStat = detailFocusRecordKey
+    ? sectionStats.find((stat) => stat.rows.some((row) => row.recordKey === detailFocusRecordKey))
+    : null;
+  const selected = focusedStat
+    || sectionStats.find((stat) => stat.section.key === detailSelectedSectionKey)
+    || sectionStats[0];
+  detailSelectedSectionKey = selected?.section.key || "";
+  return selected;
+}
+
+function buildDetailSectorGroups(sectionStats) {
+  const groups = new Map();
+  sectionStats.forEach((stat) => {
+    const sector = stat.section.sector || "미분류";
+    if (!groups.has(sector)) {
+      groups.set(sector, { sector, stats: [], actualTotal: 0, count: 0 });
+    }
+    const group = groups.get(sector);
+    group.stats.push(stat);
+    group.actualTotal += stat.actualTotal;
+    group.count += stat.count;
+  });
+
+  return [...groups.values()]
+    .map((group) => ({
+      ...group,
+      stats: group.stats.sort((a, b) =>
+        b.actualTotal - a.actualTotal
+        || b.count - a.count
+        || a.section.title.localeCompare(b.section.title, "ko-KR")
+      )
+    }))
+    .sort((a, b) =>
+      b.actualTotal - a.actualTotal
+      || b.count - a.count
+      || a.sector.localeCompare(b.sector, "ko-KR")
+    );
+}
+
+function renderDetailSectorGroup(group, selectedStat, filteredActualTotal) {
+  const isExpanded = group.sector === selectedStat.section.sector;
+  const firstSectionKey = group.stats[0]?.section.key || "";
+  const sectorSelectionKey = isExpanded ? selectedStat.section.key : firstSectionKey;
+  const sectorClass = categoryClass(group.sector);
+  return `
+    <section class="detail-sector-group ${sectorClass} ${isExpanded ? "is-expanded" : ""}">
+      <button
+        type="button"
+        class="detail-sector-toggle"
+        data-detail-select-section="${escapeHtml(sectorSelectionKey)}"
+        aria-expanded="${isExpanded ? "true" : "false"}"
+      >
+        <span class="detail-sector-icon" aria-hidden="true"><i class="ti ${sectorIconClass(group.sector)}"></i></span>
+        <span class="detail-sector-label">
+          <strong>${escapeHtml(group.sector)}</strong>
+          <small>${group.count.toLocaleString("ko-KR")}건 · ${formatPercent(group.actualTotal, filteredActualTotal)}</small>
+        </span>
+        <b>${formatWon(group.actualTotal)}</b>
+        <i class="ti ti-chevron-down detail-sector-chevron" aria-hidden="true"></i>
+      </button>
+      ${isExpanded ? `
+        <div class="detail-subcategory-list">
+          ${group.stats.map((stat) => renderDetailSubcategoryOption(stat, selectedStat)).join("")}
+        </div>
+      ` : ""}
+    </section>
+  `;
+}
+
+function renderDetailSubcategoryOption(stat, selectedStat) {
+  const isSelected = stat.section.key === selectedStat.section.key;
+  const title = detailSectionDisplayTitle(stat.section);
+  return `
+    <button
+      type="button"
+      class="detail-subcategory-option ${isSelected ? "is-selected" : ""}"
+      data-detail-select-section="${escapeHtml(stat.section.key)}"
+      aria-pressed="${isSelected ? "true" : "false"}"
+    >
+      <span class="detail-subcategory-icon" aria-hidden="true"><i class="ti ${subcategoryIconClass(stat.section.sector, stat.section.subcategory)}"></i></span>
+      <span class="detail-subcategory-label">
+        <strong>${escapeHtml(title)}</strong>
+        <small>${stat.count.toLocaleString("ko-KR")}건</small>
+      </span>
+      <b>${formatWon(stat.actualTotal)}</b>
+      <i class="ti ti-chevron-right" aria-hidden="true"></i>
+    </button>
+  `;
+}
+
+function detailSectionDisplayTitle(section) {
+  const parts = String(section.title || "").split(" / ");
+  return parts.length > 1 ? parts.at(-1) : section.title;
 }
 
 function renderDetailExpandedSection(stat, selectedMonth, filterText) {
@@ -1313,9 +1428,26 @@ function attachDetailCardHandlers() {
       open();
     });
   });
+  els.detailGrid.querySelectorAll("[data-detail-select-section]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const sectionKey = button.dataset.detailSelectSection || "";
+      if (!sectionKey || sectionKey === detailSelectedSectionKey) return;
+      detailSelectedSectionKey = sectionKey;
+      detailExpandedSectionKey = "";
+      detailFocusRecordKey = "";
+      detailInstallmentEditRecordKey = "";
+      renderDetailView();
+      requestAnimationFrame(() => {
+        els.detailGrid
+          ?.querySelector(`[data-detail-select-section="${cssEscape(sectionKey)}"]`)
+          ?.focus({ preventScroll: true });
+      });
+    });
+  });
   els.detailGrid.querySelectorAll("[data-detail-expand-section]").forEach((button) => {
     button.addEventListener("click", () => {
       detailExpandedSectionKey = button.dataset.detailExpandSection || "";
+      detailSelectedSectionKey = detailExpandedSectionKey;
       detailInstallmentEditRecordKey = "";
       renderDetailView();
       requestAnimationFrame(() => {
@@ -1325,6 +1457,7 @@ function attachDetailCardHandlers() {
   });
   els.detailGrid.querySelectorAll("[data-detail-collapse-section]").forEach((button) => {
     button.addEventListener("click", () => {
+      detailSelectedSectionKey = detailExpandedSectionKey || detailSelectedSectionKey;
       detailExpandedSectionKey = "";
       detailInstallmentEditRecordKey = "";
       renderDetailView();

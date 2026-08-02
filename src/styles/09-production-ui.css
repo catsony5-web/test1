@@ -4,6 +4,457 @@
   line-height: 1;
 }
 
+/* Detail master-detail workspace: one expanded sector, one readable ledger. */
+#detailsView .detail-master-detail {
+  display: grid;
+  grid-template-columns: minmax(300px, 0.36fr) minmax(0, 0.64fr);
+  gap: 16px;
+  align-items: start;
+}
+
+#detailsView .detail-master-list {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  max-height: min(700px, calc(100vh - 180px));
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-gutter: stable;
+}
+
+#detailsView .detail-sector-group,
+#detailsView .detail-master-pane {
+  min-width: 0;
+}
+
+#detailsView .detail-sector-group {
+  --detail-sector-bg: var(--sector-etc-bg);
+  --detail-sector-border: var(--sector-etc-border);
+  --detail-sector-text: var(--sector-etc-text);
+  overflow: hidden;
+  border: 1px solid var(--detail-sector-border);
+  border-radius: 8px;
+  background: var(--bg-card);
+}
+
+#detailsView .detail-master-detail .fixed {
+  --detail-sector-bg: var(--sector-fixed-bg);
+  --detail-sector-border: var(--sector-fixed-border);
+  --detail-sector-text: var(--sector-fixed-text);
+}
+
+#detailsView .detail-master-detail .food {
+  --detail-sector-bg: var(--sector-food-bg);
+  --detail-sector-border: var(--sector-food-border);
+  --detail-sector-text: var(--sector-food-text);
+}
+
+#detailsView .detail-master-detail .household {
+  --detail-sector-bg: var(--sector-household-bg);
+  --detail-sector-border: var(--sector-household-border);
+  --detail-sector-text: var(--sector-household-text);
+}
+
+#detailsView .detail-master-detail .shopping {
+  --detail-sector-bg: var(--sector-shopping-bg);
+  --detail-sector-border: var(--sector-shopping-border);
+  --detail-sector-text: var(--sector-shopping-text);
+}
+
+#detailsView .detail-master-detail .personal {
+  --detail-sector-bg: var(--sector-personal-bg);
+  --detail-sector-border: var(--sector-personal-border);
+  --detail-sector-text: var(--sector-personal-text);
+}
+
+#detailsView .detail-master-detail .selfdev {
+  --detail-sector-bg: var(--sector-selfdev-bg);
+  --detail-sector-border: var(--sector-selfdev-border);
+  --detail-sector-text: var(--sector-selfdev-text);
+}
+
+#detailsView .detail-master-detail .transport {
+  --detail-sector-bg: var(--sector-transport-bg);
+  --detail-sector-border: var(--sector-transport-border);
+  --detail-sector-text: var(--sector-transport-text);
+}
+
+#detailsView .detail-master-detail .saving {
+  --detail-sector-bg: var(--sector-saving-bg);
+  --detail-sector-border: var(--sector-saving-border);
+  --detail-sector-text: var(--sector-saving-text);
+}
+
+#detailsView .detail-master-detail .etc {
+  --detail-sector-bg: var(--sector-etc-bg);
+  --detail-sector-border: var(--sector-etc-border);
+  --detail-sector-text: var(--sector-etc-text);
+}
+
+#detailsView .detail-master-detail .unknown {
+  --detail-sector-bg: var(--sector-unknown-bg);
+  --detail-sector-border: var(--sector-unknown-border);
+  --detail-sector-text: var(--sector-unknown-text);
+}
+
+#detailsView .detail-sector-toggle {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto 18px;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  min-height: 68px;
+  border: 0;
+  border-radius: 0;
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--detail-sector-bg) 76%, var(--bg-card));
+  color: var(--text-primary);
+  text-align: left;
+  box-shadow: none;
+}
+
+#detailsView .detail-sector-toggle:hover,
+#detailsView .detail-sector-toggle:focus-visible {
+  background: var(--detail-sector-bg);
+  color: var(--text-primary);
+  transform: none;
+}
+
+#detailsView .detail-sector-group.is-expanded .detail-sector-toggle {
+  border-bottom: 1px solid var(--detail-sector-border);
+  background: var(--detail-sector-bg);
+}
+
+#detailsView .detail-sector-icon,
+#detailsView .detail-subcategory-icon,
+#detailsView .detail-ledger-icon {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 1px solid color-mix(in srgb, var(--detail-sector-border) 82%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--bg-card) 78%, var(--detail-sector-bg));
+  color: var(--detail-sector-text);
+}
+
+#detailsView .detail-sector-icon {
+  width: 40px;
+  height: 40px;
+  font-size: 20px;
+}
+
+#detailsView .detail-sector-label,
+#detailsView .detail-subcategory-label {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+#detailsView .detail-sector-label strong,
+#detailsView .detail-subcategory-label strong {
+  overflow: hidden;
+  color: var(--text-primary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+#detailsView .detail-sector-label small,
+#detailsView .detail-subcategory-label small {
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+#detailsView .detail-sector-toggle > b,
+#detailsView .detail-subcategory-option > b {
+  color: var(--detail-sector-text);
+  font-family: var(--font-number);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+#detailsView .detail-sector-toggle > b {
+  font-size: 14px;
+}
+
+#detailsView .detail-sector-chevron {
+  color: var(--detail-sector-text);
+  font-size: 16px;
+  transition: transform 0.16s ease;
+}
+
+#detailsView .detail-sector-group.is-expanded .detail-sector-chevron {
+  transform: rotate(180deg);
+}
+
+#detailsView .detail-subcategory-list {
+  display: grid;
+  gap: 7px;
+  padding: 8px;
+  background: var(--bg-card);
+}
+
+#detailsView .detail-subcategory-option {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto 16px;
+  gap: 9px;
+  align-items: center;
+  width: 100%;
+  min-height: 58px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  padding: 8px 9px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  text-align: left;
+  box-shadow: none;
+}
+
+#detailsView .detail-subcategory-option:hover,
+#detailsView .detail-subcategory-option:focus-visible {
+  border-color: var(--detail-sector-border);
+  background: color-mix(in srgb, var(--detail-sector-bg) 44%, var(--bg-card));
+  color: var(--text-primary);
+  transform: none;
+}
+
+#detailsView .detail-subcategory-option.is-selected {
+  border-color: var(--detail-sector-text);
+  background: color-mix(in srgb, var(--detail-sector-bg) 62%, var(--bg-card));
+  box-shadow: inset 3px 0 0 var(--detail-sector-text);
+}
+
+#detailsView .detail-subcategory-icon {
+  width: 34px;
+  height: 34px;
+  font-size: 17px;
+}
+
+#detailsView .detail-subcategory-option > b {
+  font-size: 13px;
+}
+
+#detailsView .detail-subcategory-option > .ti-chevron-right {
+  color: var(--text-tertiary);
+  font-size: 15px;
+}
+
+#detailsView .detail-master-pane {
+  position: sticky;
+  top: 12px;
+}
+
+#detailsView .is-master-detail-card {
+  margin: 0;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: none;
+  transform: none;
+}
+
+#detailsView .is-master-detail-card:hover {
+  border-color: var(--detail-sector-border);
+  box-shadow: none;
+  transform: none;
+}
+
+#detailsView .is-master-detail-card .category-card-head {
+  align-items: center;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 12px;
+}
+
+#detailsView .detail-ledger-heading {
+  display: flex;
+  min-width: 0;
+  gap: 10px;
+  align-items: center;
+}
+
+#detailsView .detail-ledger-heading > div {
+  min-width: 0;
+}
+
+#detailsView .detail-ledger-icon {
+  width: 42px;
+  height: 42px;
+  font-size: 20px;
+}
+
+#detailsView .detail-ledger-breadcrumb {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  margin-bottom: 3px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+#detailsView .is-master-detail-card .category-card-head h4 {
+  font-size: 18px;
+}
+
+#detailsView .is-master-detail-card .category-actions {
+  flex-flow: row wrap;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+#detailsView .is-master-detail-card .category-stat-row {
+  margin-bottom: 10px;
+}
+
+#detailsView .is-master-detail-card .transaction-list {
+  max-height: min(560px, calc(100vh - 250px));
+  overflow: auto;
+  scrollbar-gutter: stable;
+}
+
+@media (max-width: 1399px) {
+  #detailsView .detail-master-detail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #detailsView .detail-master-list {
+    max-height: 420px;
+  }
+
+  #detailsView .detail-master-pane {
+    position: static;
+  }
+
+  #detailsView .is-master-detail-card .transaction-list {
+    max-height: 520px;
+  }
+}
+
+@media (max-width: 767px) {
+  #detailsView .detail-results-panel {
+    padding: 12px;
+  }
+
+  #detailsView .detail-master-detail {
+    gap: 12px;
+  }
+
+  #detailsView .detail-master-list {
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+  }
+
+  #detailsView .detail-sector-toggle {
+    grid-template-columns: 36px minmax(0, 1fr) auto 16px;
+    min-height: 62px;
+    padding: 8px 9px;
+  }
+
+  #detailsView .detail-sector-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+
+  #detailsView .detail-sector-toggle > b,
+  #detailsView .detail-subcategory-option > b {
+    font-size: 12px;
+  }
+
+  #detailsView .is-master-detail-card {
+    padding: 12px;
+  }
+
+  #detailsView .is-master-detail-card .category-card-head,
+  #detailsView .is-master-detail-card .category-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  #detailsView .is-master-detail-card .category-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #detailsView .is-master-detail-card .category-actions > strong {
+    grid-column: 1 / -1;
+  }
+
+  #detailsView .is-master-detail-card .transaction-list {
+    max-height: none;
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+
+  #detailsView .is-master-detail-card .transaction-head {
+    display: none;
+  }
+
+  #detailsView .is-master-detail-card .transaction-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      "date date"
+      "merchant merchant"
+      "payment payment"
+      "reimbursement reimbursement"
+      "actual actual";
+    min-width: 0;
+    gap: 8px;
+    margin-top: 8px;
+    border: 1px solid var(--border-subtle);
+    border-left: 3px solid var(--category-accent, var(--accent-blue));
+    border-radius: 7px;
+    padding: 10px;
+  }
+
+  #detailsView .is-master-detail-card .transaction-row .date {
+    grid-column: 1 / -1;
+  }
+
+  #detailsView .is-master-detail-card .transaction-row .merchant {
+    grid-column: 1 / -1;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  #detailsView .is-master-detail-card .transaction-row .amount {
+    display: grid;
+    gap: 2px;
+    overflow: visible;
+    text-align: left;
+  }
+
+  #detailsView .is-master-detail-card .transaction-row .payment::before,
+  #detailsView .is-master-detail-card .transaction-row .reimbursement::before,
+  #detailsView .is-master-detail-card .transaction-row .actual::before {
+    color: var(--text-tertiary);
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+  #detailsView .is-master-detail-card .transaction-row .payment::before {
+    content: "총 결제액";
+  }
+
+  #detailsView .is-master-detail-card .transaction-row .reimbursement::before {
+    content: "정산받은 금액";
+  }
+
+  #detailsView .is-master-detail-card .transaction-row .actual {
+    grid-column: 1 / -1;
+  }
+
+  #detailsView .is-master-detail-card .transaction-row .actual::before {
+    content: "실 지출액";
+  }
+}
+
 .file-button > input[type="file"],
 .ghost-file-button > input[type="file"] {
   width: 1px;
