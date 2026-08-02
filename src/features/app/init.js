@@ -266,7 +266,16 @@ async function init() {
   els.parseIpoPasteButton?.addEventListener("click", handleIpoPasteParse);
   els.clearIpoPasteButton?.addEventListener("click", clearIpoPasteInput);
   els.saveIpoPasteButton?.addEventListener("click", saveIpoPasteRows);
-  els.loadIpoCalendarButton?.addEventListener("click", loadIpoCalendarCandidates);
+  els.loadIpoCalendarButton?.addEventListener("click", () => loadIpoCalendarCandidates());
+  els.ipoPublicScheduleToggle?.addEventListener("change", () => {
+    showPublicIpoSchedules = els.ipoPublicScheduleToggle.checked;
+    selectedIpoCalendarDate = "";
+    selectedIpoCalendarRecordId = "";
+    selectedIpoCalendarEventKey = "";
+    renderIpoCalendar();
+  });
+  els.selectChangedIpoSchedules?.addEventListener("click", toggleIpoScheduleSelection);
+  els.applySelectedIpoSchedules?.addEventListener("click", () => applyIpoScheduleUpdates([...selectedIpoScheduleIds]));
   els.prevIpoCalendarMonth?.addEventListener("click", () => moveIpoCalendarMonth(-1));
   els.nextIpoCalendarMonth?.addEventListener("click", () => moveIpoCalendarMonth(1));
   els.ipoCalendarMonthSelect?.addEventListener("change", () => {
@@ -333,6 +342,7 @@ async function init() {
 
   reclassify();
   registerPwa();
+  void loadIpoCalendarCandidates({ silent: true });
 }
 
 

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>소비 분석</title>
   <meta name="theme-color" content="#365f7e">
+  <link rel="icon" href="app-icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest?v=146-professional-analysis">
   <link rel="stylesheet" href="src/styles/00-tokens.css?v=150-theme-refresh">
   <link rel="stylesheet" href="src/styles/01-base.css?v=151-loan-repayments">
@@ -12,12 +13,12 @@
   <link rel="stylesheet" href="src/styles/03-components.css?v=140-long-term-trend">
   <link rel="stylesheet" href="src/styles/04-forms-tables.css?v=83">
   <link rel="stylesheet" href="src/styles/05-charts.css?v=156-loan-sharing">
-  <link rel="stylesheet" href="src/styles/06-features.css?v=158-ipo-custom-range">
-  <link rel="stylesheet" href="src/styles/07-responsive.css?v=158-ipo-custom-range">
+  <link rel="stylesheet" href="src/styles/06-features.css?v=159-ipo-live-schedule">
+  <link rel="stylesheet" href="src/styles/07-responsive.css?v=159-ipo-live-schedule">
   <link rel="stylesheet" href="src/styles/08-themes.css?v=151-loan-repayments">
   <link rel="stylesheet" href="assets/tabler/tabler-icons.min.css?v=135-subcategory-icons">
-  <link rel="stylesheet" href="src/styles/09-production-ui.css?v=151-loan-repayments">
-  <link rel="stylesheet" href="src/styles/10-analysis.css?v=152-monthly-comparison">
+  <link rel="stylesheet" href="src/styles/09-production-ui.css?v=160-sector-comparison">
+  <link rel="stylesheet" href="src/styles/10-analysis.css?v=160-analysis-clarity">
   <script src="assets/vendor/xlsx.full.min.js"></script>
 </head>
 <body data-app-name="소비 분석">
@@ -639,7 +640,7 @@
           </select>
         </label>
         <div class="summary-subtabs" role="tablist" aria-label="월별 섹터 요약 보기">
-          <button id="summaryTabTrend" class="summary-subtab active" type="button" role="tab" tabindex="0" aria-selected="true" aria-controls="summarySubtabTrend" data-summary-subtab="trend"><span class="summary-subtab-index">1</span><span class="summary-subtab-text">섹터별 전년 비교</span></button>
+          <button id="summaryTabTrend" class="summary-subtab active" type="button" role="tab" tabindex="0" aria-selected="true" aria-controls="summarySubtabTrend" data-summary-subtab="trend"><span class="summary-subtab-index">1</span><span class="summary-subtab-text">섹터별 월간 비교</span></button>
           <button id="summaryTabShare" class="summary-subtab" type="button" role="tab" tabindex="-1" aria-selected="false" aria-controls="summarySubtabShare" data-summary-subtab="share"><span class="summary-subtab-index">2</span><span class="summary-subtab-text">선택 월 섹터 비교</span></button>
           <button id="summaryTabDetail" class="summary-subtab" type="button" role="tab" tabindex="-1" aria-selected="false" aria-controls="summarySubtabDetail" data-summary-subtab="detail"><span class="summary-subtab-index">3</span><span class="summary-subtab-text">상세 섹터 비교</span></button>
           <button id="summaryTabReport" class="summary-subtab" type="button" role="tab" tabindex="-1" aria-selected="false" aria-controls="summarySubtabReport" data-summary-subtab="report"><span class="summary-subtab-index">4</span><span class="summary-subtab-text">각 섹터 리포트</span></button>
@@ -686,8 +687,8 @@
           <section class="sector-trend-panel">
             <div class="panel-head sector-trend-head">
               <div>
-                <h3>섹터별 전년 동월 비교</h3>
-                <p>선택 기간의 월별 소비를 전년 같은 달과 나란히 비교합니다.</p>
+                <h3 id="sectorTrendTitle">월별 섹터 요약</h3>
+                <p id="sectorTrendDescription">선택한 비교 기준에 따라 월별 소비를 나란히 비교합니다.</p>
               </div>
             </div>
             <div id="sectorTrendChart" class="sector-trend-chart"></div>
@@ -752,7 +753,10 @@
             <h2>공모주</h2>
             <p>청약 일정, 배정 수량과 매도 금액을 기록하고 수량 기준 손익과 최종 정산 손익을 확인합니다.</p>
           </div>
-          <button id="loadIpoCalendarButton" type="button">자동 일정 확인</button>
+          <button id="loadIpoCalendarButton" type="button">
+            <i class="ti ti-refresh" aria-hidden="true"></i>
+            공개 일정 새로고침
+          </button>
         </div>
         <div class="ipo-subtabs" role="tablist" aria-label="공모주 화면">
           <button class="ipo-subtab active" type="button" role="tab" data-ipo-subtab="dashboard" aria-selected="true" aria-controls="ipoDashboardPanel">대시보드</button>
@@ -768,12 +772,19 @@
                 <h3>공모주 달력</h3>
                 <p>청약, 환불, 상장, 매도 일정을 월별 달력으로 확인합니다.</p>
               </div>
-              <div class="ipo-calendar-controls">
-                <button id="prevIpoCalendarMonth" type="button" title="이전 월" aria-label="이전 월"><i class="ti ti-chevron-left" aria-hidden="true"></i></button>
-                <select id="ipoCalendarMonthSelect" aria-label="공모주 달력 월 선택"></select>
-                <button id="nextIpoCalendarMonth" type="button" title="다음 월" aria-label="다음 월"><i class="ti ti-chevron-right" aria-hidden="true"></i></button>
+              <div class="ipo-calendar-toolbar">
+                <label class="ipo-public-schedule-toggle">
+                  <input id="ipoPublicScheduleToggle" type="checkbox" checked>
+                  <span>KRX 공개 일정</span>
+                </label>
+                <div class="ipo-calendar-controls">
+                  <button id="prevIpoCalendarMonth" type="button" title="이전 월" aria-label="이전 월"><i class="ti ti-chevron-left" aria-hidden="true"></i></button>
+                  <select id="ipoCalendarMonthSelect" aria-label="공모주 달력 월 선택"></select>
+                  <button id="nextIpoCalendarMonth" type="button" title="다음 월" aria-label="다음 월"><i class="ti ti-chevron-right" aria-hidden="true"></i></button>
+                </div>
               </div>
             </div>
+            <div id="ipoCalendarSyncMeta" class="ipo-calendar-sync-meta" aria-live="polite">공개 일정을 확인하는 중입니다.</div>
             <div id="ipoCumulativePerformance" class="ipo-cumulative-performance" aria-label="전체 기간 누적 공모주 성과"></div>
             <div class="ipo-calendar-body">
               <div id="ipoCalendarGrid" class="ipo-calendar-grid"></div>
@@ -832,7 +843,7 @@
               <label>증권사<input id="ipoBroker" type="text" placeholder="예: 미래에셋"></label>
               <label>청약 시작일<input id="ipoSubscriptionStart" type="date"></label>
               <label>청약 종료일<input id="ipoSubscriptionEnd" type="date"></label>
-              <label>환불일<input id="ipoRefundDate" type="date"></label>
+              <label>환불/납입일<input id="ipoRefundDate" type="date"></label>
               <label>상장일<input id="ipoListingDate" type="date"></label>
               <label>공모가<input id="ipoOfferPrice" type="text" inputmode="numeric" placeholder="예: 16800"></label>
               <label>청약 주수<input id="ipoAppliedShares" type="number" min="0" placeholder="선택 입력"></label>
@@ -898,8 +909,18 @@
               </div>
             </details>
             <div class="ipo-calendar-import">
-              <h3>자동 일정 후보</h3>
-              <p id="ipoCalendarStatus">GitHub Actions로 만든 일정 JSON이 있으면 자동 후보를 불러올 수 있습니다.</p>
+              <div class="ipo-calendar-import-head">
+                <div>
+                  <h3>공개 일정 검토</h3>
+                  <p>KRX KIND 일정과 내 기록의 날짜·공모가 차이를 확인한 뒤 필요한 변경만 반영합니다.</p>
+                </div>
+                <div class="ipo-schedule-actions">
+                  <button id="selectChangedIpoSchedules" type="button">변경 선택</button>
+                  <button id="applySelectedIpoSchedules" class="primary-action" type="button" disabled>선택 반영</button>
+                </div>
+              </div>
+              <p id="ipoCalendarStatus" aria-live="polite">공개 일정을 확인하는 중입니다.</p>
+              <div id="ipoScheduleSummary" class="ipo-schedule-summary" aria-live="polite"></div>
               <div id="ipoCalendarCandidates" class="ipo-candidate-list"></div>
             </div>
           </section>
@@ -1304,14 +1325,14 @@
   <script src="src/data/board-sections.js?v=151-loan-repayments"></script>
   <script src="src/data/field-aliases.js?v=77"></script>
 
-  <script src="src/features/app/state.js?v=158-ipo-custom-range"></script>
+  <script src="src/features/app/state.js?v=159-ipo-live-schedule"></script>
 
   <script src="src/utils/format.js?v=80"></script>
   <script src="src/utils/date.js?v=141-garden-analysis"></script>
   <script src="src/utils/dom.js?v=61"></script>
   <script src="src/utils/normalize.js?v=156-loan-sharing"></script>
   <script src="src/utils/grouping.js?v=156-loan-sharing"></script>
-  <script src="src/utils/storage.js?v=158-ipo-custom-range"></script>
+  <script src="src/utils/storage.js?v=159-ipo-live-schedule"></script>
   <script src="src/utils/backup.js?v=156-loan-sharing"></script>
 
   <script src="src/components/chips.js?v=136-mineral-layers"></script>
@@ -1333,7 +1354,7 @@
   <script src="src/features/summary/comparison-analysis.js?v=151-loan-repayments"></script>
   <script src="src/features/summary/summary-view.js?v=151-loan-repayments"></script>
   <script src="src/features/summary/sector-analysis.js?v=151-loan-repayments"></script>
-  <script src="src/features/summary/summary-chart.js?v=151-loan-repayments"></script>
+  <script src="src/features/summary/summary-chart.js?v=160-sector-comparison"></script>
   <script src="src/features/monthly/monthly-flow.js?v=156-loan-sharing"></script>
   <script src="src/features/monthly/monthly-chart.js?v=156-loan-sharing"></script>
   <script src="src/features/income/income-entry.js?v=61"></script>
@@ -1345,13 +1366,13 @@
   <script src="src/features/analysis/monthly-analysis-view.js?v=156-loan-sharing"></script>
   <script src="src/features/analysis/spending-structure-view.js?v=156-loan-sharing"></script>
   <script src="src/features/products/products-view.js?v=62"></script>
-  <script src="src/features/ipo/ipo-view.js?v=158-ipo-custom-range"></script>
+  <script src="src/features/ipo/ipo-view.js?v=159-ipo-live-schedule"></script>
   <script src="src/features/unknown/unknown-view.js?v=97"></script>
   <script src="src/features/transactions/transactions-view.js?v=77"></script>
 
   <script src="src/features/app/navigation.js?v=112"></script>
   <script src="src/features/app/appearance.js?v=141-garden-analysis"></script>
   <script src="src/features/app/render-all.js?v=151-loan-repayments"></script>
-  <script src="src/features/app/init.js?v=158-ipo-custom-range"></script>
+  <script src="src/features/app/init.js?v=159-ipo-live-schedule"></script>
 </body>
 </html>

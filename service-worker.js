@@ -1,4 +1,4 @@
-const CACHE_NAME = "monthly-card-budget-v158";
+const CACHE_NAME = "monthly-card-budget-v160";
 const APP_FILES = [
   "./",
   "./index.html",
@@ -185,6 +185,22 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+
+  const requestUrl = new URL(event.request.url);
+  if (requestUrl.pathname.endsWith("/data/ipo-calendar.json")) {
+    event.respondWith(
+      fetch(new Request(event.request, { cache: "no-store" }))
+        .then(async (response) => {
+          if (response.ok) {
+            const cache = await caches.open(CACHE_NAME);
+            await cache.put("./data/ipo-calendar.json", response.clone());
+          }
+          return response;
+        })
+        .catch(async () => (await caches.match("./data/ipo-calendar.json")) || Response.error())
+    );
+    return;
+  }
 
   if (event.request.mode === "navigate") {
     event.respondWith(

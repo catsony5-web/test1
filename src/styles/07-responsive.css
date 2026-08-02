@@ -207,8 +207,18 @@
   }
 
   .ipo-calendar-panel .panel-head,
-  .ipo-calendar-controls {
+  .ipo-calendar-controls,
+  .ipo-calendar-toolbar {
     width: 100%;
+  }
+
+  .ipo-calendar-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .ipo-public-schedule-toggle {
+    justify-content: center;
   }
 
   .ipo-calendar-controls {
@@ -313,6 +323,45 @@
 
   .ipo-calendar-detail-grid {
     grid-template-columns: 1fr;
+  }
+
+  .ipo-public-source-row,
+  .ipo-calendar-import-head,
+  .ipo-schedule-review {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .ipo-calendar-import-head,
+  .ipo-public-source-row {
+    display: flex;
+  }
+
+  .ipo-schedule-actions,
+  .ipo-schedule-review-actions {
+    justify-content: flex-start;
+  }
+
+  .ipo-schedule-review {
+    display: flex;
+  }
+
+  .ipo-schedule-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ipo-schedule-summary span:nth-child(3) {
+    border-top: 1px solid var(--border);
+    border-left: 0;
+  }
+
+  .ipo-schedule-summary span:nth-child(4) {
+    border-top: 1px solid var(--border);
+  }
+
+  .ipo-schedule-diffs > div {
+    grid-template-columns: 1fr;
+    gap: 3px;
   }
 
   .topbar,

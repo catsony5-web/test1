@@ -289,6 +289,8 @@ const els = {
   ipoCalendarMonthSelect: document.querySelector("#ipoCalendarMonthSelect"),
   nextIpoCalendarMonth: document.querySelector("#nextIpoCalendarMonth"),
   ipoCumulativePerformance: document.querySelector("#ipoCumulativePerformance"),
+  ipoPublicScheduleToggle: document.querySelector("#ipoPublicScheduleToggle"),
+  ipoCalendarSyncMeta: document.querySelector("#ipoCalendarSyncMeta"),
   ipoPerformanceYearFilter: document.querySelector("#ipoPerformanceYearFilter"),
   ipoPerformanceCustomRange: document.querySelector("#ipoPerformanceCustomRange"),
   ipoPerformanceStartMonth: document.querySelector("#ipoPerformanceStartMonth"),
@@ -315,6 +317,9 @@ const els = {
   ipoPastePreview: document.querySelector("#ipoPastePreview"),
   loadIpoCalendarButton: document.querySelector("#loadIpoCalendarButton"),
   ipoCalendarStatus: document.querySelector("#ipoCalendarStatus"),
+  ipoScheduleSummary: document.querySelector("#ipoScheduleSummary"),
+  selectChangedIpoSchedules: document.querySelector("#selectChangedIpoSchedules"),
+  applySelectedIpoSchedules: document.querySelector("#applySelectedIpoSchedules"),
   ipoCalendarCandidates: document.querySelector("#ipoCalendarCandidates"),
   recurringForm: document.querySelector("#recurringForm"),
   recurringId: document.querySelector("#recurringId"),
@@ -464,6 +469,9 @@ let editingLoanId = "";
 let detailBulkRows = [];
 let ipoPasteRows = [];
 let ipoCalendarCandidates = [];
+let ipoCalendarPayload = null;
+let selectedIpoScheduleIds = new Set();
+let showPublicIpoSchedules = true;
 let editingIpoId = "";
 let ipoImageDraftData = "";
 let ipoImageDraftName = "";
