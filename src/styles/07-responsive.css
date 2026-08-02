@@ -229,6 +229,48 @@
     font-size: 22px;
   }
 
+  .ipo-performance-panel {
+    padding: 14px;
+  }
+
+  .ipo-performance-head,
+  .ipo-performance-filter {
+    width: 100%;
+  }
+
+  .ipo-performance-overview {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .ipo-performance-overview dl div:first-child {
+    border-left: 0;
+    padding-left: 0;
+  }
+
+  .ipo-performance-overview strong {
+    font-size: 22px;
+  }
+
+  .ipo-performance-chart-svg {
+    min-height: 300px;
+  }
+
+  .ipo-performance-selected {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .ipo-performance-selected dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ipo-performance-selected dl > div {
+    border-top: 1px solid var(--border);
+    border-left: 0;
+    padding: 10px 8px 2px 0;
+  }
+
   .ipo-calendar-body {
     grid-template-columns: 1fr;
   }

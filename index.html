@@ -12,8 +12,8 @@
   <link rel="stylesheet" href="src/styles/03-components.css?v=140-long-term-trend">
   <link rel="stylesheet" href="src/styles/04-forms-tables.css?v=83">
   <link rel="stylesheet" href="src/styles/05-charts.css?v=151-loan-repayments">
-  <link rel="stylesheet" href="src/styles/06-features.css?v=154-ipo-performance">
-  <link rel="stylesheet" href="src/styles/07-responsive.css?v=154-ipo-performance">
+  <link rel="stylesheet" href="src/styles/06-features.css?v=155-ipo-cumulative">
+  <link rel="stylesheet" href="src/styles/07-responsive.css?v=155-ipo-cumulative">
   <link rel="stylesheet" href="src/styles/08-themes.css?v=151-loan-repayments">
   <link rel="stylesheet" href="assets/tabler/tabler-icons.min.css?v=135-subcategory-icons">
   <link rel="stylesheet" href="src/styles/09-production-ui.css?v=151-loan-repayments">
@@ -747,6 +747,7 @@
         </div>
         <div class="ipo-subtabs" role="tablist" aria-label="공모주 화면">
           <button class="ipo-subtab active" type="button" role="tab" data-ipo-subtab="dashboard" aria-selected="true" aria-controls="ipoDashboardPanel">대시보드</button>
+          <button class="ipo-subtab" type="button" role="tab" data-ipo-subtab="performance" aria-selected="false" aria-controls="ipoPerformancePanel">누적 성과</button>
           <button class="ipo-subtab" type="button" role="tab" data-ipo-subtab="entry" aria-selected="false" aria-controls="ipoEntryPanel">기록 입력</button>
           <button class="ipo-subtab" type="button" role="tab" data-ipo-subtab="records" aria-selected="false" aria-controls="ipoRecordsPanel">전체 기록</button>
         </div>
@@ -769,6 +770,25 @@
               <div id="ipoCalendarGrid" class="ipo-calendar-grid"></div>
               <aside id="ipoCalendarDetail" class="ipo-calendar-detail" aria-live="polite"></aside>
             </div>
+          </section>
+        </section>
+        <section id="ipoPerformancePanel" class="ipo-subtab-panel" data-ipo-panel="performance" role="tabpanel" hidden>
+          <section class="ipo-performance-panel">
+            <div class="panel-head ipo-performance-head">
+              <div>
+                <h3>월별 손익과 누적 정산손익</h3>
+                <p>매도일 기준 최종 정산손익의 월별 변화와 전체 누적 흐름을 함께 확인합니다.</p>
+              </div>
+              <label class="ipo-performance-filter">기간
+                <select id="ipoPerformanceYearFilter" aria-label="공모주 누적 성과 기간"></select>
+              </label>
+            </div>
+            <div class="ipo-performance-legend" aria-label="그래프 범례">
+              <span><i class="ipo-performance-bar-swatch" aria-hidden="true"></i>월 정산손익</span>
+              <span><i class="ipo-performance-line-swatch" aria-hidden="true"></i>누적 정산손익</span>
+            </div>
+            <div id="ipoPerformanceChart" class="ipo-performance-chart"></div>
+            <div id="ipoPerformanceDetail" class="ipo-performance-detail" aria-live="polite"></div>
           </section>
         </section>
         <section id="ipoEntryPanel" class="ipo-subtab-panel" data-ipo-panel="entry" role="tabpanel" hidden>
@@ -1245,7 +1265,7 @@
   <script src="src/data/board-sections.js?v=151-loan-repayments"></script>
   <script src="src/data/field-aliases.js?v=77"></script>
 
-  <script src="src/features/app/state.js?v=154-ipo-performance"></script>
+  <script src="src/features/app/state.js?v=155-ipo-cumulative"></script>
 
   <script src="src/utils/format.js?v=80"></script>
   <script src="src/utils/date.js?v=141-garden-analysis"></script>
@@ -1286,13 +1306,13 @@
   <script src="src/features/analysis/monthly-analysis-view.js?v=152-monthly-comparison"></script>
   <script src="src/features/analysis/spending-structure-view.js?v=151-loan-repayments"></script>
   <script src="src/features/products/products-view.js?v=62"></script>
-  <script src="src/features/ipo/ipo-view.js?v=154-ipo-performance"></script>
+  <script src="src/features/ipo/ipo-view.js?v=155-ipo-cumulative"></script>
   <script src="src/features/unknown/unknown-view.js?v=97"></script>
   <script src="src/features/transactions/transactions-view.js?v=77"></script>
 
   <script src="src/features/app/navigation.js?v=112"></script>
   <script src="src/features/app/appearance.js?v=141-garden-analysis"></script>
   <script src="src/features/app/render-all.js?v=151-loan-repayments"></script>
-  <script src="src/features/app/init.js?v=153-ipo-import"></script>
+  <script src="src/features/app/init.js?v=155-ipo-cumulative"></script>
 </body>
 </html>

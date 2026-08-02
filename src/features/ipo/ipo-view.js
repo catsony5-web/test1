@@ -72,6 +72,7 @@ function renderIpoView() {
   updateIpoComputedPreview();
   renderIpoSummary();
   renderIpoCumulativePerformance();
+  renderIpoPerformance();
   renderIpoCalendar();
   renderIpoList();
   renderIpoPastePreview();
@@ -274,6 +275,259 @@ function renderIpoCumulativePerformance() {
       <div><dt>평균 정산손익</dt><dd class="${tone}">${escapeHtml(formatSignedWon(performance.averageSettlementProfit))}</dd></div>
     </dl>
   `;
+}
+
+function buildIpoMonthlyPerformance(records = [], yearFilter = "all") {
+  const realized = (Array.isArray(records) ? records : [])
+    .filter((item) => isIpoRealized(item) && /^\d{4}-\d{2}-\d{2}$/.test(String(item.sellDate || "")))
+    .sort((a, b) => a.sellDate.localeCompare(b.sellDate));
+  const years = [...new Set(realized.map((item) => item.sellDate.slice(0, 4)))].sort();
+  const selectedYear = yearFilter !== "all" && years.includes(String(yearFilter)) ? String(yearFilter) : "all";
+  const scopedRecords = selectedYear === "all"
+    ? realized
+    : realized.filter((item) => item.sellDate.startsWith(`${selectedYear}-`));
+  const monthKeys = [];
+
+  if (scopedRecords.length && selectedYear === "all") {
+    const firstMonth = monthKey(scopedRecords[0].sellDate);
+    const lastMonth = monthKey(scopedRecords.at(-1).sellDate);
+    for (let cursor = firstMonth, guard = 0; cursor <= lastMonth && guard < 600; cursor = shiftMonthKey(cursor, 1), guard += 1) {
+      monthKeys.push(cursor);
+    }
+  } else if (scopedRecords.length) {
+    for (let month = 1; month <= 12; month += 1) {
+      monthKeys.push(`${selectedYear}-${String(month).padStart(2, "0")}`);
+    }
+  }
+
+  const recordsByMonth = new Map(monthKeys.map((month) => [month, []]));
+  scopedRecords.forEach((item) => {
+    const key = monthKey(item.sellDate);
+    if (!recordsByMonth.has(key)) recordsByMonth.set(key, []);
+    recordsByMonth.get(key).push(item);
+  });
+
+  let cumulativeProfit = 0;
+  const months = monthKeys.map((key) => {
+    const monthRecords = recordsByMonth.get(key) || [];
+    const profit = monthRecords.reduce((total, item) => total + Number(item.settlementProfit || 0), 0);
+    cumulativeProfit += profit;
+    const gains = monthRecords.filter((item) => Number(item.settlementProfit || 0) > 0);
+    const losses = monthRecords.filter((item) => Number(item.settlementProfit || 0) < 0);
+    return {
+      key,
+      profit,
+      cumulativeProfit,
+      count: monthRecords.length,
+      maxGain: gains.sort((a, b) => Number(b.settlementProfit || 0) - Number(a.settlementProfit || 0))[0] || null,
+      maxLoss: losses.sort((a, b) => Number(a.settlementProfit || 0) - Number(b.settlementProfit || 0))[0] || null
+    };
+  });
+
+  return {
+    years,
+    selectedYear,
+    months,
+    realizedCount: scopedRecords.length,
+    settlementProfit: cumulativeProfit,
+    positiveMonthCount: months.filter((item) => item.profit > 0).length,
+    negativeMonthCount: months.filter((item) => item.profit < 0).length
+  };
+}
+
+function renderIpoPerformance() {
+  if (!els.ipoPerformanceChart || !els.ipoPerformanceDetail) return;
+  const performance = buildIpoMonthlyPerformance(ipoRecords, selectedIpoPerformanceYear);
+  selectedIpoPerformanceYear = performance.selectedYear;
+  syncIpoPerformanceYearFilter(performance.years);
+
+  if (!performance.months.length) {
+    selectedIpoPerformanceMonth = "";
+    els.ipoPerformanceChart.innerHTML = `
+      <div class="empty compact-empty">매도 완료 기록이 쌓이면 월별 손익과 누적 정산손익을 그래프로 보여드립니다.</div>
+    `;
+    els.ipoPerformanceDetail.innerHTML = "";
+    return;
+  }
+
+  if (!performance.months.some((item) => item.key === selectedIpoPerformanceMonth)) {
+    selectedIpoPerformanceMonth = performance.months.filter((item) => item.count > 0).at(-1)?.key
+      || performance.months.at(-1).key;
+  }
+  els.ipoPerformanceChart.innerHTML = renderIpoPerformanceChart(performance);
+  els.ipoPerformanceDetail.innerHTML = renderIpoPerformanceMonthDetail(performance, selectedIpoPerformanceMonth);
+  attachIpoPerformanceHandlers();
+}
+
+function syncIpoPerformanceYearFilter(years) {
+  if (!els.ipoPerformanceYearFilter) return;
+  els.ipoPerformanceYearFilter.innerHTML = [
+    `<option value="all">전체 기간</option>`,
+    ...years.map((year) => `<option value="${escapeHtml(year)}">${escapeHtml(year)}년</option>`)
+  ].join("");
+  els.ipoPerformanceYearFilter.value = selectedIpoPerformanceYear;
+}
+
+function ipoPerformanceChartStep(maxValue, targetTicks = 3) {
+  const rawStep = Math.max(Number(maxValue || 0), 1) / Math.max(1, targetTicks);
+  const magnitude = 10 ** Math.floor(Math.log10(rawStep));
+  const normalized = rawStep / magnitude;
+  const factor = [1, 2, 2.5, 5, 10].find((candidate) => normalized <= candidate) || 10;
+  return factor * magnitude;
+}
+
+function renderIpoPerformanceChart(performance) {
+  const months = performance.months;
+  const padLeft = 76;
+  const padRight = 88;
+  const plotTop = 34;
+  const plotHeight = 238;
+  const plotBottom = plotTop + plotHeight;
+  const height = 332;
+  const width = Math.max(760, padLeft + padRight + months.length * 64);
+  const plotWidth = width - padLeft - padRight;
+  const slotWidth = plotWidth / Math.max(months.length, 1);
+  const maxMonthlyAbs = Math.max(...months.map((item) => Math.abs(item.profit)), 1);
+  const monthlyStep = ipoPerformanceChartStep(maxMonthlyAbs, 2);
+  const monthlyLimit = Math.max(monthlyStep, Math.ceil(maxMonthlyAbs / monthlyStep) * monthlyStep);
+  const monthlyY = (value) => plotTop + (monthlyLimit - Number(value || 0)) / (monthlyLimit * 2) * plotHeight;
+  const zeroY = monthlyY(0);
+  const cumulativeValues = [0, ...months.map((item) => item.cumulativeProfit)];
+  const cumulativeAbs = Math.max(...cumulativeValues.map((value) => Math.abs(value)), 1);
+  const cumulativeStep = ipoPerformanceChartStep(cumulativeAbs, 3);
+  const cumulativeMin = Math.min(...cumulativeValues) < 0
+    ? -Math.ceil(Math.abs(Math.min(...cumulativeValues)) / cumulativeStep) * cumulativeStep
+    : 0;
+  const cumulativeMax = Math.max(...cumulativeValues) > 0
+    ? Math.ceil(Math.max(...cumulativeValues) / cumulativeStep) * cumulativeStep
+    : 0;
+  const safeCumulativeMin = cumulativeMin === cumulativeMax ? -cumulativeStep : cumulativeMin;
+  const safeCumulativeMax = cumulativeMin === cumulativeMax ? cumulativeStep : cumulativeMax;
+  const cumulativeRange = safeCumulativeMax - safeCumulativeMin;
+  const cumulativeY = (value) => plotTop + (safeCumulativeMax - Number(value || 0)) / cumulativeRange * plotHeight;
+  const points = months.map((item, index) => ({
+    ...item,
+    x: padLeft + slotWidth * (index + 0.5),
+    barY: monthlyY(item.profit),
+    lineY: cumulativeY(item.cumulativeProfit)
+  }));
+  const linePath = points.map((point, index) => `${index === 0 ? "M" : "L"}${point.x.toFixed(2)} ${point.lineY.toFixed(2)}`).join(" ");
+  const activeMonths = months.filter((item) => item.count > 0);
+  const periodRange = activeMonths.length
+    ? `${activeMonths[0].key} ~ ${activeMonths.at(-1).key}`
+    : "매도 기록 없음";
+  const periodLabel = performance.selectedYear === "all" ? "전체 기간" : `${performance.selectedYear}년`;
+  const totalTone = performance.settlementProfit > 0 ? "positive" : performance.settlementProfit < 0 ? "negative" : "";
+  const monthlyTicks = [monthlyLimit, 0, -monthlyLimit];
+  const cumulativeTicks = [...new Set([safeCumulativeMax, 0, safeCumulativeMin])]
+    .filter((value) => value >= safeCumulativeMin && value <= safeCumulativeMax);
+  const barWidth = Math.max(18, Math.min(30, slotWidth * 0.45));
+
+  return `
+    <div class="ipo-performance-overview">
+      <div>
+        <span>${escapeHtml(periodLabel)} 최종 누적</span>
+        <strong class="${totalTone}">${escapeHtml(formatSignedWon(performance.settlementProfit))}</strong>
+        <small>${escapeHtml(periodRange)}</small>
+      </div>
+      <dl>
+        <div><dt>실현</dt><dd>${performance.realizedCount.toLocaleString("ko-KR")}건</dd></div>
+        <div><dt>수익 월</dt><dd>${performance.positiveMonthCount.toLocaleString("ko-KR")}개월</dd></div>
+        <div><dt>손실 월</dt><dd>${performance.negativeMonthCount.toLocaleString("ko-KR")}개월</dd></div>
+      </dl>
+    </div>
+    <div class="ipo-performance-chart-scroll" tabindex="0" aria-label="공모주 누적 성과 그래프, 가로로 스크롤할 수 있습니다">
+      <svg class="ipo-performance-chart-svg" style="min-width:${width}px" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(periodLabel)} 월별 정산손익 막대와 누적 정산손익 선 그래프, 최종 누적 ${escapeHtml(formatSignedWon(performance.settlementProfit))}">
+        ${monthlyTicks.map((value) => {
+          const y = monthlyY(value);
+          return `
+            <line class="ipo-performance-grid ${value === 0 ? "zero" : ""}" x1="${padLeft}" y1="${y}" x2="${width - padRight}" y2="${y}"></line>
+            <text class="ipo-performance-axis-label" x="${padLeft - 10}" y="${y + 4}" text-anchor="end">${escapeHtml(formatCompactWon(value))}</text>
+          `;
+        }).join("")}
+        ${cumulativeTicks.map((value) => {
+          const y = cumulativeY(value);
+          return `<text class="ipo-performance-axis-label cumulative" x="${width - padRight + 10}" y="${y + 4}" text-anchor="start">${escapeHtml(formatCompactWon(value))}</text>`;
+        }).join("")}
+        <text class="ipo-performance-axis-title" x="${padLeft}" y="18">월 손익</text>
+        <text class="ipo-performance-axis-title cumulative" x="${width - padRight}" y="18" text-anchor="end">누적</text>
+        ${points.map((point) => point.key === selectedIpoPerformanceMonth ? `
+          <rect class="ipo-performance-selection" x="${point.x - slotWidth * 0.42}" y="${plotTop - 8}" width="${slotWidth * 0.84}" height="${plotHeight + 16}" rx="8"></rect>
+        ` : "").join("")}
+        ${points.map((point) => {
+          const barHeight = point.profit === 0 ? 0 : Math.max(2, Math.abs(point.barY - zeroY));
+          const barY = point.profit >= 0 ? zeroY - barHeight : zeroY;
+          const tone = point.profit > 0 ? "positive" : point.profit < 0 ? "negative" : "neutral";
+          return barHeight ? `<rect class="ipo-performance-bar ${tone}" x="${point.x - barWidth / 2}" y="${barY}" width="${barWidth}" height="${barHeight}" rx="4"></rect>` : "";
+        }).join("")}
+        <path class="ipo-performance-line" d="${linePath}"></path>
+        ${points.map((point) => {
+          const tone = point.cumulativeProfit > 0 ? "positive" : point.cumulativeProfit < 0 ? "negative" : "neutral";
+          const selected = point.key === selectedIpoPerformanceMonth ? " selected" : "";
+          const monthLabel = performance.selectedYear === "all"
+            ? point.key.slice(2).replace("-", ".")
+            : `${Number(point.key.slice(5))}월`;
+          const ariaLabel = `${formatIpoMonthLabel(point.key)}, 월 정산손익 ${formatSignedWon(point.profit)}, 선택 기간 누적 ${formatSignedWon(point.cumulativeProfit)}, 실현 ${point.count}건`;
+          return `
+            <g class="ipo-performance-month-target${selected}" data-ipo-performance-month="${escapeHtml(point.key)}" tabindex="0" focusable="true" role="button" aria-label="${escapeHtml(ariaLabel)}">
+              <title>${escapeHtml(ariaLabel)}</title>
+              <rect class="ipo-performance-hit-area" x="${point.x - slotWidth / 2}" y="${plotTop - 10}" width="${slotWidth}" height="${plotHeight + 58}"></rect>
+              <circle class="ipo-performance-point ${tone}" cx="${point.x}" cy="${point.lineY}" r="${selected ? 5 : 4}"></circle>
+              <text class="ipo-performance-month-label${selected}" x="${point.x}" y="${plotBottom + 32}" text-anchor="middle">${escapeHtml(monthLabel)}</text>
+            </g>
+          `;
+        }).join("")}
+      </svg>
+    </div>
+  `;
+}
+
+function renderIpoPerformanceMonthDetail(performance, monthKeyValue) {
+  const month = performance.months.find((item) => item.key === monthKeyValue) || performance.months.at(-1);
+  if (!month) return "";
+  const profitTone = month.profit > 0 ? "positive" : month.profit < 0 ? "negative" : "";
+  const cumulativeTone = month.cumulativeProfit > 0 ? "positive" : month.cumulativeProfit < 0 ? "negative" : "";
+  const gainLabel = month.maxGain
+    ? `${escapeHtml(month.maxGain.baseCompany || month.maxGain.company)}<small class="positive">${escapeHtml(formatSignedWon(month.maxGain.settlementProfit))}</small>`
+    : `<span class="ipo-performance-none">해당 없음</span>`;
+  const lossLabel = month.maxLoss
+    ? `${escapeHtml(month.maxLoss.baseCompany || month.maxLoss.company)}<small class="negative">${escapeHtml(formatSignedWon(month.maxLoss.settlementProfit))}</small>`
+    : `<span class="ipo-performance-none">해당 없음</span>`;
+  return `
+    <section class="ipo-performance-selected" aria-label="${escapeHtml(formatIpoMonthLabel(month.key))} 누적 성과 상세">
+      <div class="ipo-performance-selected-month">
+        <span>선택 월</span>
+        <strong>${escapeHtml(formatIpoMonthLabel(month.key))}</strong>
+      </div>
+      <dl>
+        <div><dt>월 정산손익</dt><dd class="${profitTone}">${escapeHtml(formatSignedWon(month.profit))}</dd></div>
+        <div><dt>선택 기간 누적</dt><dd class="${cumulativeTone}">${escapeHtml(formatSignedWon(month.cumulativeProfit))}</dd></div>
+        <div><dt>실현</dt><dd>${month.count.toLocaleString("ko-KR")}건</dd></div>
+        <div><dt>최대 수익 종목</dt><dd class="ipo-performance-stock">${gainLabel}</dd></div>
+        <div><dt>최대 손실 종목</dt><dd class="ipo-performance-stock">${lossLabel}</dd></div>
+      </dl>
+    </section>
+  `;
+}
+
+function attachIpoPerformanceHandlers() {
+  els.ipoPerformanceChart?.querySelectorAll("[data-ipo-performance-month]").forEach((target) => {
+    const selectMonth = (restoreFocus = false) => {
+      selectedIpoPerformanceMonth = target.dataset.ipoPerformanceMonth || "";
+      renderIpoPerformance();
+      if (restoreFocus) {
+        requestAnimationFrame(() => {
+          els.ipoPerformanceChart?.querySelector(`[data-ipo-performance-month="${selectedIpoPerformanceMonth}"]`)?.focus();
+        });
+      }
+    };
+    target.addEventListener("click", () => selectMonth(false));
+    target.addEventListener("keydown", (event) => {
+      if (!['Enter', ' '].includes(event.key)) return;
+      event.preventDefault();
+      selectMonth(true);
+    });
+  });
 }
 
 function renderIpoSummaryCard(label, value, hint, amount = 0) {

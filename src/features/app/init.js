@@ -266,6 +266,11 @@ async function init() {
     selectedIpoCalendarMonth = els.ipoCalendarMonthSelect.value;
     renderIpoView();
   });
+  els.ipoPerformanceYearFilter?.addEventListener("change", () => {
+    selectedIpoPerformanceYear = els.ipoPerformanceYearFilter.value || "all";
+    selectedIpoPerformanceMonth = "";
+    renderIpoView();
+  });
   els.ruleForm.addEventListener("submit", (event) => {
     event.preventDefault();
     const keyword = els.ruleKeyword.value.trim();

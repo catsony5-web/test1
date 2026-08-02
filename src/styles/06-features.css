@@ -430,6 +430,341 @@ button.summary-metric-card:hover {
   white-space: nowrap;
 }
 
+.ipo-performance-panel {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.ipo-performance-head {
+  align-items: end;
+}
+
+.ipo-performance-filter {
+  display: grid;
+  gap: 5px;
+  min-width: 150px;
+  color: var(--text-sub);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.ipo-performance-filter select {
+  min-height: 38px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text-main);
+  font-family: var(--font-number);
+  font-weight: 900;
+  padding: 0 34px 0 12px;
+}
+
+.ipo-performance-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  color: var(--text-sub);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.ipo-performance-legend span {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.ipo-performance-bar-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--accent-positive);
+}
+
+.ipo-performance-line-swatch {
+  width: 20px;
+  height: 0;
+  border-top: 2px solid var(--accent-blue);
+}
+
+.ipo-performance-chart {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.ipo-performance-overview {
+  display: grid;
+  grid-template-columns: minmax(240px, 1.2fr) minmax(340px, 0.8fr);
+  gap: 24px;
+  align-items: center;
+  border-block: 1px solid var(--border);
+  padding: 13px 2px;
+}
+
+.ipo-performance-overview > div {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 14px;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.ipo-performance-overview span,
+.ipo-performance-overview small {
+  color: var(--text-sub);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.ipo-performance-overview strong {
+  color: var(--text-main);
+  font-family: var(--font-number);
+  font-size: 26px;
+  font-weight: 900;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.ipo-performance-overview strong.positive,
+.ipo-performance-selected dd.positive,
+.ipo-performance-stock small.positive {
+  color: var(--status-positive-text);
+}
+
+.ipo-performance-overview strong.negative,
+.ipo-performance-selected dd.negative,
+.ipo-performance-stock small.negative {
+  color: var(--status-negative-text);
+}
+
+.ipo-performance-overview small {
+  grid-column: 1 / -1;
+}
+
+.ipo-performance-overview dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+}
+
+.ipo-performance-overview dl div {
+  min-width: 0;
+  border-left: 1px solid var(--border);
+  padding: 2px 14px;
+}
+
+.ipo-performance-overview dt,
+.ipo-performance-selected dt {
+  color: var(--text-sub);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.ipo-performance-overview dd,
+.ipo-performance-selected dd {
+  margin: 5px 0 0;
+  color: var(--text-main);
+  font-family: var(--font-number);
+  font-size: 15px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.ipo-performance-chart-scroll {
+  overflow-x: auto;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface-soft) 58%, var(--surface));
+  scrollbar-gutter: stable;
+}
+
+.ipo-performance-chart-scroll:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+.ipo-performance-chart-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 332px;
+}
+
+.ipo-performance-grid {
+  stroke: color-mix(in srgb, var(--border) 82%, transparent);
+  stroke-width: 1;
+  stroke-dasharray: 4 6;
+}
+
+.ipo-performance-grid.zero {
+  stroke: color-mix(in srgb, var(--text-sub) 68%, var(--border));
+  stroke-width: 1.4;
+  stroke-dasharray: none;
+}
+
+.ipo-performance-axis-label,
+.ipo-performance-axis-title,
+.ipo-performance-month-label {
+  fill: var(--text-sub);
+  font-family: var(--font-number);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.ipo-performance-axis-title {
+  font-size: 10px;
+}
+
+.ipo-performance-axis-label.cumulative,
+.ipo-performance-axis-title.cumulative {
+  fill: var(--primary-blue);
+}
+
+.ipo-performance-selection {
+  fill: color-mix(in srgb, var(--accent-blue) 9%, transparent);
+}
+
+.ipo-performance-bar {
+  opacity: 0.86;
+}
+
+.ipo-performance-bar.positive {
+  fill: var(--accent-positive);
+}
+
+.ipo-performance-bar.negative {
+  fill: var(--accent-negative);
+}
+
+.ipo-performance-bar.neutral {
+  fill: var(--text-sub);
+}
+
+.ipo-performance-line {
+  fill: none;
+  stroke: var(--accent-blue);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ipo-performance-hit-area {
+  fill: transparent;
+  cursor: pointer;
+}
+
+.ipo-performance-point {
+  fill: var(--surface);
+  stroke: var(--accent-blue);
+  stroke-width: 2.5;
+  pointer-events: none;
+}
+
+.ipo-performance-point.negative {
+  stroke: var(--accent-negative);
+}
+
+.ipo-performance-point.neutral {
+  stroke: var(--text-sub);
+}
+
+.ipo-performance-month-target.selected .ipo-performance-point {
+  stroke-width: 3.5;
+}
+
+.ipo-performance-month-target {
+  outline: none;
+}
+
+.ipo-performance-month-target:focus .ipo-performance-hit-area {
+  stroke: var(--accent-blue);
+  stroke-width: 2;
+}
+
+.ipo-performance-month-label.selected {
+  fill: var(--primary-blue);
+  font-weight: 900;
+}
+
+.ipo-performance-detail {
+  min-width: 0;
+}
+
+.ipo-performance-selected {
+  display: grid;
+  grid-template-columns: minmax(170px, 0.7fr) minmax(0, 2.3fr);
+  gap: 18px;
+  align-items: center;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+
+.ipo-performance-selected-month {
+  display: grid;
+  gap: 5px;
+}
+
+.ipo-performance-selected-month span {
+  color: var(--text-sub);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.ipo-performance-selected-month strong {
+  color: var(--text-main);
+  font-family: var(--font-number);
+  font-size: 19px;
+  font-weight: 900;
+}
+
+.ipo-performance-selected dl {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin: 0;
+}
+
+.ipo-performance-selected dl > div {
+  min-width: 0;
+  border-left: 1px solid var(--border);
+  padding: 2px 12px;
+}
+
+.ipo-performance-selected dd {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ipo-performance-selected dd.ipo-performance-stock {
+  display: grid;
+  gap: 3px;
+  overflow: visible;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.ipo-performance-stock small {
+  font-family: var(--font-number);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.ipo-performance-none {
+  color: var(--text-sub);
+  font-size: 12px;
+  font-weight: 800;
+}
+
 .ipo-calendar-controls {
   display: inline-grid;
   grid-template-columns: 36px minmax(136px, 1fr) 36px;
