@@ -192,9 +192,16 @@ function analysisSnapshotHasObservedData(snapshot) {
   return Boolean(snapshot?.expenseRows?.length || snapshot?.income > 0);
 }
 
-function buildAnalysisComparison(month) {
+function analysisComparisonDefinition(mode = "year") {
+  return mode === "previous"
+    ? { mode: "previous", offset: -1, label: "전월", insightKind: "month-over-month" }
+    : { mode: "year", offset: -12, label: "전년 동월", insightKind: "year-over-year" };
+}
+
+function buildAnalysisComparison(month, mode = "year") {
+  const definition = analysisComparisonDefinition(mode);
   const current = buildAnalysisMonthSnapshot(month);
-  const comparisonMonth = shiftMonthKey(month, -12);
+  const comparisonMonth = shiftMonthKey(month, definition.offset);
   const previous = buildAnalysisMonthSnapshot(comparisonMonth);
   const hasComparison = analysisSnapshotHasObservedData(previous);
   const sectorChanges = ANALYSIS_SPENDING_SECTORS
@@ -213,6 +220,8 @@ function buildAnalysisComparison(month) {
   return {
     current,
     previous,
+    comparisonMode: definition.mode,
+    comparisonLabel: definition.label,
     comparisonMonth,
     hasComparison,
     sectorChanges,
@@ -334,9 +343,10 @@ function analysisInsightId(type, sector, subcategory, extra = "") {
   return [type, sector, subcategory, extra].filter(Boolean).join("::");
 }
 
-function buildAnalysisChangeInsights(month) {
+function buildAnalysisChangeInsights(month, mode = "year") {
+  const definition = analysisComparisonDefinition(mode);
   const current = buildAnalysisMonthSnapshot(month);
-  const comparisonMonth = shiftMonthKey(month, -12);
+  const comparisonMonth = shiftMonthKey(month, definition.offset);
   const previous = buildAnalysisMonthSnapshot(comparisonMonth);
   const previousMonth = shiftMonthKey(month, -1);
   const twoMonthsAgo = shiftMonthKey(month, -2);
@@ -390,21 +400,21 @@ function buildAnalysisChangeInsights(month) {
         ? Math.abs(delta) / previousValue * 100
         : currentValue >= ANALYSIS_CHANGE_MIN_AMOUNT ? 100 : 0;
       if (Math.abs(delta) < ANALYSIS_CHANGE_MIN_AMOUNT || absoluteRate < ANALYSIS_CHANGE_MIN_RATE) return;
-      const id = analysisInsightId("year-over-year", sector, subcategory);
+      const id = analysisInsightId(definition.insightKind, sector, subcategory);
       if (seen.has(id)) return;
       seen.add(id);
       const rate = previousValue ? delta / previousValue * 100 : 100;
       insights.push({
         id,
-        kind: "year-over-year",
+        kind: definition.insightKind,
         priority: delta > 0 ? 3 : 2,
         tone: analysisInsightTone(delta),
         icon: analysisSectorIcon(sector),
         title: previousValue
-          ? `${subcategory} 전년 동월 ${rate > 0 ? "+" : ""}${Math.round(rate)}%`
-          : `${subcategory} 전년 동월 대비 신규`,
+          ? `${subcategory} ${definition.label} ${rate > 0 ? "+" : ""}${Math.round(rate)}%`
+          : `${subcategory} ${definition.label} 대비 신규`,
         reason: `${comparisonMonth} ${formatWon(previousValue)} → ${month} ${formatWon(currentValue)}`,
-        context: delta > 0 ? "전년 동월보다 지출 증가" : "전년 동월보다 지출 감소",
+        context: delta > 0 ? `${definition.label}보다 지출 증가` : `${definition.label}보다 지출 감소`,
         amount: delta,
         month,
         sector,

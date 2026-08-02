@@ -1,4 +1,12 @@
 function setupMonthlyAnalysisControls() {
+  els.monthlyAnalysisComparisonButtons?.forEach((button) => {
+    button.addEventListener("click", () => {
+      const nextMode = button.dataset.monthlyAnalysisComparison === "previous" ? "previous" : "year";
+      if (monthlyAnalysisComparisonMode === nextMode) return;
+      monthlyAnalysisComparisonMode = nextMode;
+      renderMonthlyAnalysis();
+    });
+  });
   els.monthlyAnalysisMonth?.addEventListener("change", () => {
     setSharedSelectedMonth(els.monthlyAnalysisMonth.value, { syncControls: false });
     renderMonthlyAnalysis();
@@ -23,9 +31,10 @@ function renderMonthlyAnalysis() {
   );
   if (canViewDriveSharedMonth("monthlyAnalysis")) setSharedSelectedMonth(month, { syncControls: false });
 
-  const comparison = buildAnalysisComparison(month);
+  const comparison = buildAnalysisComparison(month, monthlyAnalysisComparisonMode);
   const billingModel = analysisBillingModelForMonth(month);
-  const insights = buildAnalysisChangeInsights(month).slice(0, 3);
+  const insights = buildAnalysisChangeInsights(month, monthlyAnalysisComparisonMode).slice(0, 3);
+  syncMonthlyAnalysisComparisonControls(comparison);
   els.monthlyAnalysisBody.innerHTML = [
     renderMonthlyAnalysisSummary(comparison),
     renderMonthlyAnalysisMetrics(comparison.current, billingModel),
@@ -33,7 +42,7 @@ function renderMonthlyAnalysis() {
       <section class="analysis-panel analysis-waterfall-panel" aria-labelledby="monthlyAnalysisWaterfallTitle">
         <div class="analysis-panel-head">
           <div>
-            <h3 id="monthlyAnalysisWaterfallTitle">전년 동월 대비 지출 변화 요인</h3>
+            <h3 id="monthlyAnalysisWaterfallTitle">${escapeHtml(comparison.comparisonLabel)} 대비 지출 변화 요인</h3>
             <p>${escapeHtml(comparison.comparisonMonth)}과 ${escapeHtml(month)}의 소비지출 차이를 섹터별로 분해합니다.</p>
           </div>
           <span class="analysis-unit">단위: 원</span>
@@ -55,6 +64,15 @@ function renderMonthlyAnalysis() {
   attachAnalysisInsightHandlers(els.monthlyAnalysisBody, insights, "monthlyAnalysis");
 }
 
+function syncMonthlyAnalysisComparisonControls(comparison) {
+  els.monthlyAnalysisComparisonButtons?.forEach((button) => {
+    button.setAttribute("aria-pressed", String(button.dataset.monthlyAnalysisComparison === comparison.comparisonMode));
+  });
+  if (els.monthlyAnalysisComparisonStatus) {
+    els.monthlyAnalysisComparisonStatus.textContent = `비교 월 ${comparison.comparisonMonth}`;
+  }
+}
+
 function renderMonthlyAnalysisSummary(comparison) {
   const current = comparison.current;
   let message = `${analysisMonthDisplay(current.month)}에 분석할 소비 기록이 없습니다.`;
@@ -72,11 +90,11 @@ function renderMonthlyAnalysisSummary(comparison) {
     }
     if (comparison.hasComparison && current.income && comparison.previous.income) {
       const direction = comparison.fixedCostRateDelta > 0 ? "높아졌습니다" : comparison.fixedCostRateDelta < 0 ? "낮아졌습니다" : "같습니다";
-      message += ` 고정비 부담은 전년 동월보다 ${analysisPercentText(Math.abs(comparison.fixedCostRateDelta))}p ${direction}.`;
+      message += ` 고정비 부담은 ${comparison.comparisonLabel}보다 ${analysisPercentText(Math.abs(comparison.fixedCostRateDelta))}p ${direction}.`;
     } else if (comparison.hasComparison && current.income && !comparison.previous.income) {
-      message += " 전년 동월 수입이 없어 고정비 부담 비교는 표시하지 않습니다.";
+      message += ` ${comparison.comparisonLabel} 수입이 없어 고정비 부담 비교는 표시하지 않습니다.`;
     } else if (!comparison.hasComparison) {
-      message += " 전년 동월 자료가 없어 증감 비교는 표시하지 않습니다.";
+      message += ` ${comparison.comparisonLabel} 자료가 없어 증감 비교는 표시하지 않습니다.`;
     }
   }
   return `
@@ -141,8 +159,8 @@ function renderMonthlyAnalysisWaterfall(comparison) {
     return `
       <div class="analysis-empty">
         <i class="ti ti-calendar" aria-hidden="true"></i>
-        <strong>전년 동월 비교 데이터가 없습니다.</strong>
-        <span>전월 값으로 대신하지 않고 동일한 달의 자료가 생기면 비교합니다.</span>
+        <strong>${escapeHtml(comparison.comparisonLabel)} 비교 데이터가 없습니다.</strong>
+        <span>${escapeHtml(comparison.comparisonMonth)} 자료가 입력되면 비교합니다.</span>
       </div>
     `;
   }

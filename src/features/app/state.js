@@ -97,6 +97,8 @@ const els = {
   monthlyAnalysisPrevMonth: document.querySelector("#monthlyAnalysisPrevMonth"),
   monthlyAnalysisNextMonth: document.querySelector("#monthlyAnalysisNextMonth"),
   monthlyAnalysisOpenDetails: document.querySelector("#monthlyAnalysisOpenDetails"),
+  monthlyAnalysisComparisonButtons: document.querySelectorAll("[data-monthly-analysis-comparison]"),
+  monthlyAnalysisComparisonStatus: document.querySelector("#monthlyAnalysisComparisonStatus"),
   monthlyAnalysisBody: document.querySelector("#monthlyAnalysisBody"),
   spendingStructureMonth: document.querySelector("#spendingStructureMonth"),
   spendingStructurePrevMonth: document.querySelector("#spendingStructurePrevMonth"),
@@ -454,6 +456,7 @@ let selectedSummaryComparisonMode = "year-over-year";
 let selectedSummaryComparisonMonth = "";
 let selectedSummarySubtab = "trend";
 let expandedSummaryDetailSector = "";
+let monthlyAnalysisComparisonMode = "year";
 let selectedCalendarMonth = "";
 let selectedAppMonth = "";
 let detailReturnState = null;
