@@ -33,7 +33,7 @@ function renderBoardCoreMetrics({ selectedMonth, totalPayment, reimbursementTota
     renderBoardCoreMetric("잔액", formatSignedWon(net), net, previous.net, net < 0 ? "red" : "navy", {}, "major"),
     renderBoardCoreMetric("총 결제액", formatWon(totalPayment), totalPayment, previous.totalPayment, "navy", { month: selectedMonth }, "minor"),
     renderBoardCoreMetric("정산받은 금액", formatWon(reimbursementTotal), reimbursementTotal, previous.reimbursementTotal, "navy", { month: selectedMonth }, "minor"),
-    renderBoardCoreMetric("부채 상환", formatWon(debtRepayment), debtRepayment, previous.debtRepayment, "green", {}, "minor"),
+    renderBoardCoreMetric("내 원금 부담", formatWon(debtRepayment), debtRepayment, previous.debtRepayment, "green", {}, "minor"),
     renderBoardCoreMetric("미분류", formatWon(unknownTotal), unknownTotal, previous.unknownTotal, "navy", { month: selectedMonth, sector: "미분류" }, "minor"),
     renderBoardCoreMetric("예정 지출", formatWon(scheduledTotal), scheduledTotal, previous.scheduledTotal, "navy", {}, "minor")
   ].join("");
@@ -197,17 +197,20 @@ function renderBoardPeriodStats(periodRows, periodMonths, preset, selectedMonth,
       </section>
     `;
   }
+  const allExpenseRows = reportingExpenseRows(classified);
   const monthSummaries = periodMonths.map((month) => {
     const rows = periodRows.filter((item) => item.month === month);
     const spend = sumConsumption(rows);
     const debt = sumDebtPrincipal(rows);
     const income = Number(monthlyIncome[month] || 0) + importedIncomeForMonth(month);
-    return { month, amount: spend, income, debt, net: income - spend - debt, count: rows.length };
+    const settlement = loanSupportSettlementDeltaForMonth(allExpenseRows, month);
+    return { month, amount: spend, income, debt, settlement, net: income - spend - debt + settlement, count: rows.length };
   });
   const total = sumConsumption(periodRows);
   const debtRepayment = sumDebtPrincipal(periodRows);
   const totalIncome = periodMonths.reduce((amount, month) => amount + Number(monthlyIncome[month] || 0) + importedIncomeForMonth(month), 0);
-  const periodNet = totalIncome - total - debtRepayment;
+  const settlementDelta = periodMonths.reduce((amount, month) => amount + loanSupportSettlementDeltaForMonth(allExpenseRows, month), 0);
+  const periodNet = totalIncome - total - debtRepayment + settlementDelta;
   const average = Math.round(total / Math.max(periodMonths.length, 1));
   const topMonth = [...monthSummaries].sort((a, b) => b.amount - a.amount)[0] || { month: selectedMonth, amount: 0 };
   const lowMonth = [...monthSummaries].sort((a, b) => a.amount - b.amount)[0] || { month: selectedMonth, amount: 0 };
@@ -235,7 +238,7 @@ function renderBoardPeriodStats(periodRows, periodMonths, preset, selectedMonth,
         <div>
           <span>기간 잔액</span>
           <strong class="${periodNet >= 0 ? "positive" : "negative"}">${formatSignedWon(periodNet)}</strong>
-          <small>총수입 - 분석 반영액 - 부채 상환 ${formatWon(debtRepayment)}</small>
+          <small>총수입 - 분석 반영액 - 내 원금 부담 ${formatWon(debtRepayment)}</small>
         </div>
         <div>
           <span>월평균 분석 반영액</span>

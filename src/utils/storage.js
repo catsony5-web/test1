@@ -651,6 +651,15 @@ function normalizeRecurringExpense(item) {
   const subcategory = recurringType === "loan" && subcategoryOptions.includes("대출이자") ? "대출이자" : assignedSubcategory;
   const loanPrincipalAmount = recurringType === "loan" ? Math.max(0, toNumber(item?.loanPrincipalAmount)) : 0;
   const loanInterestAmount = recurringType === "loan" ? Math.max(0, toNumber(item?.loanInterestAmount)) : 0;
+  const loanSupportOpeningBalance = recurringType === "loan"
+    ? Math.min(Math.max(0, toNumber(item?.loanSupportOpeningBalance)), Math.max(0, toNumber(item?.loanOpeningBalance)))
+    : 0;
+  const loanSupportPrincipalAmount = recurringType === "loan"
+    ? Math.min(loanPrincipalAmount, Math.max(0, toNumber(item?.loanSupportPrincipalAmount)))
+    : 0;
+  const loanSupportInterestAmount = recurringType === "loan"
+    ? Math.min(loanInterestAmount, Math.max(0, toNumber(item?.loanSupportInterestAmount)))
+    : 0;
   return {
     id: item?.id || `recurring-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     recurringType,
@@ -673,6 +682,11 @@ function normalizeRecurringExpense(item) {
     loanPrincipalAmount,
     loanInterestAmount,
     loanInterestRate: recurringType === "loan" ? Math.max(0, toNumber(item?.loanInterestRate)) : 0,
+    loanSupportEnabled: recurringType === "loan" && (item?.loanSupportEnabled === true || loanSupportOpeningBalance > 0),
+    loanSupporterName: recurringType === "loan" ? String(item?.loanSupporterName || "").trim() : "",
+    loanSupportOpeningBalance,
+    loanSupportPrincipalAmount,
+    loanSupportInterestAmount,
     loanMaturityMonth: recurringType === "loan" && endMonth && endMonth >= startMonth ? endMonth : "",
     createdAt: item?.createdAt || new Date().toISOString(),
     updatedAt: item?.updatedAt || item?.createdAt || new Date().toISOString()

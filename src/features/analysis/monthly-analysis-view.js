@@ -111,14 +111,14 @@ function renderMonthlyAnalysisMetrics(snapshot, billingModel) {
       icon: "ti-wallet",
       label: "월 잉여금",
       value: formatSignedWon(snapshot.freeBalance),
-      note: "수입 − 소비지출 − 실제 저축 − 부채 상환",
+      note: "수입 − 소비지출 − 실제 저축 − 내 원금 부담 + 가족 정산",
       tone: snapshot.freeBalance >= 0 ? "positive" : "negative"
     },
     {
       icon: "ti-pig-money",
       label: "자산 형성률",
       value: snapshot.income ? analysisPercentText(snapshot.assetFormationRate) : "계산 불가",
-      note: "(실제 저축 + 부채 상환 + 자유 잔액) ÷ 수입",
+      note: "(실제 저축 + 내 원금 부담 + 자유 잔액) ÷ 수입",
       tone: snapshot.income && snapshot.assetFormationRate >= 0 ? "positive" : "neutral"
     },
     {

@@ -325,7 +325,7 @@
 }
 
 .recurring-summary-grid.loan-summary-grid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .recurring-layout.loan-layout {
@@ -358,6 +358,41 @@
   font-variant-numeric: tabular-nums;
 }
 
+.loan-support-fields,
+.loan-payment-support-fields {
+  min-width: 0;
+  margin: 0;
+  border: 1px solid color-mix(in srgb, var(--accent-positive) 28%, var(--border));
+  border-radius: 12px;
+  padding: 12px;
+  background: color-mix(in srgb, var(--accent-positive) 5%, var(--surface-soft));
+}
+
+.loan-support-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.loan-support-fields[hidden],
+.loan-payment-support-fields[hidden] {
+  display: none;
+}
+
+.loan-support-fields legend,
+.loan-payment-support-fields legend {
+  padding-inline: 6px;
+  color: var(--accent-positive);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.loan-support-fields > small {
+  grid-column: 1 / -1;
+  color: var(--text-sub);
+  line-height: 1.5;
+}
+
 .loan-list-panel {
   grid-area: list;
 }
@@ -366,6 +401,12 @@
   display: grid;
   gap: 4px;
   text-align: right;
+}
+
+.loan-card-amount small {
+  color: var(--text-sub);
+  font-size: 11px;
+  font-weight: 800;
 }
 
 .loan-split-bar {
@@ -408,12 +449,54 @@
 .loan-split-values i.interest { background: var(--accent-warning); }
 .loan-split-values strong { color: var(--text-main); }
 
-.recurring-meta.loan-meta {
+.loan-support-breakdown {
+  display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent-positive) 24%, var(--border));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent-positive) 5%, var(--surface-soft));
+}
+
+.loan-support-breakdown > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px 12px;
+}
+
+.loan-support-breakdown > div + div {
+  border-left: 1px solid var(--border);
+}
+
+.loan-support-breakdown span {
+  color: var(--text-sub);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.loan-support-breakdown strong {
+  color: var(--text-main);
+  font-family: var(--font-number);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.loan-support-breakdown strong.negative {
+  color: var(--accent-negative);
+}
+
+.scheduled-badge.support {
+  background: color-mix(in srgb, var(--accent-positive) 12%, var(--surface));
+  color: var(--accent-positive);
+}
+
+.recurring-meta.loan-meta {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .loan-payment-dialog {
-  width: min(560px, calc(100% - 28px));
+  width: min(760px, calc(100% - 28px));
   max-height: calc(100vh - 28px);
   margin: auto;
   border: 1px solid var(--border);
@@ -437,10 +520,26 @@
 }
 
 .loan-payment-form > .panel-head,
+.loan-payment-support-fields,
 .loan-payment-preview,
 .loan-payment-rule,
 .loan-payment-actions {
   grid-column: 1 / -1;
+}
+
+.loan-payment-support-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.loan-payment-support-fields .wide-field {
+  grid-column: 1 / -1;
+}
+
+.loan-payment-support-fields small {
+  color: var(--text-sub);
+  font-weight: 600;
 }
 
 .loan-payment-form label {
@@ -453,7 +552,7 @@
 
 .loan-payment-preview {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -1175,6 +1274,20 @@
   align-items: center;
 }
 
+.scheduled-actions small {
+  color: var(--text-sub);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+#monthlyView .monthly-legend-swatch.settlement {
+  background: color-mix(in srgb, var(--accent-blue) 52%, var(--accent-positive));
+}
+
+#monthlyView .monthly-allocation-bar.settlement {
+  fill: color-mix(in srgb, var(--accent-blue) 52%, var(--accent-positive));
+}
+
 .recurring-meta {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1290,6 +1403,19 @@
   color: var(--green);
   text-align: right;
   font-variant-numeric: tabular-nums;
+}
+
+.income-entry-amount {
+  display: grid;
+  gap: 2px;
+  justify-items: end;
+}
+
+.income-entry-amount small {
+  color: var(--text-sub);
+  font-size: 10px;
+  font-weight: 700;
+  text-align: right;
 }
 
 .income-entry-actions {

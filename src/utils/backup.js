@@ -153,7 +153,7 @@ function getTransactionDataSection(item) {
   const normalized = normalizeStoredTransaction(item);
   const sourceFile = String(normalized.sourceFile || "").trim();
   const approvalNo = String(normalized.approvalNo || "").trim();
-  if (normalized.sourceType === "recurring" || normalized.recurringId || sourceFile === "고정 지출" || approvalNo.startsWith("recurring-")) {
+  if (!normalized.loanLinkedExisting && (normalized.sourceType === "recurring" || normalized.recurringId || sourceFile === "고정 지출" || approvalNo.startsWith("recurring-"))) {
     return "recurringPostedTransactions";
   }
   if (approvalNo.startsWith("direct-bulk-") || sourceFile === "과거 거래 일괄 입력") return "pastBulkTransactions";
@@ -531,11 +531,13 @@ function restoreTransactionSections(bundle, scopes, mode) {
 function mergeTransactionsByRestoreSignature(existing, incoming) {
   const records = existing.map(normalizeStoredTransaction);
   const seenKeys = new Set(records.map((item) => item.recordKey));
+  const seenTransactionIds = new Set(records.map((item) => item.transactionId).filter(Boolean));
   const seenSignatures = new Set(records.map(transactionRestoreSignature));
   incoming.map(normalizeStoredTransaction).forEach((item) => {
     const signature = transactionRestoreSignature(item);
-    if (seenKeys.has(item.recordKey) || seenSignatures.has(signature)) return;
+    if (seenKeys.has(item.recordKey) || (item.transactionId && seenTransactionIds.has(item.transactionId)) || seenSignatures.has(signature)) return;
     seenKeys.add(item.recordKey);
+    if (item.transactionId) seenTransactionIds.add(item.transactionId);
     seenSignatures.add(signature);
     records.push(item);
   });
@@ -690,13 +692,22 @@ function exportWorkbook() {
     승인시각: item.approvalTime,
     가맹점명: item.merchant,
     "승인금액(원)": item.amount,
+    "수입 분석 반영액": item.flow === "income" ? incomeReportingAmount(item) : "",
+    "수입에서 제외한 가족 분담": item.flow === "income" ? loanSupportLinkedIncomeAmount(item.transactionId || item.recordKey) : "",
     할부: item.installment || "",
     "월 할부 예상액": installmentMonthlyAmount(item) || "",
     "정산받은 금액": reimbursementFor(item),
     "실 지출액": actualAmount(item),
     "소비지출액": consumptionAmount(item),
-    "대출 원금": item.loanPrincipalAmount || "",
-    "대출 이자": item.loanInterestAmount || "",
+    "대출 법적 원금": loanGrossPrincipalAmount(item) || "",
+    "대출 전체 이자": loanGrossInterestAmount(item) || "",
+    "대출 본인 원금": loanPrincipalActualAmount(item) || "",
+    "대출 본인 이자": loanInterestActualAmount(item) || "",
+    "가족 부담 원금": loanSupportPrincipalAmount(item) || "",
+    "가족 부담 이자": loanSupportInterestAmount(item) || "",
+    "가족 입금액": loanSupportReceivedAmount(item) || "",
+    "가족 입금일": item.loanSupportReceivedDate || "",
+    "기존 출금 연결": item.loanLinkedExisting ? "예" : "아니오",
     "대출 종류": item.loanType || "",
     취소여부: item.cancel,
     섹터: item.sector,
@@ -743,6 +754,11 @@ function exportWorkbook() {
     등록시남은원금: item.loanOpeningBalance || "",
     월원금기본값: item.loanPrincipalAmount || "",
     월이자기본값: item.loanInterestAmount || "",
+    가족분담사용: item.loanSupportEnabled ? "예" : "아니오",
+    가족부담자: item.loanSupporterName || "",
+    가족시작원금: item.loanSupportOpeningBalance || "",
+    가족월원금기본값: item.loanSupportPrincipalAmount || "",
+    가족월이자기본값: item.loanSupportInterestAmount || "",
     금리: item.loanInterestRate || "",
     만기월: item.loanMaturityMonth || "",
     상태: item.paused ? "일시중지" : "진행",

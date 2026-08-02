@@ -32,7 +32,8 @@ function renderBoard() {
   const totalSpend = sumActual(monthRows);
   const debtRepayment = sumDebtPrincipal(monthRows);
   const income = Number(monthlyIncome[selectedMonth] || 0) + importedIncomeForMonth(selectedMonth);
-  const net = income - totalSpend;
+  const supportReceived = loanSupportReceivedForMonth(active, selectedMonth);
+  const net = income + supportReceived - totalSpend;
   const scheduledTotal = scheduledTotalForMonth(selectedMonth);
   const unknownTotal = sumConsumption(monthRows.filter((item) => item.sector === "미분류"));
   const previousMonth = previousMonthKey(selectedMonth);
@@ -42,6 +43,7 @@ function renderBoard() {
   const previousTotalSpend = sumActual(previousMonthRows);
   const previousDebtRepayment = sumDebtPrincipal(previousMonthRows);
   const previousIncome = Number(monthlyIncome[previousMonth] || 0) + importedIncomeForMonth(previousMonth);
+  const previousSupportReceived = loanSupportReceivedForMonth(active, previousMonth);
   const sectionStats = boardSections
     .filter((section) => section.key !== "etc-catchall" || (buckets[section.key] || []).length)
     .map((section) => buildBoardSectionStat(section, buckets[section.key] || []));
@@ -66,7 +68,7 @@ function renderBoard() {
       totalSpend: previousTotalSpend,
       income: previousIncome,
       debtRepayment: previousDebtRepayment,
-      net: previousIncome - previousTotalSpend,
+      net: previousIncome + previousSupportReceived - previousTotalSpend,
       scheduledTotal: scheduledTotalForMonth(previousMonth),
       unknownTotal: sumConsumption(previousMonthRows.filter((item) => item.sector === "미분류"))
     }
@@ -337,7 +339,9 @@ function expenseRows(rows) {
 }
 
 function importedIncomeForMonth(month) {
-  return sum(classified.filter((item) => item.flow === "income" && item.month === month), "amount");
+  return classified
+    .filter((item) => item.flow === "income" && item.month === month)
+    .reduce((total, item) => total + incomeReportingAmount(item), 0);
 }
 
 function reimbursementFor(item) {

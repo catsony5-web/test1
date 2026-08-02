@@ -120,9 +120,15 @@ async function init() {
   els.cancelLoanEditButton.addEventListener("click", resetLoanForm);
   els.loanPrincipalAmount.addEventListener("input", updateLoanScheduledTotal);
   els.loanInterestAmount.addEventListener("input", updateLoanScheduledTotal);
+  els.loanSupportEnabled.addEventListener("change", syncLoanSupportFields);
   els.loanPaymentForm.addEventListener("submit", handleLoanPaymentSubmit);
   els.loanPaymentPrincipal.addEventListener("input", updateLoanPaymentPreview);
   els.loanPaymentInterest.addEventListener("input", updateLoanPaymentPreview);
+  els.loanPaymentSupportPrincipal.addEventListener("input", updateLoanPaymentPreview);
+  els.loanPaymentSupportInterest.addEventListener("input", updateLoanPaymentPreview);
+  els.loanPaymentSupportReceived.addEventListener("input", updateLoanPaymentPreview);
+  els.loanPaymentSupportReceivedDate.addEventListener("change", updateLoanPaymentPreview);
+  els.loanPaymentSupportIncomeTransactionId.addEventListener("change", handleLoanPaymentIncomeSelection);
   els.closeLoanPaymentDialogButton.addEventListener("click", closeLoanPaymentDialog);
   els.cancelLoanPaymentButton.addEventListener("click", closeLoanPaymentDialog);
   els.deleteLoanPaymentButton.addEventListener("click", deleteLoanPayment);

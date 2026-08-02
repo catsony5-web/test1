@@ -142,6 +142,7 @@ function analysisMerchantKey(value) {
 }
 
 function buildAnalysisMonthSnapshot(month) {
+  const allExpenseRows = reportingExpenseRows(classified);
   const expenseRows = analysisRowsForMonth(month);
   const savingsRows = expenseRows.filter(analysisIsSavingsTransaction);
   const consumptionRows = expenseRows.filter((item) => !analysisIsSavingsTransaction(item));
@@ -151,8 +152,10 @@ function buildAnalysisMonthSnapshot(month) {
   const consumptionSpend = sumConsumption(consumptionRows);
   const actualSavings = sumActual(savingsRows);
   const debtRepayment = sumDebtPrincipal(expenseRows);
-  const freeBalance = income - consumptionSpend - actualSavings - debtRepayment;
-  const assetFormation = actualSavings + debtRepayment + freeBalance;
+  const legalDebtRepayment = sumLegalDebtPrincipal(expenseRows);
+  const loanSettlementDelta = loanSupportSettlementDeltaForMonth(allExpenseRows, month);
+  const freeBalance = income - consumptionSpend - actualSavings - debtRepayment + loanSettlementDelta;
+  const assetFormation = actualSavings + debtRepayment + freeBalance - loanSettlementDelta;
   const sectorTotals = analysisTotalsBy(consumptionRows, (item) => item.sector);
   const subcategoryTotals = analysisTotalsBy(
     consumptionRows,
@@ -173,6 +176,8 @@ function buildAnalysisMonthSnapshot(month) {
     consumptionSpend,
     actualSavings,
     debtRepayment,
+    legalDebtRepayment,
+    loanSettlementDelta,
     freeBalance,
     assetFormation,
     assetFormationRate: analysisPercent(assetFormation, income),

@@ -11,9 +11,9 @@
   <link rel="stylesheet" href="src/styles/02-layout.css?v=76">
   <link rel="stylesheet" href="src/styles/03-components.css?v=140-long-term-trend">
   <link rel="stylesheet" href="src/styles/04-forms-tables.css?v=83">
-  <link rel="stylesheet" href="src/styles/05-charts.css?v=151-loan-repayments">
+  <link rel="stylesheet" href="src/styles/05-charts.css?v=156-loan-sharing">
   <link rel="stylesheet" href="src/styles/06-features.css?v=155-ipo-cumulative">
-  <link rel="stylesheet" href="src/styles/07-responsive.css?v=155-ipo-cumulative">
+  <link rel="stylesheet" href="src/styles/07-responsive.css?v=156-loan-sharing-ipo">
   <link rel="stylesheet" href="src/styles/08-themes.css?v=151-loan-repayments">
   <link rel="stylesheet" href="assets/tabler/tabler-icons.min.css?v=135-subcategory-icons">
   <link rel="stylesheet" href="src/styles/09-production-ui.css?v=151-loan-repayments">
@@ -570,7 +570,7 @@
         <div id="recurringLoanPanel" role="tabpanel" aria-labelledby="recurringLoanTab" data-recurring-panel="loan" hidden>
           <div class="loan-guidance" role="note">
             <i class="ti ti-info-circle" aria-hidden="true"></i>
-            <span><strong>전체 상환액</strong>은 자유 잔액에서 차감하고, <strong>이자만 소비지출</strong>로 집계합니다. 원금은 부채 감소로 따로 표시합니다.</span>
+            <span><strong>전체 상환액</strong>과 법적 잔액은 그대로 추적합니다. 가족 분담이 있으면 일반 수입과 분리해 <strong>본인 부담 원금·이자</strong>만 소비 분석에 반영합니다.</span>
           </div>
           <div id="loanSummaryCards" class="recurring-summary-grid loan-summary-grid"></div>
           <div class="recurring-layout loan-layout">
@@ -592,6 +592,15 @@
               <label>월 원금 기본값<input id="loanPrincipalAmount" type="text" inputmode="numeric" placeholder="예: 400000" required></label>
               <label>월 이자 기본값<input id="loanInterestAmount" type="text" inputmode="numeric" placeholder="예: 50000" required></label>
               <div class="loan-total-preview" aria-live="polite"><span>월 상환 예정액</span><strong id="loanScheduledTotal">0원</strong></div>
+              <label class="check-line wide-field"><input id="loanSupportEnabled" type="checkbox"> 가족이 일부 상환하는 대출</label>
+              <fieldset id="loanSupportFields" class="loan-support-fields wide-field" hidden>
+                <legend>가족 분담 기본값</legend>
+                <label>부담자 이름<input id="loanSupporterName" type="text" placeholder="예: 가족"></label>
+                <label>추적 시작 시 가족 부담 원금<input id="loanSupportOpeningBalance" type="text" inputmode="numeric" placeholder="예: 20000000"></label>
+                <label>월 가족 부담 원금<input id="loanSupportPrincipalAmount" type="text" inputmode="numeric" placeholder="예: 555000"></label>
+                <label>월 가족 부담 이자<input id="loanSupportInterestAmount" type="text" inputmode="numeric" placeholder="예: 273014"></label>
+                <small>가족 입금은 일반 수입에서 제외하며, 실제 상환 때 금액과 입금일을 확인합니다.</small>
+              </fieldset>
               <label>추적 시작 월<input id="loanStartMonth" type="month" required></label>
               <label>만기 월 선택사항<input id="loanMaturityMonth" type="month"><small>비워두면 종료 없이 계속 추적합니다.</small></label>
               <label class="wide-field">메모<input id="loanMemo" type="text" placeholder="필요한 메모"></label>
@@ -1191,14 +1200,28 @@
       <input id="loanPaymentRecurringId" type="hidden">
       <input id="loanPaymentRecordKey" type="hidden">
       <label>반영 월<input id="loanPaymentMonth" type="month" readonly></label>
+      <label>기존 출금 연결 선택사항<select id="loanPaymentExpenseTransactionId"><option value="">새 상환 거래 생성</option></select></label>
       <label>원금<input id="loanPaymentPrincipal" type="text" inputmode="numeric"></label>
       <label>이자<input id="loanPaymentInterest" type="text" inputmode="numeric"></label>
+      <fieldset id="loanPaymentSupportFields" class="loan-payment-support-fields" hidden>
+        <legend id="loanPaymentSupportLegend">가족 분담 확인</legend>
+        <label>가족 부담 원금<input id="loanPaymentSupportPrincipal" type="text" inputmode="numeric"></label>
+        <label>가족 부담 이자<input id="loanPaymentSupportInterest" type="text" inputmode="numeric"></label>
+        <label>실제 받은 금액<input id="loanPaymentSupportReceived" type="text" inputmode="numeric"></label>
+        <label>입금일<input id="loanPaymentSupportReceivedDate" type="date"></label>
+        <label class="wide-field">기존 수입 기록 연결 선택사항<select id="loanPaymentSupportIncomeTransactionId"><option value="">연결하지 않음</option></select><small>연결 금액만 일반 수입에서 제외합니다.</small></label>
+      </fieldset>
       <div class="loan-payment-preview">
-        <div><span>이번 달 현금 유출</span><strong id="loanPaymentTotal">0원</strong></div>
-        <div><span>해당 월 말 남은 원금</span><strong id="loanPaymentRemaining">0원</strong></div>
-        <div><span>전체 반영 후 남은 원금</span><strong id="loanPaymentFinalRemaining">0원</strong></div>
+        <div><span>은행 전체 출금</span><strong id="loanPaymentTotal">0원</strong></div>
+        <div><span>본인 부담액</span><strong id="loanPaymentPersonalTotal">0원</strong></div>
+        <div><span>가족 부담 예정</span><strong id="loanPaymentSupportDue">0원</strong></div>
+        <div><span>가족 입금 확인</span><strong id="loanPaymentSupportReceivedPreview">0원</strong></div>
+        <div><span>해당 월 말 법적 잔액</span><strong id="loanPaymentRemaining">0원</strong></div>
+        <div><span>전체 반영 후 법적 잔액</span><strong id="loanPaymentFinalRemaining">0원</strong></div>
+        <div><span>본인 부담 원금 잔액</span><strong id="loanPaymentPersonalRemaining">0원</strong></div>
+        <div><span>가족 누적 정산</span><strong id="loanPaymentSettlementBalance">0원</strong></div>
       </div>
-      <p class="loan-payment-rule"><i class="ti ti-check" aria-hidden="true"></i> 원금은 소비지출에서 제외되고 부채 상환으로 반영됩니다.</p>
+      <p class="loan-payment-rule"><i class="ti ti-check" aria-hidden="true"></i> 가족 분담금은 일반 수입이 아니며, 본인 부담 이자만 소비지출에 반영됩니다.</p>
       <div class="loan-payment-actions">
         <button id="deleteLoanPaymentButton" type="button" class="danger-outline" hidden>상환 내역 삭제</button>
         <button id="cancelLoanPaymentButton" type="button">취소</button>
@@ -1259,21 +1282,21 @@
     </article>
   </template>
 
-  <script src="src/data/constants.js?v=153-ipo-import"></script>
+  <script src="src/data/constants.js?v=156-loan-sharing"></script>
   <script src="src/data/categories.js?v=136-mineral-layers"></script>
   <script src="src/data/rules.js?v=93"></script>
   <script src="src/data/board-sections.js?v=151-loan-repayments"></script>
   <script src="src/data/field-aliases.js?v=77"></script>
 
-  <script src="src/features/app/state.js?v=155-ipo-cumulative"></script>
+  <script src="src/features/app/state.js?v=156-loan-sharing-ipo"></script>
 
   <script src="src/utils/format.js?v=80"></script>
   <script src="src/utils/date.js?v=141-garden-analysis"></script>
   <script src="src/utils/dom.js?v=61"></script>
-  <script src="src/utils/normalize.js?v=151-loan-repayments"></script>
-  <script src="src/utils/grouping.js?v=151-loan-repayments"></script>
-  <script src="src/utils/storage.js?v=153-ipo-import"></script>
-  <script src="src/utils/backup.js?v=153-ipo-import"></script>
+  <script src="src/utils/normalize.js?v=156-loan-sharing"></script>
+  <script src="src/utils/grouping.js?v=156-loan-sharing"></script>
+  <script src="src/utils/storage.js?v=156-loan-sharing"></script>
+  <script src="src/utils/backup.js?v=156-loan-sharing"></script>
 
   <script src="src/components/chips.js?v=136-mineral-layers"></script>
   <script src="src/components/tables.js?v=61"></script>
@@ -1287,24 +1310,24 @@
   <script src="src/features/classification/smart-suggestions.js?v=61"></script>
   <script src="src/features/classification/rules-manager.js?v=61"></script>
 
-  <script src="src/features/board/board-view.js?v=151-loan-repayments"></script>
-  <script src="src/features/board/board-summary.js?v=151-loan-repayments"></script>
-  <script src="src/features/board/board-cards.js?v=151-loan-repayments"></script>
+  <script src="src/features/board/board-view.js?v=156-loan-sharing"></script>
+  <script src="src/features/board/board-summary.js?v=156-loan-sharing"></script>
+  <script src="src/features/board/board-cards.js?v=156-loan-sharing"></script>
   <script src="src/features/details/details-view.js?v=151-loan-repayments"></script>
   <script src="src/features/summary/comparison-analysis.js?v=151-loan-repayments"></script>
   <script src="src/features/summary/summary-view.js?v=151-loan-repayments"></script>
   <script src="src/features/summary/sector-analysis.js?v=151-loan-repayments"></script>
   <script src="src/features/summary/summary-chart.js?v=151-loan-repayments"></script>
-  <script src="src/features/monthly/monthly-flow.js?v=151-loan-repayments"></script>
-  <script src="src/features/monthly/monthly-chart.js?v=151-loan-repayments"></script>
+  <script src="src/features/monthly/monthly-flow.js?v=156-loan-sharing"></script>
+  <script src="src/features/monthly/monthly-chart.js?v=156-loan-sharing"></script>
   <script src="src/features/income/income-entry.js?v=61"></script>
   <script src="src/features/income/income-bulk.js?v=61"></script>
-  <script src="src/features/income/income-list.js?v=66"></script>
-  <script src="src/features/recurring/recurring-view.js?v=151-loan-repayments"></script>
-  <script src="src/features/calendar/calendar-view.js?v=151-loan-repayments"></script>
-  <script src="src/features/analysis/analysis-core.js?v=152-monthly-comparison"></script>
-  <script src="src/features/analysis/monthly-analysis-view.js?v=152-monthly-comparison"></script>
-  <script src="src/features/analysis/spending-structure-view.js?v=151-loan-repayments"></script>
+  <script src="src/features/income/income-list.js?v=156-loan-sharing"></script>
+  <script src="src/features/recurring/recurring-view.js?v=156-loan-sharing"></script>
+  <script src="src/features/calendar/calendar-view.js?v=156-loan-sharing"></script>
+  <script src="src/features/analysis/analysis-core.js?v=156-loan-sharing"></script>
+  <script src="src/features/analysis/monthly-analysis-view.js?v=156-loan-sharing"></script>
+  <script src="src/features/analysis/spending-structure-view.js?v=156-loan-sharing"></script>
   <script src="src/features/products/products-view.js?v=62"></script>
   <script src="src/features/ipo/ipo-view.js?v=155-ipo-cumulative"></script>
   <script src="src/features/unknown/unknown-view.js?v=97"></script>
@@ -1313,6 +1336,6 @@
   <script src="src/features/app/navigation.js?v=112"></script>
   <script src="src/features/app/appearance.js?v=141-garden-analysis"></script>
   <script src="src/features/app/render-all.js?v=151-loan-repayments"></script>
-  <script src="src/features/app/init.js?v=155-ipo-cumulative"></script>
+  <script src="src/features/app/init.js?v=156-loan-sharing-ipo"></script>
 </body>
 </html>

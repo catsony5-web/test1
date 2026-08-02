@@ -19,6 +19,19 @@ function updateLoanScheduledTotal() {
   return total;
 }
 
+function syncLoanSupportFields() {
+  const enabled = Boolean(els.loanSupportEnabled?.checked);
+  if (els.loanSupportFields) els.loanSupportFields.hidden = !enabled;
+  [
+    els.loanSupporterName,
+    els.loanSupportOpeningBalance,
+    els.loanSupportPrincipalAmount,
+    els.loanSupportInterestAmount
+  ].forEach((control) => {
+    if (control) control.disabled = !enabled;
+  });
+}
+
 function fillRecurringCategorySelects(preferred = { sector: "고정 주거비", subcategory: "보험료" }) {
   const sectors = Object.keys(categories).filter((sector) => !["수입", "미분류"].includes(sector));
   els.recurringSector.innerHTML = sectors.map((sector) => `<option value="${escapeHtml(sector)}">${escapeHtml(sector)}</option>`).join("");
@@ -463,6 +476,8 @@ function resetLoanForm() {
   els.loanStartMonth.value = selectedCalendarMonth || els.boardMonth.value || currentMonthKey();
   els.loanMaturityMonth.value = "";
   els.loanShowOnCalendar.checked = true;
+  els.loanSupportEnabled.checked = false;
+  syncLoanSupportFields();
   els.saveLoanButton.textContent = "대출 상환 저장";
   els.cancelLoanEditButton.hidden = true;
   updateLoanScheduledTotal();
@@ -474,6 +489,11 @@ async function handleLoanSubmit(event) {
   const loanOpeningBalance = toNumber(els.loanOpeningBalance.value);
   const loanPrincipalAmount = toNumber(els.loanPrincipalAmount.value);
   const loanInterestAmount = toNumber(els.loanInterestAmount.value);
+  const loanSupportEnabled = els.loanSupportEnabled.checked;
+  const loanSupporterName = loanSupportEnabled ? els.loanSupporterName.value.trim() : "";
+  const loanSupportOpeningBalance = loanSupportEnabled ? toNumber(els.loanSupportOpeningBalance.value) : 0;
+  const loanSupportPrincipalAmount = loanSupportEnabled ? toNumber(els.loanSupportPrincipalAmount.value) : 0;
+  const loanSupportInterestAmount = loanSupportEnabled ? toNumber(els.loanSupportInterestAmount.value) : 0;
   const dayOfMonth = Number(els.loanDay.value);
   const startMonth = monthKey(els.loanStartMonth.value);
   const endMonth = monthKey(els.loanMaturityMonth.value);
@@ -486,9 +506,31 @@ async function handleLoanSubmit(event) {
     alert("만기 월은 추적 시작 월보다 빠를 수 없습니다.");
     return;
   }
+  if (loanSupportEnabled && (!loanSupporterName || loanSupportOpeningBalance <= 0)) {
+    alert("가족 부담자 이름과 추적 시작 시 가족 부담 원금을 입력해주세요.");
+    return;
+  }
+  if (loanSupportOpeningBalance > loanOpeningBalance) {
+    alert("가족 부담 원금은 전체 남은 원금을 초과할 수 없습니다.");
+    return;
+  }
+  if (loanSupportPrincipalAmount > loanPrincipalAmount || loanSupportInterestAmount > loanInterestAmount) {
+    alert("가족 부담 원금·이자는 전체 월 원금·이자를 초과할 수 없습니다.");
+    return;
+  }
   const paidPrincipal = original ? loanPaidPrincipal(original.id) : 0;
+  const paidSupportPrincipal = original ? loanPaidSupportPrincipal(original.id) : 0;
+  const paidPersonalPrincipal = Math.max(0, paidPrincipal - paidSupportPrincipal);
   if (original && loanOpeningBalance < paidPrincipal) {
     alert(`추적 시작 시 남은 원금은 이미 반영한 원금 합계 ${formatWon(paidPrincipal)}보다 작을 수 없습니다.`);
+    return;
+  }
+  if (original && loanSupportOpeningBalance < paidSupportPrincipal) {
+    alert(`가족 부담 원금은 이미 반영한 가족 원금 합계 ${formatWon(paidSupportPrincipal)}보다 작을 수 없습니다.`);
+    return;
+  }
+  if (original && loanOpeningBalance - loanSupportOpeningBalance < paidPersonalPrincipal) {
+    alert(`본인 부담 원금은 이미 반영한 본인 원금 합계 ${formatWon(paidPersonalPrincipal)}보다 작을 수 없습니다.`);
     return;
   }
 
@@ -512,6 +554,11 @@ async function handleLoanSubmit(event) {
     loanPrincipalAmount,
     loanInterestAmount,
     loanInterestRate: toNumber(els.loanInterestRate.value),
+    loanSupportEnabled,
+    loanSupporterName,
+    loanSupportOpeningBalance,
+    loanSupportPrincipalAmount,
+    loanSupportInterestAmount,
     loanMaturityMonth: endMonth,
     createdAt: original?.createdAt || now,
     updatedAt: now
@@ -542,6 +589,12 @@ function editLoanRepayment(id, options = {}) {
   els.loanPaymentType.value = item.paymentType || "이체";
   els.loanPrincipalAmount.value = formatPlainNumber(item.loanPrincipalAmount);
   els.loanInterestAmount.value = formatPlainNumber(item.loanInterestAmount);
+  els.loanSupportEnabled.checked = item.loanSupportEnabled === true;
+  els.loanSupporterName.value = item.loanSupporterName || "";
+  els.loanSupportOpeningBalance.value = formatPlainNumber(item.loanSupportOpeningBalance || 0);
+  els.loanSupportPrincipalAmount.value = formatPlainNumber(item.loanSupportPrincipalAmount || 0);
+  els.loanSupportInterestAmount.value = formatPlainNumber(item.loanSupportInterestAmount || 0);
+  syncLoanSupportFields();
   els.loanStartMonth.value = item.startMonth;
   els.loanMaturityMonth.value = item.loanMaturityMonth || item.endMonth || "";
   els.loanMemo.value = item.memo || "";
@@ -609,6 +662,12 @@ function buildRecurringTransaction(item, targetMonth, options = {}) {
   const loanInterestAmount = isLoan
     ? Math.max(0, toNumber(options.loanInterestAmount ?? item.loanInterestAmount))
     : 0;
+  const loanSupportPrincipalAmount = isLoan && item.loanSupportEnabled
+    ? Math.min(loanPrincipalAmount, Math.max(0, toNumber(options.loanSupportPrincipalAmount ?? item.loanSupportPrincipalAmount)))
+    : 0;
+  const loanSupportInterestAmount = isLoan && item.loanSupportEnabled
+    ? Math.min(loanInterestAmount, Math.max(0, toNumber(options.loanSupportInterestAmount ?? item.loanSupportInterestAmount)))
+    : 0;
   const transaction = {
     sourceType: "recurring",
     flow: "expense",
@@ -631,6 +690,12 @@ function buildRecurringTransaction(item, targetMonth, options = {}) {
     loanType: isLoan ? item.loanType : "",
     loanPrincipalAmount,
     loanInterestAmount,
+    loanSupportPrincipalAmount,
+    loanSupportInterestAmount,
+    loanSupportReceivedAmount: isLoan ? Math.max(0, toNumber(options.loanSupportReceivedAmount)) : 0,
+    loanSupportReceivedDate: isLoan ? normalizeInputDate(options.loanSupportReceivedDate) : "",
+    loanSupportIncomeTransactionId: isLoan ? String(options.loanSupportIncomeTransactionId || "") : "",
+    loanLinkedExisting: false,
     memo: item.memo || ""
   };
   transaction.recordKey = createRecordKey(transaction);
@@ -678,6 +743,58 @@ function loanPaidPrincipal(recurringId, options = {}) {
     .reduce((total, record) => total + Math.max(0, Number(record.loanPrincipalAmount || 0)), 0);
 }
 
+function loanPaidSupportPrincipal(recurringId, options = {}) {
+  if (!recurringId) return 0;
+  const throughMonth = monthKey(options.throughMonth);
+  const excludedRecordKey = options.excludeRecordKey || "";
+  return transactions
+    .map(normalizeStoredTransaction)
+    .filter((record) => record.recurringId === recurringId && record.recurringType === "loan")
+    .filter((record) => !isCanceled(record.cancel) && (!throughMonth || record.month <= throughMonth))
+    .filter((record) => !excludedRecordKey || record.recordKey !== excludedRecordKey)
+    .reduce((total, record) => total + loanSupportPrincipalAmount(record), 0);
+}
+
+function loanSupportRemainingPrincipal(item, throughMonth, options = {}) {
+  if (!item?.loanSupportEnabled) return 0;
+  return Math.max(0, Number(item.loanSupportOpeningBalance || 0) - loanPaidSupportPrincipal(item.id, {
+    throughMonth,
+    excludeRecordKey: options.excludeRecordKey
+  }));
+}
+
+function loanPersonalRemainingPrincipal(item, throughMonth, options = {}) {
+  if (!item || item.recurringType !== "loan") return 0;
+  const opening = Math.max(0, Number(item.loanOpeningBalance || 0) - Number(item.loanSupportOpeningBalance || 0));
+  const paid = loanPaidPrincipal(item.id, {
+    throughMonth,
+    excludeRecordKey: options.excludeRecordKey
+  }) - loanPaidSupportPrincipal(item.id, {
+    throughMonth,
+    excludeRecordKey: options.excludeRecordKey
+  });
+  return Math.max(0, opening - Math.max(0, paid));
+}
+
+function loanSupportSettlementBalance(item, throughMonth, options = {}) {
+  if (!item?.loanSupportEnabled) return 0;
+  const cappedMonth = monthKey(throughMonth);
+  const excludedRecordKey = options.excludeRecordKey || "";
+  return transactions
+    .map(normalizeStoredTransaction)
+    .filter((record) => record.recurringId === item.id && record.recurringType === "loan")
+    .filter((record) => !isCanceled(record.cancel))
+    .filter((record) => !excludedRecordKey || record.recordKey !== excludedRecordKey)
+    .reduce((balance, record) => {
+      const due = !cappedMonth || record.month <= cappedMonth ? loanSupportDueAmount(record) : 0;
+      const receivedMonth = loanSupportReceivedMonth(record);
+      const received = (!cappedMonth || (receivedMonth && receivedMonth <= cappedMonth))
+        ? loanSupportReceivedAmount(record)
+        : 0;
+      return balance + received - due;
+    }, 0);
+}
+
 function loanRemainingPrincipal(item, throughMonth, options = {}) {
   if (!item || item.recurringType !== "loan") return 0;
   const paidPrincipal = loanPaidPrincipal(item.id, {
@@ -699,16 +816,19 @@ function loanPrincipalAtStartOfMonth(item, month) {
 
 function loanScheduledAmountsForMonth(item, month) {
   if (!item || item.recurringType !== "loan" || !isValidMonthKey(month)) {
-    return { principal: 0, interest: 0, amount: 0 };
+    return { principal: 0, interest: 0, supportPrincipal: 0, supportInterest: 0, supportAmount: 0, personalAmount: 0, amount: 0 };
   }
   const posted = findPostedRecurringTransaction(item.id, month);
   if (posted) {
     const principal = Math.max(0, Number(posted.loanPrincipalAmount || 0));
     const interest = Math.max(0, Number(posted.loanInterestAmount || 0));
-    return { principal, interest, amount: principal + interest };
+    const supportPrincipal = loanSupportPrincipalAmount(posted);
+    const supportInterest = loanSupportInterestAmount(posted);
+    const supportAmount = supportPrincipal + supportInterest;
+    return { principal, interest, supportPrincipal, supportInterest, supportAmount, personalAmount: principal + interest - supportAmount, amount: principal + interest };
   }
   if (item.paused || (item.startMonth && item.startMonth > month) || (item.endMonth && item.endMonth < month)) {
-    return { principal: 0, interest: 0, amount: 0 };
+    return { principal: 0, interest: 0, supportPrincipal: 0, supportInterest: 0, supportAmount: 0, personalAmount: 0, amount: 0 };
   }
   const monthAvailable = loanPrincipalAtStartOfMonth(item, month);
   const globallyAvailable = loanAvailablePrincipal(item);
@@ -720,27 +840,128 @@ function loanScheduledAmountsForMonth(item, month) {
   const interest = monthAvailable > 0 && globallyAvailable > 0
     ? Math.max(0, Number(item.loanInterestAmount || 0))
     : 0;
-  return { principal, interest, amount: principal + interest };
+  const supportAvailable = item.loanSupportEnabled
+    ? Math.min(
+        loanSupportRemainingPrincipal(item, shiftMonthKey(month, -1)),
+        loanSupportRemainingPrincipal(item)
+      )
+    : 0;
+  const personalAvailable = Math.min(
+    loanPersonalRemainingPrincipal(item, shiftMonthKey(month, -1)),
+    loanPersonalRemainingPrincipal(item)
+  );
+  const minimumSupportPrincipal = Math.max(0, principal - personalAvailable);
+  const supportPrincipal = item.loanSupportEnabled
+    ? Math.min(principal, supportAvailable, Math.max(minimumSupportPrincipal, Number(item.loanSupportPrincipalAmount || 0)))
+    : 0;
+  const supportInterest = item.loanSupportEnabled && supportAvailable > 0
+    ? Math.min(interest, Math.max(0, Number(item.loanSupportInterestAmount || 0)))
+    : 0;
+  const supportAmount = supportPrincipal + supportInterest;
+  return { principal, interest, supportPrincipal, supportInterest, supportAmount, personalAmount: principal + interest - supportAmount, amount: principal + interest };
+}
+
+function loanPaymentExpenseCandidates(month) {
+  return transactions
+    .map(normalizeStoredTransaction)
+    .filter((record) => record.flow !== "income" && record.month === month && !isCanceled(record.cancel))
+    .filter((record) => !record.recurringId && !isLoanRepaymentTransaction(record))
+    .filter((record) => !hasStructuredInstallment(record))
+    .filter((record) => record.sourceFile !== "과거 거래 일괄 입력" && !String(record.approvalNo || "").startsWith("direct-bulk-"))
+    .filter((record) => Number(record.amount || 0) > 0)
+    .sort((a, b) => `${a.approvalDate} ${a.approvalTime}`.localeCompare(`${b.approvalDate} ${b.approvalTime}`, "ko-KR"));
+}
+
+function loanPaymentIncomeCandidates(month, excludeLoanRecordKey = "", includeTransactionId = "") {
+  const nearbyMonths = new Set([shiftMonthKey(month, -1), month, shiftMonthKey(month, 1)].filter(Boolean));
+  return transactions
+    .map(normalizeStoredTransaction)
+    .filter((record) => record.flow === "income" && !isCanceled(record.cancel))
+    .filter((record) => nearbyMonths.has(record.month) || record.transactionId === includeTransactionId)
+    .map((record) => ({
+      ...record,
+      availableAmount: Math.max(0, Number(record.amount || 0) - loanSupportLinkedIncomeAmount(record.transactionId, {
+        excludeLoanRecordKey
+      }))
+    }))
+    .filter((record) => record.availableAmount > 0 || record.transactionId === includeTransactionId)
+    .sort((a, b) => `${a.approvalDate} ${a.approvalTime}`.localeCompare(`${b.approvalDate} ${b.approvalTime}`, "ko-KR"));
+}
+
+function fillLoanPaymentExpenseOptions(month, existing = null) {
+  if (existing) {
+    const label = existing.loanLinkedExisting
+      ? `${existing.approvalDate} · ${existing.merchant} · ${formatWon(existing.amount)} (연결됨)`
+      : "새로 생성된 상환 거래";
+    els.loanPaymentExpenseTransactionId.innerHTML = `<option value="${escapeHtml(existing.transactionId)}">${escapeHtml(label)}</option>`;
+    els.loanPaymentExpenseTransactionId.disabled = true;
+    return;
+  }
+  const options = loanPaymentExpenseCandidates(month).map((record) => `
+    <option value="${escapeHtml(record.transactionId)}">${escapeHtml(record.approvalDate)} · ${escapeHtml(record.merchant)} · ${escapeHtml(formatWon(record.amount))}</option>
+  `).join("");
+  els.loanPaymentExpenseTransactionId.disabled = false;
+  els.loanPaymentExpenseTransactionId.innerHTML = `<option value="">새 상환 거래 생성</option>${options}`;
+}
+
+function fillLoanPaymentIncomeOptions(month, existing = null) {
+  const selectedId = existing?.loanSupportIncomeTransactionId || "";
+  const options = loanPaymentIncomeCandidates(month, existing?.recordKey || "", selectedId).map((record) => `
+    <option value="${escapeHtml(record.transactionId)}">${escapeHtml(record.approvalDate)} · ${escapeHtml(record.merchant)} · 사용 가능 ${escapeHtml(formatWon(record.availableAmount))}</option>
+  `).join("");
+  els.loanPaymentSupportIncomeTransactionId.innerHTML = `<option value="">연결하지 않음</option>${options}`;
+  els.loanPaymentSupportIncomeTransactionId.value = selectedId;
+}
+
+function handleLoanPaymentIncomeSelection() {
+  const transactionId = els.loanPaymentSupportIncomeTransactionId.value;
+  if (!transactionId) return updateLoanPaymentPreview();
+  const existingRecordKey = els.loanPaymentRecordKey.value;
+  const income = loanPaymentIncomeCandidates(els.loanPaymentMonth.value, existingRecordKey, transactionId)
+    .find((record) => record.transactionId === transactionId);
+  if (!income) return updateLoanPaymentPreview();
+  const supportDue = Math.max(0, toNumber(els.loanPaymentSupportPrincipal.value))
+    + Math.max(0, toNumber(els.loanPaymentSupportInterest.value));
+  els.loanPaymentSupportReceived.value = formatPlainNumber(Math.min(income.availableAmount, supportDue || income.availableAmount));
+  els.loanPaymentSupportReceivedDate.value = normalizeInputDate(income.approvalDate);
+  updateLoanPaymentPreview();
 }
 
 function updateLoanPaymentPreview() {
   const item = recurringExpenses.find((expense) => expense.id === els.loanPaymentRecurringId.value);
   const principal = Math.max(0, toNumber(els.loanPaymentPrincipal.value));
   const interest = Math.max(0, toNumber(els.loanPaymentInterest.value));
+  const supportPrincipal = Math.min(principal, Math.max(0, toNumber(els.loanPaymentSupportPrincipal.value)));
+  const supportInterest = Math.min(interest, Math.max(0, toNumber(els.loanPaymentSupportInterest.value)));
+  const supportDue = supportPrincipal + supportInterest;
+  const supportReceived = Math.max(0, toNumber(els.loanPaymentSupportReceived.value));
+  const personalTotal = Math.max(0, principal + interest - supportDue);
   els.loanPaymentTotal.textContent = formatWon(principal + interest);
+  els.loanPaymentPersonalTotal.textContent = formatWon(personalTotal);
+  els.loanPaymentSupportDue.textContent = formatWon(supportDue);
+  els.loanPaymentSupportReceivedPreview.textContent = formatWon(supportReceived);
   if (!item) {
-    els.loanPaymentRemaining.textContent = "대출 정보 없음";
-    els.loanPaymentFinalRemaining.textContent = "대출 정보 없음";
+    [
+      els.loanPaymentRemaining,
+      els.loanPaymentFinalRemaining,
+      els.loanPaymentPersonalRemaining,
+      els.loanPaymentSettlementBalance
+    ].forEach((element) => { element.textContent = "대출 정보 없음"; });
     return;
   }
-  const monthAvailable = loanRemainingPrincipal(item, els.loanPaymentMonth.value, {
-    excludeRecordKey: els.loanPaymentRecordKey.value
-  });
-  const finalAvailable = loanAvailablePrincipal(item, {
-    excludeRecordKey: els.loanPaymentRecordKey.value
-  });
+  const excludeRecordKey = els.loanPaymentRecordKey.value;
+  const targetMonth = els.loanPaymentMonth.value;
+  const monthAvailable = loanRemainingPrincipal(item, targetMonth, { excludeRecordKey });
+  const finalAvailable = loanAvailablePrincipal(item, { excludeRecordKey });
+  const personalAvailable = loanPersonalRemainingPrincipal(item, targetMonth, { excludeRecordKey });
+  const personalPrincipal = Math.max(0, principal - supportPrincipal);
+  const receivedMonth = monthKey(els.loanPaymentSupportReceivedDate.value) || targetMonth;
+  const settlementDraft = (receivedMonth <= targetMonth ? supportReceived : 0) - supportDue;
+  const settlementBalance = loanSupportSettlementBalance(item, targetMonth, { excludeRecordKey }) + settlementDraft;
   els.loanPaymentRemaining.textContent = formatWon(Math.max(0, monthAvailable - principal));
   els.loanPaymentFinalRemaining.textContent = formatWon(Math.max(0, finalAvailable - principal));
+  els.loanPaymentPersonalRemaining.textContent = formatWon(Math.max(0, personalAvailable - personalPrincipal));
+  els.loanPaymentSettlementBalance.textContent = formatSignedWon(settlementBalance);
 }
 
 function closeLoanPaymentDialog() {
@@ -750,6 +971,7 @@ function closeLoanPaymentDialog() {
     els.loanPaymentDialog.removeAttribute("open");
   }
   els.loanPaymentForm.reset();
+  els.loanPaymentExpenseTransactionId.disabled = false;
 }
 
 function openLoanPaymentDialog(id, month, recordKey = "") {
@@ -765,13 +987,23 @@ function openLoanPaymentDialog(id, month, recordKey = "") {
   els.loanPaymentRecurringId.value = recurringId;
   els.loanPaymentRecordKey.value = existing?.recordKey || "";
   els.loanPaymentMonth.value = targetMonth;
-  const scheduled = item ? loanScheduledAmountsForMonth(item, targetMonth) : { principal: 0, interest: 0 };
+  const scheduled = item ? loanScheduledAmountsForMonth(item, targetMonth) : { principal: 0, interest: 0, supportPrincipal: 0, supportInterest: 0 };
   els.loanPaymentPrincipal.value = formatPlainNumber(existing?.loanPrincipalAmount ?? scheduled.principal);
   els.loanPaymentInterest.value = formatPlainNumber(existing?.loanInterestAmount ?? scheduled.interest);
+  const supportEnabled = Boolean(item?.loanSupportEnabled || existing?.loanSupportPrincipalAmount || existing?.loanSupportInterestAmount);
+  els.loanPaymentSupportFields.hidden = !supportEnabled;
+  els.loanPaymentSupportLegend.textContent = `${item?.loanSupporterName || "가족"} 분담 확인`;
+  els.loanPaymentSupportPrincipal.value = formatPlainNumber(existing?.loanSupportPrincipalAmount ?? scheduled.supportPrincipal ?? 0);
+  els.loanPaymentSupportInterest.value = formatPlainNumber(existing?.loanSupportInterestAmount ?? scheduled.supportInterest ?? 0);
+  els.loanPaymentSupportReceived.value = formatPlainNumber(existing?.loanSupportReceivedAmount || 0);
+  els.loanPaymentSupportReceivedDate.value = normalizeInputDate(existing?.loanSupportReceivedDate || "");
+  fillLoanPaymentExpenseOptions(targetMonth, existing);
+  fillLoanPaymentIncomeOptions(targetMonth, existing);
   els.loanPaymentDialogTitle.textContent = existing ? `${displayName} 상환 수정` : `${displayName} 상환 반영`;
   els.loanPaymentDialogDescription.textContent = `${targetMonth} 명세서 기준으로 원금과 이자를 확인해주세요.`;
   els.saveLoanPaymentButton.textContent = existing ? "상환 수정" : "상환 반영";
   els.deleteLoanPaymentButton.hidden = !existing;
+  els.deleteLoanPaymentButton.textContent = existing?.loanLinkedExisting ? "기존 출금 연결 해제" : "상환 내역 삭제";
   updateLoanPaymentPreview();
   if (!els.loanPaymentDialog.open && typeof els.loanPaymentDialog.showModal === "function") {
     els.loanPaymentDialog.showModal();
@@ -791,7 +1023,44 @@ async function deleteLoanPayment() {
     alert("삭제할 대출 상환 내역을 찾지 못했습니다.");
     return;
   }
-  if (!confirm(`"${existing.merchant || "대출"}" ${existing.month} 상환 내역을 삭제할까요?\n대출 등록 정보는 유지됩니다.`)) return;
+  const actionLabel = existing.loanLinkedExisting ? "대출 연결을 해제" : "상환 내역을 삭제";
+  if (!confirm(`"${existing.merchant || "대출"}" ${existing.month} ${actionLabel}할까요?\n대출 등록 정보는 유지됩니다.`)) return;
+  if (existing.loanLinkedExisting) {
+    await createAutoSnapshot("기존 출금 대출 연결 해제 전");
+    const updatedAt = new Date().toISOString();
+    transactions = transactions.map((record) => {
+      const normalized = normalizeStoredTransaction(record);
+      if (normalized.recordKey !== recordKey) return record;
+      return normalizeStoredTransaction({
+        ...normalized,
+        recurringId: "",
+        recurringType: "expense",
+        loanType: "",
+        loanPrincipalAmount: 0,
+        loanInterestAmount: 0,
+        loanSupportPrincipalAmount: 0,
+        loanSupportInterestAmount: 0,
+        loanSupportReceivedAmount: 0,
+        loanSupportReceivedDate: "",
+        loanSupportIncomeTransactionId: "",
+        loanLinkedExisting: false,
+        manualSector: normalized.loanLinkedOriginalSector,
+        manualSubcategory: normalized.loanLinkedOriginalSubcategory,
+        memo: normalized.loanLinkedOriginalMemo,
+        loanLinkedOriginalSector: "",
+        loanLinkedOriginalSubcategory: "",
+        loanLinkedOriginalMemo: "",
+        updatedAt,
+        recordKey: normalized.recordKey,
+        transactionId: normalized.transactionId
+      });
+    });
+    await saveTransactions();
+    reclassify();
+    closeLoanPaymentDialog();
+    renderAll();
+    return;
+  }
   await deleteCalendarTransactions([recordKey], {
     snapshotReason: "대출 상환 내역 삭제 전",
     feedbackMessage: "대출 상환 내역을 삭제했습니다."
@@ -810,6 +1079,12 @@ async function handleLoanPaymentSubmit(event) {
   const targetMonth = monthKey(els.loanPaymentMonth.value);
   const principal = Math.max(0, toNumber(els.loanPaymentPrincipal.value));
   const interest = Math.max(0, toNumber(els.loanPaymentInterest.value));
+  const supportEnabled = Boolean(item?.loanSupportEnabled || existing?.loanSupportPrincipalAmount || existing?.loanSupportInterestAmount);
+  const supportPrincipal = supportEnabled ? Math.max(0, toNumber(els.loanPaymentSupportPrincipal.value)) : 0;
+  const supportInterest = supportEnabled ? Math.max(0, toNumber(els.loanPaymentSupportInterest.value)) : 0;
+  const supportReceived = supportEnabled ? Math.max(0, toNumber(els.loanPaymentSupportReceived.value)) : 0;
+  const supportReceivedDate = supportEnabled ? normalizeInputDate(els.loanPaymentSupportReceivedDate.value) : "";
+  const supportIncomeTransactionId = supportEnabled ? els.loanPaymentSupportIncomeTransactionId.value : "";
   if ((!item && !existing) || !targetMonth || principal + interest <= 0) {
     alert("원금과 이자를 확인해주세요.");
     return;
@@ -818,27 +1093,121 @@ async function handleLoanPaymentSubmit(event) {
     alert("수정할 대출 상환 내역을 찾지 못했습니다.");
     return;
   }
+  const recurringId = item?.id || existing?.recurringId || "";
+  if (findPostedRecurringTransaction(recurringId, targetMonth, { excludeRecordKey: existingRecordKey })) {
+    alert(`이미 ${targetMonth}에 반영된 대출 상환이 있습니다.`);
+    return;
+  }
+  if (supportPrincipal > principal || supportInterest > interest) {
+    alert("가족 부담 원금·이자는 은행의 전체 원금·이자를 초과할 수 없습니다.");
+    return;
+  }
+  if (supportReceived > 0 && !supportReceivedDate) {
+    alert("가족 분담금을 받은 날짜를 입력해주세요.");
+    return;
+  }
   if (item) {
     const available = loanAvailablePrincipal(item, { excludeRecordKey: existingRecordKey });
     if (principal > available) {
       alert(`원금은 전체 상환 내역을 반영한 남은 원금 ${formatWon(available)}을 초과할 수 없습니다.`);
       return;
     }
+    const supportAvailable = Math.max(0, Number(item.loanSupportOpeningBalance || 0) - loanPaidSupportPrincipal(item.id, {
+      excludeRecordKey: existingRecordKey
+    }));
+    if (supportPrincipal > supportAvailable) {
+      alert(`가족 부담 원금은 남은 가족 부담 원금 ${formatWon(supportAvailable)}을 초과할 수 없습니다.`);
+      return;
+    }
+    const personalAvailable = loanPersonalRemainingPrincipal(item, undefined, { excludeRecordKey: existingRecordKey });
+    if (principal - supportPrincipal > personalAvailable) {
+      alert(`본인 부담 원금은 남은 본인 부담 원금 ${formatWon(personalAvailable)}을 초과할 수 없습니다.`);
+      return;
+    }
+  }
+
+  if (supportIncomeTransactionId) {
+    const income = transactions
+      .map(normalizeStoredTransaction)
+      .find((record) => record.transactionId === supportIncomeTransactionId && record.flow === "income" && !isCanceled(record.cancel));
+    const available = income
+      ? Math.max(0, Number(income.amount || 0) - loanSupportLinkedIncomeAmount(income.transactionId, {
+          excludeLoanRecordKey: existingRecordKey
+        }))
+      : 0;
+    if (!income || supportReceived <= 0 || supportReceived > available) {
+      alert("연결할 수입 기록과 가족 입금액을 확인해주세요.");
+      return;
+    }
+    if (supportReceivedDate !== normalizeInputDate(income.approvalDate)) {
+      alert("가족 입금일은 연결한 수입 기록의 날짜와 같아야 합니다.");
+      return;
+    }
+  }
+
+  const selectedExpenseTransactionId = existing ? "" : els.loanPaymentExpenseTransactionId.value;
+  const linkedExpense = selectedExpenseTransactionId
+    ? transactions.map(normalizeStoredTransaction).find((record) => record.transactionId === selectedExpenseTransactionId) || null
+    : null;
+  if (selectedExpenseTransactionId) {
+    if (!linkedExpense || linkedExpense.flow === "income" || linkedExpense.month !== targetMonth || linkedExpense.recurringId || isCanceled(linkedExpense.cancel)) {
+      alert("연결할 기존 출금 내역을 다시 확인해주세요.");
+      return;
+    }
+    if (Number(linkedExpense.amount || 0) !== principal + interest) {
+      alert(`기존 출금 ${formatWon(linkedExpense.amount)}과 원금·이자 합계 ${formatWon(principal + interest)}가 같아야 연결할 수 있습니다.`);
+      return;
+    }
+    if (reimbursementFor(linkedExpense) > 0) {
+      alert("정산금이 이미 있는 출금은 대출 상환에 바로 연결할 수 없습니다.");
+      return;
+    }
+  }
+  if (existing?.loanLinkedExisting && Number(existing.amount || 0) !== principal + interest) {
+    alert(`연결된 기존 출금 ${formatWon(existing.amount)}과 원금·이자 합계가 같아야 합니다.`);
+    return;
   }
 
   await createAutoSnapshot(existingRecordKey ? "대출 상환 내역 수정 전" : "대출 상환 반영 전");
-  const nextTransaction = item
-    ? buildRecurringTransaction(item, targetMonth, {
-        loanPrincipalAmount: principal,
-        loanInterestAmount: interest
-      })
-    : normalizeStoredTransaction({
-        ...existing,
-        amount: principal + interest,
-        loanPrincipalAmount: principal,
-        loanInterestAmount: interest,
-        updatedAt: new Date().toISOString()
-      });
+  const paymentFields = {
+    loanPrincipalAmount: principal,
+    loanInterestAmount: interest,
+    loanSupportPrincipalAmount: supportPrincipal,
+    loanSupportInterestAmount: supportInterest,
+    loanSupportReceivedAmount: supportReceived,
+    loanSupportReceivedDate: supportReceivedDate,
+    loanSupportIncomeTransactionId: supportIncomeTransactionId
+  };
+  let nextTransaction;
+  if (existing?.loanLinkedExisting || linkedExpense) {
+    const base = existing?.loanLinkedExisting ? existing : linkedExpense;
+    nextTransaction = normalizeStoredTransaction({
+      ...base,
+      recurringId: item?.id || existing?.recurringId || "",
+      recurringType: "loan",
+      loanType: item?.loanType || existing?.loanType || "",
+      ...paymentFields,
+      loanLinkedExisting: true,
+      loanLinkedOriginalSector: existing?.loanLinkedOriginalSector ?? base.manualSector,
+      loanLinkedOriginalSubcategory: existing?.loanLinkedOriginalSubcategory ?? base.manualSubcategory,
+      loanLinkedOriginalMemo: existing?.loanLinkedOriginalMemo ?? base.memo,
+      manualSector: item?.sector || "고정 주거비",
+      manualSubcategory: item?.subcategory || "대출이자",
+      memo: item?.memo || existing?.memo || "",
+      updatedAt: new Date().toISOString(),
+      recordKey: base.recordKey,
+      transactionId: base.transactionId
+    });
+  } else if (item) {
+    nextTransaction = buildRecurringTransaction(item, targetMonth, paymentFields);
+  } else {
+    nextTransaction = normalizeStoredTransaction({
+      ...existing,
+      amount: principal + interest,
+      ...paymentFields,
+      updatedAt: new Date().toISOString()
+    });
+  }
   if (existingRecordKey) {
     const updatedAt = new Date().toISOString();
     transactions = transactions.map((record) => {
@@ -850,6 +1219,11 @@ async function handleLoanPaymentSubmit(event) {
         createdAt: normalized.createdAt || normalized.importedAt || nextTransaction.importedAt,
         updatedAt
       });
+    });
+  } else if (linkedExpense) {
+    transactions = transactions.map((record) => {
+      const normalized = normalizeStoredTransaction(record);
+      return normalized.recordKey === linkedExpense.recordKey ? nextTransaction : record;
     });
   } else {
     const mergeResult = mergeTransactions(transactions, [nextTransaction]);
@@ -893,10 +1267,16 @@ async function postRecurringExpense(id, month, options = {}) {
   return mergeResult;
 }
 
-function findPostedRecurringTransaction(recurringId, month) {
+function findPostedRecurringTransaction(recurringId, month, options = {}) {
+  const excludedRecordKey = options.excludeRecordKey || "";
   return transactions
     .map(normalizeStoredTransaction)
-    .find((item) => item.sourceType === "recurring" && item.recurringId === recurringId && item.month === month && !isCanceled(item.cancel));
+    .find((item) =>
+      item.recurringId === recurringId
+      && item.month === month
+      && (!excludedRecordKey || item.recordKey !== excludedRecordKey)
+      && !isCanceled(item.cancel)
+    );
 }
 
 function findDeletedRecurringTransaction(recurringId, month) {
@@ -987,17 +1367,26 @@ function renderLoanRepayments(month, loanDefinitions) {
     .map(normalizeStoredTransaction)
     .filter((item) => item.recurringType === "loan" && item.month === month && !isCanceled(item.cancel));
   const postedCashOutflow = sum(postedRecords, "amount");
-  const pendingCashOutflow = sum(monthOccurrences.filter((occurrence) => !occurrence.posted), "amount");
+  const pendingRecords = monthOccurrences.filter((occurrence) => !occurrence.posted);
+  const pendingCashOutflow = sum(pendingRecords, "amount");
   const monthCashOutflow = postedCashOutflow + pendingCashOutflow;
-  const postedInterest = sumConsumption(postedRecords);
-  const postedPrincipal = sumDebtPrincipal(postedRecords);
-  const pendingCount = monthOccurrences.filter((occurrence) => !occurrence.posted).length;
+  const personalInterest = sumConsumption(postedRecords) + sumConsumption(pendingRecords);
+  const personalPrincipal = sumDebtPrincipal(postedRecords) + sumDebtPrincipal(pendingRecords);
+  const legalPrincipal = sumLegalDebtPrincipal(postedRecords) + sumLegalDebtPrincipal(pendingRecords);
+  const supportDue = [...postedRecords, ...pendingRecords].reduce((total, record) => total + loanSupportDueAmount(record), 0);
+  const supportReceived = loanSupportReceivedForMonth(
+    transactions.map(normalizeStoredTransaction).filter((record) => record.recurringType === "loan" && !isCanceled(record.cancel)),
+    month
+  );
+  const pendingCount = pendingRecords.length;
   const remainingPrincipal = loanDefinitions.reduce((total, item) => total + loanRemainingPrincipal(item, month), 0);
   els.loanSummaryCards.innerHTML = [
-    renderRecurringSummaryCard("이번 달 현금 유출", formatWon(monthCashOutflow), `${postedRecords.length.toLocaleString("ko-KR")}건 반영 · ${pendingCount.toLocaleString("ko-KR")}건 예정`),
-    renderRecurringSummaryCard("소비지출 반영", formatWon(postedInterest), "반영 완료된 이자"),
-    renderRecurringSummaryCard("부채 감소", formatWon(postedPrincipal), "반영 완료된 원금"),
-    renderRecurringSummaryCard("남은 원금", formatWon(remainingPrincipal), `${loanDefinitions.length.toLocaleString("ko-KR")}건 합계`)
+    renderRecurringSummaryCard("은행 전체 상환", formatWon(monthCashOutflow), `${postedRecords.length.toLocaleString("ko-KR")}건 반영 · ${pendingCount.toLocaleString("ko-KR")}건 예정`),
+    renderRecurringSummaryCard("내 소비지출", formatWon(personalInterest), "내가 부담하는 이자만"),
+    renderRecurringSummaryCard("내 원금 부담", formatWon(personalPrincipal), "소비지출에서는 제외"),
+    renderRecurringSummaryCard("법적 부채 감소", formatWon(legalPrincipal), "은행 원금 상환 합계"),
+    renderRecurringSummaryCard("가족 분담", formatWon(supportDue), supportDue ? `입금 확인 ${formatWon(supportReceived)}` : "등록된 가족 분담 없음"),
+    renderRecurringSummaryCard("남은 법적 원금", formatWon(remainingPrincipal), `${loanDefinitions.length.toLocaleString("ko-KR")}건 합계`)
   ].join("");
   els.loanListSummary.textContent = `${loanDefinitions.length.toLocaleString("ko-KR")}건 등록`;
   if (!loanDefinitions.length) {
@@ -1019,8 +1408,27 @@ function renderLoanCard(item, month) {
   const principal = Number(posted?.loanPrincipalAmount ?? scheduled.principal);
   const interest = Number(posted?.loanInterestAmount ?? scheduled.interest);
   const total = principal + interest;
+  const supportPrincipal = Number(posted?.loanSupportPrincipalAmount ?? scheduled.supportPrincipal ?? 0);
+  const supportInterest = Number(posted?.loanSupportInterestAmount ?? scheduled.supportInterest ?? 0);
+  const supportDue = supportPrincipal + supportInterest;
+  const supportReceived = loanSupportReceivedAmount(posted);
+  const personalPrincipal = Math.max(0, principal - supportPrincipal);
+  const personalInterest = Math.max(0, interest - supportInterest);
+  const personalTotal = personalPrincipal + personalInterest;
   const principalRatio = total > 0 ? principal / total * 100 : 0;
   const remaining = loanRemainingPrincipal(item, month);
+  const personalRemaining = loanPersonalRemainingPrincipal(item, month);
+  const supportRemaining = loanSupportRemainingPrincipal(item, month);
+  const settlementBalance = loanSupportSettlementBalance(item, month);
+  const supportName = item.loanSupporterName || "가족";
+  const supportDetails = item.loanSupportEnabled ? `
+      <section class="loan-support-breakdown" aria-label="${escapeHtml(supportName)} 분담 내역">
+        <div><span>${escapeHtml(supportName)} 부담 예정</span><strong>${formatWon(supportDue)}</strong></div>
+        <div><span>내 부담</span><strong>${formatWon(personalTotal)}</strong></div>
+        <div><span>입금 확인</span><strong>${formatWon(supportReceived)}</strong></div>
+        <div><span>누적 정산 차이</span><strong class="${settlementBalance < 0 ? "negative" : ""}">${formatSignedWon(settlementBalance)}</strong></div>
+      </section>
+    ` : "";
   return `
     <article class="recurring-card loan-card ${item.paused ? "paused" : ""}">
       <div class="recurring-card-main">
@@ -1029,7 +1437,7 @@ function renderLoanCard(item, month) {
           <h3>${escapeHtml(item.name)}</h3>
           <p>${escapeHtml(item.paymentType || "이체")} · 매월 ${Number(item.dayOfMonth || 1)}일 · ${escapeHtml(month)}</p>
         </div>
-        <div class="loan-card-amount"><span>월 상환액</span><strong>${formatWon(total)}</strong></div>
+        <div class="loan-card-amount"><span>은행 상환액</span><strong>${formatWon(total)}</strong>${item.loanSupportEnabled ? `<small>내 부담 ${formatWon(personalTotal)}</small>` : ""}</div>
       </div>
       <div class="loan-split-bar" aria-label="원금 ${formatWon(principal)}, 이자 ${formatWon(interest)}">
         <span class="principal" style="width:${Math.max(0, Math.min(100, principalRatio))}%"></span>
@@ -1039,13 +1447,17 @@ function renderLoanCard(item, month) {
         <span><i class="principal" aria-hidden="true"></i>원금 <strong>${formatWon(principal)}</strong></span>
         <span><i class="interest" aria-hidden="true"></i>이자 <strong>${formatWon(interest)}</strong></span>
       </div>
+      ${supportDetails}
       <div class="recurring-card-tags">
         <span class="scheduled-badge soft">원금 소비 제외</span>
+        ${item.loanSupportEnabled ? `<span class="scheduled-badge support">${escapeHtml(supportName)} 분담</span>` : ""}
         <span class="scheduled-badge ${escapeHtml(status.className)}">${escapeHtml(status.label)}</span>
         ${item.showOnCalendar ? `<span class="scheduled-badge soft">달력 표시</span>` : `<span class="scheduled-badge muted">달력 숨김</span>`}
       </div>
       <dl class="recurring-meta loan-meta">
-        <div><dt>남은 원금</dt><dd>${formatWon(remaining)}</dd></div>
+        <div><dt>남은 법적 원금</dt><dd>${formatWon(remaining)}</dd></div>
+        ${item.loanSupportEnabled ? `<div><dt>내 남은 원금</dt><dd>${formatWon(personalRemaining)}</dd></div>` : ""}
+        ${item.loanSupportEnabled ? `<div><dt>${escapeHtml(supportName)} 남은 원금</dt><dd>${formatWon(supportRemaining)}</dd></div>` : ""}
         <div><dt>금리</dt><dd>${Number(item.loanInterestRate || 0).toLocaleString("ko-KR")}%</dd></div>
         <div><dt>만기</dt><dd>${escapeHtml(item.loanMaturityMonth || "미설정")}</dd></div>
         <div><dt>메모</dt><dd>${escapeHtml(item.memo || "-")}</dd></div>
@@ -1157,7 +1569,9 @@ function recurringOccurrencesForMonth(month, options = {}) {
         ...(scheduled ? {
           amount: scheduled.amount,
           loanPrincipalAmount: scheduled.principal,
-          loanInterestAmount: scheduled.interest
+          loanInterestAmount: scheduled.interest,
+          loanSupportPrincipalAmount: scheduled.supportPrincipal,
+          loanSupportInterestAmount: scheduled.supportInterest
         } : {}),
         date: getRecurringDateForMonth(month, item.dayOfMonth),
         month,
@@ -1184,6 +1598,16 @@ function isRecurringActiveForMonth(item, month) {
 
 function scheduledTotalForMonth(month) {
   return sum(recurringOccurrencesForMonth(month, { showHidden: true }).filter((item) => !item.posted), "amount");
+}
+
+function scheduledPersonalTotalForMonth(month) {
+  return recurringOccurrencesForMonth(month, { showHidden: true })
+    .filter((item) => !item.posted)
+    .reduce((total, item) => total + (
+      item.recurringType === "loan"
+        ? loanPrincipalActualAmount(item) + loanInterestActualAmount(item)
+        : Number(item.amount || 0)
+    ), 0);
 }
 
 function getRecurringDateForMonth(yearMonth, dayOfMonth) {

@@ -337,7 +337,7 @@ function renderLedgerSection(section, rows, selectedMonth, sortMode = "date", op
     <div class="transaction-row ${categoryClass(item.sector)} ${calendarLinks ? "detail-calendar-link" : ""} ${detailFocusRecordKey === item.recordKey ? "is-detail-focused" : ""}" data-detail-record-key="${escapeHtml(item.recordKey)}"${calendarLinkAttrs}>
       <span class="date">${escapeHtml(item.approvalDate)}</span>
       <span class="merchant" title="${escapeHtml(item.merchant)}">
-        ${escapeHtml(item.merchant)}${item.status === "직접입력" ? `<em class="manual-badge">직접 입력</em>` : ""}${isLoanRepaymentTransaction(item) ? `<em class="manual-badge">대출 상환 · 원금 ${formatWon(item.loanPrincipalAmount)}</em>` : ""}
+        ${escapeHtml(item.merchant)}${item.status === "직접입력" ? `<em class="manual-badge">직접 입력</em>` : ""}${isLoanRepaymentTransaction(item) ? `<em class="manual-badge">대출 상환 · 내 원금 ${formatWon(loanPrincipalActualAmount(item))}${loanSupportDueAmount(item) ? ` · 가족 분담 ${formatWon(loanSupportDueAmount(item))}` : ""}</em>` : ""}
         ${installmentText ? `<em class="installment-badge">${escapeHtml(installmentText)}</em>` : ""}
         ${canEditInstallment ? `<button type="button" class="detail-installment-edit-button ${isInstallmentEditing ? "is-active" : ""}" data-detail-installment-edit="${escapeHtml(item.recordKey)}" title="할부 설정 수정">${isInstallmentEditing ? "수정 중" : "수정"}</button>` : ""}
       </span>

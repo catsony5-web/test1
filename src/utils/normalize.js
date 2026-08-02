@@ -1,15 +1,17 @@
 function mergeTransactions(existing, incoming) {
   const records = existing.map(normalizeStoredTransaction);
-  const seen = new Set(records.map((item) => item.recordKey));
+  const seenKeys = new Set(records.map((item) => item.recordKey));
+  const seenTransactionIds = new Set(records.map((item) => item.transactionId).filter(Boolean));
   let added = 0;
   let skipped = 0;
 
   incoming.map(normalizeStoredTransaction).forEach((item) => {
-    if (seen.has(item.recordKey)) {
+    if (seenKeys.has(item.recordKey) || (item.transactionId && seenTransactionIds.has(item.transactionId))) {
       skipped++;
       return;
     }
-    seen.add(item.recordKey);
+    seenKeys.add(item.recordKey);
+    if (item.transactionId) seenTransactionIds.add(item.transactionId);
     records.push(item);
     added++;
   });
@@ -21,6 +23,16 @@ function mergeTransactions(existing, incoming) {
 }
 
 function normalizeStoredTransaction(item) {
+  const loanPrincipalAmount = Math.max(0, Number(item.loanPrincipalAmount || 0));
+  const loanInterestAmount = Math.max(0, Number(item.loanInterestAmount || 0));
+  const loanSupportPrincipalAmount = Math.min(
+    loanPrincipalAmount,
+    Math.max(0, Number(item.loanSupportPrincipalAmount || 0))
+  );
+  const loanSupportInterestAmount = Math.min(
+    loanInterestAmount,
+    Math.max(0, Number(item.loanSupportInterestAmount || 0))
+  );
   const normalized = {
     sourceType: item.sourceType || "card",
     flow: item.flow || "expense",
@@ -43,8 +55,17 @@ function normalizeStoredTransaction(item) {
     recurringId: item.recurringId || "",
     recurringType: item.recurringType === "loan" ? "loan" : "expense",
     loanType: item.loanType || "",
-    loanPrincipalAmount: Math.max(0, Number(item.loanPrincipalAmount || 0)),
-    loanInterestAmount: Math.max(0, Number(item.loanInterestAmount || 0)),
+    loanPrincipalAmount,
+    loanInterestAmount,
+    loanSupportPrincipalAmount,
+    loanSupportInterestAmount,
+    loanSupportReceivedAmount: Math.max(0, Number(item.loanSupportReceivedAmount || 0)),
+    loanSupportReceivedDate: item.loanSupportReceivedDate || "",
+    loanSupportIncomeTransactionId: item.loanSupportIncomeTransactionId || item.loanSupportIncomeRecordKey || "",
+    loanLinkedExisting: item.loanLinkedExisting === true,
+    loanLinkedOriginalSector: item.loanLinkedOriginalSector || "",
+    loanLinkedOriginalSubcategory: item.loanLinkedOriginalSubcategory || "",
+    loanLinkedOriginalMemo: item.loanLinkedOriginalMemo || "",
     installmentEnabled: Boolean(item.installmentEnabled),
     installmentMonths: Number(item.installmentMonths || 0),
     installmentStartMonth: item.installmentStartMonth || "",
@@ -52,9 +73,11 @@ function normalizeStoredTransaction(item) {
     installmentMonthlyAmount: Number(item.installmentMonthlyAmount || 0),
     installmentGroupId: item.installmentGroupId || "",
     memo: item.memo || "",
-    recordKey: item.recordKey || ""
+    recordKey: item.recordKey || "",
+    transactionId: item.transactionId || item.recordKey || ""
   };
   normalized.recordKey = normalized.recordKey || createRecordKey(normalized);
+  normalized.transactionId = normalized.transactionId || normalized.recordKey;
   return normalized;
 }
 

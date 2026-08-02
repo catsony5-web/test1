@@ -77,7 +77,7 @@ function renderIncomeSummary(incomeRows, monthlyRows) {
     renderIncomeSummaryCard(selectedMonth === "all" ? "최근 월 수입" : "선택 월 수입", formatWon(monthIncome), summaryMonthLabel),
     renderIncomeSummaryCard("누적 수입", formatWon(totalIncome), selectedMonth === "all" ? "전체 기간" : "선택 월 기준"),
     renderIncomeSummaryCard("최근 수입일", recentIncome?.approvalDate || "-", recentIncome ? recentIncome.merchant : "기록 없음"),
-    renderIncomeSummaryCard("최근 수입 금액", recentIncome ? formatWon(recentIncome.amount) : "0원", recentIncome ? "최근 입력/가져오기 항목" : "기록 없음"),
+    renderIncomeSummaryCard("최근 수입 금액", recentIncome ? formatWon(incomeReportingAmount(recentIncome)) : "0원", recentIncome ? "대출 분담금 제외" : "기록 없음"),
     renderIncomeSummaryCard("수입 건수", `${visibleIncomeRows.length.toLocaleString("ko-KR")}건`, selectedMonth === "all" ? "전체 기록" : "선택 월 기록")
   ].join("");
 }
@@ -96,16 +96,21 @@ function sortIncomeRows(a, b, mode) {
   if (mode === "date-asc") {
     return `${a.approvalDate} ${a.approvalTime}`.localeCompare(`${b.approvalDate} ${b.approvalTime}`, "ko-KR");
   }
-  if (mode === "amount-desc") return Number(b.amount || 0) - Number(a.amount || 0);
-  if (mode === "amount-asc") return Number(a.amount || 0) - Number(b.amount || 0);
+  if (mode === "amount-desc") return incomeReportingAmount(b) - incomeReportingAmount(a);
+  if (mode === "amount-asc") return incomeReportingAmount(a) - incomeReportingAmount(b);
   return `${b.approvalDate} ${b.approvalTime}`.localeCompare(`${a.approvalDate} ${a.approvalTime}`, "ko-KR");
 }
 
 function renderIncomeDisplayRow(item) {
+  const linkedSupport = loanSupportLinkedIncomeAmount(item.transactionId || item.recordKey);
+  const reportingAmount = incomeReportingAmount(item);
   return `
     <span>${escapeHtml(item.approvalDate)}</span>
     <strong title="${escapeHtml(item.merchant)}">${escapeHtml(item.merchant)}</strong>
-    <b>${formatWon(item.amount)}</b>
+    <div class="income-entry-amount">
+      <b>${formatWon(reportingAmount)}</b>
+      ${linkedSupport ? `<small>계좌 입금 ${formatWon(item.amount)} · 대출 분담 ${formatWon(linkedSupport)} 제외</small>` : ""}
+    </div>
     <div class="income-entry-actions">
       <button type="button" data-edit-income="${escapeHtml(item.recordKey)}">수정</button>
       <button type="button" class="income-delete-button" data-delete-income="${escapeHtml(item.recordKey)}">삭제</button>
@@ -161,6 +166,11 @@ async function saveIncomeEntryEdit(recordKey) {
   if (index < 0) return;
   await createAutoSnapshot("수입 수정 전");
   const original = normalizeStoredTransaction(transactions[index]);
+  const linkedSupport = loanSupportLinkedIncomeAmount(original.transactionId || original.recordKey);
+  if (amount < linkedSupport) {
+    alert(`이 수입에는 대출 분담금 ${formatWon(linkedSupport)}이 연결되어 있습니다. 연결 금액 이상으로 입력하거나 대출 상환 내역에서 연결을 먼저 해제해주세요.`);
+    return;
+  }
   const updated = {
     ...original,
     sourceType: original.sourceType || "transfer",
@@ -181,13 +191,28 @@ async function saveIncomeEntryEdit(recordKey) {
     return;
   }
 
-  transactions[index] = updated;
+  transactions = transactions.map((item, itemIndex) => {
+    if (itemIndex === index) return updated;
+    const normalized = normalizeStoredTransaction(item);
+    if (normalized.loanSupportIncomeTransactionId !== original.transactionId) return item;
+    return normalizeStoredTransaction({
+      ...normalized,
+      loanSupportReceivedDate: date,
+      updatedAt: new Date().toISOString()
+    });
+  });
   editingIncomeKey = "";
   await saveTransactions();
   reclassify();
 }
 
 async function deleteIncomeEntry(recordKey) {
+  const original = transactions.map(normalizeStoredTransaction).find((item) => item.recordKey === recordKey);
+  const linkedSupport = loanSupportLinkedIncomeAmount(original?.transactionId || original?.recordKey);
+  if (linkedSupport > 0) {
+    alert(`이 수입에는 대출 분담금 ${formatWon(linkedSupport)}이 연결되어 있습니다. 대출 상환 내역에서 수입 연결을 먼저 해제해주세요.`);
+    return;
+  }
   if (!confirm("이 수입 기록을 삭제할까요?")) return;
   await createAutoSnapshot("수입 삭제 전");
   transactions = transactions.filter((item) => item.recordKey !== recordKey);

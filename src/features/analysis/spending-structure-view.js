@@ -180,7 +180,7 @@ function renderSpendingAllocation(structure) {
       <div class="analysis-definition-row">
         <span><b>필수 소비</b> 주거·공과금·장보기 등</span>
         <span><b>재량 소비</b> 외식·쇼핑·여가 등</span>
-        <span><b>자산 형성</b> 실제 저축 + 부채 상환 + 자유 잔액</span>
+        <span><b>자산 형성</b> 실제 저축 + 내 원금 부담 + 자유 잔액</span>
         <button type="button" data-open-spending-targets>분류 기준 조정</button>
       </div>
     </div>

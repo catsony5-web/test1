@@ -96,17 +96,85 @@ function isLoanRepaymentTransaction(item) {
   return item?.recurringType === "loan" || Number(item?.loanPrincipalAmount || 0) > 0;
 }
 
-function loanPrincipalActualAmount(item) {
+function loanGrossPrincipalAmount(item) {
   if (!isLoanRepaymentTransaction(item)) return 0;
   return Math.min(
-    Math.max(0, actualAmount(item)),
+    Math.max(0, Number(item?.amount || 0)),
     Math.max(0, Number(item?.loanPrincipalAmount || 0))
   );
 }
 
+function loanGrossInterestAmount(item) {
+  if (!isLoanRepaymentTransaction(item)) return 0;
+  return Math.max(0, Number(item?.amount || 0) - loanGrossPrincipalAmount(item));
+}
+
+function loanSupportPrincipalAmount(item) {
+  return Math.min(
+    loanGrossPrincipalAmount(item),
+    Math.max(0, Number(item?.loanSupportPrincipalAmount || 0))
+  );
+}
+
+function loanSupportInterestAmount(item) {
+  return Math.min(
+    loanGrossInterestAmount(item),
+    Math.max(0, Number(item?.loanSupportInterestAmount || 0))
+  );
+}
+
+function loanSupportDueAmount(item) {
+  if (!isLoanRepaymentTransaction(item)) return 0;
+  return loanSupportPrincipalAmount(item) + loanSupportInterestAmount(item);
+}
+
+function loanSupportReceivedAmount(item) {
+  if (!isLoanRepaymentTransaction(item)) return 0;
+  return Math.max(0, Number(item?.loanSupportReceivedAmount || 0));
+}
+
+function loanSupportReceivedMonth(item) {
+  return monthKey(item?.loanSupportReceivedDate) || item?.month || "";
+}
+
+function loanPrincipalActualAmount(item) {
+  if (!isLoanRepaymentTransaction(item)) return 0;
+  return Math.max(0, loanGrossPrincipalAmount(item) - loanSupportPrincipalAmount(item));
+}
+
 function loanInterestActualAmount(item) {
   if (!isLoanRepaymentTransaction(item)) return 0;
-  return Math.max(0, actualAmount(item) - loanPrincipalActualAmount(item));
+  return Math.max(0, loanGrossInterestAmount(item) - loanSupportInterestAmount(item));
+}
+
+function loanSupportLinkedIncomeAmount(transactionId, options = {}) {
+  if (!transactionId || typeof transactions === "undefined") return 0;
+  const excludedLoanRecordKey = options.excludeLoanRecordKey || "";
+  return transactions
+    .map(normalizeStoredTransaction)
+    .filter((item) => isLoanRepaymentTransaction(item) && !isCanceled(item.cancel))
+    .filter((item) => item.loanSupportIncomeTransactionId === transactionId)
+    .filter((item) => !excludedLoanRecordKey || item.recordKey !== excludedLoanRecordKey)
+    .reduce((total, item) => total + loanSupportReceivedAmount(item), 0);
+}
+
+function incomeReportingAmount(item) {
+  if (item?.flow !== "income") return Math.max(0, Number(item?.amount || 0));
+  return Math.max(0, Number(item.amount || 0) - loanSupportLinkedIncomeAmount(item.transactionId || item.recordKey));
+}
+
+function loanSupportSettlementDeltaForMonth(items, month) {
+  const due = items
+    .filter((item) => item?.month === month)
+    .reduce((total, item) => total + loanSupportDueAmount(item), 0);
+  const received = loanSupportReceivedForMonth(items, month);
+  return received - due;
+}
+
+function loanSupportReceivedForMonth(items, month) {
+  return items
+    .filter((item) => loanSupportReceivedMonth(item) === month)
+    .reduce((total, item) => total + loanSupportReceivedAmount(item), 0);
 }
 
 function consumptionAmount(item) {
@@ -119,4 +187,8 @@ function sumConsumption(items) {
 
 function sumDebtPrincipal(items) {
   return items.reduce((total, item) => total + loanPrincipalActualAmount(item), 0);
+}
+
+function sumLegalDebtPrincipal(items) {
+  return items.reduce((total, item) => total + loanGrossPrincipalAmount(item), 0);
 }

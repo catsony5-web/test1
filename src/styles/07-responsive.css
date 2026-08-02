@@ -410,6 +410,8 @@
   .recurring-card-main,
   .recurring-meta.loan-meta,
   .loan-payment-form,
+  .loan-support-fields,
+  .loan-payment-support-fields,
   .loan-payment-preview,
   .scheduled-detail-item,
   .paste-entry,
@@ -695,6 +697,28 @@
 
   .income-entry-item.editing {
     grid-template-columns: 1fr;
+  }
+
+  .income-entry-amount {
+    justify-items: start;
+  }
+
+  .income-entry-amount b,
+  .income-entry-amount small {
+    text-align: left;
+  }
+
+  .loan-support-breakdown {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .loan-support-breakdown > div:nth-child(3) {
+    border-left: 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .loan-support-breakdown > div:nth-child(4) {
+    border-top: 1px solid var(--border);
   }
 
   .category-card-head,

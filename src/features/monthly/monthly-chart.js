@@ -39,20 +39,26 @@ function monthlyIncomeAllocation(row) {
   const consumption = Math.max(0, Number(row.consumptionSpend || 0));
   const savings = Math.max(0, Number(row.actualSavings || 0));
   const debt = Math.max(0, Number(row.debtRepayment || 0));
-  const used = consumption + savings + debt;
-  const free = Math.max(0, income - used);
-  const deficit = Math.max(0, used - income);
-  const base = Math.max(income, used, 1);
+  const settlementDelta = Number(row.loanSettlementDelta || 0);
+  const settlement = Math.max(0, -settlementDelta);
+  const resources = income + Math.max(0, settlementDelta);
+  const used = consumption + savings + debt + settlement;
+  const free = Math.max(0, resources - used);
+  const deficit = Math.max(0, used - resources);
+  const base = Math.max(resources, used, 1);
   return {
     income,
     consumption,
     savings,
     debt,
+    settlement,
+    settlementDelta,
     free,
     deficit,
     consumptionRatio: consumption / base,
     savingsRatio: savings / base,
     debtRatio: debt / base,
+    settlementRatio: settlement / base,
     freeRatio: free / base
   };
 }
@@ -85,7 +91,7 @@ function renderMonthlySelectedSummary(row) {
           <small>저축률 <span data-monthly-selected-rate>${monthlySavingsRateLabel(row.actualSavings, row.income)}</span></small>
         </div>
         <div>
-          <dt>부채 상환</dt>
+          <dt>내 원금 부담</dt>
           <dd data-monthly-selected-debt>${formatWon(row.debtRepayment)}</dd>
           <small>소비 제외 원금</small>
         </div>
@@ -132,6 +138,7 @@ function renderMonthlyFlowChart(rows, availableWidth = 0) {
   const zeroAssetY = assetY(0);
   const labelEvery = Math.max(1, Math.ceil(rows.length / 12));
   const selected = rows.find((row) => row.month === focusedMonthlyMonth) || rows.at(-1);
+  const hasLoanSettlementShortfall = rows.some((row) => Number(row.loanSettlementDelta || 0) < 0);
   const points = rows.map((row, index) => ({
     row,
     allocation: monthlyIncomeAllocation(row),
@@ -154,14 +161,16 @@ function renderMonthlyFlowChart(rows, availableWidth = 0) {
     const consumptionHeight = allocation.consumptionRatio * allocationHeight;
     const savingsHeight = allocation.savingsRatio * allocationHeight;
     const debtHeight = allocation.debtRatio * allocationHeight;
+    const settlementHeight = allocation.settlementRatio * allocationHeight;
     const freeHeight = allocation.freeRatio * allocationHeight;
     const consumptionY = allocationBottom - consumptionHeight;
     const savingsY = consumptionY - savingsHeight;
     const debtY = savingsY - debtHeight;
-    const freeY = debtY - freeHeight;
+    const settlementY = debtY - settlementHeight;
+    const freeY = settlementY - freeHeight;
     const persistent = focusedMonthlyMonth === row.month ? " is-persistent" : "";
     const showMonth = index % labelEvery === 0 || index === rows.length - 1;
-    const ariaLabel = `${row.month}, 수입 ${formatWon(row.income)}, 소비지출 ${formatWon(row.consumptionSpend)}, 실제 저축 ${formatWon(row.actualSavings)}, 부채 상환 ${formatWon(row.debtRepayment)}, 자유 잔액 ${formatSignedWon(row.freeBalance)}, 월 자산 증가 ${formatSignedWon(row.assetGrowth)}, 누적 자산 증가 ${formatSignedWon(row.cumulativeAssetGrowth)}`;
+    const ariaLabel = `${row.month}, 수입 ${formatWon(row.income)}, 소비지출 ${formatWon(row.consumptionSpend)}, 실제 저축 ${formatWon(row.actualSavings)}, 내 원금 부담 ${formatWon(row.debtRepayment)}${row.loanSettlementDelta ? `, 가족 정산 ${formatSignedWon(row.loanSettlementDelta)}` : ""}, 자유 잔액 ${formatSignedWon(row.freeBalance)}, 월 자산 증가 ${formatSignedWon(row.assetGrowth)}, 누적 자산 증가 ${formatSignedWon(row.cumulativeAssetGrowth)}`;
     return `
       <g class="monthly-flow-point-group${persistent}"
         data-chart-month="${escapeHtml(row.month)}"
@@ -169,6 +178,7 @@ function renderMonthlyFlowChart(rows, availableWidth = 0) {
         data-chart-consumption="${escapeHtml(String(row.consumptionSpend))}"
         data-chart-savings="${escapeHtml(String(row.actualSavings))}"
         data-chart-debt="${escapeHtml(String(row.debtRepayment))}"
+        data-chart-settlement="${escapeHtml(String(row.loanSettlementDelta || 0))}"
         data-chart-savings-rate="${escapeHtml(monthlySavingsRateLabel(row.actualSavings, row.income))}"
         data-chart-balance="${escapeHtml(String(row.freeBalance))}"
         data-chart-growth="${escapeHtml(String(row.assetGrowth))}"
@@ -181,6 +191,7 @@ function renderMonthlyFlowChart(rows, availableWidth = 0) {
         ${consumptionHeight > 0 ? `<rect class="monthly-allocation-bar consumption" x="${startX}" y="${consumptionY}" width="${barWidth}" height="${consumptionHeight}" rx="3"></rect>` : ""}
         ${savingsHeight > 0 ? `<rect class="monthly-allocation-bar savings" x="${startX}" y="${savingsY}" width="${barWidth}" height="${savingsHeight}" rx="3"></rect>` : ""}
         ${debtHeight > 0 ? `<rect class="monthly-allocation-bar debt" x="${startX}" y="${debtY}" width="${barWidth}" height="${debtHeight}" rx="3"></rect>` : ""}
+        ${settlementHeight > 0 ? `<rect class="monthly-allocation-bar settlement" x="${startX}" y="${settlementY}" width="${barWidth}" height="${settlementHeight}" rx="3"></rect>` : ""}
         ${freeHeight > 0 ? `<rect class="monthly-allocation-bar free" x="${startX}" y="${freeY}" width="${barWidth}" height="${freeHeight}" rx="3"></rect>` : ""}
         ${allocation.deficit > 0 ? `
           <rect class="monthly-allocation-over" x="${startX - 2}" y="${allocationTop - 2}" width="${barWidth + 4}" height="${allocationHeight + 4}" rx="6"></rect>
@@ -203,7 +214,7 @@ function renderMonthlyFlowChart(rows, availableWidth = 0) {
         <text class="monthly-flow-tooltip-line income" x="12" y="42">수입 ${escapeHtml(formatWon(row.income))}</text>
         <text class="monthly-flow-tooltip-line consumption" x="12" y="62">소비 ${escapeHtml(formatWon(row.consumptionSpend))}</text>
         <text class="monthly-flow-tooltip-line savings" x="12" y="82">저축 ${escapeHtml(formatWon(row.actualSavings))} · ${escapeHtml(monthlySavingsRateLabel(row.actualSavings, row.income))}</text>
-        <text class="monthly-flow-tooltip-line debt" x="12" y="102">부채 상환 ${escapeHtml(formatWon(row.debtRepayment))}</text>
+        <text class="monthly-flow-tooltip-line debt" x="12" y="102">원금 ${escapeHtml(formatWon(row.debtRepayment))}${row.loanSettlementDelta ? ` · 가족정산 ${escapeHtml(formatSignedWon(row.loanSettlementDelta))}` : ""}</text>
         <text class="monthly-flow-tooltip-line ${row.freeBalance >= 0 ? "positive" : "negative"}" x="12" y="122">자유 잔액 ${escapeHtml(formatSignedWon(row.freeBalance))}</text>
         <text class="monthly-flow-tooltip-line ${row.assetGrowth >= 0 ? "positive" : "negative"}" x="12" y="142">자산 증가 ${escapeHtml(formatSignedWon(row.assetGrowth))}</text>
         <text class="monthly-flow-tooltip-line ${allocation.deficit > 0 ? "negative" : "positive"}" x="12" y="160">${allocation.deficit > 0 ? `수입 초과 ${escapeHtml(formatWon(allocation.deficit))}` : `누적 ${escapeHtml(formatSignedWon(row.cumulativeAssetGrowth))}`}</text>
@@ -216,16 +227,17 @@ function renderMonthlyFlowChart(rows, availableWidth = 0) {
     <div class="monthly-chart-legend" aria-label="그래프 범례">
       <span><i class="monthly-legend-swatch consumption" aria-hidden="true"></i>소비지출</span>
       <span><i class="monthly-legend-swatch savings" aria-hidden="true"></i>실제 저축</span>
-      <span><i class="monthly-legend-swatch debt" aria-hidden="true"></i>부채 상환</span>
+      <span><i class="monthly-legend-swatch debt" aria-hidden="true"></i>내 원금 부담</span>
+      ${hasLoanSettlementShortfall ? `<span><i class="monthly-legend-swatch settlement" aria-hidden="true"></i>가족 정산 부족분</span>` : ""}
       <span><i class="monthly-legend-swatch free" aria-hidden="true"></i>자유 잔액</span>
       <span><i class="monthly-legend-outline deficit" aria-hidden="true"></i>수입 초과</span>
       <span><i class="monthly-legend-line asset" aria-hidden="true"></i>누적 자산 증가</span>
     </div>
     <div class="monthly-chart-scroll" data-monthly-chart-scroll>
-      <svg class="monthly-flow-chart" style="min-width:${width}px" viewBox="0 0 ${width} ${height}" role="img" aria-label="월별 수입의 소비지출, 실제 저축, 부채 상환, 자유 잔액 배분과 누적 자산 증가 그래프">
+      <svg class="monthly-flow-chart" style="min-width:${width}px" viewBox="0 0 ${width} ${height}" role="img" aria-label="월별 자금의 소비지출, 실제 저축, 내 원금 부담, 가족 정산, 자유 잔액 배분과 누적 자산 증가 그래프">
         <rect class="monthly-chart-zone allocation" x="0" y="24" width="${width}" height="${allocationBottom - 12}" rx="12"></rect>
         <rect class="monthly-chart-zone asset" x="0" y="${assetTop - 22}" width="${width}" height="${assetHeight + 42}" rx="12"></rect>
-        <text class="monthly-chart-section-label" x="${padLeft}" y="18">월별 수입 배분 · 100%</text>
+        <text class="monthly-chart-section-label" x="${padLeft}" y="18">월별 자금 배분 · 100%</text>
         <text class="monthly-chart-section-label" x="${padLeft}" y="${assetTop - 28}">연간 누적 자산 증가</text>
         ${percentTicks.map((ratio) => {
           const y = percentY(ratio);

@@ -7,13 +7,17 @@ function calendarSpendLevel(amount) {
   return 0;
 }
 
+function calendarIncomeTotal(rows) {
+  return rows.reduce((total, item) => total + incomeReportingAmount(item), 0);
+}
+
 function calendarCellAriaLabel(dateKey, actualTotal, rows, incomeRows, pendingRows, postedRows) {
   const parts = [
     dateKey,
     actualTotal > 0 ? `실 지출 ${formatWon(actualTotal)}` : "실 지출 없음"
   ];
   if (rows.length) parts.push(`거래 ${rows.length.toLocaleString("ko-KR")}건`);
-  if (incomeRows.length) parts.push(`수입 ${formatWon(sum(incomeRows, "amount"))}`);
+  if (incomeRows.length) parts.push(`수입 ${formatWon(calendarIncomeTotal(incomeRows))}`);
   if (pendingRows.length) parts.push(`고정 지출 예정 ${formatWon(sum(pendingRows, "amount"))}`);
   if (postedRows.length) parts.push(`고정 지출 반영 ${postedRows.length.toLocaleString("ko-KR")}건`);
   return parts.join(", ");
@@ -119,7 +123,7 @@ function renderCalendar() {
       <button class="calendar-cell ${rows.length ? "has-spend" : ""} ${pendingPlannedRows.length ? "has-scheduled" : ""} ${plannedRows.some((item) => item.posted) ? "has-posted-scheduled" : ""} ${isSelected ? "selected" : ""}" type="button" data-calendar-date="${escapeHtml(dateKey)}" data-spend-level="${spendLevel}" aria-label="${escapeHtml(ariaLabel)}">
         <span class="calendar-day">${day}</span>
         ${rows.length ? `<strong>${formatWon(total)}</strong>` : ""}
-        ${dayIncomeRows.length ? `<em class="calendar-income-label">수입 ${formatWon(sum(dayIncomeRows, "amount"))}</em>` : ""}
+        ${dayIncomeRows.length ? `<em class="calendar-income-label">수입 ${formatWon(calendarIncomeTotal(dayIncomeRows))}</em>` : ""}
         ${pendingPlannedRows.length
           ? `<em class="calendar-fixed-schedule-label">고정 예정 ${formatWon(plannedTotal)}</em>`
           : postedPlannedRows.length ? `<em class="calendar-fixed-schedule-label posted">고정 반영 ${postedPlannedRows.length.toLocaleString("ko-KR")}건</em>` : ""}
@@ -471,7 +475,8 @@ function renderCalendarMonthSummary(month, monthRows, byDate, dayCount, schedule
   const totalSpend = sumActual(monthRows);
   const scheduledTotal = sum(scheduledRows, "amount");
   const totalIncome = importedIncomeForMonth(month) + Number(monthlyIncome[month] || 0);
-  const balance = totalIncome - totalSpend;
+  const supportReceived = loanSupportReceivedForMonth(reportingExpenseRows(classified), month);
+  const balance = totalIncome + supportReceived - totalSpend;
   const spendDayCount = Math.max(1, [...byDate.values()].filter((rows) => rows.length).length || dayCount || 1);
   const avgSpend = Math.round(totalSpend / spendDayCount);
   const dailyTotals = [...byDate.entries()]
@@ -483,7 +488,7 @@ function renderCalendarMonthSummary(month, monthRows, byDate, dayCount, schedule
     renderCalendarMetric("총 지출", formatWon(totalSpend), `${month} 실 지출 합계`, "spend", { priority: "core", key: "spend" }),
     ...(showIncome ? [
       renderCalendarMetric("총 수입", formatWon(totalIncome), "수입 입력 + 이체 입금", "income", { incomeMonth: month, priority: "core", key: "income" }),
-      renderCalendarMetric("잔액", formatSignedWon(balance), "총 수입 - 총 지출", balance >= 0 ? "positive" : "negative", { priority: "core", key: "balance" })
+      renderCalendarMetric("잔액", formatSignedWon(balance), supportReceived ? `총 수입 + 가족 분담 ${formatWon(supportReceived)} - 총 지출` : "총 수입 - 총 지출", balance >= 0 ? "positive" : "negative", { priority: "core", key: "balance" })
     ] : []),
     renderCalendarMetric(
       "카드 예상 결제",
@@ -568,7 +573,7 @@ function renderDayTimeline(dateKey, rows, scheduledRows = [], incomeRows = []) {
   const totalText = rows.length ? `실지출 ${formatWon(sumActual(rows))}` : "실지출 없음";
   const pendingScheduledRows = scheduledRows.filter((item) => !item.posted);
   const titleParts = [`${dateKey} 소비`, totalText];
-  if (incomeRows.length) titleParts.push(`수입 ${formatWon(sum(incomeRows, "amount"))}`);
+  if (incomeRows.length) titleParts.push(`수입 ${formatWon(calendarIncomeTotal(incomeRows))}`);
   if (pendingScheduledRows.length) titleParts.push(`고정 예정 ${formatWon(sum(pendingScheduledRows, "amount"))}`);
   els.selectedDayTitle.textContent = titleParts.join(" · ");
   const feedbackHtml = renderCalendarEditFeedback();
@@ -595,7 +600,10 @@ function renderDayTimeline(dateKey, rows, scheduledRows = [], incomeRows = []) {
               <strong title="${escapeHtml(item.merchant)}">${escapeHtml(item.merchant || "수입")}</strong>
               <div class="timeline-tags">${categoryChip("수입", item.subcategory || "이체입금")}</div>
             </div>
-            <div class="scheduled-actions"><b>${formatWon(item.amount)}</b></div>
+            <div class="scheduled-actions">
+              <b>${formatWon(incomeReportingAmount(item))}</b>
+              ${loanSupportLinkedIncomeAmount(item.transactionId || item.recordKey) ? `<small>계좌 입금 ${formatWon(item.amount)} · 대출 분담 ${formatWon(loanSupportLinkedIncomeAmount(item.transactionId || item.recordKey))} 제외</small>` : ""}
+            </div>
           </article>
         `).join("")}
     </div>
@@ -614,7 +622,7 @@ function renderDayTimeline(dateKey, rows, scheduledRows = [], incomeRows = []) {
               ${categoryChip(item.sector, item.subcategory)}
               ${item.recurringType === "loan" ? `<span class="scheduled-badge soft">원금 소비 제외</span>` : ""}
             </div>
-            ${item.recurringType === "loan" ? `<p>원금 ${formatWon(item.postedTransaction?.loanPrincipalAmount ?? item.loanPrincipalAmount)} · 이자 ${formatWon(item.postedTransaction?.loanInterestAmount ?? item.loanInterestAmount)}</p>` : item.memo ? `<p>${escapeHtml(item.memo)}</p>` : ""}
+            ${item.recurringType === "loan" ? `<p>${calendarLoanSummaryText(item.postedTransaction || item)}</p>` : item.memo ? `<p>${escapeHtml(item.memo)}</p>` : ""}
           </div>
           <div class="scheduled-actions">
             <b>${formatWon(item.postedTransaction?.amount ?? item.amount)}</b>
@@ -653,7 +661,7 @@ function renderCalendarTransactionCard(item, duplicateMeta = null) {
           ${installmentText ? `<span class="installment-badge">${escapeHtml(installmentText)}</span>` : ""}
         </div>
         <p>${isLoanRepaymentTransaction(item)
-          ? `총 상환 ${formatWon(item.amount)} · 원금 ${formatWon(item.loanPrincipalAmount)} · 이자 ${formatWon(item.loanInterestAmount)}`
+          ? calendarLoanSummaryText(item, { includeTotal: true })
           : `총 결제 ${formatWon(item.amount)}${reimbursement ? ` · 정산 ${formatWon(reimbursement)}` : ""}`}</p>
         ${isUnknown ? renderCalendarSuggestion(suggestion) : ""}
       </div>
@@ -670,6 +678,18 @@ function renderCalendarTransactionCard(item, duplicateMeta = null) {
       ${isEditing ? renderCalendarEditForm(calendarClassifiedItem(editRecordKey) || item) : ""}
     </article>
   `;
+}
+
+function calendarLoanSummaryText(item, options = {}) {
+  const support = loanSupportDueAmount(item);
+  const parts = [
+    options.includeTotal ? `총 상환 ${formatWon(item.amount)}` : "",
+    `전체 원금 ${formatWon(loanGrossPrincipalAmount(item))}`,
+    `이자 ${formatWon(loanGrossInterestAmount(item))}`,
+    support ? `내 부담 ${formatWon(loanPrincipalActualAmount(item) + loanInterestActualAmount(item))}` : "",
+    support ? `가족 분담 ${formatWon(support)}` : ""
+  ].filter(Boolean);
+  return escapeHtml(parts.join(" · "));
 }
 
 function renderCalendarSuggestion(suggestion) {
@@ -929,7 +949,7 @@ function calendarDuplicateSignature(item) {
 }
 
 function calendarDuplicateGroups(rows) {
-  const grouped = groupBy(rows, calendarDuplicateSignature);
+  const grouped = groupBy(rows.filter((item) => !isLoanRepaymentTransaction(item)), calendarDuplicateSignature);
   return [...grouped.entries()]
     .filter(([signature, items]) => signature && items.length > 1)
     .map(([signature, items]) => {

@@ -72,11 +72,12 @@ function renderMonthlyFlow() {
   const totalConsumption = sum(rows, "consumptionSpend");
   const totalSavings = sum(rows, "actualSavings");
   const totalDebtRepayment = sum(rows, "debtRepayment");
+  const totalLoanSettlementDelta = sum(rows, "loanSettlementDelta");
   const totalIncome = sum(rows, "income");
   const totalReimbursement = sum(rows, "reimbursement");
   const totalScheduled = sum(rows, "scheduled");
   const periodAssetGrowth = totalIncome - totalConsumption;
-  const totalFreeBalance = periodAssetGrowth - totalSavings - totalDebtRepayment;
+  const totalFreeBalance = periodAssetGrowth - totalSavings - totalDebtRepayment + totalLoanSettlementDelta;
   const averageConsumption = Math.round(totalConsumption / Math.max(rows.length, 1));
   const averageSavings = Math.round(totalSavings / Math.max(rows.length, 1));
   const rangeLabel = currentMonthlyRangeLabel();
@@ -115,12 +116,12 @@ function renderMonthlyFlow() {
         <div>
           <span>기간 자유 잔액</span>
           <strong class="${freeBalanceTone}">${formatSignedWon(totalFreeBalance)}</strong>
-          <small>수입 - 소비 - 저축 - 부채 상환</small>
+          <small>수입 - 소비 - 저축 - 내 원금 부담 + 가족 정산</small>
         </div>
       `,
       `
         <div>
-          <span>기간 부채 상환</span>
+          <span>기간 내 원금 부담</span>
           <strong>${formatWon(totalDebtRepayment)}</strong>
           <small>소비지출에서 제외된 대출 원금</small>
         </div>
@@ -184,11 +185,11 @@ function renderMonthlyFlow() {
           <small class="monthly-savings-rate-inline">저축률 ${monthlySavingsRateLabel(row.actualSavings, row.income)}</small>
         </div>
       </td>
-      <td class="amount debt-cell" data-label="부채 상환">
+      <td class="amount debt-cell" data-label="내 원금 부담">
         <div class="monthly-table-value">
           <span class="monthly-table-meter debt" style="--monthly-meter: ${monthlyMeterPercent(row.debtRepayment, maxDebtRepayment)}%"></span>
           <strong>${formatWon(row.debtRepayment)}</strong>
-          <small class="monthly-savings-rate-inline">대출 원금</small>
+          <small class="monthly-savings-rate-inline">본인 부담 대출 원금</small>
         </div>
       </td>
       ${hasScheduledExpenses ? `<td class="amount scheduled-amount" data-label="예정 지출">${formatWon(row.scheduled)}</td>` : ""}
@@ -211,7 +212,7 @@ function renderMonthlyFlow() {
         <th class="amount income-cell" scope="col">총수입</th>
         <th class="amount consumption-cell" scope="col">소비지출</th>
         <th class="amount savings-cell" scope="col">실제 저축</th>
-        <th class="amount debt-cell" scope="col">부채 상환</th>
+        <th class="amount debt-cell" scope="col">내 원금 부담</th>
         ${hasScheduledExpenses ? `<th class="amount scheduled-amount" scope="col">예정 지출</th>` : ""}
         <th class="net-wrap-cell balance-cell" scope="col">자유 잔액</th>
         <th class="amount savings-rate-cell" scope="col">저축률</th>
@@ -536,6 +537,7 @@ function buildMonthlyFlowRows(reportRows = reportingExpenseRows(classified)) {
   const months = unique([
     ...classified.filter((item) => item.status !== "취소/제외").map((item) => item.month).filter(Boolean),
     ...reportRows.map((item) => item.month).filter(Boolean),
+    ...reportRows.map((item) => loanSupportReceivedMonth(item)).filter(Boolean),
     ...Object.keys(monthlyIncome).filter(Boolean),
     ...recurringExpenses.flatMap((item) => [item.startMonth, item.endMonth]).filter(Boolean)
   ]).filter(isValidMonthKey).sort();
@@ -554,9 +556,12 @@ function buildMonthlyFlowRow(month, reportRows) {
   const consumptionSpend = sumConsumption(consumptionExpenses);
   const actualSavings = sumActual(savingsExpenses);
   const debtRepayment = sumDebtPrincipal(expenses);
-  const freeBalance = income - consumptionSpend - actualSavings - debtRepayment;
+  const legalDebtRepayment = sumLegalDebtPrincipal(expenses);
+  const loanSettlementDelta = loanSupportSettlementDeltaForMonth(reportRows, month);
+  const freeBalance = income - consumptionSpend - actualSavings - debtRepayment + loanSettlementDelta;
   const assetGrowth = income - consumptionSpend;
   const scheduled = scheduledTotalForMonth(month);
+  const scheduledPersonal = scheduledPersonalTotalForMonth(month);
   return {
     month,
     totalPayment,
@@ -564,11 +569,14 @@ function buildMonthlyFlowRow(month, reportRows) {
     consumptionSpend,
     actualSavings,
     debtRepayment,
+    legalDebtRepayment,
+    loanSettlementDelta,
     income,
     freeBalance,
     assetGrowth,
     scheduled,
-    expectedFreeBalance: freeBalance - scheduled,
+    scheduledPersonal,
+    expectedFreeBalance: freeBalance - scheduledPersonal,
     specialIncome: importedIncome
   };
 }
@@ -703,7 +711,7 @@ function latestMeaningfulMonthlyRow(rows) {
 }
 
 function monthlyRowHasActivity(row) {
-  return [row.totalPayment, row.consumptionSpend, row.actualSavings, row.debtRepayment, row.income]
+  return [row.totalPayment, row.consumptionSpend, row.actualSavings, row.debtRepayment, row.income, row.loanSettlementDelta]
     .some((value) => Number(value || 0) !== 0);
 }
 
