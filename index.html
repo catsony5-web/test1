@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="src/styles/07-responsive.css?v=125">
   <link rel="stylesheet" href="src/styles/08-themes.css?v=141-garden-analysis">
   <link rel="stylesheet" href="assets/tabler/tabler-icons.min.css?v=135-subcategory-icons">
-  <link rel="stylesheet" href="src/styles/09-production-ui.css?v=148-calendar-heatmap">
+  <link rel="stylesheet" href="src/styles/09-production-ui.css?v=149-menu-structure">
   <link rel="stylesheet" href="src/styles/10-analysis.css?v=146-professional-analysis">
   <script src="assets/vendor/xlsx.full.min.js"></script>
 </head>
@@ -256,20 +256,19 @@
           <strong>소비 분석 메뉴</strong>
         </div>
         <button class="tab active" type="button" data-view="board" aria-current="page"><i class="nav-icon ti ti-layout-dashboard" aria-hidden="true"></i><span class="nav-label">대시보드</span></button>
-        <button class="tab" type="button" data-view="monthlyAnalysis"><i class="nav-icon ti ti-chart-line" aria-hidden="true"></i><span class="nav-label">월간 분석</span></button>
-        <button class="tab" type="button" data-view="spendingStructure"><i class="nav-icon ti ti-chart-pie" aria-hidden="true"></i><span class="nav-label">소비 구조 분석</span></button>
         <button class="tab" type="button" data-view="calendar"><i class="nav-icon ti ti-calendar-month" aria-hidden="true"></i><span class="nav-label">소비 달력</span></button>
-        <button class="tab" type="button" data-view="details"><i class="nav-icon ti ti-list-details" aria-hidden="true"></i><span class="nav-label">상세 내역</span></button>
-        <button class="tab" type="button" data-view="monthly"><i class="nav-icon ti ti-chart-line" aria-hidden="true"></i><span class="nav-label">년도 지출정리</span></button>
+        <button class="tab" type="button" data-view="monthlyAnalysis"><i class="nav-icon ti ti-chart-line" aria-hidden="true"></i><span class="nav-label">월간 분석</span></button>
         <button class="tab" type="button" data-view="summary"><i class="nav-icon ti ti-chart-pie" aria-hidden="true"></i><span class="nav-label">월별 섹터 요약</span></button>
-        <button class="tab" type="button" data-view="ipo"><i class="nav-icon ti ti-building-bank" aria-hidden="true"></i><span class="nav-label">공모주</span></button>
+        <button class="tab" type="button" data-view="spendingStructure"><i class="nav-icon ti ti-chart-pie" aria-hidden="true"></i><span class="nav-label">소비 구조 분석</span></button>
+        <button class="tab" type="button" data-view="monthly"><i class="nav-icon ti ti-chart-line" aria-hidden="true"></i><span class="nav-label">년도 지출정리</span></button>
+        <button class="tab" type="button" data-view="details"><i class="nav-icon ti ti-list-details" aria-hidden="true"></i><span class="nav-label">상세 내역</span></button>
+        <div class="sidebar-group-label" role="separator" aria-label="입력·관리 메뉴"><span>입력·관리</span></div>
         <button class="tab" type="button" data-view="detailBulk"><i class="nav-icon ti ti-file-plus" aria-hidden="true"></i><span class="nav-label">과거 거래 입력</span></button>
         <button class="tab" type="button" data-view="income"><i class="nav-icon ti ti-cash-banknote" aria-hidden="true"></i><span class="nav-label">수입 입력</span></button>
         <button class="tab" type="button" data-view="recurring"><i class="nav-icon ti ti-repeat" aria-hidden="true"></i><span class="nav-label">고정 지출</span></button>
-        <button class="tab" type="button" data-view="products"><i class="nav-icon ti ti-package" aria-hidden="true"></i><span class="nav-label">소모품 사용</span></button>
         <button class="tab" type="button" data-view="unknown"><i class="nav-icon ti ti-alert-circle" aria-hidden="true"></i><span class="nav-label">미분류 해결</span></button>
-        <button class="tab admin-only-tab" type="button" data-view="rules" hidden><i class="nav-icon ti ti-category" aria-hidden="true"></i><span class="nav-label">분류 규칙</span></button>
-        <button class="tab admin-only-tab" type="button" data-view="transactions" hidden><i class="nav-icon ti ti-receipt" aria-hidden="true"></i><span class="nav-label">전체 내역</span></button>
+        <button class="tab" type="button" data-view="products"><i class="nav-icon ti ti-package" aria-hidden="true"></i><span class="nav-label">소모품 사용</span></button>
+        <button class="tab" type="button" data-view="ipo"><i class="nav-icon ti ti-building-bank" aria-hidden="true"></i><span class="nav-label">공모주</span></button>
       </nav>
 
       <section id="boardView" class="view active">
@@ -1109,20 +1108,20 @@
         <button id="mobileMoreCloseButton" class="mobile-more-close" type="button" aria-label="더보기 메뉴 닫기"><i class="ti ti-x" aria-hidden="true"></i></button>
       </header>
       <nav class="mobile-more-menu" aria-label="추가 메뉴">
-        <span class="mobile-more-label">분석과 기록</span>
+        <button type="button" data-mobile-view="board"><i class="ti ti-layout-dashboard" aria-hidden="true"></i><span>대시보드</span></button>
+        <button type="button" data-mobile-view="calendar"><i class="ti ti-calendar-month" aria-hidden="true"></i><span>소비 달력</span></button>
         <button type="button" data-mobile-view="monthlyAnalysis"><i class="ti ti-chart-line" aria-hidden="true"></i><span>월간 분석</span></button>
+        <button type="button" data-mobile-view="summary"><i class="ti ti-chart-pie" aria-hidden="true"></i><span>월별 섹터 요약</span></button>
         <button type="button" data-mobile-view="spendingStructure"><i class="ti ti-chart-pie" aria-hidden="true"></i><span>소비 구조 분석</span></button>
         <button type="button" data-mobile-view="monthly"><i class="ti ti-chart-line" aria-hidden="true"></i><span>년도 지출정리</span></button>
-        <button type="button" data-mobile-view="summary"><i class="ti ti-chart-pie" aria-hidden="true"></i><span>월별 섹터 요약</span></button>
-        <button type="button" data-mobile-view="ipo"><i class="ti ti-building-bank" aria-hidden="true"></i><span>공모주</span></button>
+        <button type="button" data-mobile-view="details"><i class="ti ti-list-details" aria-hidden="true"></i><span>상세 내역</span></button>
+        <span class="mobile-more-label mobile-more-input-label" role="separator" aria-label="입력·관리 메뉴">입력·관리</span>
         <button type="button" data-mobile-view="detailBulk"><i class="ti ti-file-plus" aria-hidden="true"></i><span>과거 거래 입력</span></button>
         <button type="button" data-mobile-view="income"><i class="ti ti-cash-banknote" aria-hidden="true"></i><span>수입 입력</span></button>
         <button type="button" data-mobile-view="recurring"><i class="ti ti-repeat" aria-hidden="true"></i><span>고정 지출</span></button>
-        <button type="button" data-mobile-view="products"><i class="ti ti-package" aria-hidden="true"></i><span>소모품 사용</span></button>
         <button type="button" data-mobile-view="unknown"><i class="ti ti-alert-circle" aria-hidden="true"></i><span>미분류 해결</span></button>
-        <span class="mobile-more-label mobile-more-admin-label">관리</span>
-        <button type="button" data-mobile-view="rules"><i class="ti ti-category" aria-hidden="true"></i><span>분류 규칙</span></button>
-        <button type="button" data-mobile-view="transactions"><i class="ti ti-receipt" aria-hidden="true"></i><span>전체 내역</span></button>
+        <button type="button" data-mobile-view="products"><i class="ti ti-package" aria-hidden="true"></i><span>소모품 사용</span></button>
+        <button type="button" data-mobile-view="ipo"><i class="ti ti-building-bank" aria-hidden="true"></i><span>공모주</span></button>
         <button id="mobileSettingsButton" class="mobile-settings-entry" type="button"><i class="ti ti-settings" aria-hidden="true"></i><span>설정/관리</span></button>
       </nav>
     </section>
