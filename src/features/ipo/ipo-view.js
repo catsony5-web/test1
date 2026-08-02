@@ -233,14 +233,138 @@ function renderIpoSummary() {
   const waitingAllocation = ipoRecords.filter((item) => !isIpoUnallocated(item) && item.subscriptionEnd && item.subscriptionEnd < today && !item.allocatedShares);
   const waitingSell = ipoRecords.filter((item) => !isIpoUnallocated(item) && Number(item.allocatedShares || 0) > 0 && !isIpoRealized(item));
   const performance = getIpoPerformanceMetrics();
-  els.ipoSummaryCards.innerHTML = [
-    renderIpoSummaryCard("진행 중", `${active.length.toLocaleString("ko-KR")}건`, "청약·배정·매도 대기"),
-    renderIpoSummaryCard("배정 대기", `${waitingAllocation.length.toLocaleString("ko-KR")}건`, "청약 종료 후 배정 미입력"),
-    renderIpoSummaryCard("매도 대기", `${waitingSell.length.toLocaleString("ko-KR")}건`, "배정 후 매도 미입력"),
+  const summaryGroups = {
+    active: createIpoSummaryGroup("active", "진행 중", active),
+    allocation: createIpoSummaryGroup("allocation", "배정 대기", waitingAllocation),
+    sell: createIpoSummaryGroup("sell", "매도 대기", waitingSell)
+  };
+  if (!summaryGroups[selectedIpoSummaryGroup]?.targets.length || summaryGroups[selectedIpoSummaryGroup].targets.length < 2) {
+    selectedIpoSummaryGroup = "";
+  }
+  const cards = [
+    renderIpoSummaryCard("진행 중", `${active.length.toLocaleString("ko-KR")}건`, "청약·배정·매도 대기", 0, summaryGroups.active),
+    renderIpoSummaryCard("배정 대기", `${waitingAllocation.length.toLocaleString("ko-KR")}건`, "청약 종료 후 배정 미입력", 0, summaryGroups.allocation),
+    renderIpoSummaryCard("매도 대기", `${waitingSell.length.toLocaleString("ko-KR")}건`, "배정 후 매도 미입력", 0, summaryGroups.sell),
     renderIpoSummaryCard("누적 손익", formatSignedWon(performance.realizedProfit), "수수료 제외 손익", performance.realizedProfit),
     renderIpoSummaryCard("최종 정산 손익", formatSignedWon(performance.settlementProfit), `${performance.realizedCount.toLocaleString("ko-KR")}건 수수료 반영`, performance.settlementProfit),
     renderIpoSummaryCard("승률", `${performance.winRate}%`, `${performance.winCount}/${performance.realizedCount}건 정산 수익`)
-  ].join("");
+  ];
+  if (selectedIpoSummaryGroup) cards.push(renderIpoSummaryJumpPanel(summaryGroups[selectedIpoSummaryGroup]));
+  els.ipoSummaryCards.innerHTML = cards.join("");
+  attachIpoSummaryHandlers(summaryGroups);
+}
+
+function createIpoSummaryGroup(key, label, items) {
+  const targets = items
+    .map((item) => ({ item, event: getIpoSummaryJumpEvent(item, key) }))
+    .filter((target) => target.event)
+    .sort((a, b) => a.event.date.localeCompare(b.event.date, "ko-KR") || a.item.company.localeCompare(b.item.company, "ko-KR"));
+  return { key, label, items, targets };
+}
+
+function getIpoSummaryJumpEvent(item, groupKey, today = new Date().toISOString().slice(0, 10)) {
+  const events = buildIpoRecordCalendarEvents(item);
+  if (!events.length) return null;
+  const priorities = groupKey === "allocation"
+    ? ["subscriptionEnd", "refundDate", "subscriptionStart", "listingDate", "listingAndSell", "sellDate"]
+    : groupKey === "sell"
+      ? ["listingDate", "listingAndSell", "refundDate", "subscriptionEnd", "subscriptionStart", "sellDate"]
+      : [];
+  for (const key of priorities) {
+    const event = events.find((candidate) => candidate.key === key);
+    if (event) return event;
+  }
+  const todayTime = Date.parse(`${today}T00:00:00`);
+  return [...events].sort((a, b) => {
+    const distanceA = Math.abs(Date.parse(`${a.date}T00:00:00`) - todayTime);
+    const distanceB = Math.abs(Date.parse(`${b.date}T00:00:00`) - todayTime);
+    return distanceA - distanceB || a.date.localeCompare(b.date, "ko-KR");
+  })[0];
+}
+
+function renderIpoSummaryJumpPanel(group) {
+  return `
+    <section class="ipo-summary-jump-panel" aria-label="${escapeHtml(group.label)} 종목 선택">
+      <div class="ipo-summary-jump-head">
+        <div>
+          <span>${escapeHtml(group.label)}</span>
+          <strong>이동할 종목을 선택하세요</strong>
+        </div>
+        <button type="button" data-close-ipo-summary aria-label="종목 선택 목록 닫기"><i class="ti ti-x" aria-hidden="true"></i></button>
+      </div>
+      <div class="ipo-summary-jump-list">
+        ${group.targets.map(({ item, event }) => `
+          <button type="button" data-ipo-summary-record="${escapeHtml(item.id)}" data-ipo-summary-group="${escapeHtml(group.key)}">
+            <span class="ipo-event-type">${escapeHtml(event.type)}</span>
+            <strong>${escapeHtml(item.company)}</strong>
+            <small>${escapeHtml([item.broker, formatIpoDisplayDate(event.date)].filter(Boolean).join(" · "))}</small>
+            <i class="ti ti-chevron-right" aria-hidden="true"></i>
+          </button>
+        `).join("")}
+      </div>
+    </section>
+  `;
+}
+
+function attachIpoSummaryHandlers(groups) {
+  els.ipoSummaryCards.querySelectorAll("[data-ipo-summary-action]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const group = groups[button.dataset.ipoSummaryAction];
+      if (!group?.targets.length) return;
+      if (group.targets.length === 1) {
+        jumpToIpoCalendarEvent(group.targets[0].event);
+        return;
+      }
+      selectedIpoSummaryGroup = selectedIpoSummaryGroup === group.key ? "" : group.key;
+      renderIpoSummary();
+      if (selectedIpoSummaryGroup) {
+        requestAnimationFrame(() => {
+          const firstTarget = els.ipoSummaryCards.querySelector("[data-ipo-summary-record]");
+          firstTarget?.focus({ preventScroll: true });
+          firstTarget?.scrollIntoView({
+            behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+            block: "center"
+          });
+        });
+      }
+    });
+  });
+  els.ipoSummaryCards.querySelector("[data-close-ipo-summary]")?.addEventListener("click", () => {
+    const returnGroup = selectedIpoSummaryGroup;
+    selectedIpoSummaryGroup = "";
+    renderIpoSummary();
+    requestAnimationFrame(() => els.ipoSummaryCards.querySelector(`[data-ipo-summary-action="${returnGroup}"]`)?.focus());
+  });
+  els.ipoSummaryCards.querySelectorAll("[data-ipo-summary-record]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const group = groups[button.dataset.ipoSummaryGroup];
+      const target = group?.targets.find((candidate) => candidate.item.id === button.dataset.ipoSummaryRecord);
+      if (target) jumpToIpoCalendarEvent(target.event);
+    });
+  });
+}
+
+function jumpToIpoCalendarEvent(event) {
+  if (!event?.date || !event?.item?.id) return;
+  selectedIpoSummaryGroup = "";
+  selectedIpoSubtab = "dashboard";
+  selectedIpoCalendarMonth = monthKey(event.date);
+  selectedIpoCalendarDate = event.date;
+  selectedIpoCalendarRecordId = event.item.id;
+  selectedIpoCalendarEventKey = event.key;
+  renderIpoView();
+  requestAnimationFrame(() => {
+    document.querySelector(".ipo-calendar-panel")?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      block: "start"
+    });
+    const selectedEvent = [...els.ipoCalendarGrid.querySelectorAll(".ipo-calendar-event")].find((node) =>
+      node.dataset.ipoCalendarDate === selectedIpoCalendarDate
+      && node.dataset.ipoCalendarRecord === selectedIpoCalendarRecordId
+      && node.dataset.ipoCalendarEvent === selectedIpoCalendarEventKey
+    );
+    selectedEvent?.focus({ preventScroll: true });
+  });
 }
 
 function getIpoPerformanceMetrics() {
@@ -530,8 +654,21 @@ function attachIpoPerformanceHandlers() {
   });
 }
 
-function renderIpoSummaryCard(label, value, hint, amount = 0) {
+function renderIpoSummaryCard(label, value, hint, amount = 0, navigation = null) {
   const tone = amount > 0 ? "positive" : amount < 0 ? "negative" : "";
+  if (navigation) {
+    const targetCount = navigation.targets.length;
+    const actionLabel = targetCount === 1 ? "해당 일정으로 이동" : targetCount > 1 ? "종목 선택 목록 열기" : "이동할 일정 없음";
+    const isExpanded = selectedIpoSummaryGroup === navigation.key;
+    return `
+      <button class="ipo-summary-card ipo-summary-action" type="button" data-ipo-summary-action="${escapeHtml(navigation.key)}" aria-label="${escapeHtml(`${label} ${value}, ${actionLabel}`)}" aria-expanded="${isExpanded}" ${targetCount ? "" : "disabled"}>
+        <span>${escapeHtml(label)}</span>
+        <strong>${escapeHtml(value)}</strong>
+        <small>${escapeHtml(hint)}</small>
+        ${targetCount ? `<i class="ti ${isExpanded ? "ti-chevron-down" : "ti-chevron-right"}" aria-hidden="true"></i>` : ""}
+      </button>
+    `;
+  }
   return `
     <article class="ipo-summary-card ${tone}">
       <span>${escapeHtml(label)}</span>
@@ -638,22 +775,24 @@ function renderIpoCalendarDay(date, events) {
 
 function buildIpoCalendarEvents() {
   return ipoRecords
-    .flatMap((item) => {
-      const record = normalizeIpoRecord(item);
-      const listingAndSellSameDay = record.listingDate
-        && record.sellDate
-        && record.listingDate === record.sellDate
-        && !isIpoUnallocated(record);
-      return [
-        record.subscriptionStart ? { key: "subscriptionStart", date: record.subscriptionStart, type: "청약", item: record } : null,
-        record.subscriptionEnd && record.subscriptionEnd !== record.subscriptionStart ? { key: "subscriptionEnd", date: record.subscriptionEnd, type: "청약 마감", item: record } : null,
-        record.refundDate ? { key: "refundDate", date: record.refundDate, type: "환불", item: record } : null,
-        listingAndSellSameDay ? { key: "listingAndSell", date: record.listingDate, type: "상장·매도", item: record } : null,
-        record.listingDate && !listingAndSellSameDay ? { key: "listingDate", date: record.listingDate, type: "상장", item: record } : null,
-        record.sellDate && !listingAndSellSameDay && !isIpoUnallocated(record) ? { key: "sellDate", date: record.sellDate, type: "매도", item: record } : null
-      ].filter(Boolean);
-    })
+    .flatMap(buildIpoRecordCalendarEvents)
     .sort((a, b) => String(a.date).localeCompare(String(b.date), "ko-KR"));
+}
+
+function buildIpoRecordCalendarEvents(item) {
+  const record = normalizeIpoRecord(item);
+  const listingAndSellSameDay = record.listingDate
+    && record.sellDate
+    && record.listingDate === record.sellDate
+    && !isIpoUnallocated(record);
+  return [
+    record.subscriptionStart ? { key: "subscriptionStart", date: record.subscriptionStart, type: "청약", item: record } : null,
+    record.subscriptionEnd && record.subscriptionEnd !== record.subscriptionStart ? { key: "subscriptionEnd", date: record.subscriptionEnd, type: "청약 마감", item: record } : null,
+    record.refundDate ? { key: "refundDate", date: record.refundDate, type: "환불", item: record } : null,
+    listingAndSellSameDay ? { key: "listingAndSell", date: record.listingDate, type: "상장·매도", item: record } : null,
+    record.listingDate && !listingAndSellSameDay ? { key: "listingDate", date: record.listingDate, type: "상장", item: record } : null,
+    record.sellDate && !listingAndSellSameDay && !isIpoUnallocated(record) ? { key: "sellDate", date: record.sellDate, type: "매도", item: record } : null
+  ].filter(Boolean);
 }
 
 function renderIpoCalendarEvent(event) {

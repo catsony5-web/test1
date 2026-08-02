@@ -47,4 +47,40 @@ const empty = buildPerformance([], "all");
 assert.equal(empty.months.length, 0);
 assert.equal(empty.settlementProfit, 0);
 
+const getJumpEvent = context.getIpoSummaryJumpEvent;
+const pendingAllocation = {
+  id: "pending-allocation",
+  company: "배정 대기 종목",
+  subscriptionStart: "2026-02-18",
+  subscriptionEnd: "2026-02-20",
+  refundDate: "2026-02-24",
+  allocationResult: "pending"
+};
+assert.equal(getJumpEvent(pendingAllocation, "allocation", "2026-08-02").key, "subscriptionEnd");
+assert.equal(getJumpEvent(pendingAllocation, "allocation", "2026-08-02").date, "2026-02-20");
+
+const waitingSell = {
+  id: "waiting-sell",
+  company: "매도 대기 종목",
+  subscriptionStart: "2026-01-10",
+  subscriptionEnd: "2026-01-12",
+  listingDate: "2026-03-05",
+  allocatedShares: 1,
+  allocationResult: "allocated"
+};
+assert.equal(getJumpEvent(waitingSell, "sell", "2026-08-02").key, "listingDate");
+assert.equal(getJumpEvent(waitingSell, "sell", "2026-08-02").date, "2026-03-05");
+
+const nearestActive = {
+  id: "nearest-active",
+  company: "진행 종목",
+  subscriptionStart: "2026-07-20",
+  subscriptionEnd: "2026-07-22",
+  refundDate: "2026-08-04",
+  listingDate: "2026-08-12",
+  allocationResult: "pending"
+};
+assert.equal(getJumpEvent(nearestActive, "active", "2026-08-02").key, "refundDate", "진행 중 카드는 오늘과 가장 가까운 등록 일정으로 이동해야 한다.");
+assert.equal(getJumpEvent({ id: "no-date", company: "날짜 없음" }, "active", "2026-08-02"), null);
+
 console.log("IPO cumulative performance checks passed.");

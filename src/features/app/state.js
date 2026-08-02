@@ -458,6 +458,7 @@ let editingIpoId = "";
 let ipoImageDraftData = "";
 let ipoImageDraftName = "";
 let selectedIpoSubtab = "dashboard";
+let selectedIpoSummaryGroup = "";
 let selectedIpoPerformanceYear = "all";
 let selectedIpoPerformanceMonth = "";
 let selectedIpoCalendarMonth = "";

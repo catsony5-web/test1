@@ -311,6 +311,152 @@ button.summary-metric-card:hover {
   padding: 15px 16px;
 }
 
+.ipo-summary-action {
+  position: relative;
+  width: 100%;
+  padding-right: 42px;
+  color: var(--text-main);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ipo-summary-action > i {
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  color: var(--primary-blue);
+  font-size: 18px;
+  transform: translateY(-50%);
+}
+
+.ipo-summary-action:not(:disabled):hover {
+  border-color: color-mix(in srgb, var(--accent-blue) 46%, var(--border));
+  background: color-mix(in srgb, var(--accent-blue) 5%, var(--surface));
+}
+
+.ipo-summary-action:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+.ipo-summary-action:disabled {
+  cursor: default;
+  opacity: 0.72;
+}
+
+.ipo-summary-jump-panel {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent-blue) 30%, var(--border));
+  border-radius: 12px;
+  padding: 14px;
+  background: color-mix(in srgb, var(--accent-blue) 4%, var(--surface));
+}
+
+.ipo-summary-jump-head {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ipo-summary-jump-head > div {
+  display: grid;
+  gap: 3px;
+}
+
+.ipo-summary-jump-head span {
+  color: var(--primary-blue);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.ipo-summary-jump-head strong {
+  color: var(--text-main);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.ipo-summary-jump-head > button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-sub);
+  padding: 0;
+}
+
+.ipo-summary-jump-list {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.ipo-summary-jump-list > button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 4px 10px;
+  align-items: center;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-main);
+  padding: 11px 12px;
+  text-align: left;
+}
+
+.ipo-summary-jump-list > button:last-child {
+  border-bottom: 0;
+}
+
+.ipo-summary-jump-list > button:hover,
+.ipo-summary-jump-list > button:focus-visible {
+  background: color-mix(in srgb, var(--accent-blue) 7%, var(--surface));
+}
+
+.ipo-summary-jump-list > button:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: -2px;
+}
+
+.ipo-summary-jump-list .ipo-event-type {
+  grid-row: 1 / 3;
+}
+
+.ipo-summary-jump-list strong,
+.ipo-summary-jump-list small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ipo-summary-jump-list strong {
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.ipo-summary-jump-list small {
+  color: var(--text-sub);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.ipo-summary-jump-list > button > i {
+  grid-column: 3;
+  grid-row: 1 / 3;
+  color: var(--primary-blue);
+  font-size: 17px;
+}
+
 .ipo-summary-card span,
 .ipo-summary-card small {
   color: var(--text-sub);
