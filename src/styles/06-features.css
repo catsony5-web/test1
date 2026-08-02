@@ -350,6 +350,86 @@ button.summary-metric-card:hover {
   align-items: center;
 }
 
+.ipo-cumulative-performance {
+  display: grid;
+  grid-template-columns: minmax(240px, 1.4fr) minmax(360px, 1fr);
+  gap: 24px;
+  align-items: center;
+  border-block: 1px solid var(--border);
+  padding: 14px 2px;
+}
+
+.ipo-cumulative-primary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 14px;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.ipo-cumulative-primary span {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  color: var(--text-sub);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.ipo-cumulative-primary strong {
+  color: var(--text-main);
+  font-family: var(--font-number);
+  font-size: 26px;
+  font-weight: 900;
+  text-align: right;
+}
+
+.ipo-cumulative-primary strong.positive,
+.ipo-cumulative-performance dd.positive {
+  color: var(--status-positive-text);
+}
+
+.ipo-cumulative-primary strong.negative,
+.ipo-cumulative-performance dd.negative {
+  color: var(--danger);
+}
+
+.ipo-cumulative-primary small {
+  grid-column: 1 / -1;
+  color: var(--text-sub);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.ipo-cumulative-performance dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+}
+
+.ipo-cumulative-performance dl div {
+  min-width: 0;
+  border-left: 1px solid var(--border);
+  padding: 2px 14px;
+}
+
+.ipo-cumulative-performance dt {
+  color: var(--text-sub);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.ipo-cumulative-performance dd {
+  overflow: hidden;
+  margin: 5px 0 0;
+  color: var(--text-main);
+  font-family: var(--font-number);
+  font-size: 15px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .ipo-calendar-controls {
   display: inline-grid;
   grid-template-columns: 36px minmax(136px, 1fr) 36px;
@@ -552,6 +632,26 @@ button.summary-metric-card:hover {
 .ipo-calendar-event.sell {
   border-color: color-mix(in srgb, var(--accent-positive) 30%, var(--border));
   background: color-mix(in srgb, var(--accent-positive) 9%, var(--surface));
+}
+
+.ipo-calendar-event.listing-sell {
+  border-color: color-mix(in srgb, var(--accent-positive) 34%, var(--border));
+  background: color-mix(in srgb, var(--accent-positive) 10%, var(--surface));
+}
+
+.ipo-calendar-event.listing-sell .ipo-event-type {
+  background: color-mix(in srgb, var(--accent-positive) 15%, transparent);
+  color: var(--status-positive-text);
+}
+
+.ipo-calendar-event.listing-sell.loss {
+  border-color: color-mix(in srgb, var(--danger) 30%, var(--border));
+  background: color-mix(in srgb, var(--danger) 8%, var(--surface));
+}
+
+.ipo-calendar-event.listing-sell.loss .ipo-event-type {
+  background: color-mix(in srgb, var(--danger) 13%, transparent);
+  color: var(--danger);
 }
 
 .ipo-calendar-event.sell.loss {

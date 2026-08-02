@@ -44,6 +44,21 @@ assert.equal(quantityV2.totalSellAmount, 45000);
 assert.equal(quantityV2.profit, 15000);
 assert.equal(quantityV2.settlementProfit, 13000);
 
+const quantityV2WithSellFee = normalize({
+  id: "quantity-v2-with-sell-fee",
+  company: "매도수수료 포함",
+  calculationVersion: "quantity-v2",
+  offerPrice: 35000,
+  allocatedShares: 2,
+  sellDate: "2024-07-29",
+  sellPrice: 43025,
+  applicationFee: 2000,
+  sellFee: 162,
+  allocationResult: "allocated"
+});
+assert.equal(quantityV2WithSellFee.profit, 16050);
+assert.equal(quantityV2WithSellFee.settlementProfit, 13888, "청약·매도 수수료를 모두 최종 정산손익에 반영해야 한다.");
+
 const reported = normalize({
   id: "reported",
   company: "수량 미확인 기록",

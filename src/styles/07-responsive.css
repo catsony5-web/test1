@@ -215,6 +215,20 @@
     grid-template-columns: 38px minmax(0, 1fr) 38px;
   }
 
+  .ipo-cumulative-performance {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .ipo-cumulative-performance dl div:first-child {
+    border-left: 0;
+    padding-left: 0;
+  }
+
+  .ipo-cumulative-primary strong {
+    font-size: 22px;
+  }
+
   .ipo-calendar-body {
     grid-template-columns: 1fr;
   }

@@ -283,6 +283,7 @@ const els = {
   prevIpoCalendarMonth: document.querySelector("#prevIpoCalendarMonth"),
   ipoCalendarMonthSelect: document.querySelector("#ipoCalendarMonthSelect"),
   nextIpoCalendarMonth: document.querySelector("#nextIpoCalendarMonth"),
+  ipoCumulativePerformance: document.querySelector("#ipoCumulativePerformance"),
   ipoCalendarGrid: document.querySelector("#ipoCalendarGrid"),
   ipoCalendarDetail: document.querySelector("#ipoCalendarDetail"),
   ipoStatusFilter: document.querySelector("#ipoStatusFilter"),
