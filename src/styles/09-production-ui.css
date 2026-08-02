@@ -4516,11 +4516,11 @@ body .snapshot-list {
 
 /* Calendar daily actual-spend heatmap. Scheduled-only days remain neutral. */
 #calendarView {
-  --calendar-heat-0: var(--surface);
-  --calendar-heat-1: #e4f5f2;
-  --calendar-heat-2: #b9dfea;
-  --calendar-heat-3: #579aa7;
-  --calendar-heat-4: #254b60;
+  --calendar-heat-0: var(--calendar-heat-0-token, var(--surface));
+  --calendar-heat-1: var(--calendar-heat-1-token, #e4f5f2);
+  --calendar-heat-2: var(--calendar-heat-2-token, #b9dfea);
+  --calendar-heat-3: var(--calendar-heat-3-token, #86c3cd);
+  --calendar-heat-4: var(--calendar-heat-4-token, #254b60);
 }
 
 #calendarView .calendar-cell[data-spend-level] {
@@ -4541,8 +4541,6 @@ body .snapshot-list {
 
 #calendarView .calendar-cell[data-spend-level="3"] {
   --calendar-cell-bg: var(--calendar-heat-3);
-  --calendar-cell-text: #f7fbfc;
-  --calendar-cell-muted: rgba(247, 251, 252, 0.84);
 }
 
 #calendarView .calendar-cell[data-spend-level="4"] {

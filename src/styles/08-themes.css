@@ -197,20 +197,6 @@ textarea,
   --theme-preview-4: #b1545b;
 }
 
-.theme-choice[data-theme-choice="warm"] {
-  --theme-preview-1: #425a4e;
-  --theme-preview-2: #5e7482;
-  --theme-preview-3: #8a6e47;
-  --theme-preview-4: #a45f62;
-}
-
-.theme-choice[data-theme-choice="slate"] {
-  --theme-preview-1: #324d5b;
-  --theme-preview-2: #5a7384;
-  --theme-preview-3: #47745f;
-  --theme-preview-4: #a45f62;
-}
-
 .theme-choice[data-theme-choice="dark"] {
   --theme-preview-1: #18211e;
   --theme-preview-2: #78a091;
@@ -225,11 +211,11 @@ textarea,
   --theme-preview-4: #de7470;
 }
 
-.theme-choice[data-theme-choice="sunlit-balance"] {
-  --theme-preview-1: #367d9c;
-  --theme-preview-2: #80b79c;
-  --theme-preview-3: #d6a34c;
-  --theme-preview-4: #d97870;
+.theme-choice[data-theme-choice="lilac-aqua"] {
+  --theme-preview-1: #706eae;
+  --theme-preview-2: #417d98;
+  --theme-preview-3: #3d8078;
+  --theme-preview-4: #b6536d;
 }
 
 .theme-choice[data-theme-choice="garden-ink"] {
@@ -237,6 +223,13 @@ textarea,
   --theme-preview-2: #4995a6;
   --theme-preview-3: #2f7b70;
   --theme-preview-4: #b65d71;
+}
+
+.theme-choice[data-theme-choice="warm-earth"] {
+  --theme-preview-1: #966157;
+  --theme-preview-2: #607986;
+  --theme-preview-3: #557762;
+  --theme-preview-4: #b65f58;
 }
 
 .background-settings {

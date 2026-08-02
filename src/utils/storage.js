@@ -117,12 +117,11 @@ function saveSettings() {
 
 const THEME_BROWSER_COLORS = Object.freeze({
   minimal: "#1e5748",
-  warm: "#425a4e",
-  slate: "#324d5b",
   dark: "#18211e",
   "clear-aqua": "#317b9f",
-  "sunlit-balance": "#367d9c",
-  "garden-ink": "#365f7e"
+  "lilac-aqua": "#706eae",
+  "garden-ink": "#365f7e",
+  "warm-earth": "#966157"
 });
 
 function applyAppSettings() {
@@ -140,7 +139,7 @@ function applyAppSettings() {
 
 
 function normalizeTheme(value) {
-  return ["minimal", "warm", "slate", "dark", "clear-aqua", "sunlit-balance", "garden-ink"].includes(value)
+  return ["minimal", "dark", "clear-aqua", "lilac-aqua", "garden-ink", "warm-earth"].includes(value)
     ? value
     : "garden-ink";
 }
