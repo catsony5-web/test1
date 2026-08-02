@@ -593,11 +593,29 @@ function mergeProducts(current, incoming) {
 
 function mergeIpoRecords(current, incoming) {
   const result = current.map(normalizeIpoRecord);
+  const sourceIndexes = new Map(result
+    .map((item, index) => [item.sourceRecordId, index])
+    .filter(([sourceRecordId]) => sourceRecordId));
   const seen = new Set(result.map(ipoRecordSignature));
   incoming.map(normalizeIpoRecord).forEach((item) => {
+    if (item.sourceRecordId && sourceIndexes.has(item.sourceRecordId)) {
+      const index = sourceIndexes.get(item.sourceRecordId);
+      const existing = result[index];
+      result[index] = normalizeIpoRecord({
+        ...existing,
+        ...item,
+        id: existing.id,
+        createdAt: existing.createdAt,
+        imageData: item.imageData || existing.imageData,
+        imageName: item.imageName || existing.imageName
+      });
+      seen.add(ipoRecordSignature(result[index]));
+      return;
+    }
     const signature = ipoRecordSignature(item);
     if (seen.has(signature)) return;
     seen.add(signature);
+    if (item.sourceRecordId) sourceIndexes.set(item.sourceRecordId, result.length);
     result.push(item);
   });
   return result;
@@ -610,7 +628,7 @@ function productSignature(item) {
 
 function ipoRecordSignature(item) {
   const normalized = normalizeIpoRecord(item);
-  return normalized.id || [
+  return normalized.sourceRecordId ? `source:${normalized.sourceRecordId}` : normalized.id || [
     normalizeKeyText(normalized.company),
     normalized.broker,
     normalized.subscriptionStart,

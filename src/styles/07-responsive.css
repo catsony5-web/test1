@@ -189,6 +189,23 @@
     text-align: left;
   }
 
+  .ipo-history-import summary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .ipo-history-import summary small {
+    text-align: left;
+  }
+
+  .ipo-import-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ipo-preview-wrap {
+    max-height: 62vh;
+  }
+
   .ipo-calendar-panel .panel-head,
   .ipo-calendar-controls {
     width: 100%;

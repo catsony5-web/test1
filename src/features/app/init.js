@@ -241,6 +241,7 @@ async function init() {
     els.ipoOfferPrice,
     els.ipoApplicationFee,
     els.ipoAllocatedShares,
+    els.ipoAllocationResult,
     els.ipoSellPrice,
     els.ipoSellAmount,
     els.ipoSellFee

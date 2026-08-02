@@ -1,3 +1,10 @@
+const IPO_NORMALIZED_TSV_COLUMNS = [
+  "원본ID", "매도일", "상장일", "공모주", "기본종목", "증권사", "공모가", "수량", "1주매도가",
+  "총매도금액", "청약수수료", "고가", "시가", "종가", "원본손익률", "원본손익", "계산방식", "배정결과", "메모"
+];
+const IPO_IMPORT_REFERENCE_PATTERN = /(?:원본|PDF)\s*(?:기재\s*)?(?:결산\s*)?합계\s*[:：]?\s*([+-]?[\d,]+)\s*원?\s*[.·-]?\s*/;
+let ipoImportReferenceTotal = null;
+
 function handleIpoSubmit(event) {
   event.preventDefault();
   saveIpoFromForm();
@@ -24,6 +31,7 @@ async function saveIpoFromForm() {
     depositAmount: els.ipoDepositAmount.value,
     applicationFee: els.ipoApplicationFee.value,
     allocatedShares: els.ipoAllocatedShares.value,
+    allocationResult: els.ipoAllocationResult.value,
     sellDate: els.ipoSellDate.value,
     sellPrice: els.ipoSellPrice.value,
     sellAmount: els.ipoSellAmount.value,
@@ -34,8 +42,16 @@ async function saveIpoFromForm() {
     memo: els.ipoMemo.value.trim(),
     imageData: ipoImageDraftData,
     imageName: ipoImageDraftName,
-    source: "manual",
-    sourceLabel: "직접 입력",
+    sourceRecordId: existingRecord?.sourceRecordId || "",
+    baseCompany: existingRecord?.baseCompany || company,
+    calculationVersion: existingRecord ? existingRecord.calculationVersion : "quantity-v2",
+    reportedProfit: existingRecord?.reportedProfit,
+    reportedProfitRate: existingRecord?.reportedProfitRate,
+    hasReportedProfit: existingRecord?.hasReportedProfit,
+    hasReportedProfitRate: existingRecord?.hasReportedProfitRate,
+    rawSellValue: existingRecord?.rawSellValue || "",
+    source: existingRecord?.source || "manual",
+    sourceLabel: existingRecord?.sourceLabel || "직접 입력",
     createdAt: existingRecord?.createdAt || new Date().toISOString(),
     updatedAt: new Date().toISOString()
   });
@@ -81,6 +97,7 @@ function resetIpoForm() {
   editingIpoId = "";
   els.saveIpoButton.textContent = "공모주 기록 저장";
   els.cancelIpoEditButton.hidden = true;
+  if (els.ipoAllocationResult) els.ipoAllocationResult.value = "";
   clearIpoImageDraft();
   updateIpoComputedPreview();
 }
@@ -183,14 +200,21 @@ function renderIpoAttachedImage(item, className = "") {
 
 function updateIpoComputedPreview() {
   if (!els.ipoComputedProfit || !els.ipoComputedRate) return;
+  const editingRecord = ipoRecords.find((item) => item.id === els.ipoId?.value);
   const preview = normalizeIpoRecord({
     company: els.ipoCompany?.value || "미리보기",
     offerPrice: els.ipoOfferPrice?.value,
     applicationFee: els.ipoApplicationFee?.value,
     allocatedShares: els.ipoAllocatedShares?.value,
+    allocationResult: els.ipoAllocationResult?.value,
     sellPrice: els.ipoSellPrice?.value,
     sellAmount: els.ipoSellAmount?.value,
-    sellFee: els.ipoSellFee?.value
+    sellFee: els.ipoSellFee?.value,
+    calculationVersion: editingRecord ? editingRecord.calculationVersion : "quantity-v2",
+    reportedProfit: editingRecord?.reportedProfit,
+    reportedProfitRate: editingRecord?.reportedProfitRate,
+    hasReportedProfit: editingRecord?.hasReportedProfit,
+    hasReportedProfitRate: editingRecord?.hasReportedProfitRate
   });
   els.ipoComputedProfit.textContent = formatSignedWon(preview.profit);
   els.ipoComputedProfit.className = preview.profit > 0 ? "positive" : preview.profit < 0 ? "negative" : "";
@@ -203,10 +227,10 @@ function updateIpoComputedPreview() {
 
 function renderIpoSummary() {
   const today = new Date().toISOString().slice(0, 10);
-  const active = ipoRecords.filter((item) => !item.sellDate);
-  const waitingAllocation = ipoRecords.filter((item) => item.subscriptionEnd && item.subscriptionEnd < today && !item.allocatedShares);
-  const waitingSell = ipoRecords.filter((item) => Number(item.allocatedShares || 0) > 0 && !item.sellDate);
-  const realized = ipoRecords.filter((item) => item.sellDate);
+  const active = ipoRecords.filter((item) => !isIpoUnallocated(item) && !isIpoRealized(item));
+  const waitingAllocation = ipoRecords.filter((item) => !isIpoUnallocated(item) && item.subscriptionEnd && item.subscriptionEnd < today && !item.allocatedShares);
+  const waitingSell = ipoRecords.filter((item) => !isIpoUnallocated(item) && Number(item.allocatedShares || 0) > 0 && !isIpoRealized(item));
+  const realized = ipoRecords.filter(isIpoRealized);
   const realizedProfit = realized.reduce((total, item) => total + Number(item.profit || 0), 0);
   const settlementProfit = realized.reduce((total, item) => total + Number(item.settlementProfit || 0), 0);
   const winCount = realized.filter((item) => Number(item.profit || 0) > 0).length;
@@ -335,7 +359,7 @@ function buildIpoCalendarEvents() {
         record.subscriptionEnd && record.subscriptionEnd !== record.subscriptionStart ? { key: "subscriptionEnd", date: record.subscriptionEnd, type: "청약 마감", item: record } : null,
         record.refundDate ? { key: "refundDate", date: record.refundDate, type: "환불", item: record } : null,
         record.listingDate ? { key: "listingDate", date: record.listingDate, type: "상장", item: record } : null,
-        record.sellDate ? { key: "sellDate", date: record.sellDate, type: "매도", item: record } : null
+        record.sellDate && !isIpoUnallocated(record) ? { key: "sellDate", date: record.sellDate, type: "매도", item: record } : null
       ].filter(Boolean);
     })
     .sort((a, b) => String(a.date).localeCompare(String(b.date), "ko-KR"));
@@ -412,10 +436,11 @@ function renderIpoCalendarSelectedRecord(event) {
     ["배정 주수", item.allocatedShares ? `${Number(item.allocatedShares).toLocaleString("ko-KR")}주` : "-"],
     ["청약 수수료", formatWon(item.applicationFee)],
     ["매도 수수료", formatWon(item.sellFee)],
-    ["총 매도금액", item.sellAmount ? formatWon(item.sellAmount) : "-"],
-    ["손익", item.sellAmount ? formatSignedWon(item.profit) : "-"],
-    ["손익률", item.sellAmount ? formatIpoRate(item.profitRate) : "-"],
-    ["최종 정산 손익", item.sellAmount ? formatSignedWon(item.settlementProfit) : "-"],
+    ["배정 결과", ipoAllocationLabel(item)],
+    ["총 매도금액", ipoTotalSellAmount(item) ? formatWon(ipoTotalSellAmount(item)) : "-"],
+    ["손익", isIpoRealized(item) ? formatSignedWon(item.profit) : "-"],
+    ["손익률", isIpoRealized(item) ? formatIpoRate(item.profitRate) : "-"],
+    ["최종 정산 손익", isIpoRealized(item) ? formatSignedWon(item.settlementProfit) : "-"],
     ["시가/고가/종가", formatIpoMarketPrices(item)]
   ];
   return `
@@ -514,7 +539,7 @@ function filteredIpoRecords() {
       }
       if (ipoFilters.broker !== "all" && item.broker !== ipoFilters.broker) return false;
       if (!search) return true;
-      return normalizeKeyText([item.company, item.market, item.broker, item.memo, item.sourceLabel].join(" ")).includes(search);
+      return normalizeKeyText([item.company, item.baseCompany, item.market, item.broker, item.memo, item.sourceLabel].join(" ")).includes(search);
     })
     .sort(sortIpoRecords);
 }
@@ -524,7 +549,7 @@ function sortIpoRecords(a, b) {
   if (ipoFilters.sort === "profit-asc") return Number(a.profit || 0) - Number(b.profit || 0);
   if (ipoFilters.sort === "listing-desc") return String(b.listingDate || "").localeCompare(String(a.listingDate || ""), "ko-KR");
   if (ipoFilters.sort === "sell-desc") return String(b.sellDate || "").localeCompare(String(a.sellDate || ""), "ko-KR");
-  return String(b.subscriptionStart || b.createdAt || "").localeCompare(String(a.subscriptionStart || a.createdAt || ""), "ko-KR");
+  return String(b.subscriptionStart || b.sellDate || b.createdAt || "").localeCompare(String(a.subscriptionStart || a.sellDate || a.createdAt || ""), "ko-KR");
 }
 
 function renderIpoList() {
@@ -552,17 +577,17 @@ function renderIpoCard(item) {
           <p>${escapeHtml([item.market, item.broker, item.sourceLabel].filter(Boolean).join(" · ") || "직접 입력")}</p>
         </div>
         <div class="ipo-card-profit">
-          <strong>${item.sellDate ? formatSignedWon(item.profit) : formatWon(item.depositAmount || item.offerPrice * item.appliedShares || 0)}</strong>
-          <span>${item.sellDate ? `수수료 제외 · ${formatIpoRate(item.profitRate)}` : "청약/배정 진행"}</span>
+          <strong>${isIpoRealized(item) ? formatSignedWon(item.profit) : formatWon(item.depositAmount || item.offerPrice * item.appliedShares || 0)}</strong>
+          <span>${isIpoRealized(item) ? `수수료 제외 · ${formatIpoRate(item.profitRate)}` : isIpoUnallocated(item) ? "손익 집계 제외" : "청약/배정 진행"}</span>
         </div>
       </div>
       <dl class="ipo-card-grid">
         <div><dt>청약일</dt><dd>${escapeHtml(formatIpoDateRange(item.subscriptionStart, item.subscriptionEnd))}</dd></div>
         <div><dt>환불/상장</dt><dd>${escapeHtml([item.refundDate || "-", item.listingDate || "-"].join(" / "))}</dd></div>
         <div><dt>공모가</dt><dd>${formatWon(item.offerPrice)}</dd></div>
-        <div><dt>배정</dt><dd>${Number(item.allocatedShares || 0).toLocaleString("ko-KR")}주</dd></div>
-        <div><dt>총 매도 금액</dt><dd>${item.sellAmount ? formatWon(item.sellAmount) : "-"}</dd></div>
-        <div><dt>최종 정산 손익</dt><dd>${item.sellAmount ? formatSignedWon(item.settlementProfit) : "-"}</dd></div>
+        <div><dt>배정</dt><dd>${escapeHtml(ipoAllocationLabel(item))} · ${Number(item.allocatedShares || 0).toLocaleString("ko-KR")}주</dd></div>
+        <div><dt>총 매도 금액</dt><dd>${ipoTotalSellAmount(item) ? formatWon(ipoTotalSellAmount(item)) : "-"}</dd></div>
+        <div><dt>최종 정산 손익</dt><dd>${isIpoRealized(item) ? formatSignedWon(item.settlementProfit) : "-"}</dd></div>
         <div><dt>시가/고가/종가</dt><dd>${formatIpoMarketPrices(item)}</dd></div>
       </dl>
       ${renderIpoAttachedImage(item)}
@@ -601,6 +626,7 @@ function editIpoRecord(id) {
   els.ipoDepositAmount.value = item.depositAmount ? formatPlainNumber(item.depositAmount) : "";
   els.ipoApplicationFee.value = item.applicationFee ? formatPlainNumber(item.applicationFee) : "";
   els.ipoAllocatedShares.value = item.allocatedShares || "";
+  els.ipoAllocationResult.value = item.allocationResult || (item.allocatedShares ? "allocated" : "pending");
   els.ipoSellDate.value = item.sellDate;
   els.ipoSellPrice.value = item.sellPrice ? formatPlainNumber(item.sellPrice) : "";
   els.ipoSellAmount.value = item.sellAmount ? formatPlainNumber(item.sellAmount) : "";
@@ -629,9 +655,61 @@ async function deleteIpoRecord(id) {
 }
 
 function handleIpoPasteParse() {
-  const lines = String(els.ipoPasteInput.value || "").split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
-  ipoPasteRows = lines.map(parseIpoPasteLine);
+  const lines = String(els.ipoPasteInput.value || "")
+    .split(/\r?\n/)
+    .map((line) => line.replace(/^\uFEFF/, ""))
+    .filter((line) => line.trim());
+  const headerCells = lines.length ? parseIpoPasteCells(lines[0]) : [];
+  const isNormalizedTsv = IPO_NORMALIZED_TSV_COLUMNS.every((column) => headerCells.includes(column));
+  ipoImportReferenceTotal = null;
+  if (isNormalizedTsv) {
+    const headerIndexes = new Map(headerCells.map((column, index) => [column, index]));
+    ipoPasteRows = lines.slice(1).map((line) => parseNormalizedIpoPasteLine(line, headerIndexes));
+    ipoImportReferenceTotal = extractIpoImportReferenceTotal(ipoPasteRows);
+    ipoPasteRows = ipoPasteRows.map((row) => ({ ...row, memo: stripIpoImportReferenceTotal(row.memo) }));
+  } else {
+    ipoPasteRows = lines.map(parseIpoPasteLine);
+  }
   renderIpoPastePreview();
+}
+
+function parseNormalizedIpoPasteLine(line, headerIndexes) {
+  const cells = parseIpoPasteCells(line);
+  const read = (column) => {
+    const index = headerIndexes.get(column);
+    return index === undefined ? "" : String(cells[index] || "").trim();
+  };
+  const sourceRecordId = read("원본ID");
+  const calculationVersion = normalizeIpoCalculationVersion(read("계산방식")) || "quantity-v2";
+  const allocationResult = normalizeIpoAllocationResult(read("배정결과"));
+  const sellPriceRaw = read("1주매도가");
+  const sellAmountRaw = read("총매도금액");
+  const row = normalizeIpoRecord({
+    id: sourceRecordId ? ipoImportRecordId(sourceRecordId) : "",
+    sourceRecordId,
+    company: read("공모주"),
+    baseCompany: read("기본종목") || read("공모주"),
+    broker: read("증권사"),
+    listingDate: normalizeIpoLooseDate(read("상장일")),
+    sellDate: normalizeIpoLooseDate(read("매도일")),
+    offerPrice: parseIpoMoneyValue(read("공모가")),
+    allocatedShares: parseIpoMoneyValue(read("수량")),
+    allocationResult,
+    sellPrice: parseIpoMoneyValue(sellPriceRaw),
+    sellAmount: parseIpoMoneyValue(sellAmountRaw),
+    applicationFee: parseIpoMoneyValue(read("청약수수료")),
+    highPrice: parseIpoMoneyValue(read("고가")),
+    openPrice: parseIpoMoneyValue(read("시가")),
+    closePrice: parseIpoMoneyValue(read("종가")),
+    reportedProfitRate: parseIpoMoneyValue(read("원본손익률")),
+    reportedProfit: parseIpoMoneyValue(read("원본손익")),
+    calculationVersion,
+    rawSellValue: [sellPriceRaw, sellAmountRaw].filter(Boolean).join(" / "),
+    memo: read("메모"),
+    source: "history-import",
+    sourceLabel: "과거 기록 가져오기"
+  });
+  return decorateIpoPasteRow(row, line, "normalized");
 }
 
 function parseIpoPasteLine(line) {
@@ -646,7 +724,8 @@ function parseIpoPasteLine(line) {
     subscriptionEnd: subscriptionStart,
     offerPrice: parseIpoMoneyValue(offerRaw),
     applicationFee: parseIpoMoneyValue(feeRaw),
-    allocatedShares: parsedCompany.shares || 1,
+    allocatedShares: parsedCompany.hasShares ? parsedCompany.shares : 1,
+    allocationResult: parsedCompany.hasShares && parsedCompany.shares === 0 ? "unallocated" : "allocated",
     sellAmount: parseIpoMoneyValue(sellRaw),
     highPrice: parseIpoMoneyValue(highRaw),
     openPrice: parseIpoMoneyValue(openRaw),
@@ -656,8 +735,48 @@ function parseIpoPasteLine(line) {
     source: "paste",
     sourceLabel: "붙여넣기"
   });
-  const error = !row.subscriptionStart ? "날짜 확인 필요" : !row.company ? "종목명 확인 필요" : !row.offerPrice ? "공모가 확인 필요" : "";
-  return { ...row, original: line, valid: !error, error };
+  return decorateIpoPasteRow(row, line, "legacy");
+}
+
+function decorateIpoPasteRow(row, original, importFormat) {
+  const error = validateIpoPasteRow(row, importFormat);
+  return {
+    ...row,
+    original,
+    importFormat,
+    valid: !error,
+    error,
+    reviewState: ipoImportReviewState(row, importFormat)
+  };
+}
+
+function validateIpoPasteRow(row, importFormat) {
+  if (importFormat === "normalized" && !row.sourceRecordId) return "원본 ID 확인 필요";
+  if (!row.company) return "종목명 확인 필요";
+  if (!row.offerPrice) return "공모가 확인 필요";
+  if (importFormat === "legacy" && !row.subscriptionStart) return "날짜 확인 필요";
+  if (importFormat === "normalized" && !row.sellDate && !isIpoUnallocated(row)) return "매도일 확인 필요";
+  if (importFormat === "normalized" && row.calculationVersion === "quantity-v2" && !isIpoUnallocated(row) && !row.allocatedShares) return "수량 확인 필요";
+  return "";
+}
+
+function ipoImportReviewState(row, importFormat) {
+  if (isIpoUnallocated(row)) return { key: "unallocated", label: "미배정" };
+  if (importFormat === "legacy") return { key: "legacy", label: "기존 형식" };
+  if (row.calculationVersion === "reported") return { key: "confirmed", label: "확정" };
+  if (row.hasReportedProfit && Math.round(row.reportedProfit) !== Math.round(row.settlementProfit)) {
+    return { key: "recalculated", label: "재계산" };
+  }
+  return { key: "confirmed", label: "확정" };
+}
+
+function ipoImportRecordId(sourceRecordId) {
+  let hash = 2166136261;
+  for (const character of String(sourceRecordId || "")) {
+    hash ^= character.charCodeAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `ipo-import-${(hash >>> 0).toString(36)}`;
 }
 
 function parseIpoPasteCells(line) {
@@ -698,25 +817,30 @@ function isIpoMoneyToken(value) {
 function renderIpoPastePreview() {
   if (!els.ipoPastePreview) return;
   const validCount = ipoPasteRows.filter((row) => row.valid).length;
+  const recalculatedCount = ipoPasteRows.filter((row) => row.reviewState?.key === "recalculated").length;
+  const unallocatedCount = ipoPasteRows.filter((row) => row.reviewState?.key === "unallocated").length;
   els.saveIpoPasteButton.disabled = validCount === 0;
-  els.ipoPasteFeedback.textContent = ipoPasteRows.length ? `${validCount.toLocaleString("ko-KR")}건 저장 가능` : "";
+  els.ipoPasteFeedback.textContent = ipoPasteRows.length
+    ? `${validCount.toLocaleString("ko-KR")}건 저장 가능 · 재계산 ${recalculatedCount.toLocaleString("ko-KR")}건 · 미배정 ${unallocatedCount.toLocaleString("ko-KR")}건`
+    : "";
+  renderIpoImportSummary();
   if (!ipoPasteRows.length) {
     els.ipoPastePreview.innerHTML = `<tbody><tr><td class="empty">붙여넣기 내용을 파싱하면 미리보기가 표시됩니다.</td></tr></tbody>`;
     return;
   }
   els.ipoPastePreview.innerHTML = `
-    <thead><tr><th>상태</th><th>청약일</th><th>종목</th><th>증권사</th><th>공모가</th><th>배정</th><th>총 매도금액</th><th>손익/정산</th><th>삭제</th></tr></thead>
+    <thead><tr><th>검수</th><th>매도/기준일</th><th>종목</th><th>증권사</th><th>공모가</th><th>수량</th><th>1주 / 총매도</th><th>매매 / 정산손익</th><th>삭제</th></tr></thead>
     <tbody>
       ${ipoPasteRows.map((row, index) => `
         <tr class="${row.valid ? "" : "invalid"}">
-          <td>${row.valid ? "정상" : escapeHtml(row.error)}</td>
-          <td><input data-ipo-paste-index="${index}" data-ipo-paste-field="subscriptionStart" type="date" value="${escapeHtml(row.subscriptionStart)}"></td>
-          <td><input data-ipo-paste-index="${index}" data-ipo-paste-field="company" type="text" value="${escapeHtml(row.company)}"></td>
-          <td><input data-ipo-paste-index="${index}" data-ipo-paste-field="broker" type="text" value="${escapeHtml(row.broker)}"></td>
-          <td><input data-ipo-paste-index="${index}" data-ipo-paste-field="offerPrice" type="text" inputmode="numeric" value="${escapeHtml(formatPlainNumber(row.offerPrice))}"></td>
-          <td><input data-ipo-paste-index="${index}" data-ipo-paste-field="allocatedShares" type="number" min="0" value="${escapeHtml(row.allocatedShares || "")}"></td>
-          <td><input data-ipo-paste-index="${index}" data-ipo-paste-field="sellAmount" type="text" inputmode="numeric" value="${escapeHtml(row.sellAmount ? formatPlainNumber(row.sellAmount) : "")}"></td>
-          <td><span class="ipo-profit-stack"><strong>${escapeHtml(formatSignedWon(row.profit))}</strong><small>정산 ${escapeHtml(formatSignedWon(row.settlementProfit))}</small></span></td>
+          <td>${row.valid ? `<span class="ipo-import-state ${escapeHtml(row.reviewState.key)}">${escapeHtml(row.reviewState.label)}</span>` : `<span class="ipo-import-state invalid">${escapeHtml(row.error)}</span>`}</td>
+          <td><input aria-label="${escapeHtml(row.company)} 매도 또는 기준일" data-ipo-paste-index="${index}" data-ipo-paste-field="${row.importFormat === "normalized" ? "sellDate" : "subscriptionStart"}" type="date" value="${escapeHtml(row.importFormat === "normalized" ? row.sellDate : row.subscriptionStart)}"></td>
+          <td><input aria-label="공모주 종목" data-ipo-paste-index="${index}" data-ipo-paste-field="company" type="text" value="${escapeHtml(row.company)}"><small>${escapeHtml(row.baseCompany && row.baseCompany !== row.company ? `기본 ${row.baseCompany}` : row.sourceRecordId || "")}</small></td>
+          <td><input aria-label="증권사" data-ipo-paste-index="${index}" data-ipo-paste-field="broker" type="text" value="${escapeHtml(row.broker)}"></td>
+          <td><input aria-label="공모가" data-ipo-paste-index="${index}" data-ipo-paste-field="offerPrice" type="text" inputmode="numeric" value="${escapeHtml(formatPlainNumber(row.offerPrice))}"></td>
+          <td><input aria-label="배정 수량" data-ipo-paste-index="${index}" data-ipo-paste-field="allocatedShares" type="number" min="0" value="${escapeHtml(row.allocatedShares || "")}"></td>
+          <td><span class="ipo-sell-stack"><input aria-label="1주 매도가" data-ipo-paste-index="${index}" data-ipo-paste-field="sellPrice" type="text" inputmode="numeric" value="${escapeHtml(row.sellPrice ? formatPlainNumber(row.sellPrice) : "")}" placeholder="1주"><input aria-label="총 매도금액" data-ipo-paste-index="${index}" data-ipo-paste-field="sellAmount" type="text" inputmode="numeric" value="${escapeHtml(row.sellAmount ? formatPlainNumber(row.sellAmount) : "")}" placeholder="총액"><small>합계 ${escapeHtml(formatWon(ipoTotalSellAmount(row)))}</small></span></td>
+          <td><span class="ipo-profit-stack"><strong>${escapeHtml(formatSignedWon(row.profit))}</strong><small>정산 ${escapeHtml(formatSignedWon(row.settlementProfit))}</small>${row.hasReportedProfit ? `<small>원본 ${escapeHtml(formatSignedWon(row.reportedProfit))}</small>` : ""}</span></td>
           <td><button type="button" data-delete-ipo-paste="${index}">삭제</button></td>
         </tr>
       `).join("")}
@@ -733,21 +857,57 @@ function renderIpoPastePreview() {
   });
 }
 
+function renderIpoImportSummary() {
+  if (!els.ipoImportSummary) return;
+  const normalizedRows = ipoPasteRows.filter((row) => row.importFormat === "normalized");
+  if (!normalizedRows.length) {
+    els.ipoImportSummary.innerHTML = "";
+    return;
+  }
+  const reportedTotal = normalizedRows
+    .filter((row) => row.hasReportedProfit && !isIpoUnallocated(row))
+    .reduce((total, row) => total + Number(row.reportedProfit || 0), 0);
+  const recalculatedTotal = normalizedRows
+    .filter((row) => !isIpoUnallocated(row))
+    .reduce((total, row) => total + Number(row.settlementProfit || 0), 0);
+  const referenceTotal = ipoImportReferenceTotal;
+  const hasReferenceTotal = Number.isFinite(referenceTotal);
+  const referenceDifference = hasReferenceTotal ? recalculatedTotal - referenceTotal : null;
+  els.ipoImportSummary.innerHTML = `
+    <div><span>원본 결산 합계</span><strong>${hasReferenceTotal ? escapeHtml(formatSignedWon(referenceTotal)) : "메모 없음"}</strong></div>
+    <div><span>원본 행 합계</span><strong>${escapeHtml(formatSignedWon(reportedTotal))}</strong></div>
+    <div><span>정리 후 정산손익</span><strong>${escapeHtml(formatSignedWon(recalculatedTotal))}</strong></div>
+    <div><span>원본 합계 대비</span><strong class="${referenceDifference > 0 ? "positive" : referenceDifference < 0 ? "negative" : ""}">${hasReferenceTotal ? escapeHtml(formatSignedWon(referenceDifference)) : "비교값 없음"}</strong></div>
+  `;
+}
+
+function extractIpoImportReferenceTotal(rows) {
+  for (const row of rows) {
+    const match = String(row.memo || "").match(IPO_IMPORT_REFERENCE_PATTERN);
+    if (!match) continue;
+    const value = Number(match[1].replaceAll(",", ""));
+    if (Number.isFinite(value)) return value;
+  }
+  return null;
+}
+
+function stripIpoImportReferenceTotal(memo) {
+  return String(memo || "").replace(IPO_IMPORT_REFERENCE_PATTERN, "").trim();
+}
+
 function updateIpoPasteRow(input) {
   const index = Number(input.dataset.ipoPasteIndex);
   const field = input.dataset.ipoPasteField;
   const current = ipoPasteRows[index];
-  const next = { ...current, [field]: input.value, source: "paste", sourceLabel: "붙여넣기" };
-  ipoPasteRows[index] = normalizeIpoRecord(next);
-  ipoPasteRows[index].valid = Boolean(ipoPasteRows[index].subscriptionStart && ipoPasteRows[index].company && ipoPasteRows[index].offerPrice);
-  ipoPasteRows[index].error = ipoPasteRows[index].valid ? "" : "필수값 확인 필요";
+  const next = normalizeIpoRecord({ ...current, [field]: input.value });
+  ipoPasteRows[index] = decorateIpoPasteRow(next, current.original, current.importFormat);
   renderIpoPastePreview();
 }
 
 async function saveIpoPasteRows() {
   const rows = ipoPasteRows.filter((row) => row.valid).map((row) => normalizeIpoRecord({
     ...row,
-    id: `ipo-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    id: row.sourceRecordId ? ipoImportRecordId(row.sourceRecordId) : `ipo-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   }));
@@ -756,13 +916,16 @@ async function saveIpoPasteRows() {
   ipoRecords = mergeIpoRecords(ipoRecords, rows);
   await saveIpoRecords();
   ipoPasteRows = [];
+  ipoImportReferenceTotal = null;
   els.ipoPasteInput.value = "";
+  if (els.ipoHistoryImport) els.ipoHistoryImport.open = false;
   selectedIpoSubtab = "records";
   renderIpoView();
 }
 
 function clearIpoPasteInput() {
   ipoPasteRows = [];
+  ipoImportReferenceTotal = null;
   els.ipoPasteInput.value = "";
   renderIpoPastePreview();
 }
@@ -805,7 +968,13 @@ function renderIpoCalendarCandidates() {
       const item = ipoCalendarCandidates[Number(button.dataset.addIpoCandidate)];
       if (!item) return;
       await createAutoSnapshot("공모주 일정 후보 추가 전");
-      ipoRecords.unshift(normalizeIpoRecord({ ...item, id: `ipo-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, source: "calendar", sourceLabel: "일정 불러오기" }));
+      ipoRecords.unshift(normalizeIpoRecord({
+        ...item,
+        id: `ipo-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        calculationVersion: item.calculationVersion || "quantity-v2",
+        source: "calendar",
+        sourceLabel: "일정 불러오기"
+      }));
       await saveIpoRecords();
       renderIpoView();
     });
@@ -813,18 +982,38 @@ function renderIpoCalendarCandidates() {
 }
 
 function ipoStatus(item) {
-  if (item.sellDate) return { key: "sold", label: "매도 완료" };
+  if (isIpoUnallocated(item)) return { key: "unallocated", label: "미배정" };
+  if (isIpoRealized(item)) return { key: "sold", label: "매도 완료" };
   if (Number(item.allocatedShares || 0) > 0) return { key: "allocated", label: "배정/매도 대기" };
   const today = new Date().toISOString().slice(0, 10);
   if (item.subscriptionEnd && item.subscriptionEnd < today) return { key: "applied", label: "배정 대기" };
   return { key: "planned", label: "청약 예정" };
 }
 
+function isIpoUnallocated(item) {
+  return normalizeIpoAllocationResult(item?.allocationResult) === "unallocated";
+}
+
+function isIpoRealized(item) {
+  return Boolean(item?.sellDate) && !isIpoUnallocated(item);
+}
+
+function ipoTotalSellAmount(item) {
+  return Math.max(0, toNumber(item?.totalSellAmount || item?.sellAmount));
+}
+
+function ipoAllocationLabel(item) {
+  const allocationResult = normalizeIpoAllocationResult(item?.allocationResult);
+  if (allocationResult === "unallocated") return "미배정";
+  if (allocationResult === "allocated" || Number(item?.allocatedShares || 0) > 0) return "배정";
+  return "대기/미확인";
+}
+
 function parseIpoCompanyAndShares(value) {
   const text = String(value || "").trim();
   const match = text.match(/^(.+?)\s*[\(\[]?(\d+)\s*(?:개|주)[\)\]]?$/);
-  if (!match) return { company: text, shares: 0 };
-  return { company: match[1].trim(), shares: Number(match[2] || 0) };
+  if (!match) return { company: text, shares: 0, hasShares: false };
+  return { company: match[1].trim(), shares: Number(match[2] || 0), hasShares: true };
 }
 
 function normalizeIpoLooseDate(value) {

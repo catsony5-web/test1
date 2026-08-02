@@ -688,22 +688,51 @@ function normalizeReimbursements(value) {
 
 function normalizeIpoRecord(item) {
   const company = String(item?.company || item?.name || "").trim();
+  const calculationVersion = normalizeIpoCalculationVersion(item?.calculationVersion);
   const offerPrice = Math.max(0, toNumber(item?.offerPrice));
   const allocatedShares = Math.max(0, toNumber(item?.allocatedShares));
   const sellPrice = Math.max(0, toNumber(item?.sellPrice));
   const sellAmount = Math.max(0, toNumber(item?.sellAmount));
   const applicationFee = Math.max(0, toNumber(item?.applicationFee));
   const sellFee = Math.max(0, toNumber(item?.sellFee));
-    const finalSellAmount = sellAmount || sellPrice || 0;
-    const buyAmount = offerPrice;
-    const totalFees = applicationFee + sellFee;
-    const hasSettledAmount = finalSellAmount > 0 && buyAmount > 0;
-    const profit = hasSettledAmount ? finalSellAmount - buyAmount : 0;
-    const settlementProfit = hasSettledAmount ? profit - totalFees : 0;
-  const profitRate = buyAmount ? profit / buyAmount * 100 : 0;
+  const inferredAllocation = allocatedShares > 0 ? "allocated" : calculationVersion ? "pending" : "";
+  const allocationResult = normalizeIpoAllocationResult(item?.allocationResult) || inferredAllocation;
+  const isUnallocated = allocationResult === "unallocated";
+  const totalFees = applicationFee + sellFee;
+  const legacyCalculation = !calculationVersion;
+  const explicitTotalSellAmount = sellAmount;
+  const totalSellAmount = legacyCalculation
+    ? sellAmount || sellPrice || 0
+    : sellAmount || (sellPrice > 0 && allocatedShares > 0 ? sellPrice * allocatedShares : 0);
+  const buyAmount = legacyCalculation ? offerPrice : offerPrice * allocatedShares;
+  const reportedProfit = toNumber(item?.reportedProfit);
+  const reportedProfitRate = toNumber(item?.reportedProfitRate);
+  const hasReportedProfit = typeof item?.hasReportedProfit === "boolean"
+    ? item.hasReportedProfit
+    : item?.reportedProfit !== undefined && item?.reportedProfit !== null && String(item.reportedProfit).trim() !== "";
+  const hasReportedProfitRate = typeof item?.hasReportedProfitRate === "boolean"
+    ? item.hasReportedProfitRate
+    : item?.reportedProfitRate !== undefined && item?.reportedProfitRate !== null && String(item.reportedProfitRate).trim() !== "";
+  const hasSettledAmount = totalSellAmount > 0 && buyAmount > 0;
+  let profit = hasSettledAmount ? totalSellAmount - buyAmount : 0;
+  let settlementProfit = hasSettledAmount ? profit - totalFees : 0;
+  let profitRate = buyAmount ? profit / buyAmount * 100 : 0;
+
+  if (isUnallocated) {
+    profit = 0;
+    settlementProfit = 0;
+    profitRate = 0;
+  } else if (calculationVersion === "reported") {
+    profit = hasReportedProfit ? reportedProfit : 0;
+    settlementProfit = profit;
+    profitRate = hasReportedProfitRate ? reportedProfitRate : 0;
+  }
+
   return {
     id: item?.id || `ipo-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    sourceRecordId: String(item?.sourceRecordId || item?.originalId || "").trim(),
     company,
+    baseCompany: String(item?.baseCompany || company).trim(),
     market: String(item?.market || "").trim(),
     broker: String(item?.broker || "").trim(),
     subscriptionStart: normalizeInputDate(item?.subscriptionStart || item?.date),
@@ -715,9 +744,11 @@ function normalizeIpoRecord(item) {
     depositAmount: Math.max(0, toNumber(item?.depositAmount)),
     applicationFee,
     allocatedShares,
+    allocationResult,
     sellDate: normalizeInputDate(item?.sellDate),
     sellPrice,
-    sellAmount: finalSellAmount,
+    sellAmount: legacyCalculation ? totalSellAmount : explicitTotalSellAmount,
+    totalSellAmount,
     sellFee,
     openPrice: Math.max(0, toNumber(item?.openPrice)),
     highPrice: Math.max(0, toNumber(item?.highPrice)),
@@ -727,6 +758,12 @@ function normalizeIpoRecord(item) {
     imageName: String(item?.imageName || "").trim(),
     source: item?.source || "manual",
     sourceLabel: item?.sourceLabel || (item?.source === "calendar" ? "일정 불러오기" : "직접 입력"),
+    calculationVersion,
+    reportedProfit,
+    reportedProfitRate,
+    hasReportedProfit,
+    hasReportedProfitRate,
+    rawSellValue: String(item?.rawSellValue || "").trim(),
     createdAt: item?.createdAt || new Date().toISOString(),
     updatedAt: item?.updatedAt || item?.createdAt || new Date().toISOString(),
     profit,
@@ -734,4 +771,19 @@ function normalizeIpoRecord(item) {
     totalFees,
     settlementProfit
   };
+}
+
+function normalizeIpoCalculationVersion(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  if (["quantity-v2", "quantity_v2", "수량계산", "수량 계산"].includes(normalized)) return "quantity-v2";
+  if (["reported", "원본확정", "원본 확정", "보고값"].includes(normalized)) return "reported";
+  return "";
+}
+
+function normalizeIpoAllocationResult(value) {
+  const normalized = normalizeKeyText(String(value || ""));
+  if (["unallocated", "미배정", "배정없음", "0주"].includes(normalized)) return "unallocated";
+  if (["allocated", "배정", "배정확정", "확정"].includes(normalized)) return "allocated";
+  if (["pending", "대기", "배정대기", "미확인"].includes(normalized)) return "pending";
+  return "";
 }
