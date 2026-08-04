@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-08-04T12:01:27.118Z",
+  "updatedAt": "2026-08-04T23:53:00.748Z",
   "source": {
     "name": "KRX KIND",
     "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcom.do?method=searchPubofrProgComMain",
@@ -394,21 +394,8 @@
       "sourceUpdatedAt": "2026-08-04T12:01:27.118Z",
       "missingSince": "",
       "fingerprint": "402ec801b9fc6f7fe651",
-      "changeStatus": "changed",
-      "changes": [
-        {
-          "field": "offerPrice",
-          "label": "확정 공모가",
-          "before": 0,
-          "after": 11000
-        },
-        {
-          "field": "offeringAmountMillions",
-          "label": "공모금액",
-          "before": 0,
-          "after": 26400
-        }
-      ]
+      "changeStatus": "unchanged",
+      "changes": []
     }
   ]
 }
