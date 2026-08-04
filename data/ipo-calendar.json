@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-08-04T06:24:54.483Z",
+  "updatedAt": "2026-08-04T12:01:27.118Z",
   "source": {
     "name": "KRX KIND",
     "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcom.do?method=searchPubofrProgComMain",
@@ -370,7 +370,7 @@
       "sourceUpdatedAt": "2026-08-04T06:24:54.483Z",
       "missingSince": "",
       "fingerprint": "714e6accd7fa09b027fc",
-      "changeStatus": "new",
+      "changeStatus": "unchanged",
       "changes": []
     },
     {
@@ -383,19 +383,32 @@
       "subscriptionStart": "2026-08-04",
       "subscriptionEnd": "2026-08-05",
       "paymentDate": "2026-08-07",
-      "offerPrice": 0,
-      "offeringAmountMillions": 0,
+      "offerPrice": 11000,
+      "offeringAmountMillions": 26400,
       "listingDate": "2026-08-13",
       "broker": "IBK투자증권",
-      "priceStatus": "pending",
+      "priceStatus": "confirmed",
       "status": "scheduled",
       "sourceName": "KRX KIND",
       "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20250930000130",
-      "sourceUpdatedAt": "2026-08-02T11:23:14.374Z",
+      "sourceUpdatedAt": "2026-08-04T12:01:27.118Z",
       "missingSince": "",
-      "fingerprint": "547cda6aa2edd2e0341b",
-      "changeStatus": "unchanged",
-      "changes": []
+      "fingerprint": "402ec801b9fc6f7fe651",
+      "changeStatus": "changed",
+      "changes": [
+        {
+          "field": "offerPrice",
+          "label": "확정 공모가",
+          "before": 0,
+          "after": 11000
+        },
+        {
+          "field": "offeringAmountMillions",
+          "label": "공모금액",
+          "before": 0,
+          "after": 26400
+        }
+      ]
     }
   ]
 }
