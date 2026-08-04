@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-08-03T23:58:07.340Z",
+  "updatedAt": "2026-08-04T06:24:54.483Z",
   "source": {
     "name": "KRX KIND",
     "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcom.do?method=searchPubofrProgComMain",
@@ -11,7 +11,7 @@
     "to": "2027-08-31",
     "label": "최근 3개월 · 향후 12개월"
   },
-  "itemCount": 15,
+  "itemCount": 16,
   "items": [
     {
       "sourceId": "20250827000564",
@@ -347,6 +347,30 @@
       "missingSince": "",
       "fingerprint": "2851245641e3e5aa85ed",
       "changeStatus": "unchanged",
+      "changes": []
+    },
+    {
+      "sourceId": "20251125000262",
+      "company": "딜리셔스",
+      "market": "코스닥",
+      "filingDate": "2026-06-24",
+      "bookbuildingStart": "2026-07-23",
+      "bookbuildingEnd": "2026-07-29",
+      "subscriptionStart": "2026-08-03",
+      "subscriptionEnd": "2026-08-04",
+      "paymentDate": "2026-08-06",
+      "offerPrice": 0,
+      "offeringAmountMillions": 0,
+      "listingDate": "2026-08-12",
+      "broker": "한국투자증권",
+      "priceStatus": "pending",
+      "status": "scheduled",
+      "sourceName": "KRX KIND",
+      "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20251125000262",
+      "sourceUpdatedAt": "2026-08-04T06:24:54.483Z",
+      "missingSince": "",
+      "fingerprint": "714e6accd7fa09b027fc",
+      "changeStatus": "new",
       "changes": []
     },
     {
