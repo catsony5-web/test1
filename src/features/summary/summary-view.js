@@ -14,20 +14,20 @@ function renderSummary() {
   renderSummaryComparisonNotice(comparison);
   const matrixRows = buildSummaryMatrixRows(rangedActive, months, sectorNames);
   renderSectorTrend(active, months, sectorNames, selectedSector, selectedMonth, comparison);
-  renderSectorAnalysis(rangedActive, selectedMonth, selectedSector, comparison);
-  renderSummaryMetricCards(matrixRows, sectorNames, selectedMonth, selectedSector, comparison);
-  renderSummarySectorShare(matrixRows, sectorNames, selectedMonth, selectedSector, comparison);
+  renderSummaryPriority(matrixRows, sectorNames, selectedMonth, selectedSector, comparison);
+  renderSummaryPattern(comparison, selectedSector);
+  renderMonthlyFeedback(active, selectedMonth, comparison);
+  renderSummaryPeriod(active, months, sectorNames, selectedMonth, selectedSector, comparison);
   renderSummaryMatrix(matrixRows, sectorNames, selectedMonth, selectedSector, comparisonMonth);
-  renderSelectedMonthDetail(rangedActive, selectedMonth, sectorNames, comparison);
   syncSummarySubtabs();
 }
 
 const summaryMobileToDesktopSubtab = Object.freeze({
   trend: "trend",
-  month: "share",
-  detail: "detail",
-  sector: "report",
-  matrix: "matrix"
+  priority: "share",
+  patterns: "detail",
+  report: "report",
+  period: "matrix"
 });
 
 function summaryMobileValueForSubtab(subtab) {
@@ -166,6 +166,18 @@ function syncSummarySubtabs() {
     panel.hidden = !isActive;
     panel.classList.toggle("active", isActive);
   });
+  syncSummaryContextVisibility();
+}
+
+function syncSummaryContextVisibility() {
+  const sectorVisible = ["trend", "share", "detail"].includes(selectedSummarySubtab);
+  const rangeVisible = ["trend", "matrix"].includes(selectedSummarySubtab);
+  if (els.summarySectorPicker) els.summarySectorPicker.hidden = !sectorVisible;
+  document.querySelector(".summary-context-range")?.toggleAttribute("hidden", !rangeVisible);
+  document.querySelectorAll(".summary-custom-range-field").forEach((field) => {
+    field.hidden = !rangeVisible || selectedSummaryRangePreset !== "custom";
+  });
+  if (!sectorVisible) closeSummarySectorPicker();
 }
 
 function updateSummaryRangeOptions(allMonths) {
@@ -295,7 +307,6 @@ function selectSummarySector(sector) {
     return;
   }
   selectedSummarySector = sector;
-  expandedSummaryDetailSector = sector;
   closeSummarySectorPicker();
   renderSummary();
   requestAnimationFrame(() => els.summarySectorPickerButton.focus());

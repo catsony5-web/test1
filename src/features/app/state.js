@@ -150,8 +150,10 @@ const els = {
   monthlyFlowChart: document.querySelector("#monthlyFlowChart"),
   monthlyTable: document.querySelector("#monthlyTable"),
   detailTable: document.querySelector("#detailTable"),
-  summaryMetricCards: document.querySelector("#summaryMetricCards"),
   summarySectorSharePanel: document.querySelector("#summarySectorSharePanel"),
+  summaryPatternPanel: document.querySelector("#summaryPatternPanel"),
+  summaryFeedbackPanel: document.querySelector("#summaryFeedbackPanel"),
+  summaryPeriodPanel: document.querySelector("#summaryPeriodPanel"),
   summarySectorPicker: document.querySelector("#summarySectorPicker"),
   summarySectorPickerButton: document.querySelector("#summarySectorPickerButton"),
   summarySectorPickerIcon: document.querySelector("#summarySectorPickerIcon"),
@@ -169,12 +171,6 @@ const els = {
   summaryPrevMonth: document.querySelector("#summaryPrevMonth"),
   summaryMonthSelect: document.querySelector("#summaryMonthSelect"),
   summaryNextMonth: document.querySelector("#summaryNextMonth"),
-  foodAnalysisCard: document.querySelector("#foodAnalysisCard"),
-  sectorAnalysisBody: document.querySelector("#sectorAnalysisBody"),
-  sectorAnalysisTitle: document.querySelector("#sectorAnalysisTitle"),
-  sectorAnalysisDescription: document.querySelector("#sectorAnalysisDescription"),
-  selectedMonthDetailTitle: document.querySelector("#selectedMonthDetailTitle"),
-  selectedMonthSectorCards: document.querySelector("#selectedMonthSectorCards"),
   sectorTrendChart: document.querySelector("#sectorTrendChart"),
   detailPrevMonth: document.querySelector("#detailPrevMonth"),
   detailMonth: document.querySelector("#detailMonth"),
@@ -507,7 +503,8 @@ let selectedSummaryEndMonth = "";
 let selectedSummaryComparisonMode = "year-over-year";
 let selectedSummaryComparisonMonth = "";
 let selectedSummarySubtab = "trend";
-let expandedSummaryDetailSector = "";
+let selectedSummaryPeriodMode = "heatmap";
+let selectedSummaryPeriodCell = "";
 let monthlyAnalysisComparisonMode = "year";
 let selectedCalendarMonth = "";
 let selectedAppMonth = "";

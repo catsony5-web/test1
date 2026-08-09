@@ -1,210 +1,142 @@
-function renderSectorAnalysis(activeRows, month, sector, comparison) {
-  const body = els.sectorAnalysisBody || els.foodAnalysisCard;
-  els.sectorAnalysisTitle.textContent = sector ? `${sector} 리포트` : "각 섹터 리포트";
-  els.sectorAnalysisDescription.textContent = month && sector
-    ? `${month} 기준으로 ${sector}의 금액, 주요 지표, 세부항목별 소비를 분석합니다.`
-    : "선택한 월과 섹터의 소비 패턴을 자세히 분석합니다.";
-  if (!month) {
-    body.innerHTML = `<div class="empty">각 섹터 리포트를 보려면 먼저 지출 내역을 추가하세요.</div>`;
+function buildMonthlyFeedbackModel(activeRows, selectedMonth, comparison) {
+  const changedSectors = comparison.sectorDeltas
+    .filter((item) => item.currentAmount > 0 || item.comparisonAmount > 0)
+    .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
+  const increases = changedSectors.filter((item) => item.delta > 0).sort((a, b) => b.delta - a.delta);
+  const decreases = changedSectors.filter((item) => item.delta < 0).sort((a, b) => a.delta - b.delta);
+  const stable = changedSectors.filter((item) => item.delta === 0 || Math.abs(item.delta) <= Math.max(10000, item.comparisonAmount * 0.1));
+  const unknown = summaryComparisonSectorChange(comparison, "미분류");
+  const biggestIncrease = increases[0] || null;
+  const biggestDecrease = decreases[0] || null;
+  const driverSector = biggestIncrease?.sector || biggestDecrease?.sector || changedSectors[0]?.sector || "";
+  const driverBreakdown = driverSector ? comparisonBreakdownForSector(comparison, driverSector) : null;
+  const attentionDrivers = driverBreakdown
+    ? summaryComparisonDriverItems(driverBreakdown.subcategories).filter((item) => item.delta > 0).slice(0, 2)
+    : [];
+  const total = comparison.totalChange;
+  const headline = !comparison.comparisonExists
+    ? `${comparison.comparisonMonth || "비교 월"} 기록이 없어 선택 월 소비만 정리했습니다.`
+    : total.delta > 0
+      ? `총 소비가 ${comparison.comparisonLabel}보다 ${formatWon(total.delta)} 늘었습니다.`
+      : total.delta < 0
+        ? `총 소비가 ${comparison.comparisonLabel}보다 ${formatWon(Math.abs(total.delta))} 줄었습니다.`
+        : `총 소비가 ${comparison.comparisonLabel}과 같았습니다.`;
+  return {
+    selectedMonth,
+    comparisonMonth: comparison.comparisonMonth,
+    comparisonLabel: comparison.comparisonLabel,
+    comparisonExists: comparison.comparisonExists,
+    cutoffDay: comparison.cutoffDay,
+    total,
+    headline,
+    increases,
+    decreases,
+    stable,
+    unknown,
+    biggestIncrease,
+    biggestDecrease,
+    driverSector,
+    attentionDrivers,
+    currentRows: comparison.currentRows,
+    activeRows
+  };
+}
+
+function monthlyFeedbackSectorSentence(item, direction) {
+  if (!item) return `${direction === "up" ? "증가" : "감소"}한 섹터가 없습니다.`;
+  const verb = direction === "up" ? "늘어 가장 큰 증가 요인입니다" : "줄어 가장 크게 감소했습니다";
+  return `${item.sector}가 ${formatWon(Math.abs(item.delta))} ${verb}.`;
+}
+
+function monthlyFeedbackFocus(model) {
+  if (model.unknown.currentAmount > 0) {
+    return { icon: "ti-alert-circle", title: "미분류 먼저 확인", text: `${formatWon(model.unknown.currentAmount)}의 미분류 소비를 정리하면 분석 정확도가 높아집니다.`, action: "unknown" };
+  }
+  if (model.biggestIncrease) {
+    return { icon: "ti-adjustments-horizontal", title: `${model.biggestIncrease.sector} 결제 확인`, text: `다음 달에는 ${model.biggestIncrease.sector}의 반복 결제와 큰 금액을 먼저 확인해보세요.`, action: "sector", sector: model.biggestIncrease.sector };
+  }
+  return { icon: "ti-shield-check", title: "현재 흐름 유지", text: "뚜렷한 증가 요인이 없습니다. 다음 달에도 같은 기준으로 변화를 확인해보세요.", action: "detail" };
+}
+
+function renderMonthlyFeedback(activeRows, selectedMonth, comparison) {
+  if (!els.summaryFeedbackPanel) return;
+  const model = buildMonthlyFeedbackModel(activeRows, selectedMonth, comparison);
+  if (!selectedMonth || !model.currentRows.length) {
+    els.summaryFeedbackPanel.innerHTML = `<div class="empty compact-empty">선택 월의 소비 피드백을 만들 지출 기록이 없습니다.</div>`;
     return;
   }
-  if (!sector) {
-    body.innerHTML = `<div class="empty">분석할 섹터를 선택하세요.</div>`;
-    return;
-  }
-  body.innerHTML = sector === "식비"
-    ? renderFoodAnalysisBody(activeRows, month, comparison)
-    : renderGenericSectorAnalysisBody(activeRows, month, sector, comparison);
-  attachSectorAnalysisHandlers(month);
-  attachSummaryComparisonDriverHandlers(body, comparison);
-}
-
-function renderFoodAnalysisBody(activeRows, month, comparison) {
-  const foodRows = activeRows.filter((item) => item.month === month && item.sector === "식비");
-  const amountBySubcategory = Object.fromEntries(categories["식비"].map((subcategory) => [subcategory, 0]));
-  foodRows.forEach((item) => {
-    amountBySubcategory[item.subcategory] = (amountBySubcategory[item.subcategory] || 0) + consumptionAmount(item);
-  });
-
-  const total = sumConsumption(foodRows);
-  const outside = sumValues(amountBySubcategory, ["외식-혼자", "외식-친구", "외식-단체", "배달-혼자", "배달-친구", "배달-단체"]);
-  const grocery = sumValues(amountBySubcategory, ["장보기/마트"]);
-  const solo = sumValues(amountBySubcategory, ["외식-혼자", "배달-혼자"]);
-  const social = sumValues(amountBySubcategory, ["외식-친구", "외식-단체", "배달-친구", "배달-단체"]);
-  const snackCafe = sumValues(amountBySubcategory, ["편의점/간식", "카페/음료"]);
-  const detailItems = Object.entries(amountBySubcategory)
-    .map(([subcategory, amount]) => ({ subcategory, amount, count: foodRows.filter((item) => item.subcategory === subcategory).length }))
-    .filter((item) => item.amount > 0 || item.count > 0)
-    .sort((a, b) => b.amount - a.amount);
-  const topDetail = detailItems[0] || { subcategory: "-", amount: 0, count: 0 };
-  const maxDetailAmount = Math.max(...detailItems.map((item) => item.amount), 1);
-
-  return `
-    ${total ? `
-      ${renderSectorAnalysisOverview("식비", total, foodRows.length, topDetail, month)}
-      ${renderSummaryComparisonDriverPanel(comparison, { idPrefix: "report" })}
-      <section class="sector-analysis-block context">
-        <div class="analysis-block-head">
-          <h4>식비 소비 맥락</h4>
-          <p>각 행은 서로 다른 기준이므로 합산하지 않고 따로 비교합니다.</p>
-        </div>
-        <div class="food-context-grid">
-          ${renderFoodContextGroup("소비 방식", "밖에서 먹기", outside, "장보기", grocery, total, "outside", "grocery")}
-          ${renderFoodContextGroup("동행 여부", "혼자", solo, "사람과 함께", social, total, "solo", "social")}
-          ${renderFoodContextIndicator("간식·카페", "편의점과 카페 소비", snackCafe, total, "snack")}
-        </div>
+  const focus = monthlyFeedbackFocus(model);
+  const positive = model.stable.find((item) => ![model.biggestIncrease?.sector, model.biggestDecrease?.sector].includes(item.sector)) || null;
+  const cutoffNotice = model.cutoffDay
+    ? `${selectedMonth} ${model.cutoffDay}일까지의 누적 기록을 ${model.comparisonMonth} 같은 날짜까지 비교했습니다.`
+    : `${selectedMonth} 전체 기록을 ${model.comparisonMonth} ${model.comparisonLabel}과 비교했습니다.`;
+  els.summaryFeedbackPanel.innerHTML = `
+    <section class="summary-feedback-hero">
+      <span class="summary-insight-icon"><i class="ti ti-chart-pie" aria-hidden="true"></i></span>
+      <div><span>${escapeHtml(selectedMonth)} 소비 요약</span><h4>${escapeHtml(model.headline)}</h4><p>${escapeHtml(cutoffNotice)}</p></div>
+      <strong class="${model.total.tone}">${model.comparisonExists ? formatSignedWon(model.total.delta) : "비교 없음"}</strong>
+    </section>
+    <div class="summary-feedback-grid">
+      <section class="summary-feedback-column" aria-labelledby="feedbackChangesTitle">
+        <div class="summary-card-heading"><h4 id="feedbackChangesTitle">이번 달 핵심 변화</h4><span>전체 섹터 기준</span></div>
+        <article class="summary-feedback-change up">
+          <i class="ti ti-arrows-exchange" aria-hidden="true"></i>
+          <div><span>가장 큰 증가</span><strong>${escapeHtml(model.biggestIncrease?.sector || "해당 없음")}</strong><p>${escapeHtml(monthlyFeedbackSectorSentence(model.biggestIncrease, "up"))}</p></div>
+          <b>${model.biggestIncrease ? formatSignedWon(model.biggestIncrease.delta) : "-"}</b>
+        </article>
+        <article class="summary-feedback-change down">
+          <i class="ti ti-arrows-exchange" aria-hidden="true"></i>
+          <div><span>가장 큰 감소</span><strong>${escapeHtml(model.biggestDecrease?.sector || "해당 없음")}</strong><p>${escapeHtml(monthlyFeedbackSectorSentence(model.biggestDecrease, "down"))}</p></div>
+          <b>${model.biggestDecrease ? formatSignedWon(model.biggestDecrease.delta) : "-"}</b>
+        </article>
+        <article class="summary-feedback-change neutral">
+          <i class="ti ti-adjustments-horizontal" aria-hidden="true"></i>
+          <div><span>함께 볼 변화</span><strong>${escapeHtml(positive?.sector || "변화 적음")}</strong><p>${positive ? `${escapeHtml(positive.sector)} 변화는 ${formatWon(Math.abs(positive.delta))}입니다. 소비 맥락과 함께 판단하세요.` : "뚜렷한 추가 변화가 없습니다."}</p></div>
+          <b>${positive ? formatSignedWon(positive.delta) : "-"}</b>
+        </article>
       </section>
-      <section class="sector-analysis-block detail">
-        <div class="analysis-block-head">
-          <h4>세부항목 TOP</h4>
-          <p>금액이 큰 세부항목부터 정렬했습니다.</p>
+      <section class="summary-feedback-column" aria-labelledby="feedbackAttentionTitle">
+        <div class="summary-card-heading"><h4 id="feedbackAttentionTitle">무엇을 확인하면 좋을까요?</h4><span>근거가 큰 항목부터</span></div>
+        <div class="summary-feedback-attention">
+          ${model.attentionDrivers.length ? model.attentionDrivers.map((item, index) => `
+            <button type="button" data-feedback-driver="${escapeHtml(item.key)}" data-feedback-sector="${escapeHtml(model.driverSector)}">
+              <span>${index + 1}</span><div><strong>${escapeHtml(item.label)}</strong><p>${escapeHtml(model.driverSector)} 안에서 ${formatWon(item.delta)} 늘었습니다.</p></div><b>${formatSignedWon(item.delta)}</b><i class="ti ti-chevron-right" aria-hidden="true"></i>
+            </button>
+          `).join("") : `<p class="summary-feedback-no-driver">비교 가능한 세부 증가 요인이 없습니다.</p>`}
         </div>
-        <div class="sector-analysis-bars">
-          ${detailItems.map((item) => renderSectorAnalysisBar("식비", item, total, maxDetailAmount)).join("")}
-        </div>
+        <article class="summary-feedback-focus">
+          <i class="ti ${focus.icon}" aria-hidden="true"></i>
+          <div><span>다음 달 중점</span><strong>${escapeHtml(focus.title)}</strong><p>${escapeHtml(focus.text)}</p></div>
+          <button type="button" data-feedback-focus="${escapeHtml(focus.action)}" data-feedback-sector="${escapeHtml(focus.sector || "all")}">바로 확인 <i class="ti ti-chevron-right" aria-hidden="true"></i></button>
+        </article>
       </section>
-    ` : `${renderSummaryComparisonDriverPanel(comparison, { idPrefix: "report" })}<div class="empty compact-empty">선택한 월의 식비 기록이 없습니다.</div>`}
+    </div>
+    <footer class="summary-feedback-footer">
+      <p><i class="ti ti-info-circle" aria-hidden="true"></i> 금액 변화는 판단의 단서이며, 필수지출 여부와 실제 소비 맥락은 상세 내역에서 함께 확인하세요.</p>
+      ${model.unknown.currentAmount > 0 ? `<button type="button" data-feedback-unknown>미분류 ${formatWon(model.unknown.currentAmount)} 정리하기</button>` : ""}
+    </footer>
   `;
+  attachMonthlyFeedbackHandlers(model);
 }
 
-function renderGenericSectorAnalysisBody(activeRows, month, sector, comparison) {
-  const rows = activeRows.filter((item) => item.month === month && item.sector === sector);
-  const total = sumConsumption(rows);
-  if (!total) {
-    return `${renderSummaryComparisonDriverPanel(comparison, { idPrefix: "report" })}<div class="empty compact-empty">선택한 월의 ${escapeHtml(sector)} 데이터가 없습니다.</div>`;
-  }
-  const details = [...groupBy(rows, (item) => item.subcategory || "미분류").entries()]
-    .map(([subcategory, subRows]) => ({ subcategory, amount: sumConsumption(subRows), count: subRows.length }))
-    .sort((a, b) => b.amount - a.amount);
-  const maxDetailAmount = Math.max(...details.map((item) => item.amount), 1);
-  return `
-    ${renderSectorAnalysisOverview(sector, total, rows.length, details[0] || { subcategory: "-", amount: 0, count: 0 }, month)}
-    ${renderSummaryComparisonDriverPanel(comparison, { idPrefix: "report" })}
-    <section class="sector-analysis-block">
-      <div class="analysis-block-head">
-        <h4>주요 세부항목</h4>
-        <p>상위 세부항목 6개를 요약합니다.</p>
-      </div>
-      <div class="sector-analysis-grid">
-        ${details.slice(0, 6).map((item) => renderSectorAnalysisMetric(sector, item, total, maxDetailAmount)).join("")}
-      </div>
-    </section>
-    <section class="sector-analysis-block detail">
-      <div class="analysis-block-head">
-        <h4>세부항목 TOP</h4>
-        <p>금액이 큰 세부항목부터 정렬했습니다.</p>
-      </div>
-      <div class="sector-analysis-bars">
-        ${details.map((item) => renderSectorAnalysisBar(sector, item, total, maxDetailAmount)).join("")}
-      </div>
-    </section>
-  `;
-}
-
-function renderSectorAnalysisOverview(sector, total, count, topDetail, month) {
-  const monthRows = reportingExpenseRows(classified, { months: [month] });
-  const monthTotal = sumConsumption(monthRows);
-  return `
-    <section class="sector-analysis-overview ${categoryClass(sector)}">
-      <div>
-        ${categoryChip(sector)}
-        <h4>${escapeHtml(month)} ${escapeHtml(sector)} 리포트</h4>
-        <p>선택 월 총지출 대비 ${formatPercent(total, monthTotal)}를 차지합니다.</p>
-      </div>
-      <dl>
-        <div>
-          <dt>섹터 지출</dt>
-          <dd>${formatWon(total)}</dd>
-        </div>
-        <div>
-          <dt>거래 건수</dt>
-          <dd>${count.toLocaleString("ko-KR")}건</dd>
-        </div>
-        <div>
-          <dt>상위 세부항목</dt>
-          <dd>${escapeHtml(topDetail.subcategory)} · ${formatWon(topDetail.amount)}</dd>
-        </div>
-      </dl>
-    </section>
-  `;
-}
-
-function sectorAnalysisIntensity(amount, maxAmount) {
-  const ratio = maxAmount ? amount / maxAmount : 0;
-  return Math.round(12 + Math.min(1, ratio) * 34);
-}
-
-function renderSectorAnalysisMetric(sector, item, total, maxAmount = total) {
-  const intensity = sectorAnalysisIntensity(item.amount, maxAmount);
-  return `
-    <button type="button" class="sector-analysis-metric ${categoryClass(sector)}" style="--analysis-strength: ${intensity}%" data-analysis-sector="${escapeHtml(sector)}" data-analysis-subcategory="${escapeHtml(item.subcategory)}">
-      <span title="${escapeHtml(item.subcategory)}">${escapeHtml(item.subcategory)}</span>
-      <strong>${formatWon(item.amount)}</strong>
-      <small>${formatPercent(item.amount, total)} · ${item.count.toLocaleString("ko-KR")}건</small>
-    </button>
-  `;
-}
-
-function renderSectorAnalysisBar(sector, item, total, maxAmount = total) {
-  const width = total ? Math.round(item.amount / total * 100) : 0;
-  const intensity = sectorAnalysisIntensity(item.amount, maxAmount);
-  return `
-    <button type="button" class="sector-analysis-bar-row ${categoryClass(sector)}" style="--analysis-strength: ${intensity}%" data-analysis-sector="${escapeHtml(sector)}" data-analysis-subcategory="${escapeHtml(item.subcategory)}">
-      <div class="food-compare-labels">
-        <span title="${escapeHtml(item.subcategory)}">${escapeHtml(item.subcategory)} <b>${formatWon(item.amount)}</b></span>
-        <span>${width}% · ${item.count.toLocaleString("ko-KR")}건</span>
-      </div>
-      <div class="sector-ratio-bar">
-        <span class="${categoryClass(sector)}" style="width: ${width}%"></span>
-      </div>
-    </button>
-  `;
-}
-
-function attachSectorAnalysisHandlers(month) {
-  (els.sectorAnalysisBody || els.foodAnalysisCard).querySelectorAll("[data-analysis-sector]").forEach((button) => {
-    button.addEventListener("click", () => {
-      openDetailView(summaryDetailOptions({
-        month,
-        sector: button.dataset.analysisSector,
-        subcategory: button.dataset.analysisSubcategory === "all" ? "all" : button.dataset.analysisSubcategory
-      }));
-    });
+function attachMonthlyFeedbackHandlers(model) {
+  els.summaryFeedbackPanel.querySelectorAll("[data-feedback-driver]").forEach((button) => {
+    button.addEventListener("click", () => openDetailView(summaryDetailOptions({
+      month: model.selectedMonth,
+      sector: button.dataset.feedbackSector,
+      subcategory: button.dataset.feedbackDriver
+    })));
   });
-}
-
-function renderFoodContextGroup(groupLabel, leftLabel, leftAmount, rightLabel, rightAmount, total, leftTone, rightTone) {
-  const pairTotal = leftAmount + rightAmount || 1;
-  const leftWidth = Math.round(leftAmount / pairTotal * 100);
-  const rightWidth = 100 - leftWidth;
-  return `
-    <section class="food-context-group">
-      <span class="food-context-label">${escapeHtml(groupLabel)}</span>
-      <div class="food-compare-labels">
-        <span>${escapeHtml(leftLabel)} <b>${formatWon(leftAmount)}</b></span>
-        <span>${escapeHtml(rightLabel)} <b>${formatWon(rightAmount)}</b></span>
-      </div>
-      <div class="food-ratio-bar" aria-label="${escapeHtml(leftLabel)}와 ${escapeHtml(rightLabel)} 비교">
-        <span class="${escapeHtml(leftTone)}" style="width: ${leftWidth}%"></span>
-        <span class="${escapeHtml(rightTone)}" style="width: ${rightWidth}%"></span>
-      </div>
-      <small>${escapeHtml(leftLabel)} ${total ? Math.round(leftAmount / total * 100) : 0}% · ${escapeHtml(rightLabel)} ${total ? Math.round(rightAmount / total * 100) : 0}%</small>
-    </section>
-  `;
-}
-
-function renderFoodContextIndicator(groupLabel, label, amount, total, tone) {
-  const width = total ? Math.round(amount / total * 100) : 0;
-  return `
-    <section class="food-context-group">
-      <span class="food-context-label">${escapeHtml(groupLabel)}</span>
-      <div class="food-compare-labels">
-        <span>${escapeHtml(label)} <b>${formatWon(amount)}</b></span>
-        <span>전체 식비의 ${width}%</span>
-      </div>
-      <div class="food-ratio-bar single" aria-label="${escapeHtml(label)}">
-        <span class="${escapeHtml(tone)}" style="width: ${width}%"></span>
-      </div>
-    </section>
-  `;
+  els.summaryFeedbackPanel.querySelector("[data-feedback-focus]")?.addEventListener("click", (event) => {
+    const action = event.currentTarget.dataset.feedbackFocus;
+    const sector = event.currentTarget.dataset.feedbackSector || "all";
+    if (action === "unknown" && typeof showView === "function") {
+      showView("unknown");
+      return;
+    }
+    openDetailView(summaryDetailOptions({ month: model.selectedMonth, sector }));
+  });
+  els.summaryFeedbackPanel.querySelector("[data-feedback-unknown]")?.addEventListener("click", () => {
+    if (typeof showView === "function") showView("unknown");
+  });
 }

@@ -597,8 +597,10 @@ function updateMonthlyYearOptions(rows) {
   ];
   els.monthlyYearFilter.innerHTML = options.join("");
   const previousExists = [...els.monthlyYearFilter.options].some((option) => option.value === previous);
+  const currentYear = currentMonthKey().slice(0, 4);
   const latestYearValue = years.length ? `year:${years.at(-1)}` : "all";
-  els.monthlyYearFilter.value = monthlyYearFilterInitialized && previousExists ? previous : latestYearValue;
+  const initialYearValue = years.includes(currentYear) ? `year:${currentYear}` : latestYearValue;
+  els.monthlyYearFilter.value = monthlyYearFilterInitialized && previousExists ? previous : initialYearValue;
   if (years.length) monthlyYearFilterInitialized = true;
   updateMonthlyRangeYearOptions(years, previousStartYear, previousEndYear);
   updateMonthlyYearNavigation(years);

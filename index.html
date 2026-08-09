@@ -19,6 +19,7 @@
   <link rel="stylesheet" href="assets/tabler/tabler-icons.min.css?v=135-subcategory-icons">
   <link rel="stylesheet" href="src/styles/09-production-ui.css?v=161-sector-comparison">
   <link rel="stylesheet" href="src/styles/10-analysis.css?v=161-analysis-clarity">
+  <link rel="stylesheet" href="src/styles/11-summary-insights.css?v=165-summary-insights-r2">
   <script src="assets/vendor/xlsx.full.min.js"></script>
 </head>
 <body data-app-name="소비 분석">
@@ -632,19 +633,19 @@
         <label class="summary-mobile-view-control" for="summaryMobileViewSelect">
           <span>분석 화면</span>
           <select id="summaryMobileViewSelect">
-            <option value="trend">소비 추이</option>
-            <option value="month">선택 월 비교</option>
-            <option value="detail">상세 섹터 비교</option>
-            <option value="sector">섹터 리포트</option>
-            <option value="matrix">월별 섹터 매트릭스</option>
+            <option value="trend">관심 섹터 변화</option>
+            <option value="priority">소비 우선순위</option>
+            <option value="patterns">소비 패턴 상세</option>
+            <option value="report">월간 소비 피드백</option>
+            <option value="period">기간 분석</option>
           </select>
         </label>
         <div class="summary-subtabs" role="tablist" aria-label="월별 섹터 요약 보기">
-          <button id="summaryTabTrend" class="summary-subtab active" type="button" role="tab" tabindex="0" aria-selected="true" aria-controls="summarySubtabTrend" data-summary-subtab="trend"><span class="summary-subtab-index">1</span><span class="summary-subtab-text">섹터별 월간 비교</span></button>
-          <button id="summaryTabShare" class="summary-subtab" type="button" role="tab" tabindex="-1" aria-selected="false" aria-controls="summarySubtabShare" data-summary-subtab="share"><span class="summary-subtab-index">2</span><span class="summary-subtab-text">선택 월 섹터 비교</span></button>
-          <button id="summaryTabDetail" class="summary-subtab" type="button" role="tab" tabindex="-1" aria-selected="false" aria-controls="summarySubtabDetail" data-summary-subtab="detail"><span class="summary-subtab-index">3</span><span class="summary-subtab-text">상세 섹터 비교</span></button>
-          <button id="summaryTabReport" class="summary-subtab" type="button" role="tab" tabindex="-1" aria-selected="false" aria-controls="summarySubtabReport" data-summary-subtab="report"><span class="summary-subtab-index">4</span><span class="summary-subtab-text">각 섹터 리포트</span></button>
-          <button id="summaryTabMatrix" class="summary-subtab" type="button" role="tab" tabindex="-1" aria-selected="false" aria-controls="summarySubtabMatrix" data-summary-subtab="matrix"><span class="summary-subtab-index">5</span><span class="summary-subtab-text">월별 섹터 매트릭스</span></button>
+          <button id="summaryTabTrend" class="summary-subtab active" type="button" role="tab" tabindex="0" aria-selected="true" aria-controls="summarySubtabTrend" data-summary-subtab="trend"><span class="summary-subtab-index">1</span><span class="summary-subtab-text">관심 섹터 변화</span></button>
+          <button id="summaryTabShare" class="summary-subtab" type="button" role="tab" tabindex="-1" aria-selected="false" aria-controls="summarySubtabShare" data-summary-subtab="share"><span class="summary-subtab-index">2</span><span class="summary-subtab-text">소비 우선순위</span></button>
+          <button id="summaryTabDetail" class="summary-subtab" type="button" role="tab" tabindex="-1" aria-selected="false" aria-controls="summarySubtabDetail" data-summary-subtab="detail"><span class="summary-subtab-index">3</span><span class="summary-subtab-text">소비 패턴 상세</span></button>
+          <button id="summaryTabReport" class="summary-subtab" type="button" role="tab" tabindex="-1" aria-selected="false" aria-controls="summarySubtabReport" data-summary-subtab="report"><span class="summary-subtab-index">4</span><span class="summary-subtab-text">월간 소비 피드백</span></button>
+          <button id="summaryTabMatrix" class="summary-subtab" type="button" role="tab" tabindex="-1" aria-selected="false" aria-controls="summarySubtabMatrix" data-summary-subtab="matrix"><span class="summary-subtab-index">5</span><span class="summary-subtab-text">기간 분석</span></button>
         </div>
 
         <section class="summary-context-bar" aria-label="공통 분석 조건">
@@ -699,11 +700,10 @@
           <section class="summary-selected-month-panel">
             <div class="panel-head">
               <div>
-                <h3>선택 월 섹터 비교</h3>
-                <p>선택 월의 총지출, 가장 큰 섹터, 선택 섹터 비중과 미분류 금액을 함께 봅니다.</p>
+                <h3>소비 우선순위</h3>
+                <p>지출 비중과 비교 기간 대비 변화를 함께 보고 먼저 확인할 섹터를 찾습니다.</p>
               </div>
             </div>
-            <div id="summaryMetricCards" class="summary-metric-grid"></div>
             <section id="summarySectorSharePanel" class="summary-sector-share-panel"></section>
           </section>
         </div>
@@ -712,23 +712,23 @@
           <section class="summary-month-detail">
             <div class="panel-head">
               <div>
-                <h3>상세 섹터 비교</h3>
-                <p>선택한 월의 섹터별 금액과 주요 세부항목 TOP 3를 비교합니다.</p>
+                <h3>소비 패턴 상세</h3>
+                <p>선택 섹터의 결제 빈도, 시간대, 금액대와 반복 가맹점 변화를 확인합니다.</p>
               </div>
             </div>
-            <div id="selectedMonthSectorCards" class="selected-month-sector-cards"></div>
+            <div id="summaryPatternPanel" class="summary-pattern-panel"></div>
           </section>
         </div>
 
         <div id="summarySubtabReport" class="summary-subtab-panel" role="tabpanel" aria-labelledby="summaryTabReport" data-summary-subtab-panel="report" hidden>
-          <section id="foodAnalysisCard" class="sector-analysis-card">
+          <section class="sector-analysis-card summary-feedback-card">
             <div class="panel-head">
               <div>
-                <h3 id="sectorAnalysisTitle">각 섹터 리포트</h3>
-                <p id="sectorAnalysisDescription">선택한 월과 섹터의 세부 소비 패턴을 더 자세히 분석합니다.</p>
+                <h3>월간 소비 피드백</h3>
+                <p>선택 월의 핵심 변화와 다음 달에 확인할 항목을 짧은 보고서로 정리합니다.</p>
               </div>
             </div>
-            <div id="sectorAnalysisBody"></div>
+            <div id="summaryFeedbackPanel" class="summary-feedback-panel"></div>
           </section>
         </div>
 
@@ -736,13 +736,17 @@
           <section class="summary-matrix-panel">
             <div class="selected-month-detail-head">
               <div>
-                <h3 id="selectedMonthDetailTitle">월별 섹터 매트릭스</h3>
-                <p>기간 내 모든 월의 섹터별 금액을 표로 비교하는 보조 데이터입니다.</p>
+                <h3>기간 분석</h3>
+                <p>변화 지도와 흐름 보드를 전환하며 월별 증감과 장기 흐름을 함께 확인합니다.</p>
               </div>
             </div>
-            <div class="table-wrap summary-matrix-wrap" tabindex="0" aria-label="월별 섹터 매트릭스, 가로로 스크롤할 수 있습니다">
-              <table id="monthlyTable" aria-label="월별 섹터별 지출 비교"></table>
-            </div>
+            <div id="summaryPeriodPanel" class="summary-period-panel"></div>
+            <details class="summary-raw-table-disclosure">
+              <summary>정확한 금액 표 보기</summary>
+              <div class="table-wrap summary-matrix-wrap" tabindex="0" aria-label="월별 섹터 매트릭스, 가로로 스크롤할 수 있습니다">
+                <table id="monthlyTable" aria-label="월별 섹터별 지출 비교"></table>
+              </div>
+            </details>
           </section>
         </div>
       </section>
@@ -1323,13 +1327,13 @@
     </article>
   </template>
 
-  <script src="src/data/constants.js?v=164-ipo-calendar-readable-full-3line"></script>
+  <script src="src/data/constants.js?v=165-summary-insights-r2"></script>
   <script src="src/data/categories.js?v=136-mineral-layers"></script>
   <script src="src/data/rules.js?v=93"></script>
   <script src="src/data/board-sections.js?v=151-loan-repayments"></script>
   <script src="src/data/field-aliases.js?v=77"></script>
 
-  <script src="src/features/app/state.js?v=162-ipo-calendar-compact"></script>
+  <script src="src/features/app/state.js?v=165-summary-insights-r2"></script>
 
   <script src="src/utils/format.js?v=80"></script>
   <script src="src/utils/date.js?v=141-garden-analysis"></script>
@@ -1356,10 +1360,13 @@
   <script src="src/features/board/board-cards.js?v=156-loan-sharing"></script>
   <script src="src/features/details/details-view.js?v=151-loan-repayments"></script>
   <script src="src/features/summary/comparison-analysis.js?v=151-loan-repayments"></script>
-  <script src="src/features/summary/summary-view.js?v=151-loan-repayments"></script>
-  <script src="src/features/summary/sector-analysis.js?v=151-loan-repayments"></script>
-  <script src="src/features/summary/summary-chart.js?v=161-sector-comparison"></script>
-  <script src="src/features/monthly/monthly-flow.js?v=156-loan-sharing"></script>
+  <script src="src/features/summary/summary-priority.js?v=165-summary-insights-r2"></script>
+  <script src="src/features/summary/summary-pattern.js?v=165-summary-insights-r2"></script>
+  <script src="src/features/summary/sector-analysis.js?v=165-summary-insights-r2"></script>
+  <script src="src/features/summary/summary-period.js?v=165-summary-insights-r2"></script>
+  <script src="src/features/summary/summary-view.js?v=165-summary-insights-r2"></script>
+  <script src="src/features/summary/summary-chart.js?v=165-summary-insights-r2"></script>
+  <script src="src/features/monthly/monthly-flow.js?v=165-summary-insights-r2"></script>
   <script src="src/features/monthly/monthly-chart.js?v=156-loan-sharing"></script>
   <script src="src/features/income/income-entry.js?v=61"></script>
   <script src="src/features/income/income-bulk.js?v=61"></script>
@@ -1377,6 +1384,6 @@
   <script src="src/features/app/navigation.js?v=112"></script>
   <script src="src/features/app/appearance.js?v=141-garden-analysis"></script>
   <script src="src/features/app/render-all.js?v=151-loan-repayments"></script>
-  <script src="src/features/app/init.js?v=164-ipo-calendar-readable-full-3line"></script>
+  <script src="src/features/app/init.js?v=165-summary-insights-r2"></script>
 </body>
 </html>

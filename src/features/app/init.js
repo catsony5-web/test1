@@ -9,6 +9,7 @@ function registerPwa() {
 
 async function init() {
   await hydrateStoredData();
+  setSharedSelectedMonth(currentMonthKey(), { syncControls: false });
   hydrateIpoPerformanceSelection();
   await migrateCategorySystem();
   await ensureAutoPostedRecurringExpenses();

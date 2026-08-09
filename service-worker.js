@@ -1,4 +1,4 @@
-const CACHE_NAME = "monthly-card-budget-v164";
+const CACHE_NAME = "monthly-card-budget-v165-summary-insights-r2";
 const APP_FILES = [
   "./",
   "./index.html",
@@ -13,6 +13,7 @@ const APP_FILES = [
   "./src/styles/08-themes.css",
   "./src/styles/09-production-ui.css",
   "./src/styles/10-analysis.css",
+  "./src/styles/11-summary-insights.css",
   "./assets/vendor/xlsx.full.min.js",
   "./assets/vendor/xlsx.LICENSE",
   "./assets/tabler/tabler-icons.min.css",
@@ -132,6 +133,9 @@ const APP_FILES = [
   "./src/features/board/board-cards.js",
   "./src/features/details/details-view.js",
   "./src/features/summary/comparison-analysis.js",
+  "./src/features/summary/summary-priority.js",
+  "./src/features/summary/summary-pattern.js",
+  "./src/features/summary/summary-period.js",
   "./src/features/summary/summary-view.js",
   "./src/features/summary/sector-analysis.js",
   "./src/features/summary/summary-chart.js",
