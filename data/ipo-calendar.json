@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-08-05T23:45:38.222Z",
+  "updatedAt": "2026-08-12T05:28:29.400Z",
   "source": {
     "name": "KRX KIND",
     "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcom.do?method=searchPubofrProgComMain",
@@ -11,7 +11,7 @@
     "to": "2027-08-31",
     "label": "최근 3개월 · 향후 12개월"
   },
-  "itemCount": 16,
+  "itemCount": 17,
   "items": [
     {
       "sourceId": "20250827000564",
@@ -395,6 +395,30 @@
       "missingSince": "",
       "fingerprint": "402ec801b9fc6f7fe651",
       "changeStatus": "unchanged",
+      "changes": []
+    },
+    {
+      "sourceId": "20251114000430",
+      "company": "니어스랩",
+      "market": "코스닥",
+      "filingDate": "2026-06-25",
+      "bookbuildingStart": "2026-07-27",
+      "bookbuildingEnd": "2026-07-31",
+      "subscriptionStart": "2026-08-05",
+      "subscriptionEnd": "2026-08-06",
+      "paymentDate": "2026-08-10",
+      "offerPrice": 41200,
+      "offeringAmountMillions": 37492,
+      "listingDate": "2026-08-14",
+      "broker": "삼성증권",
+      "priceStatus": "confirmed",
+      "status": "scheduled",
+      "sourceName": "KRX KIND",
+      "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20251114000430",
+      "sourceUpdatedAt": "2026-08-12T05:28:29.400Z",
+      "missingSince": "",
+      "fingerprint": "4c46f12027b3eef41caa",
+      "changeStatus": "new",
       "changes": []
     }
   ]
