@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-08-13T05:38:18.733Z",
+  "updatedAt": "2026-08-13T10:59:26.910Z",
   "source": {
     "name": "KRX KIND",
     "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcom.do?method=searchPubofrProgComMain",
@@ -11,7 +11,7 @@
     "to": "2027-08-31",
     "label": "최근 3개월 · 향후 12개월"
   },
-  "itemCount": 18,
+  "itemCount": 19,
   "items": [
     {
       "sourceId": "20250827000564",
@@ -418,7 +418,7 @@
       "sourceUpdatedAt": "2026-08-13T05:38:18.733Z",
       "missingSince": "",
       "fingerprint": "676b74e340e4daf08f32",
-      "changeStatus": "new",
+      "changeStatus": "unchanged",
       "changes": []
     },
     {
@@ -442,45 +442,32 @@
       "sourceUpdatedAt": "2026-08-13T05:38:18.733Z",
       "missingSince": "",
       "fingerprint": "aa986dd640450d056022",
-      "changeStatus": "changed",
-      "changes": [
-        {
-          "field": "bookbuildingStart",
-          "label": "수요예측 시작",
-          "before": "2026-07-27",
-          "after": "2026-08-03"
-        },
-        {
-          "field": "bookbuildingEnd",
-          "label": "수요예측 종료",
-          "before": "2026-07-31",
-          "after": "2026-08-07"
-        },
-        {
-          "field": "subscriptionStart",
-          "label": "청약 시작",
-          "before": "2026-08-05",
-          "after": "2026-08-12"
-        },
-        {
-          "field": "subscriptionEnd",
-          "label": "청약 종료",
-          "before": "2026-08-06",
-          "after": "2026-08-13"
-        },
-        {
-          "field": "paymentDate",
-          "label": "납입일",
-          "before": "2026-08-10",
-          "after": "2026-08-18"
-        },
-        {
-          "field": "listingDate",
-          "label": "상장 예정일",
-          "before": "2026-08-14",
-          "after": "2026-08-24"
-        }
-      ]
+      "changeStatus": "unchanged",
+      "changes": []
+    },
+    {
+      "sourceId": "20251203000592",
+      "company": "스카이랩스",
+      "market": "코스닥",
+      "filingDate": "2026-07-07",
+      "bookbuildingStart": "2026-08-14",
+      "bookbuildingEnd": "2026-08-21",
+      "subscriptionStart": "2026-08-26",
+      "subscriptionEnd": "2026-08-27",
+      "paymentDate": "2026-08-31",
+      "offerPrice": 0,
+      "offeringAmountMillions": 0,
+      "listingDate": "2026-09-04",
+      "broker": "한국투자증권",
+      "priceStatus": "pending",
+      "status": "scheduled",
+      "sourceName": "KRX KIND",
+      "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20251203000592",
+      "sourceUpdatedAt": "2026-08-13T10:59:26.910Z",
+      "missingSince": "",
+      "fingerprint": "1b3245e8c4373e41deb0",
+      "changeStatus": "new",
+      "changes": []
     }
   ]
 }
