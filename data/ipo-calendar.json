@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-08-13T10:59:26.910Z",
+  "updatedAt": "2026-08-13T23:29:47.377Z",
   "source": {
     "name": "KRX KIND",
     "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcom.do?method=searchPubofrProgComMain",
@@ -407,19 +407,32 @@
       "subscriptionStart": "2026-08-11",
       "subscriptionEnd": "2026-08-12",
       "paymentDate": "2026-08-14",
-      "offerPrice": 0,
-      "offeringAmountMillions": 0,
+      "offerPrice": 28400,
+      "offeringAmountMillions": 48280,
       "listingDate": "2026-08-21",
       "broker": "미래에셋증권",
-      "priceStatus": "pending",
+      "priceStatus": "confirmed",
       "status": "scheduled",
       "sourceName": "KRX KIND",
       "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260129000214",
-      "sourceUpdatedAt": "2026-08-13T05:38:18.733Z",
+      "sourceUpdatedAt": "2026-08-13T23:29:47.377Z",
       "missingSince": "",
-      "fingerprint": "676b74e340e4daf08f32",
-      "changeStatus": "unchanged",
-      "changes": []
+      "fingerprint": "d78f838d9bd71aa309bc",
+      "changeStatus": "changed",
+      "changes": [
+        {
+          "field": "offerPrice",
+          "label": "확정 공모가",
+          "before": 0,
+          "after": 28400
+        },
+        {
+          "field": "offeringAmountMillions",
+          "label": "공모금액",
+          "before": 0,
+          "after": 48280
+        }
+      ]
     },
     {
       "sourceId": "20251114000430",
@@ -466,7 +479,7 @@
       "sourceUpdatedAt": "2026-08-13T10:59:26.910Z",
       "missingSince": "",
       "fingerprint": "1b3245e8c4373e41deb0",
-      "changeStatus": "new",
+      "changeStatus": "unchanged",
       "changes": []
     }
   ]
