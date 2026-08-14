@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-08-13T23:29:47.377Z",
+  "updatedAt": "2026-08-14T05:30:01.013Z",
   "source": {
     "name": "KRX KIND",
     "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcom.do?method=searchPubofrProgComMain",
@@ -11,7 +11,7 @@
     "to": "2027-08-31",
     "label": "최근 3개월 · 향후 12개월"
   },
-  "itemCount": 19,
+  "itemCount": 20,
   "items": [
     {
       "sourceId": "20250827000564",
@@ -418,21 +418,8 @@
       "sourceUpdatedAt": "2026-08-13T23:29:47.377Z",
       "missingSince": "",
       "fingerprint": "d78f838d9bd71aa309bc",
-      "changeStatus": "changed",
-      "changes": [
-        {
-          "field": "offerPrice",
-          "label": "확정 공모가",
-          "before": 0,
-          "after": 28400
-        },
-        {
-          "field": "offeringAmountMillions",
-          "label": "공모금액",
-          "before": 0,
-          "after": 48280
-        }
-      ]
+      "changeStatus": "unchanged",
+      "changes": []
     },
     {
       "sourceId": "20251114000430",
@@ -456,6 +443,30 @@
       "missingSince": "",
       "fingerprint": "aa986dd640450d056022",
       "changeStatus": "unchanged",
+      "changes": []
+    },
+    {
+      "sourceId": "20260123000294",
+      "company": "해치텍",
+      "market": "코스닥",
+      "filingDate": "2026-06-26",
+      "bookbuildingStart": "2026-08-03",
+      "bookbuildingEnd": "2026-08-07",
+      "subscriptionStart": "2026-08-12",
+      "subscriptionEnd": "2026-08-13",
+      "paymentDate": "2026-08-18",
+      "offerPrice": 23000,
+      "offeringAmountMillions": 23000,
+      "listingDate": "2026-08-25",
+      "broker": "DB증권",
+      "priceStatus": "confirmed",
+      "status": "scheduled",
+      "sourceName": "KRX KIND",
+      "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260123000294",
+      "sourceUpdatedAt": "2026-08-14T05:30:01.013Z",
+      "missingSince": "",
+      "fingerprint": "0e67e6a54fff8c0903b4",
+      "changeStatus": "new",
       "changes": []
     },
     {
