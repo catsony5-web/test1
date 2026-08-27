@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-08-27T04:07:26.107Z",
+  "updatedAt": "2026-08-27T14:58:05.807Z",
   "source": {
     "name": "KRX KIND",
     "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcom.do?method=searchPubofrProgComMain",
@@ -503,19 +503,32 @@
       "subscriptionStart": "2026-08-26",
       "subscriptionEnd": "2026-08-27",
       "paymentDate": "2026-08-31",
-      "offerPrice": 0,
-      "offeringAmountMillions": 0,
+      "offerPrice": 10000,
+      "offeringAmountMillions": 20000,
       "listingDate": "2026-09-04",
       "broker": "한국투자증권",
-      "priceStatus": "pending",
+      "priceStatus": "confirmed",
       "status": "scheduled",
       "sourceName": "KRX KIND",
       "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20251203000592",
-      "sourceUpdatedAt": "2026-08-13T10:59:26.910Z",
+      "sourceUpdatedAt": "2026-08-27T14:58:05.807Z",
       "missingSince": "",
-      "fingerprint": "1b3245e8c4373e41deb0",
-      "changeStatus": "unchanged",
-      "changes": []
+      "fingerprint": "cd375a76ce95e7653838",
+      "changeStatus": "changed",
+      "changes": [
+        {
+          "field": "offerPrice",
+          "label": "확정 공모가",
+          "before": 0,
+          "after": 10000
+        },
+        {
+          "field": "offeringAmountMillions",
+          "label": "공모금액",
+          "before": 0,
+          "after": 20000
+        }
+      ]
     }
   ]
 }
