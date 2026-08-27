@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-08-26T10:32:38.233Z",
+  "updatedAt": "2026-08-27T04:07:26.107Z",
   "source": {
     "name": "KRX KIND",
     "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcom.do?method=searchPubofrProgComMain",
@@ -418,7 +418,7 @@
       "sourceUpdatedAt": "2026-08-26T10:32:38.233Z",
       "missingSince": "",
       "fingerprint": "e577c18ffc9cbb74db17",
-      "changeStatus": "new",
+      "changeStatus": "unchanged",
       "changes": []
     },
     {
