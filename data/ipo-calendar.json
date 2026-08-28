@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-08-27T20:08:21.284Z",
+  "updatedAt": "2026-08-28T15:53:16.469Z",
   "source": {
     "name": "KRX KIND",
     "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcom.do?method=searchPubofrProgComMain",
@@ -398,30 +398,6 @@
       "changes": []
     },
     {
-      "sourceId": "20251002000228",
-      "company": "빅웨이브로보틱스",
-      "market": "코스닥",
-      "filingDate": "2026-07-01",
-      "bookbuildingStart": "2026-07-27",
-      "bookbuildingEnd": "2026-07-31",
-      "subscriptionStart": "2026-08-05",
-      "subscriptionEnd": "2026-08-06",
-      "paymentDate": "2026-08-10",
-      "offerPrice": 0,
-      "offeringAmountMillions": 0,
-      "listingDate": "2026-08-14",
-      "broker": "유진투자증권, 미래에셋증권",
-      "priceStatus": "pending",
-      "status": "scheduled",
-      "sourceName": "KRX KIND",
-      "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20251002000228",
-      "sourceUpdatedAt": "2026-08-26T10:32:38.233Z",
-      "missingSince": "",
-      "fingerprint": "e577c18ffc9cbb74db17",
-      "changeStatus": "unchanged",
-      "changes": []
-    },
-    {
       "sourceId": "20260129000214",
       "company": "기도산업",
       "market": "코스닥",
@@ -516,6 +492,67 @@
       "fingerprint": "cd375a76ce95e7653838",
       "changeStatus": "unchanged",
       "changes": []
+    },
+    {
+      "sourceId": "20251002000228",
+      "company": "빅웨이브로보틱스",
+      "market": "코스닥",
+      "filingDate": "2026-07-01",
+      "bookbuildingStart": "2026-09-07",
+      "bookbuildingEnd": "2026-09-11",
+      "subscriptionStart": "2026-09-15",
+      "subscriptionEnd": "2026-09-16",
+      "paymentDate": "2026-09-18",
+      "offerPrice": 0,
+      "offeringAmountMillions": 0,
+      "listingDate": "2026-09-29",
+      "broker": "유진투자증권, 미래에셋증권",
+      "priceStatus": "pending",
+      "status": "scheduled",
+      "sourceName": "KRX KIND",
+      "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20251002000228",
+      "sourceUpdatedAt": "2026-08-28T15:53:16.469Z",
+      "missingSince": "",
+      "fingerprint": "3b4fb0456bf805c90a18",
+      "changeStatus": "changed",
+      "changes": [
+        {
+          "field": "bookbuildingStart",
+          "label": "수요예측 시작",
+          "before": "2026-07-27",
+          "after": "2026-09-07"
+        },
+        {
+          "field": "bookbuildingEnd",
+          "label": "수요예측 종료",
+          "before": "2026-07-31",
+          "after": "2026-09-11"
+        },
+        {
+          "field": "subscriptionStart",
+          "label": "청약 시작",
+          "before": "2026-08-05",
+          "after": "2026-09-15"
+        },
+        {
+          "field": "subscriptionEnd",
+          "label": "청약 종료",
+          "before": "2026-08-06",
+          "after": "2026-09-16"
+        },
+        {
+          "field": "paymentDate",
+          "label": "납입일",
+          "before": "2026-08-10",
+          "after": "2026-09-18"
+        },
+        {
+          "field": "listingDate",
+          "label": "상장 예정일",
+          "before": "2026-08-14",
+          "after": "2026-09-29"
+        }
+      ]
     }
   ]
 }
