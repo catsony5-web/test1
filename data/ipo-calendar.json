@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-08-28T15:53:16.469Z",
+  "updatedAt": "2026-08-28T21:04:41.343Z",
   "source": {
     "name": "KRX KIND",
     "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcom.do?method=searchPubofrProgComMain",
@@ -514,45 +514,8 @@
       "sourceUpdatedAt": "2026-08-28T15:53:16.469Z",
       "missingSince": "",
       "fingerprint": "3b4fb0456bf805c90a18",
-      "changeStatus": "changed",
-      "changes": [
-        {
-          "field": "bookbuildingStart",
-          "label": "수요예측 시작",
-          "before": "2026-07-27",
-          "after": "2026-09-07"
-        },
-        {
-          "field": "bookbuildingEnd",
-          "label": "수요예측 종료",
-          "before": "2026-07-31",
-          "after": "2026-09-11"
-        },
-        {
-          "field": "subscriptionStart",
-          "label": "청약 시작",
-          "before": "2026-08-05",
-          "after": "2026-09-15"
-        },
-        {
-          "field": "subscriptionEnd",
-          "label": "청약 종료",
-          "before": "2026-08-06",
-          "after": "2026-09-16"
-        },
-        {
-          "field": "paymentDate",
-          "label": "납입일",
-          "before": "2026-08-10",
-          "after": "2026-09-18"
-        },
-        {
-          "field": "listingDate",
-          "label": "상장 예정일",
-          "before": "2026-08-14",
-          "after": "2026-09-29"
-        }
-      ]
+      "changeStatus": "unchanged",
+      "changes": []
     }
   ]
 }
