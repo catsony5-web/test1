@@ -77,9 +77,24 @@ function comparisonBreakdownForSector(model, sector) {
   };
 }
 
+function normalizeSummaryComparisonMode(mode) {
+  return ["previous", "year-over-year", "custom"].includes(mode) ? mode : "previous";
+}
+
+function resolveSummaryComparisonMonth(selectedMonth, mode, customMonth = "") {
+  const normalizedMode = normalizeSummaryComparisonMode(mode);
+  const validSelectedMonth = /^\d{4}-\d{2}$/.test(String(selectedMonth || ""));
+  if (!validSelectedMonth) return "";
+  if (normalizedMode === "year-over-year") return shiftMonthKey(selectedMonth, -12);
+  if (normalizedMode === "custom" && /^\d{4}-\d{2}$/.test(String(customMonth || ""))) {
+    return customMonth;
+  }
+  return shiftMonthKey(selectedMonth, -1);
+}
+
 function buildSummaryComparison(activeRows, selectedMonth, selectedSector, options = {}) {
-  const mode = options.mode === "custom" ? "custom" : "year-over-year";
-  const comparisonMonth = options.comparisonMonth || shiftMonthKey(selectedMonth, -12);
+  const mode = normalizeSummaryComparisonMode(options.mode);
+  const comparisonMonth = resolveSummaryComparisonMonth(selectedMonth, mode, options.comparisonMonth);
   const cutoffDay = selectedMonth === currentMonthKey() ? new Date().getDate() : 0;
   const currentRows = summaryRowsForComparisonMonth(activeRows, selectedMonth, cutoffDay);
   const comparisonRows = summaryRowsForComparisonMonth(activeRows, comparisonMonth, cutoffDay);
@@ -99,7 +114,7 @@ function buildSummaryComparison(activeRows, selectedMonth, selectedSector, optio
     selectedMonth,
     selectedSector,
     comparisonMonth,
-    comparisonLabel: mode === "custom" ? "비교월" : "전년 동월",
+    comparisonLabel: mode === "custom" ? "비교월" : mode === "year-over-year" ? "전년 동월" : "전월",
     cutoffDay,
     currentRows,
     comparisonRows,

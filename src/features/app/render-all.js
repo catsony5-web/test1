@@ -3,6 +3,7 @@ function renderAll() {
   renderBoard();
   renderMonthlyAnalysis();
   renderSpendingStructureAnalysis();
+  renderGoals();
   renderMonthlyFlow();
   renderSummary();
   renderDetailView();
@@ -22,6 +23,7 @@ function renderView(viewName) {
     board: renderBoard,
     monthlyAnalysis: renderMonthlyAnalysis,
     spendingStructure: renderSpendingStructureAnalysis,
+    goals: renderGoals,
     monthly: renderMonthlyFlow,
     summary: renderSummary,
     details: renderDetailView,

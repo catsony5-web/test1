@@ -195,12 +195,14 @@ function verifyMonthlyFeedbackModel() {
   const activeRows = [
     expense("2026-03", "식비", 150, { subcategory: "점심" }),
     expense("2026-03", "쇼핑", 500, { subcategory: "의류" }),
-    expense("2025-03", "식비", 100, { subcategory: "점심" }),
-    expense("2025-03", "쇼핑", 100, { subcategory: "의류" })
+    expense("2026-02", "식비", 100, { subcategory: "점심" }),
+    expense("2026-02", "쇼핑", 100, { subcategory: "의류" })
   ];
   const comparison = buildSummaryComparison(activeRows, "2026-03", "식비");
   const model = buildMonthlyFeedbackModel(activeRows, "2026-03", comparison);
 
+  assert.equal(comparison.mode, "previous", "feedback must default to previous-month comparison");
+  assert.equal(comparison.comparisonMonth, "2026-02", "feedback must compare the exact previous calendar month");
   assert.equal(model.currentRows.length, 2, "feedback must cover the whole selected month, not only the selected sector");
   assert.equal(model.total.currentAmount, 650, "feedback total must include every sector in the month");
   assert.equal(model.total.delta, 450, "feedback total delta must include every sector");

@@ -7,6 +7,26 @@ function calendarSpendLevel(amount) {
   return 0;
 }
 
+function calendarSplitCalculation(amountValue, peopleValue) {
+  const amount = Number(amountValue);
+  const people = Number(peopleValue);
+  if (!Number.isFinite(amount) || amount < 0 || !Number.isInteger(people) || people < 2) return null;
+  const ownAmount = Math.ceil(amount / people);
+  return {
+    people,
+    ownAmount,
+    reimbursement: Math.max(0, amount - ownAmount)
+  };
+}
+
+function toggleCalendarTransactionEditor(recordKey) {
+  const normalizedKey = String(recordKey || "");
+  if (!normalizedKey) return;
+  calendarEditingRecordKey = calendarEditingRecordKey === normalizedKey ? "" : normalizedKey;
+  calendarEditFeedback = null;
+  renderCalendar();
+}
+
 function calendarIncomeTotal(rows) {
   return rows.reduce((total, item) => total + incomeReportingAmount(item), 0);
 }
@@ -629,7 +649,7 @@ function renderDayTimeline(dateKey, rows, scheduledRows = [], incomeRows = []) {
             ${item.canManualPost ? `<button type="button" data-post-recurring="${escapeHtml(item.id)}" data-post-month="${escapeHtml(item.month)}">${item.recurringType === "loan" ? "상환 확인" : "실제 지출로 반영"}</button>` : ""}
             ${item.postedTransaction?.recordKey ? item.recurringType === "loan"
               ? `<button type="button" data-edit-loan-payment="${escapeHtml(item.id)}" data-post-month="${escapeHtml(item.month)}" data-loan-payment-record="${escapeHtml(item.postedTransaction.recordKey)}">상환 내역 수정</button>`
-              : `<button type="button" data-calendar-edit-posted="${escapeHtml(item.postedTransaction.recordKey)}">실제 내역 수정</button>` : ""}
+              : `<button type="button" data-calendar-edit-posted="${escapeHtml(item.postedTransaction.recordKey)}" aria-expanded="${calendarEditingRecordKey === item.postedTransaction.recordKey}">${calendarEditingRecordKey === item.postedTransaction.recordKey ? "실제 내역 닫기" : "실제 내역 수정"}</button>` : ""}
             <button type="button" data-edit-recurring="${escapeHtml(item.id)}">${item.recurringType === "loan" ? "대출 정보 수정" : "고정 지출 수정"}</button>
           </div>
         </article>
@@ -671,7 +691,7 @@ function renderCalendarTransactionCard(item, duplicateMeta = null) {
           ${isUnknown && suggestion ? `<button type="button" class="calendar-suggestion-button" data-calendar-apply-suggestion="${escapeHtml(editRecordKey)}" data-sector="${escapeHtml(suggestion.sector)}" data-subcategory="${escapeHtml(suggestion.subcategory)}">추천 적용</button>` : ""}
           ${isLoanRepaymentTransaction(item)
             ? `<button type="button" class="calendar-edit-button" data-edit-loan-payment="${escapeHtml(item.recurringId)}" data-post-month="${escapeHtml(item.month)}" data-loan-payment-record="${escapeHtml(item.recordKey)}">상환 내역 수정</button>`
-            : `<button type="button" class="calendar-edit-button" data-calendar-edit="${escapeHtml(editRecordKey)}">${isUnknown ? "빠른 분류" : "수정"}</button>`}
+            : `<button type="button" class="calendar-edit-button" data-calendar-edit="${escapeHtml(editRecordKey)}" aria-expanded="${isEditing}">${isEditing ? "편집 닫기" : isUnknown ? "빠른 분류" : "수정"}</button>`}
           <button type="button" class="calendar-detail-button" data-calendar-detail="${escapeHtml(editRecordKey)}">상세 내역</button>
         </div>
       </div>
@@ -765,6 +785,17 @@ function renderCalendarEditForm(item) {
         <label>실 지출액
           <input class="calendar-actual-preview" type="text" value="${escapeHtml(formatWon(actualAmount(item)))}" readonly>
         </label>
+        <div class="calendar-split-calculator wide" data-calendar-split-calculator role="group" aria-label="N빵 정산금 계산기">
+          <div class="calendar-split-copy">
+            <strong>N빵 계산</strong>
+            <span>총 인원에 나를 포함해 입력하세요. 적용 전에는 정산금이 바뀌지 않습니다.</span>
+          </div>
+          <label>총 인원 (나 포함)
+            <input type="number" name="splitPeople" inputmode="numeric" min="2" step="1" placeholder="예: 3" autocomplete="off">
+          </label>
+          <button type="button" class="calendar-split-apply" data-calendar-split-apply disabled>정산금에 적용</button>
+          <output class="calendar-split-result" data-calendar-split-result aria-live="polite">2명 이상 입력하면 내 몫과 정산금을 계산합니다.</output>
+        </div>
         <label>섹터
           <select class="calendar-edit-sector" name="sector">${calendarSectorOptionsHtml(assignment.sector)}</select>
         </label>
@@ -832,17 +863,13 @@ function attachCalendarTimelineHandlers(root) {
         openLoanPaymentDialog(item.recurringId, item.month, item.recordKey);
         return;
       }
-      calendarEditingRecordKey = card.dataset.calendarCard;
-      calendarEditFeedback = null;
-      renderCalendar();
+      toggleCalendarTransactionEditor(card.dataset.calendarCard);
     });
   });
 
   root.querySelectorAll("[data-calendar-edit]").forEach((button) => {
     button.addEventListener("click", () => {
-      calendarEditingRecordKey = button.dataset.calendarEdit;
-      calendarEditFeedback = null;
-      renderCalendar();
+      toggleCalendarTransactionEditor(button.dataset.calendarEdit);
     });
   });
 
@@ -864,9 +891,7 @@ function attachCalendarTimelineHandlers(root) {
 
   root.querySelectorAll("[data-calendar-edit-posted]").forEach((button) => {
     button.addEventListener("click", () => {
-      calendarEditingRecordKey = button.dataset.calendarEditPosted;
-      calendarEditFeedback = null;
-      renderCalendar();
+      toggleCalendarTransactionEditor(button.dataset.calendarEditPosted);
     });
   });
 
@@ -897,6 +922,11 @@ function attachCalendarTimelineHandlers(root) {
     ["amount", "reimbursement"].forEach((name) => {
       form.elements[name].addEventListener("input", () => updateCalendarActualPreview(form));
     });
+    const splitPeopleInput = form.elements.splitPeople;
+    const splitApplyButton = form.querySelector("[data-calendar-split-apply]");
+    splitPeopleInput?.addEventListener("input", () => updateCalendarSplitPreview(form));
+    form.elements.amount?.addEventListener("input", () => updateCalendarSplitPreview(form));
+    splitApplyButton?.addEventListener("click", () => applyCalendarSplitCalculation(form));
     const updateInstallmentPreview = () => {
       const amount = toNumber(form.elements.amount?.value);
       const months = Math.max(1, Number(form.elements.installmentMonths?.value || 1));
@@ -929,6 +959,42 @@ function updateCalendarActualPreview(form) {
   const reimbursement = toNumber(form.elements.reimbursement.value);
   const preview = form.querySelector(".calendar-actual-preview");
   if (preview) preview.value = formatWon(Math.max(0, amount - reimbursement));
+}
+
+function updateCalendarSplitPreview(form, options = {}) {
+  const peopleInput = form.elements.splitPeople;
+  const applyButton = form.querySelector("[data-calendar-split-apply]");
+  const result = form.querySelector("[data-calendar-split-result]");
+  if (!peopleInput || !applyButton || !result) return null;
+
+  const rawPeople = String(peopleInput.value || "").trim();
+  const calculation = calendarSplitCalculation(toNumber(form.elements.amount.value), Number(rawPeople));
+  applyButton.disabled = !calculation;
+  result.classList.toggle("applied", Boolean(options.applied && calculation));
+
+  if (!rawPeople) {
+    result.textContent = "2명 이상 입력하면 내 몫과 정산금을 계산합니다.";
+    return null;
+  }
+  if (!calculation) {
+    result.textContent = "총 인원은 나를 포함한 2명 이상의 정수로 입력해주세요.";
+    return null;
+  }
+
+  const prefix = options.applied ? "적용 완료" : "계산 결과";
+  result.textContent = `${prefix} · 내 몫 ${formatWon(calculation.ownAmount)} · 정산받을 금액 ${formatWon(calculation.reimbursement)}`;
+  return calculation;
+}
+
+function applyCalendarSplitCalculation(form) {
+  const calculation = updateCalendarSplitPreview(form);
+  if (!calculation) {
+    form.elements.splitPeople?.focus();
+    return;
+  }
+  form.elements.reimbursement.value = Math.round(calculation.reimbursement).toLocaleString("ko-KR");
+  updateCalendarActualPreview(form);
+  updateCalendarSplitPreview(form, { applied: true });
 }
 
 function calendarClassifiedItem(recordKey) {

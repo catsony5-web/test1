@@ -4178,6 +4178,66 @@ button.calendar-summary-card:focus-visible {
   grid-column: span 2;
 }
 
+.calendar-split-calculator {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(132px, 0.42fr) auto;
+  gap: 9px 10px;
+  align-items: end;
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--accent-blue) 20%, var(--border));
+  border-radius: 14px;
+  padding: 11px;
+  background: color-mix(in srgb, var(--accent-blue) 5%, var(--surface-soft));
+}
+
+.calendar-split-copy {
+  display: grid;
+  gap: 4px;
+  align-self: center;
+  min-width: 0;
+}
+
+.calendar-split-copy strong {
+  color: var(--text-main);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.calendar-split-copy span,
+.calendar-split-result {
+  color: var(--text-sub);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.calendar-split-apply {
+  min-height: 40px;
+  border-color: color-mix(in srgb, var(--accent-blue) 30%, var(--border));
+  border-radius: 12px;
+  padding: 8px 12px;
+  color: var(--accent-blue);
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.calendar-split-apply:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.calendar-split-result {
+  grid-column: 1 / -1;
+  min-height: 17px;
+}
+
+.calendar-split-result.applied {
+  color: var(--accent-positive);
+  font-weight: 900;
+}
+
 .calendar-installment-line {
   grid-column: 1 / -1;
   display: grid;

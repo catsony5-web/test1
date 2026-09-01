@@ -86,15 +86,22 @@ function moveSummaryMonth(control, offset) {
 }
 
 function updateSummaryComparisonControls(allMonths, selectedMonth) {
-  selectedSummaryComparisonMode = selectedSummaryComparisonMode === "custom" ? "custom" : "year-over-year";
-  const customMonths = allMonths.filter((month) => month !== selectedMonth);
-  const yearAgoMonth = shiftMonthKey(selectedMonth, -12);
-  if (!customMonths.includes(selectedSummaryComparisonMonth)) {
-    selectedSummaryComparisonMonth = customMonths.includes(yearAgoMonth)
-      ? yearAgoMonth
-      : customMonths.filter((month) => month < selectedMonth).at(-1) || customMonths[0] || "";
+  selectedSummaryComparisonMode = normalizeSummaryComparisonMode(selectedSummaryComparisonMode);
+  if (selectedSummaryComparisonMode === "custom") {
+    selectedSummaryComparisonMonth = resolveSummaryComparisonMonth(
+      selectedMonth,
+      "custom",
+      selectedSummaryComparisonMonth
+    );
   }
+  const customSelection = isValidMonthKey(selectedSummaryComparisonMonth)
+    ? selectedSummaryComparisonMonth
+    : shiftMonthKey(selectedMonth, -1);
+  const customMonths = [...new Set([...allMonths, customSelection])]
+    .filter((month) => isValidMonthKey(month))
+    .sort();
 
+  els.summaryComparePreviousButton?.setAttribute("aria-pressed", selectedSummaryComparisonMode === "previous" ? "true" : "false");
   els.summaryCompareYearButton?.setAttribute("aria-pressed", selectedSummaryComparisonMode === "year-over-year" ? "true" : "false");
   els.summaryCompareCustomButton?.setAttribute("aria-pressed", selectedSummaryComparisonMode === "custom" ? "true" : "false");
   if (els.summaryComparisonMonthField) els.summaryComparisonMonthField.hidden = selectedSummaryComparisonMode !== "custom";
@@ -102,14 +109,18 @@ function updateSummaryComparisonControls(allMonths, selectedMonth) {
     els.summaryComparisonMonthSelect.innerHTML = customMonths.length
       ? customMonths.map((month) => `<option value="${escapeHtml(month)}">${escapeHtml(month)}</option>`).join("")
       : `<option value="">비교할 월 없음</option>`;
-    els.summaryComparisonMonthSelect.value = selectedSummaryComparisonMonth;
+    els.summaryComparisonMonthSelect.value = customSelection;
     els.summaryComparisonMonthSelect.disabled = !customMonths.length;
   }
-  return selectedSummaryComparisonMode === "custom" ? selectedSummaryComparisonMonth : yearAgoMonth;
+  return resolveSummaryComparisonMonth(
+    selectedMonth,
+    selectedSummaryComparisonMode,
+    customSelection
+  );
 }
 
 function setSummaryComparisonMode(mode) {
-  const nextMode = mode === "custom" ? "custom" : "year-over-year";
+  const nextMode = normalizeSummaryComparisonMode(mode);
   if (selectedSummaryComparisonMode === nextMode) return;
   selectedSummaryComparisonMode = nextMode;
   renderSummary();

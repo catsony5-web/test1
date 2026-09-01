@@ -31,6 +31,7 @@ async function init() {
   setupAppearanceControls();
   setupMonthlyAnalysisControls();
   setupSpendingStructureControls();
+  setupGoalControls();
 
   els.fileInput.addEventListener("change", handleFile);
   els.exportButton.addEventListener("click", exportWorkbook);
@@ -174,9 +175,10 @@ async function init() {
       closeSummarySectorPicker();
     }
   });
-  els.summaryCompareYearButton.addEventListener("click", () => setSummaryComparisonMode("year-over-year"));
-  els.summaryCompareCustomButton.addEventListener("click", () => setSummaryComparisonMode("custom"));
-  els.summaryComparisonMonthSelect.addEventListener("change", () => {
+  els.summaryComparePreviousButton?.addEventListener("click", () => setSummaryComparisonMode("previous"));
+  els.summaryCompareYearButton?.addEventListener("click", () => setSummaryComparisonMode("year-over-year"));
+  els.summaryCompareCustomButton?.addEventListener("click", () => setSummaryComparisonMode("custom"));
+  els.summaryComparisonMonthSelect?.addEventListener("change", () => {
     selectedSummaryComparisonMonth = els.summaryComparisonMonthSelect.value;
     renderSummary();
   });

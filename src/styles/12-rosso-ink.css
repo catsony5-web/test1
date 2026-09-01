@@ -1,0 +1,404 @@
+/* Corsa family: sharp, near-black finance themes. Loaded after feature styles. */
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) body::after {
+  background: rgba(24, 24, 24, var(--app-bg-overlay));
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) :is(
+  .topbar,
+  .privacy-note,
+  .tabs,
+  .section-head,
+  .monthly-filterbar,
+  .manual-entry-panel,
+  .product-form,
+  .rule-form,
+  .board-metric,
+  .monthly-kpi,
+  .board-sector-summary-panel,
+  .board-filter-panel,
+  .board-side-summary,
+  .board-top-panel,
+  .detail-results-panel,
+  .detail-filter-panel,
+  .detail-bulk-panel,
+  .category-card,
+  .board-sector-accordion,
+  .table-wrap,
+  .transaction-list,
+  .monthly-chart-panel,
+  .sector-map-card,
+  .sector-trend-panel,
+  .sector-analysis-card,
+  .food-analysis-card,
+  .panel,
+  .day-panel,
+  .summary-metric-card,
+  .income-entry-card,
+  .recurring-form,
+  .recurring-bulk-panel,
+  .recurring-list-panel,
+  .product-card,
+  .final-summary-card,
+  .admin-menu,
+  .admin-status-card,
+  .auto-save-card > div,
+  .snapshot-item,
+  .snapshot-empty
+) {
+  border-color: var(--border-subtle);
+  border-radius: 0;
+  background: color-mix(in srgb, var(--bg-card) 94%, transparent);
+  box-shadow: none;
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) :is(
+  .board-sector-card,
+  .board-top-item,
+  .selected-sector-card,
+  .calendar-summary-card,
+  .calendar-current-month,
+  .analysis-comparison-toolbar,
+  .analysis-brief,
+  .analysis-metric-strip,
+  .analysis-panel,
+  .analysis-structure-quality,
+  .analysis-target-dialog
+),
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #boardMetrics.board-metric-grid {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #summaryView :is(
+  .summary-subtabs,
+  .summary-selected-month-panel,
+  .summary-matrix-panel,
+  .summary-priority-headline,
+  .summary-priority-chart,
+  .summary-priority-inspector,
+  .summary-pattern-kpis,
+  .summary-pattern-findings,
+  .summary-pattern-bands,
+  .summary-pattern-merchants,
+  .summary-feedback-hero,
+  .summary-feedback-column,
+  .summary-feedback-focus,
+  .summary-feedback-footer,
+  .summary-period-toolbar,
+  .summary-period-map,
+  .summary-period-inspector,
+  .summary-period-flow,
+  .summary-period-flow-summary,
+  .summary-flow-table,
+  .summary-raw-table-disclosure
+) {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) :is(
+  button,
+  .btn-primary,
+  .btn-secondary,
+  .btn-ghost,
+  .btn-danger,
+  .primary-action,
+  .secondary-action,
+  .file-button,
+  .ghost-file-button,
+  .admin-menu-button,
+  .theme-choice,
+  .tab
+),
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #summaryView .summary-subtab,
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) .analysis-comparison-segment button,
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #summaryView .summary-period-modes button {
+  border-radius: 0;
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) :is(
+  button,
+  [role="button"],
+  input,
+  select,
+  textarea
+):focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) :is(
+  input[type="text"],
+  input[type="date"],
+  input[type="time"],
+  input[type="month"],
+  input[type="number"],
+  input[type="file"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  select,
+  textarea
+) {
+  border-color: #666666;
+  border-radius: 4px;
+}
+
+/* Rosso is reserved for decisive actions; navigation uses a thin marker. */
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) .tab.active {
+  border-color: var(--border-subtle);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  box-shadow: inset 3px 0 0 var(--accent-primary);
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) .tab.active .nav-icon {
+  background: transparent;
+  color: inherit;
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) .tab:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* Rosso Corsa is an action fill; a lighter companion is used for small text. */
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) :is(
+  #summaryView .summary-subtab.active,
+  #summaryView .summary-pattern-open-detail,
+  #summaryView .summary-period-modes button[aria-pressed="true"],
+  #summaryView .summary-period-map tr.selected th:first-child,
+  #summaryView .summary-raw-table-disclosure > summary,
+  .detail-bulk-tabs button[aria-selected="true"],
+  .detail-bulk-tabs button strong,
+  .calendar-edit-grid input[readonly],
+  #calendarView .calendar-summary-card.card-billing strong
+) {
+  color: var(--accent-primary-text);
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #summaryView .summary-subtab.active .summary-subtab-index {
+  background: var(--accent-primary);
+  color: var(--text-on-primary);
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) :is(.secondary-action, .btn-secondary, .btn-ghost, .ghost-file-button) {
+  border-color: var(--border-strong);
+  background: var(--control-bg);
+  color: var(--text-primary);
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) :is(
+  .primary-action,
+  .btn-primary,
+  .file-button,
+  .product-form button[type="submit"],
+  .board-map-top-button,
+  #boardMetrics.is-empty-workspace .board-empty-step-actions button.primary
+) {
+  border-color: var(--accent-primary);
+  background: var(--accent-primary);
+  color: var(--text-on-primary);
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) :is(
+  .primary-action,
+  .btn-primary,
+  .file-button,
+  .product-form button[type="submit"],
+  .board-map-top-button,
+  #boardMetrics.is-empty-workspace .board-empty-step-actions button.primary
+):hover {
+  border-color: #b01e0a;
+  background: #b01e0a;
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) :is(
+  .primary-action,
+  .btn-primary,
+  .file-button,
+  .product-form button[type="submit"],
+  .board-map-top-button,
+  #boardMetrics.is-empty-workspace .board-empty-step-actions button.primary
+):active {
+  border-color: #9d2211;
+  background: #9d2211;
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) :is(.secondary-action, .btn-secondary, .btn-ghost, .ghost-file-button):hover,
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) .tab:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-raised);
+  color: var(--text-primary);
+  box-shadow: none;
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) .tab.active:hover {
+  border-color: var(--border-subtle);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  box-shadow: inset 3px 0 0 var(--accent-primary);
+}
+
+/* Match the existing dark-mode table and chart corrections. */
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) :is(.transaction-head, th, .summary-matrix-table .total-col, .net-cell, .matrix-bar) {
+  background: var(--bg-muted);
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) .chart-dot {
+  stroke: var(--bg-card);
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) .trend-delta-label {
+  stroke: var(--bg-card);
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #summaryView .period-map-cell:focus-visible {
+  border-color: var(--focus-ring);
+  box-shadow: inset 0 0 0 2px var(--focus-ring);
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) .analysis-allocation-segment {
+  color: #181818;
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) .allocation-essential {
+  background: var(--sector-fixed-solid);
+  color: var(--sector-fixed-ink);
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) .board-metric.navy .metric-dot {
+  background: var(--accent-blue);
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) .mobile-more-menu .mobile-settings-entry {
+  border-color: var(--border-strong);
+  background: var(--control-bg);
+  color: var(--text-primary);
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #summaryView .trend-period-badge,
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #boardMetrics.is-empty-workspace .is-primary .board-empty-step-number {
+  color: #181818;
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #calendarView .calendar-cell.selected .calendar-day {
+  background: #2f6f89;
+  color: #ffffff;
+}
+
+/* Each palette declares a readable foreground for solid treemap and bubble fills. */
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #boardView .board-treemap-tile {
+  --treemap-ink: var(--sector-etc-ink);
+  border-radius: 0;
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #boardView .board-treemap-tile.fixed { --treemap-ink: var(--sector-fixed-ink); }
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #boardView .board-treemap-tile.food { --treemap-ink: var(--sector-food-ink); }
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #boardView .board-treemap-tile.household { --treemap-ink: var(--sector-household-ink); }
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #boardView .board-treemap-tile.shopping { --treemap-ink: var(--sector-shopping-ink); }
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #boardView .board-treemap-tile.personal { --treemap-ink: var(--sector-personal-ink); }
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #boardView .board-treemap-tile.selfdev { --treemap-ink: var(--sector-selfdev-ink); }
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #boardView .board-treemap-tile.gift { --treemap-ink: var(--sector-gift-ink); }
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #boardView .board-treemap-tile.transport { --treemap-ink: var(--sector-transport-ink); }
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #boardView .board-treemap-tile.saving { --treemap-ink: var(--sector-saving-ink); }
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #boardView .board-treemap-tile.income { --treemap-ink: var(--sector-income-ink); }
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #boardView .board-treemap-tile.etc { --treemap-ink: var(--sector-etc-ink); }
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #boardView .board-treemap-tile.unknown { --treemap-ink: var(--sector-unknown-ink); }
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #boardView .board-treemap-tile,
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #boardView .board-treemap-tile :is(
+  .board-treemap-title,
+  .board-treemap-amount,
+  .board-treemap-sector,
+  .board-treemap-count,
+  .board-treemap-share,
+  .board-treemap-trend
+) {
+  color: var(--treemap-ink);
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #boardView .board-treemap-icon {
+  background: var(--treemap-ink);
+  color: var(--treemap-color);
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #boardView .board-treemap-tile .board-treemap-trend {
+  border-top-color: color-mix(in srgb, var(--treemap-ink) 48%, transparent);
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #boardView .board-treemap-tile .board-treemap-trend:is(.negative, .positive, .neutral) {
+  color: var(--treemap-ink) !important;
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #boardView .board-treemap-tile:hover,
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #boardView .board-treemap-tile:focus-visible {
+  background: var(--treemap-color);
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #summaryView .summary-priority-bubble circle {
+  fill-opacity: 1;
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #summaryView .summary-priority-bubble { --bubble-ink: var(--sector-etc-ink); }
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #summaryView .summary-priority-bubble.fixed { --bubble-ink: var(--sector-fixed-ink); }
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #summaryView .summary-priority-bubble.food { --bubble-ink: var(--sector-food-ink); }
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #summaryView .summary-priority-bubble.household { --bubble-ink: var(--sector-household-ink); }
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #summaryView .summary-priority-bubble.shopping { --bubble-ink: var(--sector-shopping-ink); }
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #summaryView .summary-priority-bubble.personal { --bubble-ink: var(--sector-personal-ink); }
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #summaryView .summary-priority-bubble.selfdev { --bubble-ink: var(--sector-selfdev-ink); }
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #summaryView .summary-priority-bubble.gift { --bubble-ink: var(--sector-gift-ink); }
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #summaryView .summary-priority-bubble.transport { --bubble-ink: var(--sector-transport-ink); }
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #summaryView .summary-priority-bubble.saving { --bubble-ink: var(--sector-saving-ink); }
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #summaryView .summary-priority-bubble.income { --bubble-ink: var(--sector-income-ink); }
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #summaryView .summary-priority-bubble.etc { --bubble-ink: var(--sector-etc-ink); }
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #summaryView .summary-priority-bubble.unknown { --bubble-ink: var(--sector-unknown-ink); }
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #summaryView .summary-priority-bubble.gift circle {
+  fill: var(--sector-gift-solid);
+  stroke: var(--sector-gift-border);
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #summaryView .summary-priority-bubble.income circle {
+  fill: var(--sector-income-solid);
+  stroke: var(--sector-income-border);
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #summaryView .summary-priority-bubble.etc circle {
+  fill: var(--sector-etc-solid);
+  stroke: var(--sector-etc-border);
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #summaryView .summary-priority-bubble :is(
+  .priority-bubble-name,
+  .priority-bubble-delta
+) {
+  fill: var(--bubble-ink);
+}
+
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) #summaryView .priority-bubble-delta {
+  opacity: 1;
+}
+
+/* Explicit pill geometry stays limited to compact labels and status controls. */
+:root:is([data-theme="rosso-ink"], [data-theme="corsa-technical"], [data-theme="corsa-editorial"]) :is(
+  .tag,
+  .category-chip,
+  .manual-badge,
+  .installment-badge,
+  .ipo-status-badge,
+  .classification-needed-badge,
+  .manual-entry-badge,
+  .duplicate-suspect-badge,
+  .rule-type-badge,
+  .trend-period-badge,
+  .flow-status,
+  .detail-card-expand,
+  .detail-reimbursement-toggle,
+  .detail-card-more button,
+  .detail-collapse-button
+) {
+  border-radius: 999px;
+}

@@ -616,3 +616,191 @@
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.28);
   --shadow-control: 0 1px 2px rgba(0, 0, 0, 0.22);
 }
+
+/* Shared near-black shell; Corsa variants override only sector solids and ink. */
+:root:is(
+  [data-theme="rosso-ink"],
+  [data-theme="corsa-technical"],
+  [data-theme="corsa-editorial"]
+) {
+  color-scheme: dark;
+  --bg-page: #181818;
+  --bg-surface: #1d1d1d;
+  --bg-card: #222222;
+  --bg-muted: #292929;
+  --bg-raised: #303030;
+  --border-subtle: #3a3a3a;
+  --border-strong: #555555;
+  --text-primary: #ffffff;
+  --text-secondary: #9c9c9c;
+  --text-muted-token: #9c9c9c;
+  --text-on-primary: #ffffff;
+  --accent-primary: #da291c;
+  --accent-primary-text: #ff756b;
+  --accent-blue: #4c98b9;
+  --accent-positive: #24a06b;
+  --accent-negative: #d56578;
+  --accent-warning: #d79555;
+  --shadow-card: none;
+  --shadow-control: none;
+  --radius-card: 0;
+  --radius-control: 0;
+  --radius-md: 0;
+  --radius-sm: 4px;
+  --focus-ring: #4c98b9;
+  --control-bg: #181818;
+  --control-hover-bg: #303030;
+  --control-border: #494949;
+  --chart-grid: #383838;
+  --chart-axis: #b5b5b5;
+  --chart-baseline: #ffffff;
+  --chart-surface: #1d1d1d;
+  --status-positive-bg: #173429;
+  --status-positive-text: #73d2a4;
+  --status-negative-bg: #3a242a;
+  --status-negative-text: #efa5b2;
+  --status-warning-bg: #392b1f;
+  --status-warning-text: #efb77c;
+  --calendar-heat-0-token: #222222;
+  --calendar-heat-1-token: #24342e;
+  --calendar-heat-2-token: #285545;
+  --calendar-heat-3-token: #2f7758;
+  --calendar-heat-4-token: #24a06b;
+
+  --sector-fixed-solid: #8d99ae;
+  --sector-fixed-bg: color-mix(in srgb, var(--sector-fixed-solid) 15%, #181818);
+  --sector-fixed-border: color-mix(in srgb, var(--sector-fixed-solid) 46%, #303030);
+  --sector-fixed-text: color-mix(in srgb, var(--sector-fixed-solid) 72%, #ffffff);
+  --sector-fixed-bar: var(--sector-fixed-solid);
+  --sector-food-solid: #d79555;
+  --sector-food-bg: color-mix(in srgb, var(--sector-food-solid) 15%, #181818);
+  --sector-food-border: color-mix(in srgb, var(--sector-food-solid) 46%, #303030);
+  --sector-food-text: color-mix(in srgb, var(--sector-food-solid) 72%, #ffffff);
+  --sector-food-bar: var(--sector-food-solid);
+  --sector-household-solid: #59a18a;
+  --sector-household-bg: color-mix(in srgb, var(--sector-household-solid) 15%, #181818);
+  --sector-household-border: color-mix(in srgb, var(--sector-household-solid) 46%, #303030);
+  --sector-household-text: color-mix(in srgb, var(--sector-household-solid) 72%, #ffffff);
+  --sector-household-bar: var(--sector-household-solid);
+  --sector-shopping-solid: #d56578;
+  --sector-shopping-bg: color-mix(in srgb, var(--sector-shopping-solid) 15%, #181818);
+  --sector-shopping-border: color-mix(in srgb, var(--sector-shopping-solid) 46%, #303030);
+  --sector-shopping-text: color-mix(in srgb, var(--sector-shopping-solid) 72%, #ffffff);
+  --sector-shopping-bar: var(--sector-shopping-solid);
+  --sector-personal-solid: #9a7dbb;
+  --sector-personal-bg: color-mix(in srgb, var(--sector-personal-solid) 15%, #181818);
+  --sector-personal-border: color-mix(in srgb, var(--sector-personal-solid) 46%, #303030);
+  --sector-personal-text: color-mix(in srgb, var(--sector-personal-solid) 72%, #ffffff);
+  --sector-personal-bar: var(--sector-personal-solid);
+  --sector-selfdev-solid: #5d8fc0;
+  --sector-selfdev-bg: color-mix(in srgb, var(--sector-selfdev-solid) 15%, #181818);
+  --sector-selfdev-border: color-mix(in srgb, var(--sector-selfdev-solid) 46%, #303030);
+  --sector-selfdev-text: color-mix(in srgb, var(--sector-selfdev-solid) 72%, #ffffff);
+  --sector-selfdev-bar: var(--sector-selfdev-solid);
+  --sector-gift-solid: #c07a68;
+  --sector-gift-bg: color-mix(in srgb, var(--sector-gift-solid) 15%, #181818);
+  --sector-gift-border: color-mix(in srgb, var(--sector-gift-solid) 46%, #303030);
+  --sector-gift-text: color-mix(in srgb, var(--sector-gift-solid) 72%, #ffffff);
+  --sector-gift-bar: var(--sector-gift-solid);
+  --sector-transport-solid: #4c9ba8;
+  --sector-transport-bg: color-mix(in srgb, var(--sector-transport-solid) 15%, #181818);
+  --sector-transport-border: color-mix(in srgb, var(--sector-transport-solid) 46%, #303030);
+  --sector-transport-text: color-mix(in srgb, var(--sector-transport-solid) 72%, #ffffff);
+  --sector-transport-bar: var(--sector-transport-solid);
+  --sector-saving-solid: #7f9c5a;
+  --sector-saving-bg: color-mix(in srgb, var(--sector-saving-solid) 15%, #181818);
+  --sector-saving-border: color-mix(in srgb, var(--sector-saving-solid) 46%, #303030);
+  --sector-saving-text: color-mix(in srgb, var(--sector-saving-solid) 72%, #ffffff);
+  --sector-saving-bar: var(--sector-saving-solid);
+  --sector-income-solid: #24a06b;
+  --sector-income-bg: color-mix(in srgb, var(--sector-income-solid) 15%, #181818);
+  --sector-income-border: color-mix(in srgb, var(--sector-income-solid) 46%, #303030);
+  --sector-income-text: color-mix(in srgb, var(--sector-income-solid) 72%, #ffffff);
+  --sector-income-bar: var(--sector-income-solid);
+  --sector-etc-solid: #8a837a;
+  --sector-etc-bg: color-mix(in srgb, var(--sector-etc-solid) 15%, #181818);
+  --sector-etc-border: color-mix(in srgb, var(--sector-etc-solid) 46%, #303030);
+  --sector-etc-text: color-mix(in srgb, var(--sector-etc-solid) 72%, #ffffff);
+  --sector-etc-bar: var(--sector-etc-solid);
+  --sector-unknown-solid: #b85b55;
+  --sector-unknown-bg: color-mix(in srgb, var(--sector-unknown-solid) 15%, #181818);
+  --sector-unknown-border: color-mix(in srgb, var(--sector-unknown-solid) 46%, #303030);
+  --sector-unknown-text: color-mix(in srgb, var(--sector-unknown-solid) 72%, #ffffff);
+  --sector-unknown-bar: var(--sector-unknown-solid);
+
+  --sector-fixed-ink: #181818;
+  --sector-food-ink: #181818;
+  --sector-household-ink: #181818;
+  --sector-shopping-ink: #181818;
+  --sector-personal-ink: #181818;
+  --sector-selfdev-ink: #181818;
+  --sector-gift-ink: #181818;
+  --sector-transport-ink: #181818;
+  --sector-saving-ink: #181818;
+  --sector-income-ink: #181818;
+  --sector-etc-ink: #181818;
+  --sector-unknown-ink: #ffffff;
+
+  --soft-blue: #242d31;
+  --mint: #234238;
+  --table-head: #292929;
+  --primary-navy: var(--text-primary);
+}
+
+:root[data-theme="corsa-technical"] {
+  --border-strong: #707070;
+  --sector-fixed-solid: #4c7475;
+  --sector-food-solid: #a58b57;
+  --sector-household-solid: #748b68;
+  --sector-shopping-solid: #806986;
+  --sector-personal-solid: #945f5f;
+  --sector-selfdev-solid: #668894;
+  --sector-gift-solid: #8b6b72;
+  --sector-transport-solid: #6e86a0;
+  --sector-saving-solid: #7f8d66;
+  --sector-income-solid: #5f8a76;
+  --sector-etc-solid: #77746e;
+  --sector-unknown-solid: #70757a;
+
+  --sector-fixed-ink: #ffffff;
+  --sector-food-ink: #181818;
+  --sector-household-ink: #181818;
+  --sector-shopping-ink: #ffffff;
+  --sector-personal-ink: #ffffff;
+  --sector-selfdev-ink: #181818;
+  --sector-gift-ink: #ffffff;
+  --sector-transport-ink: #181818;
+  --sector-saving-ink: #181818;
+  --sector-income-ink: #181818;
+  --sector-etc-ink: #ffffff;
+  --sector-unknown-ink: #ffffff;
+}
+
+:root[data-theme="corsa-editorial"] {
+  --border-strong: #707070;
+  --sector-fixed-solid: #687a57;
+  --sector-food-solid: #a8845e;
+  --sector-household-solid: #547266;
+  --sector-shopping-solid: #925f67;
+  --sector-personal-solid: #9a6958;
+  --sector-selfdev-solid: #796b80;
+  --sector-gift-solid: #8b695f;
+  --sector-transport-solid: #58728d;
+  --sector-saving-solid: #747248;
+  --sector-income-solid: #507563;
+  --sector-etc-solid: #746d64;
+  --sector-unknown-solid: #707276;
+
+  --sector-fixed-ink: #ffffff;
+  --sector-food-ink: #181818;
+  --sector-household-ink: #ffffff;
+  --sector-shopping-ink: #ffffff;
+  --sector-personal-ink: #ffffff;
+  --sector-selfdev-ink: #ffffff;
+  --sector-gift-ink: #ffffff;
+  --sector-transport-ink: #ffffff;
+  --sector-saving-ink: #ffffff;
+  --sector-income-ink: #ffffff;
+  --sector-etc-ink: #ffffff;
+  --sector-unknown-ink: #ffffff;
+}

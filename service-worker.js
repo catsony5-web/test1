@@ -1,4 +1,4 @@
-const CACHE_NAME = "monthly-card-budget-v165-summary-insights-r2";
+const CACHE_NAME = "monthly-card-budget-v171-calendar-split-summary-r1";
 const APP_FILES = [
   "./",
   "./index.html",
@@ -14,6 +14,8 @@ const APP_FILES = [
   "./src/styles/09-production-ui.css",
   "./src/styles/10-analysis.css",
   "./src/styles/11-summary-insights.css",
+  "./src/styles/12-rosso-ink.css",
+  "./src/styles/13-goals.css",
   "./assets/vendor/xlsx.full.min.js",
   "./assets/vendor/xlsx.LICENSE",
   "./assets/tabler/tabler-icons.min.css",
@@ -110,6 +112,8 @@ const APP_FILES = [
   "./src/data/rules.js",
   "./src/data/board-sections.js",
   "./src/data/field-aliases.js",
+  "./src/data/goal-resources.js",
+  "./src/features/goals/goals-core.js",
   "./src/features/app/state.js",
   "./src/utils/format.js",
   "./src/utils/date.js",
@@ -153,6 +157,7 @@ const APP_FILES = [
   "./src/features/ipo/ipo-view.js",
   "./src/features/unknown/unknown-view.js",
   "./src/features/transactions/transactions-view.js",
+  "./src/features/goals/goals-view.js",
   "./src/features/app/navigation.js",
   "./src/features/app/appearance.js",
   "./src/features/app/render-all.js",

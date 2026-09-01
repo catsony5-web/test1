@@ -98,6 +98,7 @@ const els = {
   boardSideSummary: document.querySelector("#boardSideSummary"),
   boardMapTopButton: document.querySelector("#boardMapTopButton"),
   boardSummary: document.querySelector("#boardSummary"),
+  goalPlannerRoot: document.querySelector("#goalPlannerRoot"),
   monthlyAnalysisMonth: document.querySelector("#monthlyAnalysisMonth"),
   monthlyAnalysisPrevMonth: document.querySelector("#monthlyAnalysisPrevMonth"),
   monthlyAnalysisNextMonth: document.querySelector("#monthlyAnalysisNextMonth"),
@@ -159,6 +160,7 @@ const els = {
   summarySectorPickerIcon: document.querySelector("#summarySectorPickerIcon"),
   summarySectorPickerText: document.querySelector("#summarySectorPickerText"),
   summarySectorPickerMenu: document.querySelector("#summarySectorPickerMenu"),
+  summaryComparePreviousButton: document.querySelector("#summaryComparePreviousButton"),
   summaryCompareYearButton: document.querySelector("#summaryCompareYearButton"),
   summaryCompareCustomButton: document.querySelector("#summaryCompareCustomButton"),
   summaryComparisonMonthField: document.querySelector("#summaryComparisonMonthField"),
@@ -440,6 +442,7 @@ let products = [];
 let ipoRecords = [];
 let recurringExpenses = [];
 let calendarMemos = {};
+let goalPlan = GoalPlannerCore.defaultPlan();
 let appSettings = defaultAppSettings();
 let pendingBackgroundImageData = "";
 let reimbursementEditMode = false;
@@ -500,7 +503,7 @@ let selectedSummaryMonth = "";
 let selectedSummaryRangePreset = "recent-12";
 let selectedSummaryStartMonth = "";
 let selectedSummaryEndMonth = "";
-let selectedSummaryComparisonMode = "year-over-year";
+let selectedSummaryComparisonMode = "previous";
 let selectedSummaryComparisonMonth = "";
 let selectedSummarySubtab = "trend";
 let selectedSummaryPeriodMode = "heatmap";

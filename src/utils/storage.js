@@ -10,6 +10,7 @@ async function hydrateStoredData() {
   ipoRecords = await loadIpoRecords();
   recurringExpenses = await loadRecurringExpenses();
   calendarMemos = await loadCalendarMemos();
+  goalPlan = await loadGoalPlan();
   currentFileName = importMeta.lastFileName || "";
   await ensureDailyAutoSnapshot();
 }
@@ -138,6 +139,9 @@ function saveSettings() {
 const THEME_BROWSER_COLORS = Object.freeze({
   minimal: "#1e5748",
   dark: "#18211e",
+  "rosso-ink": "#181818",
+  "corsa-technical": "#181818",
+  "corsa-editorial": "#181818",
   "clear-aqua": "#317b9f",
   "lilac-aqua": "#706eae",
   "garden-ink": "#365f7e",
@@ -159,7 +163,7 @@ function applyAppSettings() {
 
 
 function normalizeTheme(value) {
-  return ["minimal", "dark", "clear-aqua", "lilac-aqua", "garden-ink", "warm-earth"].includes(value)
+  return ["minimal", "dark", "rosso-ink", "corsa-technical", "corsa-editorial", "clear-aqua", "lilac-aqua", "garden-ink", "warm-earth"].includes(value)
     ? value
     : "garden-ink";
 }
@@ -303,6 +307,7 @@ function collectSnapshotData() {
     products: products.map(normalizeProduct),
     ipoRecords: ipoRecords.map(normalizeIpoRecord),
     calendarMemos: normalizeCalendarMemos(calendarMemos),
+    goalPlan: GoalPlannerCore.normalizePlan(goalPlan),
     reimbursements,
     importMeta,
     settings: appSettings
@@ -358,7 +363,7 @@ async function restoreFromSnapshot(snapshotId) {
   if (!snapshot) return;
   const scopes = typeof selectedDataScopes === "function"
     ? selectedDataScopes()
-    : ["importedExcelTransactions", "pastBulkTransactions", "directManualTransactions", "incomeInput", "recurringDefinitions", "recurringPostedTransactions", "rulesAndLearning", "products", "ipoRecords", "calendarMemos", "settings", "legacyUnknown"];
+    : ["importedExcelTransactions", "pastBulkTransactions", "directManualTransactions", "incomeInput", "recurringDefinitions", "recurringPostedTransactions", "rulesAndLearning", "products", "ipoRecords", "calendarMemos", "goalPlan", "settings", "legacyUnknown"];
   if (!scopes.length) {
     alert("복구할 데이터 항목을 하나 이상 선택해주세요.");
     return;
@@ -489,6 +494,16 @@ async function loadIncome() {
 
 function saveIncome() {
   return safeSave(INCOME_STORAGE_KEY, monthlyIncome);
+}
+
+async function loadGoalPlan() {
+  const stored = await safeLoad(GOAL_PLAN_STORAGE_KEY, {});
+  return GoalPlannerCore.normalizePlan(stored);
+}
+
+function saveGoalPlan() {
+  goalPlan = GoalPlannerCore.normalizePlan(goalPlan);
+  return safeSave(GOAL_PLAN_STORAGE_KEY, goalPlan);
 }
 
 async function loadReimbursements() {

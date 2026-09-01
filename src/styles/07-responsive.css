@@ -756,6 +756,18 @@
     grid-column: auto;
   }
 
+  .calendar-split-calculator {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .calendar-split-apply {
+    width: 100%;
+  }
+
+  .calendar-split-result {
+    grid-column: auto;
+  }
+
   .calendar-edit-actions {
     justify-content: stretch;
   }

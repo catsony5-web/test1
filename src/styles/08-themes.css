@@ -236,6 +236,27 @@ textarea,
   --theme-preview-4: #b65f58;
 }
 
+.theme-choice[data-theme-choice="rosso-ink"] {
+  --theme-preview-1: #181818;
+  --theme-preview-2: #da291c;
+  --theme-preview-3: #4c98b9;
+  --theme-preview-4: #24a06b;
+}
+
+.theme-choice[data-theme-choice="corsa-technical"] {
+  --theme-preview-1: #181818;
+  --theme-preview-2: #a58b57;
+  --theme-preview-3: #6e86a0;
+  --theme-preview-4: #547f80;
+}
+
+.theme-choice[data-theme-choice="corsa-editorial"] {
+  --theme-preview-1: #181818;
+  --theme-preview-2: #a8845e;
+  --theme-preview-3: #925f67;
+  --theme-preview-4: #6d7d5d;
+}
+
 .background-settings {
   display: grid;
   gap: 10px;

@@ -1,4 +1,4 @@
-const APP_VERSION = "v165";
+const APP_VERSION = "v171";
 const STORAGE_KEYS = {
   rules: "monthly-card-budget-rules-v1",
   monthlyIncome: "monthly-card-budget-income-v1",
@@ -9,6 +9,7 @@ const STORAGE_KEYS = {
   ipoRecords: "monthly-card-budget-ipo-v1",
   recurringExpenses: "monthly-card-budget-recurring-expenses-v1",
   calendarMemos: "monthly-card-budget-calendar-memos-v1",
+  goalPlan: "monthly-card-budget-goal-plan-v1",
   settings: "monthly-card-budget-settings-v1",
   autoSnapshots: "monthly-card-budget-auto-snapshots-v1",
   migrations: "monthly-card-budget-migrations-v1",
@@ -29,6 +30,7 @@ const PRODUCT_STORAGE_KEY = STORAGE_KEYS.products;
 const IPO_STORAGE_KEY = STORAGE_KEYS.ipoRecords;
 const RECURRING_STORAGE_KEY = STORAGE_KEYS.recurringExpenses;
 const CALENDAR_MEMO_STORAGE_KEY = STORAGE_KEYS.calendarMemos;
+const GOAL_PLAN_STORAGE_KEY = STORAGE_KEYS.goalPlan;
 const SETTINGS_STORAGE_KEY = STORAGE_KEYS.settings;
 const AUTO_SNAPSHOT_STORAGE_KEY = STORAGE_KEYS.autoSnapshots;
 const CATEGORY_MIGRATION_STORAGE_KEY = STORAGE_KEYS.categoryMigration;
