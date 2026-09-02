@@ -79,6 +79,10 @@ async function init() {
     calendarShowIncome = els.calendarShowIncome.checked;
     renderCalendar();
   });
+  els.calendarShowAssetMoves?.addEventListener("change", () => {
+    calendarShowAssetMoves = els.calendarShowAssetMoves.checked;
+    renderCalendar();
+  });
   els.calendarPrevMonth.addEventListener("click", () => moveCalendarMonth(-1));
   els.calendarNextMonth.addEventListener("click", () => moveCalendarMonth(1));
   els.monthlyPrevYear?.addEventListener("click", () => moveMonthlyYear(-1));

@@ -3341,7 +3341,6 @@ button.sector-analysis-bar-row:hover {
 
 .calendar-summary-grid {
   grid-area: summary;
-  grid-column: auto;
   width: 100%;
   display: grid;
   gap: 10px;

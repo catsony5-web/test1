@@ -1,4 +1,4 @@
-const CACHE_NAME = "monthly-card-budget-v171-calendar-split-summary-r1";
+const CACHE_NAME = "monthly-card-budget-v172-calendar-layout-r2";
 const APP_FILES = [
   "./",
   "./index.html",

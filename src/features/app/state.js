@@ -214,9 +214,11 @@ const els = {
   detailBulkPanels: document.querySelectorAll("[data-detail-bulk-panel]"),
   calendarMonth: document.querySelector("#calendarMonth"),
   calendarShowIncome: document.querySelector("#calendarShowIncome"),
+  calendarShowAssetMoves: document.querySelector("#calendarShowAssetMoves"),
   calendarPrevMonth: document.querySelector("#calendarPrevMonth"),
   calendarNextMonth: document.querySelector("#calendarNextMonth"),
   calendarMonthSummary: document.querySelector("#calendarMonthSummary"),
+  calendarAssetSummary: document.querySelector("#calendarAssetSummary"),
   calendarBillingDetail: document.querySelector("#calendarBillingDetail"),
   calendarMonthlyMemo: document.querySelector("#calendarMonthlyMemo"),
   calendarCurrentMonthLabel: document.querySelector("#calendarCurrentMonthLabel"),
@@ -453,6 +455,7 @@ let ruleFeedback = null;
 let pendingRuleChange = null;
 let selectedCalendarDate = "";
 let calendarShowIncome = true;
+let calendarShowAssetMoves = true;
 let calendarEditingRecordKey = "";
 let calendarEditFeedback = null;
 let calendarDetailReturnState = null;
