@@ -1,4 +1,4 @@
-const CACHE_NAME = "monthly-card-budget-v172-calendar-layout-r2";
+const CACHE_NAME = "monthly-card-budget-v173-food-calendar-r2";
 const APP_FILES = [
   "./",
   "./index.html",
@@ -138,6 +138,8 @@ const APP_FILES = [
   "./src/features/details/details-view.js",
   "./src/features/summary/comparison-analysis.js",
   "./src/features/summary/summary-priority.js",
+  "./src/features/summary/summary-food-core.js",
+  "./src/features/summary/summary-food-view.js",
   "./src/features/summary/summary-pattern.js",
   "./src/features/summary/summary-period.js",
   "./src/features/summary/summary-view.js",

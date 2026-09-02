@@ -279,7 +279,6 @@
 }
 #summaryView .summary-pattern-heatmap,
 #summaryView .summary-pattern-findings,
-#summaryView .summary-pattern-bands,
 #summaryView .summary-pattern-merchants {
   min-width: 0;
   border: 1px solid var(--border-subtle);
@@ -345,16 +344,6 @@
   font-weight: 900;
 }
 #summaryView .summary-pattern-findings article p { margin: 2px 0 0; color: var(--text-primary); font-size: 12px; line-height: 1.55; }
-#summaryView .pattern-band-row { display: grid; grid-template-columns: 92px minmax(0, 1fr) 34px; gap: 10px; align-items: center; margin: 9px 0; }
-#summaryView .pattern-band-row > span,
-#summaryView .pattern-band-row > b { color: var(--text-secondary); font-size: 10px; }
-#summaryView .pattern-band-row > b { text-align: right; }
-#summaryView .pattern-band-row > div { position: relative; height: 16px; }
-#summaryView .pattern-band-row i { position: absolute; left: 0; height: 6px; border-radius: 0 4px 4px 0; }
-#summaryView .pattern-band-row i.current { top: 0; background: var(--accent-positive); }
-#summaryView .pattern-band-row i.baseline { bottom: 0; background: color-mix(in srgb, var(--accent-blue) 30%, var(--border-subtle)); }
-#summaryView .summary-pattern-bands .summary-card-heading i { display: inline-block; width: 11px; height: 4px; margin: 0 3px 2px 8px; background: var(--accent-positive); }
-#summaryView .summary-pattern-bands .summary-card-heading i.baseline { background: color-mix(in srgb, var(--accent-blue) 30%, var(--border-subtle)); }
 #summaryView .summary-pattern-merchants ol { margin: 0; padding: 0; list-style: none; }
 #summaryView .summary-pattern-merchants li button {
   display: grid;
@@ -375,6 +364,128 @@
 #summaryView .summary-pattern-merchants li em { color: var(--text-secondary); font-size: 10px; font-style: normal; text-align: right; }
 #summaryView .summary-pattern-no-merchants { color: var(--text-muted); font-size: 12px; }
 #summaryView .summary-pattern-open-detail { width: min(330px, 100%); margin: 2px auto 0; background: transparent; color: var(--accent-primary); }
+
+/* Food calendar stays inside the existing consumption-pattern subtab. */
+#summaryView .summary-pattern-top-grid.without-food { grid-template-columns: minmax(0, 1fr); }
+#summaryView .summary-food-layout { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(320px, .85fr); gap: 12px; align-items: start; margin-bottom: 12px; }
+#summaryView .summary-food-budget,
+#summaryView .summary-food-calendar,
+#summaryView .summary-food-inspector,
+#summaryView .summary-food-weekly,
+#summaryView .summary-food-review { min-width: 0; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 16px; background: var(--bg-card); }
+#summaryView .summary-food-weekly,
+#summaryView .summary-food-review { margin-bottom: 12px; }
+#summaryView .summary-food-help { margin: 6px 0 10px; color: var(--text-muted); font-size: 11px; line-height: 1.6; }
+#summaryView .summary-food-budget-form,
+#summaryView .summary-food-review-controls { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 8px; align-items: end; }
+#summaryView .summary-food-budget-form label,
+#summaryView .summary-food-review-controls label { display: grid; gap: 5px; min-width: 0; color: var(--text-secondary); font-size: 11px; font-weight: 700; }
+#summaryView .summary-food-budget-form input,
+#summaryView .summary-food-review-controls select { width: 100%; min-width: 0; min-height: 36px; margin: 0; padding: 7px 9px; font-size: 13px; font-variant-numeric: tabular-nums; }
+#summaryView .summary-food-budget-form button,
+#summaryView .summary-food-review-controls button { min-height: 36px; margin: 0; padding: 7px 12px; font-size: 12px; }
+#summaryView .summary-food-budget-totals { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+#summaryView .summary-food-budget-totals > div { display: grid; gap: 4px; }
+#summaryView .summary-food-budget-totals span { color: var(--text-secondary); font-size: 11px; }
+#summaryView .summary-food-budget-totals strong { font-size: 20px; font-variant-numeric: tabular-nums; }
+#summaryView .summary-food-dining-result { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; border-top: 1px solid var(--border-subtle); padding-top: 10px; color: var(--accent-positive); font-size: 12px; }
+#summaryView .summary-food-dining-result strong { font-size: 16px; font-variant-numeric: tabular-nums; }
+#summaryView .summary-food-budget-note { margin: 8px 0; color: var(--text-secondary); font-size: 12px; line-height: 1.6; }
+#summaryView .summary-food-warning { margin: 7px 0 0; color: var(--accent-primary); font-size: 11px; line-height: 1.6; }
+#summaryView .summary-food-status { margin: 8px 0 0; font-size: 12px; line-height: 1.6; }
+#summaryView .summary-food-status:empty { display: none; }
+#summaryView .food-over { color: var(--accent-negative); }
+#summaryView .summary-food-weekdays,
+#summaryView .summary-food-calendar-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)) minmax(72px, 1.12fr); }
+#summaryView .summary-food-weekdays { border: 1px solid var(--border-subtle); border-bottom: 0; background: color-mix(in srgb, var(--accent-positive) 4%, var(--bg-card)); }
+#summaryView .summary-food-weekdays b { padding: 9px 0; color: var(--text-secondary); font-size: 11px; text-align: center; }
+#summaryView .summary-food-calendar-week { border-top: 1px solid var(--border-subtle); border-left: 1px solid var(--border-subtle); }
+#summaryView .summary-food-calendar-week:last-of-type { border-bottom: 1px solid var(--border-subtle); }
+#summaryView .summary-food-day,
+#summaryView .summary-food-week-total { display: flex; flex-direction: column; align-items: stretch; justify-content: space-between; gap: 6px; min-width: 0; min-height: 82px; margin: 0; border: 0; border-right: 1px solid var(--border-subtle); border-radius: 0; padding: 8px 6px; background: transparent; color: var(--text-primary); text-align: left; font-variant-numeric: tabular-nums; }
+#summaryView .summary-food-day > span { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 800; }
+#summaryView .summary-food-day > strong { overflow: hidden; font-size: clamp(10px, 1vw, 13px); text-overflow: ellipsis; white-space: nowrap; }
+#summaryView .summary-food-day > small { min-height: 12px; color: var(--text-muted); font-size: 10px; }
+#summaryView .summary-food-day.has-spending { background: color-mix(in srgb, var(--accent-positive) 8%, var(--bg-card)); }
+#summaryView .summary-food-day.is-future { color: var(--text-muted); background: color-mix(in srgb, var(--border-subtle) 14%, var(--bg-card)); }
+#summaryView .summary-food-day.is-outside { background: color-mix(in srgb, var(--border-subtle) 30%, var(--bg-card)); }
+#summaryView .summary-food-week-total { justify-content: center; background: color-mix(in srgb, var(--accent-primary) 6%, var(--bg-card)); text-align: right; }
+#summaryView .summary-food-week-total span,
+#summaryView .summary-food-week-total small { color: var(--text-secondary); font-size: 10px; }
+#summaryView .summary-food-week-total strong { font-size: 13px; }
+#summaryView .summary-food-day[aria-pressed="true"],
+#summaryView .summary-food-week-total[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--accent-primary); background: color-mix(in srgb, var(--accent-primary) 10%, var(--bg-card)); }
+#summaryView .summary-food-day:hover:not(:disabled),
+#summaryView .summary-food-week-total:hover { background: color-mix(in srgb, var(--accent-positive) 16%, var(--bg-card)); }
+#summaryView .summary-food-day:focus-visible,
+#summaryView .summary-food-week-total:focus-visible { outline: 2px solid var(--text-primary); outline-offset: -3px; }
+#summaryView .summary-food-today { width: 5px; height: 5px; border-radius: 50%; background: var(--accent-primary); }
+#summaryView .summary-food-undated { width: 100%; margin-top: 8px; color: var(--accent-primary); font-size: 11px; }
+#summaryView .summary-food-inspector-summary { margin: 0 0 10px; color: var(--text-secondary); font-size: 12px; }
+#summaryView .summary-food-week-budget { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 5px 10px; border-bottom: 1px solid var(--border-subtle); padding: 0 0 12px; font-size: 11px; }
+#summaryView .summary-food-week-budget > span { color: var(--text-secondary); }
+#summaryView .summary-food-entry-list { max-height: 390px; margin: 0; overflow-y: auto; padding: 0 7px 0 0; list-style: none; scrollbar-gutter: stable; }
+#summaryView .summary-food-entry-list > li { border-bottom: 1px solid var(--border-subtle); padding: 13px 0; }
+#summaryView .summary-food-entry-list > li:last-child { border-bottom: 0; }
+#summaryView .summary-food-entry-heading { display: flex; align-items: start; justify-content: space-between; gap: 12px; font-size: 13px; }
+#summaryView .summary-food-entry-heading > strong { overflow-wrap: anywhere; }
+#summaryView .summary-food-entry-heading > b { flex-shrink: 0; font-variant-numeric: tabular-nums; }
+#summaryView .summary-food-entry-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin-top: 7px; }
+#summaryView .summary-food-entry-meta time { color: var(--text-muted); font-size: 10px; }
+#summaryView .summary-food-entry-list p { margin: 6px 0 0; color: var(--text-secondary); font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
+#summaryView .summary-food-group { border-radius: 4px; padding: 3px 6px; background: color-mix(in srgb, var(--accent-positive) 9%, var(--bg-card)); color: var(--accent-positive); font-size: 10px; font-weight: 800; }
+#summaryView .summary-food-group.group-delivery { color: var(--accent-primary); background: color-mix(in srgb, var(--accent-primary) 9%, var(--bg-card)); }
+#summaryView .summary-food-group.group-dining { color: var(--accent-blue); background: color-mix(in srgb, var(--accent-blue) 9%, var(--bg-card)); }
+#summaryView .summary-food-group.group-pending { color: var(--text-secondary); background: color-mix(in srgb, var(--border-subtle) 30%, var(--bg-card)); }
+#summaryView .summary-food-empty { margin: 0; padding: 24px 10px; color: var(--text-muted); font-size: 12px; line-height: 1.7; text-align: center; }
+#summaryView .summary-food-table-scroll { max-width: 100%; overflow-x: auto; }
+#summaryView .summary-food-week-table { width: 100%; min-width: 740px; margin: 0; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+#summaryView .summary-food-week-table th,
+#summaryView .summary-food-week-table td { border-bottom: 1px solid var(--border-subtle); padding: 10px 8px; font-size: 12px; text-align: right; }
+#summaryView .summary-food-week-table th:first-child { text-align: left; }
+#summaryView .summary-food-week-table thead th { color: var(--text-secondary); font-size: 11px; }
+#summaryView .summary-food-week-table td > strong,
+#summaryView .summary-food-week-table td > small,
+#summaryView .summary-food-week-table th button > strong,
+#summaryView .summary-food-week-table th button > small { display: block; }
+#summaryView .summary-food-week-table small { margin-top: 5px; color: var(--text-muted); font-size: 10px; font-weight: 500; }
+#summaryView .summary-food-week-table th button { width: 100%; border: 0; padding: 3px 0; background: transparent; color: var(--text-primary); text-align: left; }
+#summaryView .summary-food-week-table tr.is-selected { background: color-mix(in srgb, var(--accent-positive) 6%, var(--bg-card)); }
+#summaryView .summary-food-week-table tfoot { font-weight: 800; }
+#summaryView .summary-food-review > summary { cursor: pointer; color: var(--text-primary); font-size: 13px; font-weight: 800; }
+#summaryView .summary-food-review > summary > span { margin-left: 10px; color: var(--text-secondary); font-size: 11px; font-weight: 600; }
+#summaryView .summary-food-review[open] > summary { margin-bottom: 12px; }
+#summaryView .summary-food-review-filters { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin: 14px 0 8px; }
+#summaryView .summary-food-review-filters label { display: flex; align-items: center; gap: 6px; font-size: 11px; }
+#summaryView .summary-food-review input[type="checkbox"] { flex: 0 0 auto; width: 15px; height: 15px; margin: 0; }
+#summaryView .summary-food-review-list { max-height: 300px; overflow-y: auto; padding-right: 6px; scrollbar-gutter: stable; }
+#summaryView .summary-food-review-order { display: flex; align-items: center; gap: 10px; border-top: 1px solid var(--border-subtle); padding: 12px 0; cursor: pointer; }
+#summaryView .summary-food-review-order > span { flex: 1; min-width: 0; }
+#summaryView .summary-food-review-order strong { display: block; font-size: 12px; overflow-wrap: anywhere; }
+#summaryView .summary-food-review-order small { display: block; margin-top: 4px; color: var(--text-muted); font-size: 10px; line-height: 1.6; }
+#summaryView .summary-food-review-order > b { flex-shrink: 0; font-size: 12px; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 1050px) {
+  #summaryView .summary-food-layout { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 680px) {
+  #summaryView .summary-food-budget,
+  #summaryView .summary-food-calendar,
+  #summaryView .summary-food-inspector,
+  #summaryView .summary-food-weekly,
+  #summaryView .summary-food-review { padding: 12px; }
+  #summaryView .summary-food-weekdays,
+  #summaryView .summary-food-calendar-week { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+  #summaryView .summary-food-weekdays b:last-child { display: none; }
+  #summaryView .summary-food-day { min-height: 70px; padding: 7px 3px; }
+  #summaryView .summary-food-day > strong { font-size: 10px; }
+  #summaryView .summary-food-day > small { font-size: 9px; }
+  #summaryView .summary-food-week-total { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: space-between; gap: 8px; min-height: 34px; border-top: 1px solid var(--border-subtle); padding: 7px 10px; }
+  #summaryView .summary-food-review-controls { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  #summaryView .summary-food-review-controls button { grid-column: 1 / -1; }
+  #summaryView .summary-food-budget-totals strong { font-size: 18px; }
+  #summaryView .summary-food-review > summary > span { display: block; margin: 6px 0 0 18px; }
+}
 
 /* Monthly feedback */
 #summaryView .summary-feedback-hero {
@@ -623,7 +734,6 @@
   #summaryView .summary-pattern-kpis article:last-child { border-bottom: 0; }
   #summaryView .summary-pattern-heatmap,
   #summaryView .summary-pattern-findings,
-  #summaryView .summary-pattern-bands,
   #summaryView .summary-pattern-merchants,
   #summaryView .summary-feedback-column,
   #summaryView .summary-period-map,

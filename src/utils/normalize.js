@@ -48,6 +48,7 @@ function normalizeStoredTransaction(item) {
     payDate: item.payDate || "",
     manualSector: item.manualSector || "",
     manualSubcategory: item.manualSubcategory || "",
+    classificationScope: item.classificationScope === "transaction" ? "transaction" : "",
     sourceFile: item.sourceFile || "",
     importedAt: item.importedAt || "",
     createdAt: item.createdAt || item.importedAt || "",

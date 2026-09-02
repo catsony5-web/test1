@@ -125,6 +125,7 @@ function buildSmartSuggestionModel(rows) {
   const grouped = new Map();
   rows
     .filter((item) => item.flow !== "income" && !isCanceled(item.cancel))
+    .filter((item) => item.classificationScope !== "transaction")
     .filter((item) => item.sector && !["미분류", "제외", "수입"].includes(item.sector))
     .forEach((item) => {
       const merchant = String(item.merchant || "").trim();

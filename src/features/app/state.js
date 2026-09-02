@@ -16,6 +16,10 @@ function defaultAppSettings() {
       targetRatios: {},
       consumptionTypes: {}
     },
+    foodBudget: {
+      monthlyTarget: 250000,
+      diningCost: 20000
+    },
     ipoPerformance: {
       filter: "all",
       startMonth: "",
@@ -511,6 +515,12 @@ let selectedSummaryComparisonMonth = "";
 let selectedSummarySubtab = "trend";
 let selectedSummaryPeriodMode = "heatmap";
 let selectedSummaryPeriodCell = "";
+let summaryFoodSelection = { month: "", date: "", week: 0 };
+let summaryFoodReviewPendingOnly = true;
+let summaryFoodSelectedOrders = new Set();
+let summaryFoodReviewCategory = { sector: "식비", subcategory: "장보기/마트" };
+let summaryFoodFeedback = { message: "", type: "" };
+let summaryFoodSaving = false;
 let monthlyAnalysisComparisonMode = "year";
 let selectedCalendarMonth = "";
 let selectedAppMonth = "";

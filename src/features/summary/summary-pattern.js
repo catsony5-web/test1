@@ -5,14 +5,6 @@ const SUMMARY_PATTERN_PERIODS = [
   { key: "evening", label: "저녁", hint: "17–20시", includes: (hour) => hour >= 17 && hour <= 20 },
   { key: "night", label: "야간", hint: "21–05시", includes: (hour) => hour >= 21 || hour <= 5 }
 ];
-const SUMMARY_PATTERN_BANDS = [
-  { label: "~5천원", min: 0, max: 5000 },
-  { label: "5천원–1만원", min: 5000, max: 10000 },
-  { label: "1만원–3만원", min: 10000, max: 30000 },
-  { label: "3만원–5만원", min: 30000, max: 50000 },
-  { label: "5만원–10만원", min: 50000, max: 100000 },
-  { label: "10만원 이상", min: 100000, max: Infinity }
-];
 
 function summaryPatternTimeParts(value) {
   const match = String(value || "").trim().match(/^([01]?\d|2[0-3]):([0-5]\d)(?::[0-5]\d)?$/);
@@ -61,13 +53,6 @@ function buildSummaryPatternSide(rows) {
     dayIndex,
     count: timedRows.filter((entry) => period.includes(entry.time.hour) && summaryPatternDateDayIndex(entry.item) === dayIndex).length
   }))).flat();
-  const bands = SUMMARY_PATTERN_BANDS.map((band) => ({
-    ...band,
-    count: rows.filter((item) => {
-      const amount = consumptionAmount(item);
-      return amount >= band.min && amount < band.max;
-    }).length
-  }));
   const repeatMerchants = summaryPatternMerchantGroups(rows);
   const totalAmount = sumConsumption(rows);
   const weekendRows = datedRows.filter((entry) => entry.dayIndex >= 5);
@@ -81,8 +66,7 @@ function buildSummaryPatternSide(rows) {
     averageAmount: rows.length ? Math.round(totalAmount / rows.length) : 0,
     weekendShare: datedRows.length ? weekendRows.length / datedRows.length : 0,
     repeatMerchants,
-    cells,
-    bands
+    cells
   };
 }
 
@@ -92,7 +76,7 @@ function buildSummaryPatternModel(comparison, selectedSector) {
   const current = buildSummaryPatternSide(currentRows);
   const baseline = buildSummaryPatternSide(comparisonRows);
   const peak = [...current.cells].sort((a, b) => b.count - a.count)[0] || null;
-  const smallCount = current.bands.slice(0, 2).reduce((sum, item) => sum + item.count, 0);
+  const smallCount = current.rows.filter((item) => consumptionAmount(item) < 10000).length;
   return {
     sector: selectedSector,
     current,
@@ -115,16 +99,17 @@ function renderSummaryPattern(comparison, selectedSector) {
   if (!els.summaryPatternPanel) return;
   const model = buildSummaryPatternModel(comparison, selectedSector);
   const { current, baseline } = model;
-  if (!selectedSector || !current.totalCount) {
+  const foodModel = selectedSector === "식비" ? buildSummaryFoodModel(comparison, appSettings.foodBudget) : null;
+  if (!selectedSector || (!current.totalCount && !foodModel)) {
     els.summaryPatternPanel.innerHTML = `<div class="empty compact-empty">선택 월의 ${escapeHtml(selectedSector || "섹터")} 소비 패턴을 분석할 거래가 없습니다.</div>`;
     return;
   }
+  if (foodModel) syncSummaryFoodSelection(foodModel);
   const countDelta = current.totalCount - baseline.totalCount;
   const averageDelta = current.averageAmount - baseline.averageAmount;
   const weekendDelta = Math.round((current.weekendShare - baseline.weekendShare) * 100);
   const repeatDelta = current.repeatMerchants.length - baseline.repeatMerchants.length;
   const maxCellCount = Math.max(...current.cells.map((item) => item.count), 1);
-  const maxBandCount = Math.max(...current.bands.flatMap((item, index) => [item.count, baseline.bands[index]?.count || 0]), 1);
   const peakText = model.peak?.count
     ? `${model.peak.day}요일 ${model.peak.periodLabel} 거래가 가장 많았습니다.`
     : "시간이 기록된 거래가 없어 시간대 집중도를 계산하지 못했습니다.";
@@ -134,7 +119,7 @@ function renderSummaryPattern(comparison, selectedSector) {
   const smallText = `${formatWon(10000)} 미만 결제가 ${model.smallCount.toLocaleString("ko-KR")}건입니다.`;
   els.summaryPatternPanel.innerHTML = `
     <div class="summary-pattern-conclusion">
-      <strong>금액뿐 아니라 결제 빈도와 이용 방식의 변화를 함께 확인하세요.</strong>
+      <strong>${foodModel ? "이번 주 식비와 월 예산을 보고, 외식 한 번의 여유를 확인하세요." : "금액뿐 아니라 결제 빈도와 이용 방식의 변화를 함께 확인하세요."}</strong>
       <span>시간 분석 가능 ${current.timedCount.toLocaleString("ko-KR")}건 / 전체 ${current.totalCount.toLocaleString("ko-KR")}건</span>
     </div>
     <div class="summary-pattern-kpis">
@@ -143,7 +128,7 @@ function renderSummaryPattern(comparison, selectedSector) {
       ${renderSummaryPatternKpi("ti-calendar-month", "주말 비중", `${Math.round(current.weekendShare * 100)}%`, weekendDelta, summaryPatternSignedCount(weekendDelta, "%p"), model.comparisonExists)}
       ${renderSummaryPatternKpi("ti-repeat", "반복 가맹점", `${current.repeatMerchants.length.toLocaleString("ko-KR")}곳`, repeatDelta, summaryPatternSignedCount(repeatDelta, "곳"), model.comparisonExists)}
     </div>
-    <div class="summary-pattern-top-grid">
+    <div class="summary-pattern-top-grid ${foodModel ? "" : "without-food"}">
       <section class="summary-pattern-heatmap" aria-labelledby="summaryPatternHeatmapTitle">
         <div class="summary-card-heading">
           <h4 id="summaryPatternHeatmapTitle">요일·시간대별 거래 분포</h4>
@@ -162,19 +147,15 @@ function renderSummaryPattern(comparison, selectedSector) {
             `).join("")}
           </div>
           <div class="pattern-heat-legend"><span>적음</span><i></i><i></i><i></i><i></i><i></i><span>많음</span></div>
-        ` : `<div class="summary-pattern-time-empty"><i class="ti ti-history" aria-hidden="true"></i><strong>시간대 분석 자료가 없습니다.</strong><p>시간 없는 이체·고정지출은 아래 금액대와 가맹점 분석에는 포함했습니다.</p></div>`}
+        ` : `<div class="summary-pattern-time-empty"><i class="ti ti-history" aria-hidden="true"></i><strong>시간대 분석 자료가 없습니다.</strong><p>시간 없는 거래도 날짜별 내역과 금액 합계에는 포함합니다.</p></div>`}
       </section>
+      ${foodModel ? renderSummaryFoodBudget(foodModel) : ""}
+    </div>
+    ${foodModel ? renderSummaryFood(foodModel) : ""}
+    <div class="summary-pattern-bottom-grid">
       <section class="summary-pattern-findings" aria-labelledby="summaryPatternFindingsTitle">
         <div class="summary-card-heading"><h4 id="summaryPatternFindingsTitle">패턴 변화</h4><span>${escapeHtml(model.comparisonMonth)} ${escapeHtml(model.comparisonLabel)} 기준</span></div>
         ${[peakText, repeatText, smallText].map((text, index) => `<article><span>${index + 1}</span><p>${escapeHtml(text)}</p></article>`).join("")}
-      </section>
-    </div>
-    <div class="summary-pattern-bottom-grid">
-      <section class="summary-pattern-bands" aria-labelledby="summaryPatternBandsTitle">
-        <div class="summary-card-heading"><h4 id="summaryPatternBandsTitle">결제 금액대 분포</h4><span><i class="current"></i>${escapeHtml(model.selectedMonth)} <i class="baseline"></i>${escapeHtml(model.comparisonMonth)}</span></div>
-        ${current.bands.map((band, index) => `
-          <div class="pattern-band-row"><span>${escapeHtml(band.label)}</span><div><i class="current" style="width:${Math.round(band.count / maxBandCount * 100)}%"></i><i class="baseline" style="width:${Math.round((baseline.bands[index]?.count || 0) / maxBandCount * 100)}%"></i></div><b>${band.count.toLocaleString("ko-KR")}건</b></div>
-        `).join("")}
       </section>
       <section class="summary-pattern-merchants" aria-labelledby="summaryPatternMerchantsTitle">
         <div class="summary-card-heading"><h4 id="summaryPatternMerchantsTitle">반복 가맹점</h4><span>2회 이상 이용</span></div>
@@ -184,6 +165,7 @@ function renderSummaryPattern(comparison, selectedSector) {
     <button type="button" class="summary-pattern-open-detail" data-pattern-open-detail>관련 거래 보기 <i class="ti ti-chevron-right" aria-hidden="true"></i></button>
   `;
   attachSummaryPatternHandlers(model);
+  if (foodModel) attachSummaryFoodHandlers(foodModel);
 }
 
 function renderSummaryPatternKpi(icon, label, value, delta, deltaText, comparisonExists) {

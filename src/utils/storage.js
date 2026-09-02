@@ -75,6 +75,7 @@ function normalizeAppSettings(value) {
   settings.backgroundImage = typeof settings.backgroundImage === "string" ? settings.backgroundImage : "";
   settings.cardBilling = normalizeCardBillingSettings(settings.cardBilling);
   settings.analysis = normalizeAnalysisSettings(settings.analysis);
+  settings.foodBudget = normalizeFoodBudgetSettings(settings.foodBudget);
   settings.ipoPerformance = normalizeIpoPerformanceSettings(settings.ipoPerformance);
   return settings;
 }
@@ -87,6 +88,15 @@ function normalizeCardBillingSettings(value) {
     endDay: Math.round(clampNumber(source.endDay, 1, 31, defaults.endDay)),
     paymentDay: Math.round(clampNumber(source.paymentDay, 1, 31, defaults.paymentDay)),
     weekendRule: source.weekendRule === "none" ? "none" : "next-monday"
+  };
+}
+
+function normalizeFoodBudgetSettings(value) {
+  const defaults = defaultAppSettings().foodBudget;
+  const source = value && typeof value === "object" ? value : {};
+  return {
+    monthlyTarget: Math.round(clampNumber(source.monthlyTarget === "" ? undefined : source.monthlyTarget ?? undefined, 1, 100000000, defaults.monthlyTarget)),
+    diningCost: Math.round(clampNumber(source.diningCost === "" ? undefined : source.diningCost ?? undefined, 0, 100000000, defaults.diningCost))
   };
 }
 
