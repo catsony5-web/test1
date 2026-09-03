@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-09-01T01:29:50.337Z",
+  "updatedAt": "2026-09-03T08:31:38.471Z",
   "source": {
     "name": "KRX KIND",
     "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcom.do?method=searchPubofrProgComMain",
@@ -11,7 +11,7 @@
     "to": "2027-09-30",
     "label": "최근 3개월 · 향후 12개월"
   },
-  "itemCount": 18,
+  "itemCount": 19,
   "items": [
     {
       "sourceId": "20260106000356",
@@ -443,6 +443,30 @@
       "missingSince": "",
       "fingerprint": "3b4fb0456bf805c90a18",
       "changeStatus": "unchanged",
+      "changes": []
+    },
+    {
+      "sourceId": "20251111000317",
+      "company": "글로벌테크놀로지",
+      "market": "코스닥",
+      "filingDate": "2026-07-28",
+      "bookbuildingStart": "2026-09-07",
+      "bookbuildingEnd": "2026-09-11",
+      "subscriptionStart": "2026-09-16",
+      "subscriptionEnd": "2026-09-17",
+      "paymentDate": "2026-09-21",
+      "offerPrice": 0,
+      "offeringAmountMillions": 0,
+      "listingDate": "2026-09-29",
+      "broker": "한국투자증권",
+      "priceStatus": "pending",
+      "status": "scheduled",
+      "sourceName": "KRX KIND",
+      "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20251111000317",
+      "sourceUpdatedAt": "2026-09-03T08:31:38.471Z",
+      "missingSince": "",
+      "fingerprint": "90009f06a76969587c5b",
+      "changeStatus": "new",
       "changes": []
     }
   ]
