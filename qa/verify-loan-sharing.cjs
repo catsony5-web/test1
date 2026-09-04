@@ -27,6 +27,7 @@ function load(relativePath) {
 }
 
 load("src/utils/date.js");
+load("src/utils/food-occasion.js");
 load("src/utils/normalize.js");
 vm.runInContext(`
   function toNumber(value) {

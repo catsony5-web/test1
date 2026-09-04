@@ -347,6 +347,29 @@ const els = {
   recurringBulkFeedback: document.querySelector("#recurringBulkFeedback"),
   recurringBulkPreview: document.querySelector("#recurringBulkPreview"),
   recurringMonthFilter: document.querySelector("#recurringMonthFilter"),
+  recurringPrevMonth: document.querySelector("#recurringPrevMonth"),
+  recurringNextMonth: document.querySelector("#recurringNextMonth"),
+  recurringAddButton: document.querySelector("#recurringAddButton"),
+  recurringViewTitle: document.querySelector("#recurringViewTitle"),
+  recurringViewDescription: document.querySelector("#recurringViewDescription"),
+  recurringWorkspaceTabButtons: [...document.querySelectorAll("[data-recurring-workspace-tab]")],
+  recurringWorkspacePanels: [...document.querySelectorAll("[data-recurring-workspace-panel]")],
+  recurringReviewMetrics: document.querySelector("#recurringReviewMetrics"),
+  recurringReviewNotice: document.querySelector("#recurringReviewNotice"),
+  recurringReviewListSummary: document.querySelector("#recurringReviewListSummary"),
+  recurringReviewList: document.querySelector("#recurringReviewList"),
+  recurringReviewCandidateAmount: document.querySelector("#recurringReviewCandidateAmount"),
+  recurringReviewCandidateSummary: document.querySelector("#recurringReviewCandidateSummary"),
+  recurringReviewStartButton: document.querySelector("#recurringReviewStartButton"),
+  recurringReviewForm: document.querySelector("#recurringReviewForm"),
+  recurringReviewItemId: document.querySelector("#recurringReviewItemId"),
+  recurringReviewFocusName: document.querySelector("#recurringReviewFocusName"),
+  recurringReviewFocusAmount: document.querySelector("#recurringReviewFocusAmount"),
+  recurringReviewStatus: document.querySelector("#recurringReviewStatus"),
+  recurringReviewNextDate: document.querySelector("#recurringReviewNextDate"),
+  recurringReviewEditButton: document.querySelector("#recurringReviewEditButton"),
+  recurringReviewFeedback: document.querySelector("#recurringReviewFeedback"),
+  recurringReviewGuidance: document.querySelector("#recurringReviewGuidance"),
   recurringListSummary: document.querySelector("#recurringListSummary"),
   recurringSummaryCards: document.querySelector("#recurringSummaryCards"),
   recurringList: document.querySelector("#recurringList"),
@@ -472,7 +495,10 @@ let boardExpandedMonth = "";
 let boardHighlightSector = "";
 let incomeBulkRows = [];
 let recurringBulkRows = [];
+let activeRecurringWorkspaceTab = "review";
 let activeRecurringTab = "expense";
+let selectedRecurringReviewId = "";
+let recurringReviewFeedback = "";
 let editingLoanId = "";
 let detailBulkRows = [];
 let ipoPasteRows = [];
@@ -521,7 +547,8 @@ let summaryFoodSelectedOrders = new Set();
 let summaryFoodReviewCategory = { sector: "식비", subcategory: "장보기/마트" };
 let summaryFoodFeedback = { message: "", type: "" };
 let summaryFoodSaving = false;
-let monthlyAnalysisComparisonMode = "year";
+let monthlyAnalysisComparisonMode = "previous";
+let monthlyAnalysisEvidenceSelection = { key: "", sector: "" };
 let selectedCalendarMonth = "";
 let selectedAppMonth = "";
 let detailReturnState = null;

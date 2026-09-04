@@ -1,3 +1,27 @@
+function setRecurringWorkspaceTab(tab, options = {}) {
+  const nextTab = tab === "manage" ? "manage" : "review";
+  activeRecurringWorkspaceTab = nextTab;
+  els.recurringWorkspaceTabButtons.forEach((button) => {
+    const selected = button.dataset.recurringWorkspaceTab === nextTab;
+    button.classList.toggle("active", selected);
+    button.setAttribute("aria-selected", String(selected));
+    button.tabIndex = selected ? 0 : -1;
+    if (selected && options.focus) button.focus();
+  });
+  els.recurringWorkspacePanels.forEach((panel) => {
+    panel.hidden = panel.dataset.recurringWorkspacePanel !== nextTab;
+  });
+  if (els.recurringViewTitle) {
+    els.recurringViewTitle.textContent = nextTab === "review" ? "고정 지출 점검" : "고정 지출 등록·관리";
+  }
+  if (els.recurringViewDescription) {
+    els.recurringViewDescription.textContent = nextTab === "review"
+      ? "매달 자동으로 빠져나가는 비용을 한눈에 보고, 유지할 항목과 다시 볼 항목을 구분합니다."
+      : "일반 고정 지출과 대출 상환의 등록 정보와 실제 반영 상태를 관리합니다.";
+  }
+  if (els.recurringAddButton) els.recurringAddButton.hidden = nextTab !== "review";
+}
+
 function setRecurringTab(tab, options = {}) {
   const nextTab = tab === "loan" ? "loan" : "expense";
   activeRecurringTab = nextTab;
@@ -11,6 +35,27 @@ function setRecurringTab(tab, options = {}) {
   els.recurringPanels.forEach((panel) => {
     panel.hidden = panel.dataset.recurringPanel !== nextTab;
   });
+}
+
+function moveRecurringReviewMonth(offset) {
+  const current = els.recurringMonthFilter.value || selectedCalendarMonth || currentMonthKey();
+  const next = shiftMonthKey(current, offset);
+  selectedRecurringReviewId = "";
+  recurringReviewFeedback = "";
+  setSharedSelectedMonth(next, { syncControls: false });
+  if (![...els.recurringMonthFilter.options].some((option) => option.value === next)) {
+    els.recurringMonthFilter.add(new Option(next, next));
+  }
+  els.recurringMonthFilter.value = next;
+  renderRecurring();
+}
+
+function openRecurringManageForCreate() {
+  setRecurringWorkspaceTab("manage");
+  setRecurringTab("expense");
+  resetRecurringForm();
+  els.recurringForm?.scrollIntoView({ block: "start" });
+  els.recurringName?.focus({ preventScroll: true });
 }
 
 function updateLoanScheduledTotal() {
@@ -578,6 +623,7 @@ function editLoanRepayment(id, options = {}) {
   const item = recurringExpenses.find((expense) => expense.id === id && expense.recurringType === "loan");
   if (!item) return;
   if (options.switchView !== false && !isViewActive("recurring")) switchView("recurring");
+  setRecurringWorkspaceTab("manage");
   setRecurringTab("loan");
   editingLoanId = id;
   els.loanId.value = item.id;
@@ -613,6 +659,7 @@ function editRecurringExpense(id, options = {}) {
     return;
   }
   if (options.switchView !== false && !isViewActive("recurring")) switchView("recurring");
+  setRecurringWorkspaceTab("manage");
   setRecurringTab("expense");
   editingRecurringId = id;
   els.recurringId.value = item.id;
@@ -1328,9 +1375,164 @@ function recurringPostingStatus(item, month) {
   return { active, posted, postedTransaction, canManualPost: true, label: "수동 반영 필요", className: "manual-needed" };
 }
 
+function recurringReviewIncomeKnown(month) {
+  const hasManualIncome = Object.prototype.hasOwnProperty.call(monthlyIncome, month)
+    && Number.isFinite(Number(monthlyIncome[month]));
+  const hasImportedIncome = classified.some((item) => item.month === month
+    && item.flow === "income"
+    && item.status !== "취소/제외"
+    && !isCanceled(item.cancel)
+    && incomeReportingAmount(item) > 0);
+  return hasManualIncome || hasImportedIncome;
+}
+
+function recurringReviewModelForMonth(month) {
+  const income = importedIncomeForMonth(month) + Number(monthlyIncome[month] || 0);
+  return buildRecurringReviewModel(recurringExpenses, month, income, {
+    incomeKnown: recurringReviewIncomeKnown(month)
+  });
+}
+
+function renderRecurringReviewMetric(icon, label, value, hint, tone = "") {
+  return `
+    <article class="recurring-review-metric ${escapeHtml(tone)}">
+      <div class="recurring-review-metric-icon"><i class="ti ti-${escapeHtml(icon)}" aria-hidden="true"></i></div>
+      <div>
+        <span>${escapeHtml(label)}</span>
+        <strong>${escapeHtml(value)}</strong>
+        <small>${escapeHtml(hint)}</small>
+      </div>
+    </article>
+  `;
+}
+
+function recurringReviewChangeHint(model) {
+  if (!model.previousTotal) return "전월 등록 내역 없음";
+  if (!model.monthlyChange) return "전월과 동일";
+  return `전월보다 ${formatSignedWon(model.monthlyChange)}`;
+}
+
+function renderRecurringReview(month, expenseDefinitions) {
+  if (!els.recurringReviewList || !els.recurringReviewMetrics) return;
+  const model = recurringReviewModelForMonth(month);
+  if (selectedRecurringReviewId && !model.items.some((item) => item.id === selectedRecurringReviewId)) {
+    selectedRecurringReviewId = "";
+  }
+
+  els.recurringReviewMetrics.innerHTML = [
+    renderRecurringReviewMetric("wallet", "이번 달 고정비", formatWon(model.monthlyTotal), recurringReviewChangeHint(model), "primary"),
+    renderRecurringReviewMetric(
+      "percentage",
+      "월 수입의",
+      model.incomeRatio === null ? "확인 불가" : `${model.incomeRatio.toLocaleString("ko-KR", { maximumFractionDigits: 1 })}%`,
+      model.incomeRatio === null ? "이 달의 수입을 입력하면 계산됩니다" : `수입 ${formatWon(model.income)} 기준`,
+      model.incomeRatio !== null && model.incomeRatio >= 50 ? "warning" : "positive"
+    ),
+    renderRecurringReviewMetric("calendar-repeat", "연간 예상", formatWon(model.annualTotal), `${month}부터 12개월 등록 기준`, "neutral")
+  ].join("");
+  els.recurringReviewNotice.innerHTML = `<i class="ti ti-info-circle" aria-hidden="true"></i><span>${escapeHtml(month)}에 활성화된 일반 고정 지출 기준입니다. 실제 결제액과 다를 수 있으며 대출 상환은 <strong>등록·관리</strong>에서 별도로 확인합니다.</span>`;
+  els.recurringReviewListSummary.textContent = `${model.items.length.toLocaleString("ko-KR")}건 · 점검 ${model.candidateCount.toLocaleString("ko-KR")}건`;
+
+  if (!expenseDefinitions.length) {
+    els.recurringReviewList.innerHTML = `
+      <div class="recurring-review-empty">
+        <i class="ti ti-receipt" aria-hidden="true"></i>
+        <strong>등록된 고정 지출이 없습니다.</strong>
+        <p>월세, 보험료, 통신비처럼 매달 반복되는 항목을 먼저 등록해보세요.</p>
+        <button type="button" class="primary-action" data-open-recurring-manage>고정 지출 등록</button>
+      </div>`;
+  } else if (!model.items.length) {
+    els.recurringReviewList.innerHTML = `
+      <div class="recurring-review-empty">
+        <i class="ti ti-calendar-off" aria-hidden="true"></i>
+        <strong>${escapeHtml(month)}에 활성화된 항목이 없습니다.</strong>
+        <p>등록·관리에서 시작 월, 종료 월, 일시중지 상태를 확인해주세요.</p>
+        <button type="button" data-open-recurring-manage>등록 정보 확인</button>
+      </div>`;
+  } else {
+    els.recurringReviewList.innerHTML = model.groups.map((group) => `
+      <section class="recurring-review-group" aria-label="${escapeHtml(group.label)}">
+        <header>
+          <span><i class="ti ti-${escapeHtml(group.icon)}" aria-hidden="true"></i>${escapeHtml(group.label)}</span>
+          <strong>${formatWon(group.amount)}</strong>
+        </header>
+        <div>
+          ${group.items.map((item) => `
+            <button type="button" class="recurring-review-row ${selectedRecurringReviewId === item.id ? "selected" : ""}" data-review-recurring="${escapeHtml(item.id)}" aria-pressed="${selectedRecurringReviewId === item.id}">
+              <span class="recurring-review-row-name"><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.paymentType || "카드")} · 매월 ${Number(item.dayOfMonth || 1)}일</small></span>
+              <strong class="recurring-review-row-amount">${formatWon(item.amount)}</strong>
+              <span class="recurring-review-status ${escapeHtml(item.review.key)}">${escapeHtml(item.review.label)}</span>
+              <i class="ti ti-chevron-right" aria-hidden="true"></i>
+            </button>
+          `).join("")}
+        </div>
+      </section>
+    `).join("");
+  }
+
+  els.recurringReviewList.querySelectorAll("[data-review-recurring]").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedRecurringReviewId = button.dataset.reviewRecurring;
+      recurringReviewFeedback = "";
+      renderRecurringReview(month, expenseDefinitions);
+      els.recurringReviewForm?.focus({ preventScroll: true });
+    });
+  });
+  els.recurringReviewList.querySelector("[data-open-recurring-manage]")?.addEventListener("click", openRecurringManageForCreate);
+
+  els.recurringReviewCandidateAmount.textContent = formatWon(model.candidateAmount);
+  els.recurringReviewCandidateSummary.textContent = model.candidateCount
+    ? `월 고정비 중 ${model.candidateCount.toLocaleString("ko-KR")}건은 확인 또는 변경 검토가 필요합니다.`
+    : model.items.length ? "현재 확인이 필요한 항목이 없습니다." : "고정 지출을 등록하면 점검 후보를 모아드립니다.";
+  els.recurringReviewStartButton.disabled = !model.items.length;
+  els.recurringReviewStartButton.textContent = model.candidateCount ? "첫 후보 점검" : "전체 항목 보기";
+  els.recurringReviewGuidance.classList.toggle("is-relevant", model.insuranceCandidateCount > 0);
+
+  const focused = model.items.find((item) => item.id === selectedRecurringReviewId);
+  els.recurringReviewForm.hidden = !focused;
+  if (focused) {
+    els.recurringReviewItemId.value = focused.id;
+    els.recurringReviewFocusName.textContent = focused.name;
+    els.recurringReviewFocusAmount.textContent = formatWon(focused.amount);
+    els.recurringReviewStatus.value = normalizeRecurringReviewStatus(focused.reviewStatus);
+    els.recurringReviewNextDate.value = focused.nextReviewDate || "";
+    els.recurringReviewFeedback.textContent = recurringReviewFeedback;
+  }
+}
+
+function startRecurringReview() {
+  const month = els.recurringMonthFilter.value || currentMonthKey();
+  const model = recurringReviewModelForMonth(month);
+  const target = model.candidates[0] || model.items[0];
+  if (!target) return;
+  selectedRecurringReviewId = target.id;
+  recurringReviewFeedback = "";
+  renderRecurringReview(month, model.definitions);
+  els.recurringReviewStatus?.focus({ preventScroll: true });
+}
+
+async function handleRecurringReviewSubmit(event) {
+  event.preventDefault();
+  const id = els.recurringReviewItemId.value;
+  const original = recurringExpenses.find((item) => item.id === id && item.recurringType !== "loan");
+  if (!original) return;
+  await createAutoSnapshot("고정 지출 점검 저장 전");
+  const updated = normalizeRecurringExpense({
+    ...original,
+    reviewStatus: els.recurringReviewStatus.value,
+    nextReviewDate: els.recurringReviewNextDate.value,
+    updatedAt: new Date().toISOString()
+  });
+  recurringExpenses = recurringExpenses.map((item) => item.id === id ? updated : item);
+  await saveRecurringExpenses();
+  recurringReviewFeedback = "점검 상태를 저장했습니다.";
+  renderAll();
+}
+
 function renderRecurring() {
   if (!els.recurringList) return;
   const selectedMonth = syncRecurringMonthFilter();
+  setRecurringWorkspaceTab(activeRecurringWorkspaceTab);
   setRecurringTab(activeRecurringTab);
   const expenseDefinitions = recurringExpenses.filter((item) => item.recurringType !== "loan");
   const loanDefinitions = recurringExpenses.filter((item) => item.recurringType === "loan");
@@ -1339,6 +1541,7 @@ function renderRecurring() {
   const pendingItems = monthOccurrences.filter((item) => !item.posted);
   const autoPostedItems = monthOccurrences.filter((item) => item.autoPost && item.posted);
   const manualPendingItems = monthOccurrences.filter((item) => !item.autoPost && !item.posted);
+  renderRecurringReview(selectedMonth, expenseDefinitions);
   els.recurringListSummary.textContent = `${expenseDefinitions.length.toLocaleString("ko-KR")}건 등록`;
   els.recurringSummaryCards.innerHTML = [
     renderRecurringSummaryCard("미반영 예정", formatWon(sum(pendingItems, "amount")), `${pendingItems.length.toLocaleString("ko-KR")}건 · 실제 합산 전`),

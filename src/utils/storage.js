@@ -719,6 +719,8 @@ function normalizeRecurringExpense(item) {
     startMonth,
     endMonth: endMonth && endMonth >= startMonth ? endMonth : "",
     memo: String(item?.memo || "").trim(),
+    reviewStatus: recurringType === "loan" ? "unknown" : normalizeRecurringReviewStatus(item?.reviewStatus),
+    nextReviewDate: recurringType === "loan" ? "" : normalizeInputDate(item?.nextReviewDate),
     showOnCalendar: item?.showOnCalendar !== false,
     autoPost: recurringType === "loan" ? false : item?.autoPost === true,
     paused: item?.paused === true,

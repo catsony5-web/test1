@@ -267,6 +267,521 @@
   font-weight: 800;
 }
 
+.recurring-review-page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.recurring-review-page-head > div:first-child {
+  min-width: 0;
+}
+
+.recurring-review-head-actions,
+.recurring-review-month-control {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.recurring-review-head-actions {
+  flex: 0 0 auto;
+}
+
+.recurring-review-month-control label {
+  display: grid;
+  gap: 5px;
+  min-width: 150px;
+  color: var(--text-sub);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.recurring-review-month-control select {
+  min-height: 42px;
+  font-family: var(--font-number);
+  font-weight: 900;
+}
+
+.recurring-review-month-control > button,
+.recurring-review-head-actions > button {
+  min-height: 42px;
+}
+
+.recurring-review-month-control > button {
+  display: inline-grid;
+  width: 42px;
+  padding: 0;
+  place-items: center;
+}
+
+.recurring-workspace-tabs {
+  display: inline-flex;
+  gap: 4px;
+  margin-bottom: 18px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 4px;
+  background: var(--surface-soft);
+}
+
+.recurring-workspace-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 42px;
+  border-color: transparent;
+  padding: 8px 18px;
+  background: transparent;
+  color: var(--text-sub);
+  font-weight: 900;
+}
+
+.recurring-workspace-tab.active {
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--primary-navy);
+  box-shadow: var(--shadow-sm);
+}
+
+.recurring-workspace-tab:focus-visible,
+.recurring-review-row:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent-blue) 28%, transparent);
+  outline-offset: 2px;
+}
+
+.recurring-review-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.recurring-review-metric {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 13px;
+  align-items: center;
+  min-width: 0;
+  padding: 20px;
+}
+
+.recurring-review-metric + .recurring-review-metric {
+  border-left: 1px solid var(--border-subtle);
+}
+
+.recurring-review-metric-icon {
+  display: inline-grid;
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--accent-blue) 9%, var(--surface-soft));
+  color: var(--accent-blue);
+  font-size: 20px;
+  place-items: center;
+}
+
+.recurring-review-metric.warning .recurring-review-metric-icon {
+  background: color-mix(in srgb, var(--accent-warning) 12%, var(--surface-soft));
+  color: var(--accent-warning);
+}
+
+.recurring-review-metric.positive .recurring-review-metric-icon {
+  background: color-mix(in srgb, var(--accent-positive) 10%, var(--surface-soft));
+  color: var(--accent-positive);
+}
+
+.recurring-review-metric > div:last-child {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.recurring-review-metric span,
+.recurring-review-metric small {
+  color: var(--text-sub);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.recurring-review-metric strong {
+  overflow: hidden;
+  color: var(--primary-navy);
+  font-family: var(--font-number);
+  font-size: clamp(22px, 2vw, 29px);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recurring-review-notice {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 10px 2px 16px;
+  color: var(--text-sub);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.recurring-review-notice i,
+.recurring-review-notice strong {
+  color: var(--accent-blue);
+}
+
+.recurring-review-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.34fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.recurring-review-table-panel,
+.recurring-review-side-panel {
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.recurring-review-table-panel {
+  overflow: hidden;
+}
+
+.recurring-review-panel-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 19px 20px 17px;
+}
+
+.recurring-review-panel-head .eyebrow {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--accent-warning);
+  font-family: var(--font-number);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+}
+
+.recurring-review-panel-head h3 {
+  color: var(--primary-navy);
+  font-size: 19px;
+}
+
+.recurring-review-panel-head p {
+  margin-top: 5px;
+  color: var(--text-sub);
+  font-size: 12px;
+}
+
+#recurringReviewListSummary {
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: var(--surface-soft);
+  color: var(--text-primary);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.recurring-review-column-head,
+.recurring-review-row {
+  display: grid;
+  grid-template-columns: minmax(210px, 1fr) 140px 120px 24px;
+  gap: 12px;
+  align-items: center;
+}
+
+.recurring-review-column-head {
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 9px 20px;
+  background: var(--surface-soft);
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.recurring-review-column-head span:nth-child(2),
+.recurring-review-column-head span:nth-child(3) {
+  text-align: right;
+}
+
+.recurring-review-list {
+  min-height: 330px;
+}
+
+.recurring-review-group > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 10px 20px;
+  background: color-mix(in srgb, var(--surface-soft) 76%, var(--surface));
+}
+
+.recurring-review-group > header span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.recurring-review-group > header i {
+  color: var(--accent-warning);
+  font-size: 16px;
+}
+
+.recurring-review-group > header strong {
+  color: var(--text-secondary);
+  font-family: var(--font-number);
+  font-size: 12px;
+}
+
+.recurring-review-row {
+  width: 100%;
+  min-height: 67px;
+  border: 0;
+  border-bottom: 1px solid var(--border-subtle);
+  border-radius: 0;
+  padding: 12px 20px;
+  background: var(--surface);
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.recurring-review-row:hover,
+.recurring-review-row.selected {
+  background: color-mix(in srgb, var(--accent-blue) 5%, var(--surface));
+}
+
+.recurring-review-row.selected {
+  box-shadow: inset 3px 0 0 var(--accent-warning);
+}
+
+.recurring-review-row-name {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.recurring-review-row-name strong {
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recurring-review-row-name small {
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.recurring-review-row-amount {
+  color: var(--primary-navy);
+  font-family: var(--font-number);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.recurring-review-status {
+  justify-self: end;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  padding: 5px 8px;
+  background: var(--surface-soft);
+  color: var(--text-sub);
+  font-size: 10px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.recurring-review-status.keep {
+  border-color: color-mix(in srgb, var(--accent-positive) 35%, var(--border));
+  background: color-mix(in srgb, var(--accent-positive) 8%, var(--surface));
+  color: var(--accent-positive);
+}
+
+.recurring-review-status.review,
+.recurring-review-status.due {
+  border-color: color-mix(in srgb, var(--accent-warning) 38%, var(--border));
+  background: color-mix(in srgb, var(--accent-warning) 8%, var(--surface));
+  color: var(--accent-warning);
+}
+
+.recurring-review-row > i {
+  justify-self: end;
+  color: var(--text-muted);
+  font-size: 16px;
+}
+
+.recurring-review-side-panel {
+  position: sticky;
+  top: 84px;
+  overflow: hidden;
+}
+
+.recurring-review-side-summary {
+  display: grid;
+  gap: 7px;
+  padding: 21px;
+  background: color-mix(in srgb, var(--accent-warning) 5%, var(--surface));
+}
+
+.recurring-review-side-summary > span {
+  color: var(--text-sub);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.recurring-review-side-summary > strong {
+  color: var(--accent-warning);
+  font-family: var(--font-number);
+  font-size: 29px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+}
+
+.recurring-review-side-summary p {
+  min-height: 34px;
+  color: var(--text-sub);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.recurring-review-side-summary button {
+  width: 100%;
+  margin-top: 6px;
+}
+
+.recurring-review-form {
+  display: grid;
+  gap: 12px;
+  border-top: 1px solid var(--border-subtle);
+  padding: 18px 21px;
+}
+
+.recurring-review-form[hidden] {
+  display: none;
+}
+
+.recurring-review-focus-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.recurring-review-focus-head span,
+.recurring-review-form label > span {
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.recurring-review-focus-head h3 {
+  margin-top: 4px;
+  color: var(--primary-navy);
+  font-size: 15px;
+}
+
+.recurring-review-focus-head > strong {
+  color: var(--primary-navy);
+  font-family: var(--font-number);
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.recurring-review-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--text-sub);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.recurring-review-form-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.recurring-review-form-actions button {
+  min-height: 40px;
+  padding-inline: 10px;
+  font-size: 11px;
+}
+
+.recurring-review-guidance {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  border-top: 1px solid var(--border-subtle);
+  padding: 17px 21px;
+  background: var(--surface-soft);
+  color: var(--text-sub);
+}
+
+.recurring-review-guidance.is-relevant {
+  background: color-mix(in srgb, var(--accent-positive) 6%, var(--surface-soft));
+}
+
+.recurring-review-guidance i {
+  margin-top: 1px;
+  color: var(--accent-positive);
+  font-size: 18px;
+}
+
+.recurring-review-guidance p {
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.recurring-review-guidance strong {
+  color: var(--text-secondary);
+}
+
+.recurring-review-empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  min-height: 330px;
+  padding: 54px 24px;
+  color: var(--text-sub);
+  text-align: center;
+  place-content: center;
+}
+
+.recurring-review-empty i {
+  color: var(--accent-warning);
+  font-size: 30px;
+}
+
+.recurring-review-empty strong {
+  color: var(--primary-navy);
+  font-size: 15px;
+}
+
+.recurring-review-empty p {
+  max-width: 360px;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
 .recurring-subtabs {
   display: inline-flex;
   gap: 6px;

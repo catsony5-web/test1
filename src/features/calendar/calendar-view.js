@@ -723,6 +723,7 @@ function renderCalendarTransactionCard(item, duplicateMeta = null) {
         <strong title="${escapeHtml(item.merchant)}">${escapeHtml(item.merchant || "내용 없음")}</strong>
         <div class="timeline-tags">
           ${categoryChip(item.sector, item.subcategory)}
+          ${foodOccasionBadge(item)}
           ${isUnknown ? `<span class="classification-needed-badge">분류 필요</span>` : ""}
           ${duplicateMeta ? `<span class="duplicate-suspect-badge">중복 의심 ${duplicateMeta.groupLabel}</span>` : ""}
           ${item.manualSector ? `<span class="manual-entry-badge">직접 수정</span>` : ""}
@@ -865,6 +866,13 @@ function renderCalendarEditForm(item) {
         <label>세부항목
           <select class="calendar-edit-subcategory" name="subcategory">${calendarSubcategoryOptionsHtml(assignment.sector, assignment.subcategory)}</select>
         </label>
+        <label class="calendar-food-occasion wide" data-calendar-food-occasion ${assignment.sector === "식비" ? "" : "hidden"}>지출 상황 (선택)
+          <select name="foodOccasion" aria-label="지출 상황 (선택)" ${assignment.sector === "식비" ? "" : "disabled"}>
+            <option value="">일반 지출 (태그 없음)</option>
+            ${FOOD_OCCASIONS.map((occasion) => `<option value="${occasion.key}" ${occasion.key === normalizeFoodOccasion(item.foodOccasion) ? "selected" : ""}>${escapeHtml(occasion.label)}</option>`).join("")}
+          </select>
+          <small>이 거래에만 표시합니다. 상황은 하나만 선택하며 식비 합계에서 빠지지 않습니다.</small>
+        </label>
         <label class="wide">메모
           <input type="text" name="memo" value="${escapeHtml(item.memo || "")}">
         </label>
@@ -981,7 +989,9 @@ function attachCalendarTimelineHandlers(root) {
     const subcategorySelect = form.querySelector(".calendar-edit-subcategory");
     sectorSelect.addEventListener("change", () => {
       subcategorySelect.innerHTML = calendarSubcategoryOptionsHtml(sectorSelect.value);
+      syncCalendarFoodOccasion(form);
     });
+    syncCalendarFoodOccasion(form);
     ["amount", "reimbursement"].forEach((name) => {
       form.elements[name].addEventListener("input", () => updateCalendarActualPreview(form));
     });
@@ -1022,6 +1032,15 @@ function updateCalendarActualPreview(form) {
   const reimbursement = toNumber(form.elements.reimbursement.value);
   const preview = form.querySelector(".calendar-actual-preview");
   if (preview) preview.value = formatWon(Math.max(0, amount - reimbursement));
+}
+
+function syncCalendarFoodOccasion(form) {
+  const field = form.querySelector("[data-calendar-food-occasion]");
+  const select = form.elements.foodOccasion;
+  if (!field || !select) return;
+  const isFood = form.elements.sector.value === "식비";
+  field.hidden = !isFood;
+  select.disabled = !isFood;
 }
 
 function updateCalendarSplitPreview(form, options = {}) {
@@ -1286,6 +1305,8 @@ async function saveCalendarTransactionEdit(recordKey, form) {
     installmentOriginalAmount: validInstallment ? amount : 0,
     installmentMonthlyAmount: validInstallment ? Math.floor(amount / installmentMonthCount) : 0,
     installmentGroupId: validInstallment ? transactions[index].installmentGroupId || recordKey : "",
+    foodOccasion: assignment.sector === "식비" ? normalizeFoodOccasion(form.elements.foodOccasion?.value) : "",
+    updatedAt: new Date().toISOString(),
     recordKey
   });
 

@@ -372,8 +372,10 @@
 #summaryView .summary-food-calendar,
 #summaryView .summary-food-inspector,
 #summaryView .summary-food-weekly,
+#summaryView .summary-food-occasions,
 #summaryView .summary-food-review { min-width: 0; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 16px; background: var(--bg-card); }
 #summaryView .summary-food-weekly,
+#summaryView .summary-food-occasions,
 #summaryView .summary-food-review { margin-bottom: 12px; }
 #summaryView .summary-food-help { margin: 6px 0 10px; color: var(--text-muted); font-size: 11px; line-height: 1.6; }
 #summaryView .summary-food-budget-form,
@@ -394,6 +396,18 @@
 #summaryView .summary-food-warning { margin: 7px 0 0; color: var(--accent-primary); font-size: 11px; line-height: 1.6; }
 #summaryView .summary-food-status { margin: 8px 0 0; font-size: 12px; line-height: 1.6; }
 #summaryView .summary-food-status:empty { display: none; }
+#summaryView .summary-food-occasion-note { margin: 4px 0 10px; border-left: 2px solid var(--accent-primary); padding: 6px 8px; background: color-mix(in srgb, var(--accent-primary) 4%, var(--bg-card)); color: var(--text-secondary); font-size: 11px; line-height: 1.6; }
+#summaryView .summary-food-occasion-note strong { color: var(--text-primary); font-variant-numeric: tabular-nums; }
+#summaryView .summary-food-occasion-overview { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 20px; }
+#summaryView .summary-food-occasion-overview p { display: flex; flex-wrap: wrap; align-items: baseline; gap: 5px 9px; margin: 0; color: var(--text-secondary); font-size: 12px; }
+#summaryView .summary-food-occasion-overview strong { color: var(--text-primary); font-size: 18px; font-variant-numeric: tabular-nums; }
+#summaryView .summary-food-occasion-overview span { font-size: 11px; }
+#summaryView .summary-food-occasion-breakdown { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin: 16px 0 12px; }
+#summaryView .summary-food-occasion-breakdown > div { min-width: 0; border-top: 1px solid var(--border-subtle); padding-top: 10px; }
+#summaryView .summary-food-occasion-breakdown dt { color: var(--text-secondary); font-size: 12px; }
+#summaryView .summary-food-occasion-breakdown dd { display: grid; gap: 4px; margin: 6px 0 0; font-variant-numeric: tabular-nums; }
+#summaryView .summary-food-occasion-breakdown strong { font-size: 16px; overflow-wrap: anywhere; }
+#summaryView .summary-food-occasion-breakdown small { color: var(--text-muted); font-size: 10px; }
 #summaryView .food-over { color: var(--accent-negative); }
 #summaryView .summary-food-weekdays,
 #summaryView .summary-food-calendar-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)) minmax(72px, 1.12fr); }
@@ -473,7 +487,9 @@
   #summaryView .summary-food-calendar,
   #summaryView .summary-food-inspector,
   #summaryView .summary-food-weekly,
+  #summaryView .summary-food-occasions,
   #summaryView .summary-food-review { padding: 12px; }
+  #summaryView .summary-food-occasion-breakdown { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   #summaryView .summary-food-weekdays,
   #summaryView .summary-food-calendar-week { grid-template-columns: repeat(7, minmax(0, 1fr)); }
   #summaryView .summary-food-weekdays b:last-child { display: none; }

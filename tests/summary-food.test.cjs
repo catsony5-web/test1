@@ -20,10 +20,12 @@ function loadContext() {
   for (const file of [
     "src/data/categories.js", "src/data/rules.js",
     "src/utils/format.js", "src/utils/date.js", "src/utils/dom.js",
+    "src/utils/food-occasion.js",
     "src/utils/normalize.js", "src/utils/grouping.js", "src/utils/storage.js", "src/components/chips.js",
     "src/features/board/board-view.js", "src/features/classification/smart-suggestions.js",
     "src/features/summary/comparison-analysis.js", "src/features/summary/summary-pattern.js",
-    "src/features/summary/summary-food-core.js", "src/features/summary/summary-food-view.js"
+    "src/features/summary/summary-food-core.js", "src/features/summary/summary-food-view.js",
+    "src/features/calendar/calendar-view.js"
   ]) vm.runInContext(fs.readFileSync(path.join(__dirname, "..", file), "utf8"), context, { filename: file });
   return context;
 }
@@ -288,4 +290,142 @@ test("식비 목표 저장 중 다른 섹터로 이동해도 저장한 목표를
   assert.equal(context.appSettings.foodBudget.monthlyTarget, 300000);
   assert.equal(context.appSettings.foodBudget.diningCost, 25000);
   assert.equal(renderCount, 1);
+});
+
+test("지출 상황은 정해진 네 가지 단일 태그만 저장하며 기존 백업도 열 수 있다", () => {
+  const context = loadContext();
+  for (const tag of ["family", "date", "celebration", "treat"]) {
+    const saved = context.normalizeStoredTransaction(expense("tag", 25000, 17, { foodOccasion: tag }));
+    assert.equal(saved.foodOccasion, tag);
+    assert.equal(context.normalizeStoredTransaction(JSON.parse(JSON.stringify(saved))).foodOccasion, tag);
+    const reimported = context.mergeTransactions([saved], [expense("tag", 25000, 17)]);
+    assert.equal(reimported.skipped, 1);
+    assert.equal(reimported.records[0].foodOccasion, tag);
+  }
+  for (const tag of [undefined, null, "", "unknown", "__proto__", ["family", "treat"], { key: "family" }]) {
+    assert.equal(context.normalizeFoodOccasion(tag), "");
+    assert.equal(context.normalizeStoredTransaction(expense("old", 25000, 17, { foodOccasion: tag })).foodOccasion, "");
+  }
+});
+
+test("상황별 식비는 정산 후 내 부담액이며 원래 월·주·일 합계에 중복으로 더하지 않는다", () => {
+  const context = loadContext();
+  const rows = [
+    expense("family", 40000, 17, { foodOccasion: "family" }),
+    expense("date", 20000, 17, { foodOccasion: "date" }),
+    expense("celebration", 10000, 17, { foodOccasion: "celebration" }),
+    expense("treat", 15000, 17, { foodOccasion: "treat" }),
+    expense("normal", 25000)
+  ];
+  context.reimbursements.family = 10000;
+  const result = model(context, rows);
+  const untagged = model(context, rows.map(({ foodOccasion, ...row }) => row));
+  assert.equal(result.totals.amount, 100000);
+  assert.equal(result.totals.amount, untagged.totals.amount);
+  assert.equal(result.totals.occasionAmount, 75000);
+  assert.equal(result.totals.untaggedAmount, 25000);
+  assert.equal(result.totals.occasionShare, 75);
+  assert.equal(result.totals.occasions.family.amount, 30000);
+  assert.equal(result.totals.occasions.treat.count, 1);
+  assert.equal(result.days[16].amount, untagged.days[16].amount);
+  assert.equal(result.days[16].occasionAmount, 75000);
+  assert.equal(result.weeks[3].occasionAmount, 75000);
+  assert.equal(result.remaining, untagged.remaining);
+  assert.equal(result.afterDining, untagged.afterDining);
+});
+
+test("상황 합계는 식비 지출만 포함하고 수입·취소·분석 범위 밖 거래를 제외한다", () => {
+  const context = loadContext();
+  const rows = [
+    expense("food", 12000, 10, { foodOccasion: "date" }),
+    expense("gift", 80000, 10, { sector: "기타 소비", subcategory: "경조사·선물", foodOccasion: "celebration" }),
+    expense("income", 50000, 10, { flow: "income", foodOccasion: "family" }),
+    expense("canceled", 30000, 10, { cancel: "취소", foodOccasion: "treat" }),
+    expense("future", 60000, 25, { foodOccasion: "family" })
+  ];
+  const result = model(context, rows, "2026-08", { cutoffDay: 20 });
+  assert.equal(result.totals.amount, 12000);
+  assert.equal(result.totals.occasionAmount, 12000);
+  assert.equal(context.foodOccasionBadge(rows[1]), "");
+  assert.equal(context.foodOccasionBadge(rows[2]), "");
+  assert.match(context.foodOccasionBadge(rows[0]), /지출 상황: 데이트/);
+});
+
+test("상황 태그가 없거나 전액 정산된 식비의 비중은 0%로 표시한다", () => {
+  const context = loadContext();
+  const empty = model(context, []);
+  assert.equal(empty.totals.occasionShare, 0);
+  assert.equal(empty.totals.occasionAmount, 0);
+  assert.match(context.renderSummaryFoodOccasions(empty), /상황별 식비/);
+  assert.doesNotMatch(context.renderSummaryFoodOccasions(empty), /NaN|Infinity/);
+  context.reimbursements.refunded = 20000;
+  const refunded = model(context, [expense("refunded", 20000, 17, { foodOccasion: "treat" })]);
+  assert.equal(refunded.totals.occasionAmount, 0);
+  assert.equal(refunded.totals.occasionShare, 0);
+  assert.equal(refunded.totals.occasions.treat.count, 1);
+});
+
+test("식비 할부의 상황 태그는 월 배분액으로 집계하고 다음 회차를 새 결제로 세지 않는다", () => {
+  const context = loadContext();
+  const source = expense("dining-installment", 90000, 3, {
+    foodOccasion: "family", month: "2026-07", approvalDate: "2026-07-03",
+    installmentEnabled: true, installmentMonths: 3, installmentStartMonth: "2026-07"
+  });
+  context.reimbursements["dining-installment"] = 30000;
+  const result = model(context, context.reportingExpenseRows([source], { months: ["2026-08"] }));
+  assert.equal(result.totals.occasions.family.amount, 20000);
+  assert.equal(result.totals.occasions.family.count, 0);
+  assert.equal(result.totals.occasions.family.installmentCount, 1);
+  assert.equal(result.totals.occasionShare, 100);
+  assert.match(context.renderSummaryFoodOccasions(result), /할부 배분 1건/);
+});
+
+test("소비 달력에서 상황 태그를 저장·변경·해제해도 결제·정산·분류 규칙은 변하지 않는다", async () => {
+  const context = loadContext();
+  context.transactions = [expense("tag-edit", 26400, 17, { manualSector: "식비", manualSubcategory: "외식-친구" })];
+  context.reimbursements["tag-edit"] = 13200;
+  context.createAutoSnapshot = async () => {};
+  context.saveTransactions = async () => true;
+  context.saveReimbursements = async () => {};
+  context.saveRules = () => assert.fail("occasion must not become a merchant rule");
+  context.setSharedSelectedMonth = () => {};
+  context.reclassify = () => {};
+  const values = {
+    date: "2026-08-17", time: "12:30", merchant: "테스트 식당", amount: "26400",
+    reimbursement: "13200", memo: "", sector: "식비", subcategory: "외식-친구", foodOccasion: "treat"
+  };
+  const form = { elements: Object.fromEntries(Object.entries(values).map(([key, value]) => [key, { value }])) };
+  form.elements.saveRule = { checked: false };
+  for (const tag of ["treat", "family", ""]) {
+    form.elements.foodOccasion.value = tag;
+    await context.saveCalendarTransactionEdit("tag-edit", form);
+    const saved = context.transactions[0];
+    assert.equal(saved.foodOccasion, tag);
+    assert.equal(saved.amount, 26400);
+    assert.equal(context.reimbursements["tag-edit"], 13200);
+    assert.equal(saved.manualSector, "식비");
+    assert.equal(saved.manualSubcategory, "외식-친구");
+    assert.equal(saved.recordKey, "tag-edit");
+    assert.equal(saved.transactionId, "tag-edit");
+    assert.equal(context.rules.length, 0);
+    assert.ok(saved.updatedAt);
+  }
+  form.elements.sector.value = "생활용품";
+  form.elements.subcategory.value = "소모품";
+  form.elements.foodOccasion.value = "treat";
+  await context.saveCalendarTransactionEdit("tag-edit", form);
+  assert.equal(context.transactions[0].foodOccasion, "");
+});
+
+test("상황 합계와 배지는 3번 화면에 표시하며 주간 식비 표 아래에 배치한다", () => {
+  const context = loadContext();
+  const result = model(context, [expense("occasion-view", 26400, 17, { foodOccasion: "treat" })]);
+  context.syncSummaryFoodSelection(result);
+  context.summaryFoodSelection.date = "2026-08-17";
+  assert.match(context.renderSummaryFoodInspector(result), /지출 상황: 내가 한턱/);
+  assert.match(context.renderSummaryFoodInspector(result), /선택 기간의 상황 태그 식비/);
+  assert.match(context.renderSummaryFoodBudget(result), /이 중 상황 태그 식비/);
+  const html = context.renderSummaryFood(result);
+  assert.ok(html.indexOf('id="summaryFoodWeeklyTitle"') < html.indexOf('id="summaryFoodOccasionsTitle"'));
+  assert.match(html, /식비 합계에 이미 포함된 금액/);
 });

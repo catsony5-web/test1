@@ -25,6 +25,7 @@ function renderSummaryFoodBudget(model) {
       <div><span>현재 식비</span><strong data-food-month-total>${formatWon(model.totals.amount)}</strong></div>
       <div><span>월 예산 잔액</span><strong class="${model.remaining < 0 ? "food-over" : ""}">${formatWon(model.remaining)}</strong></div>
     </div>
+    ${model.totals.occasionAmount ? `<p class="summary-food-occasion-note">이 중 상황 태그 식비 <strong>${formatWon(model.totals.occasionAmount)}</strong> · 전체 식비의 ${model.totals.occasionShare}%</p>` : ""}
     <div class="summary-food-dining-result ${model.afterDining < 0 ? "food-over" : ""}"><span>외식 ${formatWon(model.budget.diningCost)} 추가 시</span><strong>${afterText}</strong></div>
     <p class="summary-food-budget-note">${model.isCurrentMonth
       ? model.afterDining < 0 ? "추가 외식을 가정하면 월 식비 목표를 넘습니다."
@@ -57,6 +58,7 @@ function renderSummaryFood(model) {
     <section class="summary-food-inspector" data-food-inspector aria-live="polite" aria-label="선택한 날짜 또는 주의 식비 내역">${renderSummaryFoodInspector(model)}</section>
   </div>
   ${renderSummaryFoodWeeks(model)}
+  ${renderSummaryFoodOccasions(model)}
   ${renderSummaryFoodReview(model)}`;
 }
 
@@ -72,11 +74,12 @@ function renderSummaryFoodInspector(model) {
   return `<div class="summary-card-heading"><h4>${escapeHtml(title)}</h4><span>식비 ${formatWon(totals.amount)}</span></div>
     <p class="summary-food-inspector-summary">결제 ${totals.count}건${totals.installmentCount ? ` · 할부 배분 ${totals.installmentCount}건` : ""}${rows.some(summaryFoodIsPending) ? " · 쿠팡 분류 확인 포함" : ""}</p>
     ${date !== "undated" ? `<div class="summary-food-week-budget"><span>${week.index + 1}주 예산 ${formatWon(week.target)}</span><strong class="${week.remaining < 0 ? "food-over" : ""}">주 잔액 ${formatWon(week.remaining)}</strong></div>` : ""}
+    ${totals.occasionAmount ? `<p class="summary-food-occasion-note">선택 기간의 상황 태그 식비 <strong>${formatWon(totals.occasionAmount)}</strong> · ${totals.occasionShare}%</p>` : ""}
     ${sorted.length ? `<ol class="summary-food-entry-list">${sorted.map((item) => {
       const group = SUMMARY_FOOD_GROUPS.find((entry) => entry.key === summaryFoodGroup(item));
       const reimbursement = reimbursementFor(item);
       return `<li><div class="summary-food-entry-heading"><strong>${escapeHtml(comparisonMerchantLabel(item))}</strong><b>${formatWon(consumptionAmount(item))}</b></div>
-        <div class="summary-food-entry-meta"><time>${escapeHtml(summaryFoodDateKey(item, model.month) || "날짜 미확인")} ${escapeHtml(item.approvalTime?.slice(0, 5) || "시간 미기록")}</time><span class="summary-food-group group-${group?.key || "pending"}">${escapeHtml(group?.label || "식비 미포함")}</span></div>
+        <div class="summary-food-entry-meta"><time>${escapeHtml(summaryFoodDateKey(item, model.month) || "날짜 미확인")} ${escapeHtml(item.approvalTime?.slice(0, 5) || "시간 미기록")}</time><span class="summary-food-group group-${group?.key || "pending"}">${escapeHtml(group?.label || "식비 미포함")}</span>${foodOccasionBadge(item)}</div>
         <p>${escapeHtml(item.sector || "미분류")} · ${escapeHtml(item.subcategory || "미분류")}${summaryFoodIsPending(item) ? " · 쿠팡 분류 확인 필요" : ""}</p>
         ${reimbursement ? `<p>결제 ${formatWon(item.amount)} · 정산 ${formatWon(reimbursement)}</p>` : ""}
         ${item.isInstallmentOccurrence ? `<p>${escapeHtml(installmentSummaryText(item))}</p>` : ""}
@@ -105,6 +108,22 @@ function renderSummaryFoodWeeks(model) {
 function summaryFoodMonthRangeLabel(month, startDay, endDay) {
   const monthNumber = Number(month.slice(5));
   return `${monthNumber}/${startDay}–${monthNumber}/${endDay}`;
+}
+
+function renderSummaryFoodOccasions(model) {
+  const totals = model.totals;
+  return `<section class="summary-food-occasions" aria-labelledby="summaryFoodOccasionsTitle">
+    <div class="summary-card-heading"><h4 id="summaryFoodOccasionsTitle">상황별 식비 · 왜 늘었는지</h4><span>${escapeHtml(model.month)} · 내 부담액 기준</span></div>
+    <div class="summary-food-occasion-overview">
+      <p>상황 태그 식비 <strong>${formatWon(totals.occasionAmount)}</strong><span>전체 식비의 ${totals.occasionShare}%</span></p>
+      <p>일반·태그 미지정 <strong>${formatWon(totals.untaggedAmount)}</strong></p>
+    </div>
+    <dl class="summary-food-occasion-breakdown">${FOOD_OCCASIONS.map(({ key, label }) => {
+      const occasion = totals.occasions[key];
+      return `<div><dt>${escapeHtml(label)}</dt><dd><strong>${formatWon(occasion.amount)}</strong><small>${occasion.count}건${occasion.installmentCount ? ` · 할부 배분 ${occasion.installmentCount}건` : ""}</small></dd></div>`;
+    }).join("")}</dl>
+    <p class="summary-food-help">식비 합계에 이미 포함된 금액입니다. 소비 달력에서 거래의 ‘수정 → 지출 상황’을 선택하면 표시됩니다. 태그가 없는 내역은 일반·미지정으로 남습니다.</p>
+  </section>`;
 }
 
 function renderSummaryFoodReview(model) {

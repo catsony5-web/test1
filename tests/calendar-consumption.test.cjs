@@ -21,6 +21,7 @@ function loadContext(rows = []) {
     "src/utils/format.js",
     "src/utils/date.js",
     "src/utils/dom.js",
+    "src/utils/food-occasion.js",
     "src/utils/normalize.js",
     "src/utils/grouping.js",
     "src/utils/storage.js",
@@ -90,6 +91,18 @@ test("소비·원금·저축을 분리하고 자유 잔액은 월간 분석과 �
   assert.equal(context.buildAnalysisMonthSnapshot("2026-08").freeBalance, 1000000);
   assert.equal(JSON.stringify(rows), before, "rendering must not mutate saved transactions");
   assert.equal(context.reimbursements.card, 200000);
+});
+
+test("식비 상황 태그를 바꿔도 소비지출과 카드 결제 예정액·자유 잔액은 그대로다", () => {
+  const rows = previewRows();
+  const context = loadContext(rows);
+  context.reimbursements.card = 200000;
+  const before = monthSummary(context);
+  for (const foodOccasion of ["family", "date", "celebration", "treat", ""]) {
+    rows[0].foodOccasion = foodOccasion;
+    const after = monthSummary(context);
+    for (const key of ["spend", "card-billing", "balance"]) assert.equal(metric(after, key), metric(before, key));
+  }
 });
 
 test("저축 분류의 보험·상품권은 소비에 남기고 적금·예금만 제외한다", () => {

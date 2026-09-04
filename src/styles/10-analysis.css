@@ -2,6 +2,114 @@
   color: var(--text-main);
 }
 
+#monthlyAnalysisView .monthly-analysis-brief { grid-template-columns: minmax(0, 1fr); padding: 16px; }
+#monthlyAnalysisView .monthly-analysis-brief strong { font-size: 20px; line-height: 1.5; }
+#monthlyAnalysisView .monthly-analysis-brief p { margin: 6px 0 0; color: var(--text-sub); font-size: 12px; line-height: 1.7; }
+#monthlyAnalysisView .monthly-analysis-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+#monthlyAnalysisView .monthly-analysis-metrics .analysis-metric { grid-template-columns: minmax(0, 1fr); border-right: 1px solid var(--border); border-bottom: 0; padding: 18px; }
+#monthlyAnalysisView .monthly-analysis-metrics .analysis-metric:last-child { border-right: 0; }
+#monthlyAnalysisView .monthly-analysis-metrics strong { font-size: 28px; }
+#monthlyAnalysisView .monthly-analysis-metrics em { color: var(--text-sub); font-size: 12px; font-style: normal; font-variant-numeric: tabular-nums; }
+#monthlyAnalysisView .monthly-analysis-metrics small { min-height: 0; }
+#monthlyAnalysisView .monthly-analysis-record-note { margin: 0 2px 2px; color: var(--text-muted); font-size: 11px; line-height: 1.7; }
+#monthlyAnalysisView .monthly-analysis-main { grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr); align-items: start; }
+#monthlyAnalysisView .analysis-comparison-toolbar > small { white-space: normal; line-height: 1.6; }
+
+#monthlyAnalysisView .monthly-change-totals { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-bottom: 1px solid var(--border); background: var(--surface-soft); }
+#monthlyAnalysisView .monthly-change-totals > span { display: grid; gap: 5px; min-width: 0; padding: 12px 14px; color: var(--text-sub); font-size: 11px; }
+#monthlyAnalysisView .monthly-change-totals strong { color: var(--text-main); font-family: var(--font-number); font-size: 18px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+#monthlyAnalysisView .monthly-change-help { margin: 0; padding: 10px 14px; color: var(--text-sub); font-size: 11px; line-height: 1.7; }
+#monthlyAnalysisView .monthly-analysis-notice { margin: 10px 14px 0; border-left: 2px solid var(--accent-primary); padding: 7px 10px; color: var(--text-sub); background: var(--surface-soft); font-size: 11px; line-height: 1.7; }
+#monthlyAnalysisView .monthly-change-list { margin: 0; padding: 0; list-style: none; }
+#monthlyAnalysisView .monthly-change-list > li { border-top: 1px solid var(--border); }
+#monthlyAnalysisView .monthly-change-button {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr) minmax(100px, auto);
+  align-items: center;
+  gap: 5px 14px;
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  border-radius: 0;
+  padding: 12px 14px;
+  background: transparent;
+  color: var(--text-main);
+  text-align: left;
+  box-shadow: none;
+  transform: none;
+}
+#monthlyAnalysisView .monthly-change-button:hover,
+#monthlyAnalysisView .monthly-change-button[aria-expanded="true"] { background: var(--surface-soft); }
+#monthlyAnalysisView .monthly-change-button:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: -3px; }
+#monthlyAnalysisView .monthly-change-sector { font-size: 13px; font-weight: 750; overflow-wrap: anywhere; }
+#monthlyAnalysisView .monthly-change-button > strong { text-align: right; font-size: 16px; font-family: var(--font-number); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+#monthlyAnalysisView .monthly-change-button > small { grid-column: 1 / -1; color: var(--text-sub); font-size: 10px; font-weight: 500; line-height: 1.6; }
+#monthlyAnalysisView .monthly-change-bar { width: 100%; height: 18px; overflow: visible; }
+#monthlyAnalysisView .monthly-change-bar line { stroke: var(--border-strong); stroke-width: 1; }
+#monthlyAnalysisView .monthly-change-bar rect { fill: var(--text-muted); }
+#monthlyAnalysisView .is-increase .monthly-change-bar rect { fill: var(--red); }
+#monthlyAnalysisView .is-decrease .monthly-change-bar rect { fill: var(--green); }
+#monthlyAnalysisView .monthly-change-button.is-increase > strong { color: var(--red); }
+#monthlyAnalysisView .monthly-change-button.is-decrease > strong { color: var(--green); }
+
+#monthlyAnalysisView .monthly-cashflow-list { margin: 0; padding: 0 14px; }
+#monthlyAnalysisView .monthly-cashflow-list > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+#monthlyAnalysisView .monthly-cashflow-list dt { font-size: 13px; font-weight: 700; }
+#monthlyAnalysisView .monthly-cashflow-list small { display: block; margin-top: 5px; color: var(--text-sub); font-size: 10px; font-weight: 500; line-height: 1.7; }
+#monthlyAnalysisView .monthly-cashflow-list dd { margin: 0; font-family: var(--font-number); font-size: 16px; font-weight: 750; font-variant-numeric: tabular-nums; }
+#monthlyAnalysisView .monthly-cashflow-result { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 7px 10px; margin: 14px; border-left: 3px solid var(--accent-primary); padding: 12px; background: var(--surface-soft); }
+#monthlyAnalysisView .monthly-cashflow-result > span { font-size: 12px; font-weight: 700; }
+#monthlyAnalysisView .monthly-cashflow-result > strong { font-family: var(--font-number); font-size: 20px; font-variant-numeric: tabular-nums; }
+#monthlyAnalysisView .monthly-cashflow-result > small { grid-column: 1 / -1; color: var(--text-sub); font-size: 10px; line-height: 1.6; }
+
+#monthlyAnalysisView .monthly-analysis-evidence { padding: 12px 14px; border-top: 1px solid var(--border); background: var(--surface-soft); }
+#monthlyAnalysisView .monthly-analysis-evidence[hidden] { display: none; }
+#monthlyAnalysisView .monthly-analysis-evidence > h4 { margin: 0 0 10px; font-size: 13px; }
+#monthlyAnalysisView .monthly-evidence-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+#monthlyAnalysisView .monthly-evidence-columns > section { min-width: 0; border: 1px solid var(--border); border-radius: 6px; background: var(--surface-raised); }
+#monthlyAnalysisView .monthly-evidence-heading { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 5px 8px; padding: 10px; border-bottom: 1px solid var(--border); }
+#monthlyAnalysisView .monthly-evidence-heading h5 { margin: 0; font-size: 11px; line-height: 1.5; }
+#monthlyAnalysisView .monthly-evidence-heading strong { font-size: 12px; font-variant-numeric: tabular-nums; }
+#monthlyAnalysisView .monthly-evidence-heading small { grid-column: 1 / -1; color: var(--text-sub); font-size: 10px; }
+#monthlyAnalysisView .monthly-evidence-columns ul { max-height: 320px; margin: 0; padding: 0 10px; overflow-y: auto; overscroll-behavior-block: contain; list-style: none; }
+#monthlyAnalysisView .monthly-evidence-columns li { padding: 11px 0; border-bottom: 1px solid var(--border); }
+#monthlyAnalysisView .monthly-evidence-columns li:last-child { border-bottom: 0; }
+#monthlyAnalysisView .monthly-evidence-columns li > div { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+#monthlyAnalysisView .monthly-evidence-columns li strong { min-width: 0; font-size: 12px; overflow-wrap: anywhere; }
+#monthlyAnalysisView .monthly-evidence-columns li b { flex-shrink: 0; font-size: 12px; font-variant-numeric: tabular-nums; }
+#monthlyAnalysisView .monthly-evidence-columns li p { margin: 5px 0; color: var(--text-sub); font-size: 10px; line-height: 1.6; overflow-wrap: anywhere; }
+#monthlyAnalysisView .monthly-evidence-empty { margin: 0; padding: 16px 10px; color: var(--text-sub); font-size: 11px; line-height: 1.7; }
+#monthlyAnalysisView .monthly-analysis-evidence > .monthly-change-help { padding: 10px 0 0; }
+
+@media (max-width: 1200px) {
+  #monthlyAnalysisView .monthly-analysis-main { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 680px) {
+  #monthlyAnalysisView .monthly-analysis-brief { grid-template-columns: minmax(0, 1fr); padding: 14px; }
+  #monthlyAnalysisView .monthly-analysis-brief strong { font-size: 18px; }
+  #monthlyAnalysisView .monthly-analysis-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #monthlyAnalysisView .monthly-analysis-metrics .analysis-metric { padding: 13px; }
+  #monthlyAnalysisView .monthly-analysis-metrics .analysis-metric:nth-child(2) { border-right: 0; }
+  #monthlyAnalysisView .monthly-analysis-metrics .analysis-metric:last-child { grid-column: 1 / -1; border-top: 1px solid var(--border); }
+  #monthlyAnalysisView .monthly-analysis-metrics strong { font-size: 24px; }
+  #monthlyAnalysisView .monthly-change-totals { grid-template-columns: minmax(0, 1fr); }
+  #monthlyAnalysisView .monthly-change-totals > span { grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; padding: 8px 12px; }
+  #monthlyAnalysisView .monthly-change-totals strong { font-size: 16px; }
+  #monthlyAnalysisView .monthly-change-button { grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; padding: 12px; }
+  #monthlyAnalysisView .monthly-change-button > strong { grid-column: 2; grid-row: 1; }
+  #monthlyAnalysisView .monthly-change-bar { grid-column: 1 / -1; grid-row: 2; }
+  #monthlyAnalysisView .monthly-evidence-columns { grid-template-columns: minmax(0, 1fr); }
+  #monthlyAnalysisView .monthly-cashflow-list dd { font-size: 14px; }
+  #monthlyAnalysisView .monthly-cashflow-result > strong { font-size: 18px; }
+}
+
+@media (max-width: 360px) {
+  #monthlyAnalysisView .monthly-analysis-metrics { grid-template-columns: minmax(0, 1fr); }
+  #monthlyAnalysisView .monthly-analysis-metrics .analysis-metric { border-right: 0; border-bottom: 1px solid var(--border); }
+  #monthlyAnalysisView .monthly-analysis-metrics .analysis-metric:last-child { border-top: 0; border-bottom: 0; }
+}
+
 .analysis-section-head {
   display: flex;
   align-items: center;
@@ -359,14 +467,6 @@
   scrollbar-gutter: stable;
 }
 
-.analysis-waterfall-chart {
-  display: block;
-  width: 100%;
-  min-width: min(760px, 100%);
-  height: auto;
-  font-family: var(--font-ui);
-}
-
 .analysis-chart-grid {
   stroke: var(--chart-grid);
   stroke-width: 1;
@@ -378,79 +478,10 @@
   stroke-width: 1.4;
 }
 
-.analysis-chart-axis-label,
-.analysis-waterfall-label {
+.analysis-chart-axis-label {
   fill: var(--chart-axis);
   font-size: 11px;
   font-weight: 650;
-}
-
-.analysis-waterfall-value {
-  fill: var(--text-main);
-  font-family: var(--font-number);
-  font-size: 11px;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-}
-
-.analysis-waterfall-total rect {
-  fill: color-mix(in srgb, var(--primary-navy) 72%, var(--surface-soft));
-}
-
-.analysis-waterfall-increase rect {
-  fill: color-mix(in srgb, var(--red) 86%, var(--surface));
-}
-
-.analysis-waterfall-decrease rect {
-  fill: color-mix(in srgb, var(--green) 82%, var(--surface));
-}
-
-.analysis-waterfall-neutral rect {
-  fill: var(--border-strong);
-}
-
-.analysis-waterfall-connector {
-  stroke: var(--chart-axis);
-  stroke-width: 1;
-  stroke-dasharray: 4 4;
-}
-
-.analysis-waterfall-totals {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  border-top: 1px solid var(--border);
-  background: color-mix(in srgb, var(--surface-soft) 52%, var(--surface));
-}
-
-.analysis-waterfall-totals span {
-  display: grid;
-  gap: 3px;
-  padding: 10px 14px;
-  border-right: 1px solid var(--border);
-}
-
-.analysis-waterfall-totals span:last-child {
-  border-right: 0;
-}
-
-.analysis-waterfall-totals small {
-  color: var(--text-muted);
-  font-size: 10px;
-}
-
-.analysis-waterfall-totals strong {
-  color: var(--text-main);
-  font-family: var(--font-number);
-  font-size: 14px;
-  font-variant-numeric: tabular-nums;
-}
-
-.analysis-waterfall-totals .positive strong {
-  color: var(--green);
-}
-
-.analysis-waterfall-totals .negative strong {
-  color: var(--red);
 }
 
 .analysis-insight-list {
@@ -1542,27 +1573,6 @@ body.analysis-dialog-open {
 
   .analysis-panel-head p {
     font-size: 10px;
-  }
-
-  .analysis-waterfall-chart {
-    width: auto;
-    min-width: 760px;
-    height: 330px;
-  }
-
-  .analysis-waterfall-totals {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .analysis-waterfall-totals span {
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    border-right: 0;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .analysis-waterfall-totals span:last-child {
-    border-bottom: 0;
   }
 
   .analysis-insight-row {

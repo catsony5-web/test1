@@ -7,6 +7,7 @@ const root = path.resolve(__dirname, "..");
 const context = vm.createContext({ console, structuredClone });
 [
   "src/utils/date.js",
+  "src/utils/food-occasion.js",
   "src/utils/normalize.js",
   "src/utils/storage.js",
   "src/features/ipo/ipo-view.js"

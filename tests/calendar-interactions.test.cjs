@@ -6,6 +6,7 @@ const vm = require("node:vm");
 
 function loadCalendarView() {
   const context = vm.createContext({ console });
+  vm.runInContext(fs.readFileSync(path.join(__dirname, "../src/utils/food-occasion.js"), "utf8"), context);
   const source = fs.readFileSync(
     path.join(__dirname, "../src/features/calendar/calendar-view.js"),
     "utf8"
@@ -128,4 +129,26 @@ test("편집 폼은 저장되지 않는 총 인원 입력과 명시적 적용 �
   assert.match(html, /적용 전에는 정산금이 바뀌지 않습니다/);
   assert.match(html, /aria-live="polite"/);
   assert.doesNotMatch(html, /name="splitPeople"[^>]*value=/);
+});
+
+test("지출 상황 선택은 식비에서만 보이며 섹터를 둘러보는 동안 기존 선택을 보존한다", () => {
+  const context = loadCalendarView();
+  const field = { hidden: false };
+  const select = { value: "date", disabled: false };
+  const form = {
+    elements: { sector: { value: "식비" }, foodOccasion: select },
+    querySelector: () => field
+  };
+  context.syncCalendarFoodOccasion(form);
+  assert.equal(field.hidden, false);
+  assert.equal(select.disabled, false);
+  form.elements.sector.value = "생활용품";
+  context.syncCalendarFoodOccasion(form);
+  assert.equal(field.hidden, true);
+  assert.equal(select.disabled, true);
+  assert.equal(select.value, "date");
+  form.elements.sector.value = "식비";
+  context.syncCalendarFoodOccasion(form);
+  assert.equal(field.hidden, false);
+  assert.equal(select.value, "date");
 });

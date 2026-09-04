@@ -12,14 +12,14 @@
   <link rel="stylesheet" href="src/styles/02-layout.css?v=76">
   <link rel="stylesheet" href="src/styles/03-components.css?v=140-long-term-trend">
   <link rel="stylesheet" href="src/styles/04-forms-tables.css?v=83">
-  <link rel="stylesheet" href="src/styles/05-charts.css?v=156-loan-sharing">
-  <link rel="stylesheet" href="src/styles/06-features.css?v=172-calendar-consumption">
-  <link rel="stylesheet" href="src/styles/07-responsive.css?v=171-calendar-split-summary">
+  <link rel="stylesheet" href="src/styles/05-charts.css?v=176-recurring-review">
+  <link rel="stylesheet" href="src/styles/06-features.css?v=174-food-occasions">
+  <link rel="stylesheet" href="src/styles/07-responsive.css?v=176-recurring-review">
   <link rel="stylesheet" href="src/styles/08-themes.css?v=169-corsa-themes">
   <link rel="stylesheet" href="assets/tabler/tabler-icons.min.css?v=135-subcategory-icons">
   <link rel="stylesheet" href="src/styles/09-production-ui.css?v=172-calendar-layout-r2">
-  <link rel="stylesheet" href="src/styles/10-analysis.css?v=161-analysis-clarity">
-  <link rel="stylesheet" href="src/styles/11-summary-insights.css?v=173-food-calendar-r2">
+  <link rel="stylesheet" href="src/styles/10-analysis.css?v=175-monthly-close-r3">
+  <link rel="stylesheet" href="src/styles/11-summary-insights.css?v=174-food-occasions">
   <link rel="stylesheet" href="src/styles/12-rosso-ink.css?v=169-corsa-themes">
   <link rel="stylesheet" href="src/styles/13-goals.css?v=170-goal-planner-r2">
   <script src="assets/vendor/xlsx.full.min.js"></script>
@@ -328,7 +328,7 @@
         <div class="section-head analysis-section-head">
           <div>
             <h2>월간 분석</h2>
-            <p>선택 월의 결과와 비교 기준에 따른 차이, 확인할 거래를 한 흐름으로 진단합니다.</p>
+            <p>이번 달 얼마가 남았고, 수입·소비·저축의 변화가 어떤 영향을 주었는지 확인합니다.</p>
           </div>
           <div class="analysis-head-actions">
             <div class="month-control-group">
@@ -342,10 +342,10 @@
         <div class="analysis-comparison-toolbar">
           <span class="analysis-comparison-label">비교 기준</span>
           <div class="analysis-comparison-segment" role="group" aria-label="월간 분석 비교 기준">
-            <button type="button" data-monthly-analysis-comparison="year" aria-pressed="true">전년 동월</button>
-            <button type="button" data-monthly-analysis-comparison="previous" aria-pressed="false">전월</button>
+            <button type="button" data-monthly-analysis-comparison="previous" aria-pressed="true">전월</button>
+            <button type="button" data-monthly-analysis-comparison="year" aria-pressed="false">전년 동월</button>
           </div>
-          <small id="monthlyAnalysisComparisonStatus" aria-live="polite">기본값: 전년 동월</small>
+          <small id="monthlyAnalysisComparisonStatus" aria-live="polite">기본값: 전월</small>
         </div>
         <div id="monthlyAnalysisBody" class="analysis-view-body"></div>
       </section>
@@ -522,11 +522,87 @@
       </section>
 
       <section id="recurringView" class="view">
-        <div class="section-head">
-          <h2>고정 지출</h2>
-          <p>반복 지출과 대출 상환을 구분해 예정 현금 유출을 관리합니다.</p>
-          <label>보기 월<select id="recurringMonthFilter"></select></label>
+        <div class="section-head recurring-review-page-head">
+          <div>
+            <h2 id="recurringViewTitle">고정 지출 점검</h2>
+            <p id="recurringViewDescription">매달 자동으로 빠져나가는 비용을 한눈에 보고, 유지할 항목과 다시 볼 항목을 구분합니다.</p>
+          </div>
+          <div class="recurring-review-head-actions">
+            <div class="recurring-review-month-control" aria-label="고정 지출 보기 월">
+              <button id="recurringPrevMonth" type="button" aria-label="이전 월"><i class="ti ti-chevron-left" aria-hidden="true"></i></button>
+              <label><span>보기 월</span><select id="recurringMonthFilter"></select></label>
+              <button id="recurringNextMonth" type="button" aria-label="다음 월"><i class="ti ti-chevron-right" aria-hidden="true"></i></button>
+            </div>
+            <button id="recurringAddButton" type="button" class="primary-action"><i class="ti ti-plus" aria-hidden="true"></i> 고정 지출 추가</button>
+          </div>
         </div>
+        <div class="recurring-workspace-tabs" role="tablist" aria-label="고정 지출 화면">
+          <button id="recurringReviewTab" class="recurring-workspace-tab active" type="button" role="tab" aria-selected="true" aria-controls="recurringReviewPanel" data-recurring-workspace-tab="review">
+            <i class="ti ti-shield-check" aria-hidden="true"></i> 점검
+          </button>
+          <button id="recurringManageTab" class="recurring-workspace-tab" type="button" role="tab" aria-selected="false" aria-controls="recurringManagePanel" data-recurring-workspace-tab="manage" tabindex="-1">
+            <i class="ti ti-adjustments-horizontal" aria-hidden="true"></i> 등록·관리
+          </button>
+        </div>
+
+        <div id="recurringReviewPanel" role="tabpanel" aria-labelledby="recurringReviewTab" data-recurring-workspace-panel="review">
+          <div id="recurringReviewMetrics" class="recurring-review-metrics" aria-live="polite"></div>
+          <p id="recurringReviewNotice" class="recurring-review-notice"></p>
+          <div class="recurring-review-layout">
+            <section class="recurring-review-table-panel" aria-labelledby="recurringReviewListTitle">
+              <div class="recurring-review-panel-head">
+                <div>
+                  <span class="eyebrow">MONTHLY FIXED COSTS</span>
+                  <h3 id="recurringReviewListTitle">고정 지출 내역</h3>
+                  <p>변경 검토와 미확인 항목을 먼저 보여줍니다.</p>
+                </div>
+                <strong id="recurringReviewListSummary">0건</strong>
+              </div>
+              <div class="recurring-review-column-head" aria-hidden="true">
+                <span>항목</span><span>월 금액</span><span>점검 상태</span><span></span>
+              </div>
+              <div id="recurringReviewList" class="recurring-review-list"></div>
+            </section>
+
+            <aside class="recurring-review-side-panel" aria-labelledby="recurringReviewSideTitle">
+              <div class="recurring-review-side-summary">
+                <span>점검 후보 금액</span>
+                <strong id="recurringReviewCandidateAmount">0원</strong>
+                <p id="recurringReviewCandidateSummary">확인이 필요한 항목이 없습니다.</p>
+                <button id="recurringReviewStartButton" type="button" class="primary-action">점검 시작</button>
+              </div>
+              <form id="recurringReviewForm" class="recurring-review-form" hidden>
+                <div class="recurring-review-focus-head">
+                  <div>
+                    <span>선택한 항목</span>
+                    <h3 id="recurringReviewFocusName">-</h3>
+                  </div>
+                  <strong id="recurringReviewFocusAmount">0원</strong>
+                </div>
+                <input id="recurringReviewItemId" type="hidden">
+                <label>점검 상태
+                  <select id="recurringReviewStatus">
+                    <option value="unknown">미확인</option>
+                    <option value="keep">유지</option>
+                    <option value="review">변경 검토</option>
+                  </select>
+                </label>
+                <label>다음 점검일 <span>선택사항</span><input id="recurringReviewNextDate" type="date"></label>
+                <div class="recurring-review-form-actions">
+                  <button id="recurringReviewEditButton" type="button">등록 정보 수정</button>
+                  <button type="submit" class="primary-action">점검 내용 저장</button>
+                </div>
+                <p id="recurringReviewFeedback" class="bulk-feedback" aria-live="polite"></p>
+              </form>
+              <div id="recurringReviewGuidance" class="recurring-review-guidance" role="note">
+                <i class="ti ti-shield-check" aria-hidden="true"></i>
+                <p><strong>보험은 자동 해지 대상으로 판단하지 않습니다.</strong><br>보장 내용과 갱신 조건을 확인한 뒤 상태만 기록해두세요.</p>
+              </div>
+            </aside>
+          </div>
+        </div>
+
+        <div id="recurringManagePanel" role="tabpanel" aria-labelledby="recurringManageTab" data-recurring-workspace-panel="manage" hidden>
         <div class="recurring-subtabs" role="tablist" aria-label="고정 지출 종류">
           <button id="recurringExpenseTab" class="recurring-subtab active" type="button" role="tab" aria-selected="true" aria-controls="recurringExpensePanel" data-recurring-tab="expense">
             <i class="ti ti-repeat" aria-hidden="true"></i> 일반 고정 지출
@@ -643,6 +719,7 @@
               <div id="loanList" class="recurring-list loan-list"></div>
             </section>
           </div>
+        </div>
         </div>
       </section>
 
@@ -1356,7 +1433,7 @@
     </article>
   </template>
 
-  <script src="src/data/constants.js?v=173-food-calendar-r2"></script>
+  <script src="src/data/constants.js?v=176-recurring-review"></script>
   <script src="src/data/categories.js?v=136-mineral-layers"></script>
   <script src="src/data/rules.js?v=93"></script>
   <script src="src/data/board-sections.js?v=151-loan-repayments"></script>
@@ -1364,17 +1441,19 @@
   <script src="src/data/goal-resources.js?v=170-goal-planner-r3"></script>
   <script src="src/features/goals/goals-core.js?v=170-goal-planner"></script>
 
-  <script src="src/features/app/state.js?v=173-food-calendar-r2"></script>
+  <script src="src/features/app/state.js?v=176-recurring-review"></script>
 
   <script src="src/utils/format.js?v=80"></script>
   <script src="src/utils/date.js?v=141-garden-analysis"></script>
   <script src="src/utils/dom.js?v=61"></script>
-  <script src="src/utils/normalize.js?v=173-food-calendar-r2"></script>
+  <script src="src/features/recurring/recurring-review-core.js?v=176-recurring-review"></script>
+  <script src="src/utils/food-occasion.js?v=174-food-occasions"></script>
+  <script src="src/utils/normalize.js?v=174-food-occasions"></script>
   <script src="src/utils/grouping.js?v=156-loan-sharing"></script>
-  <script src="src/utils/storage.js?v=173-food-calendar-r2"></script>
+  <script src="src/utils/storage.js?v=176-recurring-review"></script>
   <script src="src/utils/backup.js?v=171-calendar-split-summary"></script>
 
-  <script src="src/components/chips.js?v=136-mineral-layers"></script>
+  <script src="src/components/chips.js?v=174-food-occasions"></script>
   <script src="src/components/tables.js?v=61"></script>
   <script src="src/components/metrics.js?v=131-yearly"></script>
   <script src="src/components/charts.js?v=61"></script>
@@ -1392,8 +1471,8 @@
   <script src="src/features/details/details-view.js?v=151-loan-repayments"></script>
   <script src="src/features/summary/comparison-analysis.js?v=171-calendar-split-summary"></script>
   <script src="src/features/summary/summary-priority.js?v=165-summary-insights-r2"></script>
-  <script src="src/features/summary/summary-food-core.js?v=173-food-calendar-r2"></script>
-  <script src="src/features/summary/summary-food-view.js?v=173-food-calendar-r2"></script>
+  <script src="src/features/summary/summary-food-core.js?v=174-food-occasions"></script>
+  <script src="src/features/summary/summary-food-view.js?v=174-food-occasions"></script>
   <script src="src/features/summary/summary-pattern.js?v=173-food-calendar-r2"></script>
   <script src="src/features/summary/sector-analysis.js?v=165-summary-insights-r2"></script>
   <script src="src/features/summary/summary-period.js?v=165-summary-insights-r2"></script>
@@ -1404,10 +1483,11 @@
   <script src="src/features/income/income-entry.js?v=61"></script>
   <script src="src/features/income/income-bulk.js?v=61"></script>
   <script src="src/features/income/income-list.js?v=156-loan-sharing"></script>
-  <script src="src/features/recurring/recurring-view.js?v=156-loan-sharing"></script>
-  <script src="src/features/calendar/calendar-view.js?v=172-calendar-layout-r2"></script>
+  <script src="src/features/recurring/recurring-view.js?v=176-recurring-review"></script>
+  <script src="src/features/calendar/calendar-view.js?v=174-food-occasions"></script>
   <script src="src/features/analysis/analysis-core.js?v=156-loan-sharing"></script>
-  <script src="src/features/analysis/monthly-analysis-view.js?v=156-loan-sharing"></script>
+  <script src="src/features/analysis/monthly-analysis-core.js?v=175-monthly-close-r2"></script>
+  <script src="src/features/analysis/monthly-analysis-view.js?v=175-monthly-close-r2"></script>
   <script src="src/features/analysis/spending-structure-view.js?v=156-loan-sharing"></script>
   <script src="src/features/products/products-view.js?v=62"></script>
   <script src="src/features/ipo/ipo-view.js?v=164-ipo-calendar-readable-full-3line"></script>
@@ -1418,6 +1498,6 @@
   <script src="src/features/app/navigation.js?v=112"></script>
   <script src="src/features/app/appearance.js?v=141-garden-analysis"></script>
   <script src="src/features/app/render-all.js?v=171-calendar-split-summary"></script>
-  <script src="src/features/app/init.js?v=172-calendar-consumption"></script>
+  <script src="src/features/app/init.js?v=176-recurring-review"></script>
 </body>
 </html>

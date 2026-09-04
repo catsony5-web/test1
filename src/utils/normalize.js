@@ -49,6 +49,7 @@ function normalizeStoredTransaction(item) {
     manualSector: item.manualSector || "",
     manualSubcategory: item.manualSubcategory || "",
     classificationScope: item.classificationScope === "transaction" ? "transaction" : "",
+    foodOccasion: normalizeFoodOccasion(item.foodOccasion),
     sourceFile: item.sourceFile || "",
     importedAt: item.importedAt || "",
     createdAt: item.createdAt || item.importedAt || "",

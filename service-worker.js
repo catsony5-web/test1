@@ -1,4 +1,4 @@
-const CACHE_NAME = "monthly-card-budget-v173-food-calendar-r2";
+const CACHE_NAME = "monthly-card-budget-v176-recurring-review";
 const APP_FILES = [
   "./",
   "./index.html",
@@ -118,6 +118,8 @@ const APP_FILES = [
   "./src/utils/format.js",
   "./src/utils/date.js",
   "./src/utils/dom.js",
+  "./src/features/recurring/recurring-review-core.js",
+  "./src/utils/food-occasion.js",
   "./src/utils/normalize.js",
   "./src/utils/grouping.js",
   "./src/utils/storage.js",
@@ -153,6 +155,7 @@ const APP_FILES = [
   "./src/features/recurring/recurring-view.js",
   "./src/features/calendar/calendar-view.js",
   "./src/features/analysis/analysis-core.js",
+  "./src/features/analysis/monthly-analysis-core.js",
   "./src/features/analysis/monthly-analysis-view.js",
   "./src/features/analysis/spending-structure-view.js",
   "./src/features/products/products-view.js",

@@ -42,19 +42,34 @@ function summaryFoodDateKey(item, month) {
 
 function summaryFoodTotals(rows) {
   const groups = Object.fromEntries(SUMMARY_FOOD_GROUPS.map(({ key }) => [key, { amount: 0, count: 0 }]));
+  const occasions = Object.fromEntries(FOOD_OCCASIONS.map(({ key }) => [key, { amount: 0, count: 0, installmentCount: 0 }]));
   let installmentCount = 0;
   rows.forEach((item) => {
     const group = groups[summaryFoodGroup(item)];
     if (!group) return;
-    group.amount += consumptionAmount(item);
-    if (summaryPatternIsSyntheticInstallment(item)) installmentCount++;
+    const amount = consumptionAmount(item);
+    const isInstallment = summaryPatternIsSyntheticInstallment(item);
+    group.amount += amount;
+    if (isInstallment) installmentCount++;
     else group.count++;
+    const occasion = occasions[foodOccasionFor(item)];
+    if (occasion) {
+      occasion.amount += amount;
+      if (isInstallment) occasion.installmentCount++;
+      else occasion.count++;
+    }
   });
+  const amount = Object.values(groups).reduce((total, group) => total + group.amount, 0);
+  const occasionAmount = Object.values(occasions).reduce((total, occasion) => total + occasion.amount, 0);
   return {
     groups,
-    amount: Object.values(groups).reduce((total, group) => total + group.amount, 0),
+    amount,
     count: Object.values(groups).reduce((total, group) => total + group.count, 0),
-    installmentCount
+    installmentCount,
+    occasions,
+    occasionAmount,
+    occasionShare: amount > 0 ? Math.round(occasionAmount / amount * 100) : 0,
+    untaggedAmount: amount - occasionAmount
   };
 }
 

@@ -31,37 +31,35 @@ function renderMonthlyAnalysis() {
   );
   if (canViewDriveSharedMonth("monthlyAnalysis")) setSharedSelectedMonth(month, { syncControls: false });
 
-  const comparison = buildAnalysisComparison(month, monthlyAnalysisComparisonMode);
+  const comparison = buildMonthlyAnalysisModel(month, monthlyAnalysisComparisonMode);
+  if (!comparison) return;
   const billingModel = analysisBillingModelForMonth(month);
-  const insights = buildAnalysisChangeInsights(month, monthlyAnalysisComparisonMode).slice(0, 3);
+  const selectionKey = `${month}|${comparison.comparisonMode}|${comparison.cutoffDay}`;
+  if (monthlyAnalysisEvidenceSelection.key !== selectionKey
+    || !comparison.sectorChanges.some((item) => item.sector === monthlyAnalysisEvidenceSelection.sector)) {
+    monthlyAnalysisEvidenceSelection = { key: selectionKey, sector: "" };
+  }
   syncMonthlyAnalysisComparisonControls(comparison);
   els.monthlyAnalysisBody.innerHTML = [
     renderMonthlyAnalysisSummary(comparison),
-    renderMonthlyAnalysisMetrics(comparison.current, billingModel),
+    renderMonthlyAnalysisMetrics(comparison),
+    `<p class="monthly-analysis-record-note">월 전체 입력 기록 기준입니다. 남은 돈은 실제 계좌 잔고가 아니며, 카드 결제 예정액을 다시 차감하지 않습니다.</p>`,
     `<div class="monthly-analysis-main">
-      <section class="analysis-panel analysis-waterfall-panel" aria-labelledby="monthlyAnalysisWaterfallTitle">
+      <section class="analysis-panel monthly-analysis-changes" aria-labelledby="monthlyAnalysisChangesTitle">
         <div class="analysis-panel-head">
           <div>
-            <h3 id="monthlyAnalysisWaterfallTitle">${escapeHtml(comparison.comparisonLabel)} 대비 지출 변화 요인</h3>
-            <p>${escapeHtml(comparison.comparisonMonth)}과 ${escapeHtml(month)}의 소비지출 차이를 섹터별로 분해합니다.</p>
+            <h3 id="monthlyAnalysisChangesTitle">소비는 어디서 달라졌나요?</h3>
+            <p>${escapeHtml(comparison.previousPeriod.label)} → ${escapeHtml(comparison.currentPeriod.label)} 비교</p>
           </div>
           <span class="analysis-unit">단위: 원</span>
         </div>
-        ${renderMonthlyAnalysisWaterfall(comparison)}
+        ${renderMonthlyAnalysisSectorChanges(comparison)}
       </section>
-      <aside class="analysis-panel analysis-insight-panel" aria-labelledby="monthlyAnalysisInsightTitle">
-        <div class="analysis-panel-head">
-          <div>
-            <h3 id="monthlyAnalysisInsightTitle">이번 달 핵심</h3>
-            <p>변화 폭과 반복 여부를 함께 확인했습니다.</p>
-          </div>
-        </div>
-        ${renderAnalysisInsightList(insights, "monthlyAnalysis")}
-      </aside>
+      ${renderMonthlyAnalysisCashflow(comparison)}
     </div>`,
     renderMonthlyAnalysisBilling(billingModel, comparison.current)
   ].join("");
-  attachAnalysisInsightHandlers(els.monthlyAnalysisBody, insights, "monthlyAnalysis");
+  attachMonthlyAnalysisEvidenceHandlers(comparison);
 }
 
 function syncMonthlyAnalysisComparisonControls(comparison) {
@@ -69,208 +67,164 @@ function syncMonthlyAnalysisComparisonControls(comparison) {
     button.setAttribute("aria-pressed", String(button.dataset.monthlyAnalysisComparison === comparison.comparisonMode));
   });
   if (els.monthlyAnalysisComparisonStatus) {
-    els.monthlyAnalysisComparisonStatus.textContent = `비교 월 ${comparison.comparisonMonth}`;
+    els.monthlyAnalysisComparisonStatus.textContent = comparison.isCurrentMonth
+      ? `소비: 두 달 모두 1~${comparison.cutoffDay}일 · 수입·남은 돈은 월 입력 기록`
+      : comparison.isFutureMonth ? "미래 월 · 입력 기록 참고용" : `비교 월 ${comparison.comparisonMonth} · 월 전체 기록`;
   }
 }
 
 function renderMonthlyAnalysisSummary(comparison) {
-  const current = comparison.current;
-  let message = `${analysisMonthDisplay(current.month)}에 분석할 소비 기록이 없습니다.`;
-  let tone = "neutral";
-  if (current.expenseRows.length || current.income) {
-    if (!current.income) {
-      message = `수입이 입력되지 않아 자산 형성률을 계산할 수 없습니다. 소비지출은 ${formatWon(current.consumptionSpend)}입니다.`;
-      tone = "warning";
-    } else if (current.assetFormation >= 0) {
-      message = `수입의 ${analysisPercentText(current.assetFormationRate)}를 자산으로 형성했습니다.`;
-      tone = "positive";
-    } else {
-      message = `소비지출이 수입을 ${formatWon(Math.abs(current.assetFormation))} 초과했습니다.`;
-      tone = "negative";
-    }
-    if (comparison.hasComparison && current.income && comparison.previous.income) {
-      const direction = comparison.fixedCostRateDelta > 0 ? "높아졌습니다" : comparison.fixedCostRateDelta < 0 ? "낮아졌습니다" : "같습니다";
-      message += ` 고정비 부담은 ${comparison.comparisonLabel}보다 ${analysisPercentText(Math.abs(comparison.fixedCostRateDelta))}p ${direction}.`;
-    } else if (comparison.hasComparison && current.income && !comparison.previous.income) {
-      message += ` ${comparison.comparisonLabel} 수입이 없어 고정비 부담 비교는 표시하지 않습니다.`;
-    } else if (!comparison.hasComparison) {
-      message += ` ${comparison.comparisonLabel} 자료가 없어 증감 비교는 표시하지 않습니다.`;
-    }
+  let title = "이 달에 입력된 기록이 없습니다.";
+  let detail = "수입과 소비 기록을 입력하면 남은 돈과 변화의 이유를 확인할 수 있습니다.";
+  if (comparison.isFutureMonth) {
+    title = "아직 오지 않은 달의 입력 기록입니다.";
+    detail = "미래 날짜의 기록은 참고용으로 표시하며, 확정 결산이나 증감으로 해석하지 않습니다.";
+  } else if (comparison.hasCurrent && comparison.isCurrentMonth) {
+    title = `1~${comparison.cutoffDay}일에 확인된 소비는 ${formatWon(comparison.currentPeriod.amount)}입니다.`;
+    detail = comparison.canCompareConsumption
+      ? `${comparison.comparisonLabel} 같은 기간 대비 ${monthlyAnalysisChangeText(comparison.consumptionDelta)}. `
+      : `${comparison.comparisonLabel} 자료가 없어 증감은 비교하지 않습니다. `;
+    detail += "수입·남은 돈은 월 입력 기록 기준이며, 동일 기간 증감은 표시하지 않습니다.";
+  } else if (comparison.canCompareBalance) {
+    title = `기록 기준 남은 돈은 ${comparison.comparisonLabel} 대비 ${monthlyAnalysisChangeText(comparison.balanceDelta)}.`;
+    const changes = comparison.balanceDrivers.filter((item) => item.change !== 0)
+      .sort((a, b) => Math.abs(b.impact) - Math.abs(a.impact));
+    detail = changes.length
+      ? `주요 변화: ${changes.slice(0, 2).map((item) => `${item.label} ${formatSignedWon(item.change)}`).join(" · ")}. 전체 변화는 아래 계산에 반영했습니다.`
+      : "수입·소비·저축·원금 상환·가족 정산에 변동이 없습니다.";
+  } else if (comparison.hasCurrent) {
+    title = comparison.canCompareConsumption
+      ? `소비지출은 ${comparison.comparisonLabel} 대비 ${monthlyAnalysisChangeText(comparison.consumptionDelta)}.`
+      : `입력된 소비지출은 ${formatWon(comparison.current.consumptionSpend)}입니다.`;
+    detail = comparison.hasComparison
+      ? "수입 기록이 없는 달이 있어 남은 돈의 증감은 비교하지 않습니다."
+      : `${comparison.comparisonLabel} 자료가 없어 증감은 비교하지 않습니다.`;
+    if (!comparison.currentIncomeKnown) detail += " 수입 미입력 상태의 남은 돈은 지출만 반영한 참고 금액입니다.";
   }
-  return `
-    <section class="analysis-brief analysis-tone-${tone}" aria-label="월간 분석 요약">
-      <i class="ti ti-chart-line" aria-hidden="true"></i>
-      <strong>${escapeHtml(message)}</strong>
-    </section>
-  `;
+  return `<section class="analysis-brief monthly-analysis-brief" aria-label="월간 분석 요약">
+    <div><strong>${escapeHtml(title)}</strong><p>${escapeHtml(detail)}</p></div>
+  </section>`;
 }
 
-function renderMonthlyAnalysisMetrics(snapshot, billingModel) {
+function monthlyAnalysisChangeText(value) {
+  return value ? `${formatWon(Math.abs(value))} ${value > 0 ? "늘었습니다" : "줄었습니다"}` : "변동이 없습니다";
+}
+
+function renderMonthlyAnalysisMetrics(model) {
+  const snapshot = model.current;
   const metrics = [
     {
-      icon: "ti-wallet",
-      label: "월 잉여금",
-      value: formatSignedWon(snapshot.freeBalance),
-      note: "수입 − 소비지출 − 실제 저축 − 내 원금 부담 + 가족 정산",
-      tone: snapshot.freeBalance >= 0 ? "positive" : "negative"
+      key: "income", label: "수입",
+      value: model.currentIncomeKnown ? formatWon(snapshot.income) : "미입력",
+      note: "날짜별 수입 + 월 단위 수입 합계",
+      delta: model.canCompareBalance ? snapshot.income - model.previous.income : null
     },
     {
-      icon: "ti-pig-money",
-      label: "자산 형성률",
-      value: snapshot.income ? analysisPercentText(snapshot.assetFormationRate) : "계산 불가",
-      note: "(실제 저축 + 내 원금 부담 + 자유 잔액) ÷ 수입",
-      tone: snapshot.income && snapshot.assetFormationRate >= 0 ? "positive" : "neutral"
+      key: "consumption", label: "소비지출",
+      value: formatWon(snapshot.consumptionSpend),
+      note: "월 전체 기록 · 정산 차감 · 대출 이자 포함",
+      delta: model.canCompareConsumption && !model.isCurrentMonth ? model.consumptionDelta : null
     },
     {
-      icon: "ti-building-bank",
-      label: "고정비 부담",
-      value: snapshot.income ? analysisPercentText(snapshot.fixedCostRate) : "계산 불가",
-      note: "고정 주거비·반영된 반복 지출 ÷ 수입",
-      tone: snapshot.income && snapshot.fixedCostRate > 50 ? "negative" : "neutral"
-    },
-    {
-      icon: "ti-wallet",
-      label: "카드 결제 예정",
-      value: formatWon(billingModel?.expectedAmount || 0),
-      note: billingModel
-        ? `${formatAnalysisDate(billingModel.periodStart)}~${formatAnalysisDate(billingModel.periodEnd)} 사용분`
-        : "결제 주기 설정 기준",
-      tone: "neutral"
+      key: "balance", label: "남은 돈 · 기록 기준",
+      value: model.hasCurrent ? formatSignedWon(snapshot.freeBalance) : "—",
+      note: model.currentIncomeKnown ? "소비·저축·원금 상환·가족 정산 반영" : "수입 미입력 · 수입을 0원으로 둔 참고값",
+      delta: model.canCompareBalance ? model.balanceDelta : null
     }
   ];
-  return `
-    <section class="analysis-metric-strip" aria-label="월간 핵심 지표">
-      ${metrics.map((metric) => `
-        <article class="analysis-metric analysis-tone-${metric.tone}">
-          <span class="analysis-metric-icon"><i class="ti ${escapeHtml(metric.icon)}" aria-hidden="true"></i></span>
-          <div>
-            <span>${escapeHtml(metric.label)}</span>
-            <strong>${escapeHtml(metric.value)}</strong>
-            <small>${escapeHtml(metric.note)}</small>
-          </div>
-        </article>
-      `).join("")}
-    </section>
-  `;
+  return `<section class="analysis-metric-strip monthly-analysis-metrics" aria-label="월간 핵심 지표">
+    ${metrics.map((metric) => `<article class="analysis-metric" data-monthly-metric="${metric.key}"><div>
+      <span>${escapeHtml(metric.label)}</span><strong>${escapeHtml(metric.value)}</strong>
+      ${metric.delta !== null ? `<em>${escapeHtml(model.comparisonLabel)} ${formatSignedWon(metric.delta)}</em>` : ""}
+      <small>${escapeHtml(metric.note)}</small>
+    </div></article>`).join("")}
+  </section>`;
 }
 
-function renderMonthlyAnalysisWaterfall(comparison) {
-  if (!comparison.hasComparison) {
-    return `
-      <div class="analysis-empty">
-        <i class="ti ti-calendar" aria-hidden="true"></i>
-        <strong>${escapeHtml(comparison.comparisonLabel)} 비교 데이터가 없습니다.</strong>
-        <span>${escapeHtml(comparison.comparisonMonth)} 자료가 입력되면 비교합니다.</span>
-      </div>
-    `;
+function monthlyAnalysisSectorLabel(sector) {
+  return sector === "저축" ? "저축 분류의 소비" : sector;
+}
+
+function renderMonthlyAnalysisSectorChanges(model) {
+  if (!model.canCompareConsumption) {
+    const message = model.isFutureMonth ? "미래 월은 증감을 비교하지 않습니다."
+      : !model.hasCurrent ? "선택한 달의 기록이 없습니다." : `${model.comparisonLabel} 비교 자료가 없습니다.`;
+    return `<div class="analysis-empty"><i class="ti ti-calendar" aria-hidden="true"></i><strong>${escapeHtml(message)}</strong><span>자료가 없는 달을 0원 소비로 판단하지 않습니다.</span></div>`;
   }
+  const maximum = Math.max(1, ...model.sectorChanges.map((item) => Math.abs(item.delta)));
+  const undated = [model.currentPeriod, model.previousPeriod].filter((period) => period.undatedCount);
+  return `<div class="monthly-change-totals">
+    <span>${escapeHtml(model.previousPeriod.label)}<strong>${formatWon(model.previousPeriod.amount)}</strong></span>
+    <span>${escapeHtml(model.currentPeriod.label)}<strong>${formatWon(model.currentPeriod.amount)}</strong></span>
+    <span>소비 변화<strong>${formatSignedWon(model.consumptionDelta)}</strong></span>
+  </div>
+  ${undated.length ? `<p class="monthly-analysis-notice">날짜 확인 필요: ${undated.map((period) => `${escapeHtml(period.month)} ${period.undatedCount}건 ${formatWon(period.undatedAmount)}`).join(" · ")}. 일자 비교에서는 제외하고 월 전체 기록에는 포함했습니다.</p>` : ""}
+  <p class="monthly-change-help">왼쪽은 소비 감소, 오른쪽은 증가입니다. 항목을 누르면 두 기간의 근거 거래가 펼쳐집니다.</p>
+  <ul class="monthly-change-list">${model.sectorChanges.map((item, index) => {
+    const width = Math.abs(item.delta) / maximum * 120;
+    const expanded = monthlyAnalysisEvidenceSelection.sector === item.sector;
+    const tone = item.delta > 0 ? "increase" : item.delta < 0 ? "decrease" : "neutral";
+    return `<li>
+      <button type="button" class="monthly-change-button is-${tone}" data-monthly-change-index="${index}" aria-expanded="${expanded}" aria-controls="monthlyAnalysisEvidence${index}" aria-label="${escapeHtml(monthlyAnalysisSectorLabel(item.sector))} ${formatSignedWon(item.delta)}, 근거 거래 ${expanded ? "닫기" : "보기"}">
+        <span class="monthly-change-sector">${escapeHtml(monthlyAnalysisSectorLabel(item.sector))}</span>
+        <svg class="monthly-change-bar" viewBox="0 0 240 18" preserveAspectRatio="none" aria-hidden="true"><line x1="120" y1="0" x2="120" y2="18"></line><rect x="${item.delta < 0 ? 120 - width : 120}" y="4" width="${width}" height="10" rx="2"></rect></svg>
+        <strong>${formatSignedWon(item.delta)}</strong>
+        <small>${escapeHtml(model.comparisonMonth)} ${formatWon(item.previous)} → ${escapeHtml(model.month)} ${formatWon(item.current)}</small>
+      </button>
+      <div id="monthlyAnalysisEvidence${index}" class="monthly-analysis-evidence" ${expanded ? "" : "hidden"}>${expanded ? renderMonthlyAnalysisEvidence(item, model) : ""}</div>
+    </li>`;
+  }).join("")}</ul>
+  ${!model.sectorChanges.length ? `<p class="monthly-change-help">두 기간에 등록된 소비지출이 없습니다.</p>` : ""}
+  ${model.sectorChanges.some((item) => item.sector === "저축") ? `<p class="monthly-change-help">저축 분류의 보험·상품권 등은 소비에 포함하고, 적금·예금은 제외했습니다.</p>` : ""}`;
+}
 
-  const ordered = [...comparison.sectorChanges]
-    .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
-  const primary = ordered.slice(0, 5);
-  const rest = ordered.slice(5);
-  if (rest.length) {
-    primary.push({
-      sector: "기타 섹터",
-      delta: rest.reduce((total, item) => total + item.delta, 0),
-      current: rest.reduce((total, item) => total + item.current, 0),
-      previous: rest.reduce((total, item) => total + item.previous, 0)
-    });
-  }
-
-  const items = [];
-  let running = comparison.previous.consumptionSpend;
-  items.push({
-    label: comparison.comparisonMonth,
-    type: "total",
-    start: 0,
-    end: running,
-    value: running
-  });
-  primary.forEach((item) => {
-    const next = running + item.delta;
-    items.push({
-      label: analysisWaterfallLabel(item.sector),
-      type: item.delta > 0 ? "increase" : item.delta < 0 ? "decrease" : "neutral",
-      start: running,
-      end: next,
-      value: item.delta
-    });
-    running = next;
-  });
-  items.push({
-    label: comparison.current.month,
-    type: "total",
-    start: 0,
-    end: comparison.current.consumptionSpend,
-    value: comparison.current.consumptionSpend
-  });
-
-  const width = Math.max(760, items.length * 104);
-  const height = 390;
-  const margin = { top: 54, right: 26, bottom: 78, left: 76 };
-  const plotWidth = width - margin.left - margin.right;
-  const plotHeight = height - margin.top - margin.bottom;
-  const domainValues = [
-    0,
-    comparison.previous.consumptionSpend,
-    comparison.current.consumptionSpend,
-    ...items.flatMap((item) => [item.start, item.end])
-  ];
-  const rawMinimum = Math.min(...domainValues);
-  const rawMaximum = Math.max(...domainValues);
-  const rawRange = Math.max(1, rawMaximum - rawMinimum);
-  const domainMinimum = rawMinimum < 0 ? rawMinimum - rawRange * 0.12 : 0;
-  const domainMaximum = rawMaximum + rawRange * 0.18;
-  const domainRange = Math.max(1, domainMaximum - domainMinimum);
-  const y = (value) => margin.top + (domainMaximum - value) / domainRange * plotHeight;
-  const baseline = y(0);
-  const plotBottom = margin.top + plotHeight;
-  const step = plotWidth / items.length;
-  const barWidth = Math.min(62, step * 0.62);
-  const grids = [0, 0.25, 0.5, 0.75, 1].map((ratio) => {
-    const value = domainMinimum + domainRange * ratio;
-    const gridY = y(value);
-    return `
-      <line class="analysis-chart-grid" x1="${margin.left}" y1="${gridY}" x2="${width - margin.right}" y2="${gridY}"></line>
-      <text class="analysis-chart-axis-label" x="${margin.left - 12}" y="${gridY + 4}" text-anchor="end">${escapeHtml(formatCompactWon(value))}</text>
-    `;
-  }).join("");
-  const bars = items.map((item, index) => {
-    const centerX = margin.left + step * index + step / 2;
-    const topY = Math.min(y(item.start), y(item.end));
-    const bottomY = Math.max(y(item.start), y(item.end));
-    const barHeight = Math.max(3, bottomY - topY);
-    const labelY = item.type === "decrease"
-      ? Math.min(plotBottom - 8, bottomY + 18)
-      : Math.max(22, topY - 10);
-    const connector = index < items.length - 1
-      ? `<line class="analysis-waterfall-connector" x1="${centerX + barWidth / 2}" y1="${y(item.end)}" x2="${centerX + step - barWidth / 2}" y2="${y(item.end)}"></line>`
-      : "";
-    return `
-      <g class="analysis-waterfall-item analysis-waterfall-${item.type}">
-        <rect x="${centerX - barWidth / 2}" y="${topY}" width="${barWidth}" height="${barHeight}" rx="5"></rect>
-        ${connector}
-        <text class="analysis-waterfall-value" x="${centerX}" y="${labelY}" text-anchor="middle">${escapeHtml(formatCompactWon(item.value))}</text>
-        <text class="analysis-waterfall-label" x="${centerX}" y="${plotBottom + 30}" text-anchor="middle">${escapeHtml(item.label)}</text>
-      </g>
-    `;
-  }).join("");
-
-  return `
-    <div class="analysis-chart-scroll" role="img" aria-label="${escapeHtml(`${comparison.comparisonMonth} 대비 ${comparison.current.month} 지출 변화 요인`)}" tabindex="0">
-      <svg class="analysis-waterfall-chart" viewBox="0 0 ${width} ${height}" aria-hidden="true">
-        ${grids}
-        <line class="analysis-chart-baseline" x1="${margin.left}" y1="${baseline}" x2="${width - margin.right}" y2="${baseline}"></line>
-        ${bars}
-      </svg>
+function renderMonthlyAnalysisCashflow(model) {
+  const compare = model.canCompareBalance;
+  return `<aside class="analysis-panel monthly-analysis-cashflow" aria-labelledby="monthlyAnalysisCashflowTitle">
+    <div class="analysis-panel-head"><div><h3 id="monthlyAnalysisCashflowTitle">${compare ? "남은 돈이 달라진 이유" : "남은 돈 계산"}</h3><p>${compare ? "오른쪽 금액은 남은 돈에 미친 영향입니다." : `${escapeHtml(model.month)} 월 전체 입력 기록 기준`}</p></div></div>
+    <dl class="monthly-cashflow-list">${model.balanceDrivers.map((item) => `<div>
+      <dt>${escapeHtml(item.label)}<small>${compare ? `${formatSignedWon(item.change)} 변화 · ` : ""}${!model.currentIncomeKnown && item.key === "income" ? "미입력 · 0원으로 계산" : escapeHtml(item.note)}</small></dt>
+      <dd>${formatSignedWon(compare ? item.impact : item.currentEffect)}</dd>
+    </div>`).join("")}</dl>
+    <div class="monthly-cashflow-result"><span>${compare ? "남은 돈 변화" : "남은 돈 · 참고값"}</span><strong>${formatSignedWon(compare ? model.balanceDelta : model.current.freeBalance)}</strong>
+      ${compare ? `<small>${escapeHtml(model.comparisonMonth)} ${formatSignedWon(model.previous.freeBalance)} → ${escapeHtml(model.month)} ${formatSignedWon(model.current.freeBalance)}</small>` : ""}
     </div>
-    <div class="analysis-waterfall-totals">
-      <span><small>${escapeHtml(comparison.comparisonMonth)} 소비지출</small><strong>${formatWon(comparison.previous.consumptionSpend)}</strong></span>
-      <span class="${comparison.consumptionDelta > 0 ? "negative" : comparison.consumptionDelta < 0 ? "positive" : ""}"><small>총 변화</small><strong>${formatSignedWon(comparison.consumptionDelta)}</strong></span>
-      <span><small>${escapeHtml(comparison.current.month)} 소비지출</small><strong>${formatWon(comparison.current.consumptionSpend)}</strong></span>
-    </div>
-  `;
+    <p class="monthly-change-help">저축·원금 상환으로 남은 돈이 줄어도 소비가 늘어난 것은 아닙니다. 가족 정산 조정은 수령 시점 차이를 반영합니다.</p>
+  </aside>`;
+}
+
+function renderMonthlyAnalysisEvidence(change, model) {
+  return `<h4>${escapeHtml(monthlyAnalysisSectorLabel(change.sector))} 근거 거래</h4><div class="monthly-evidence-columns">
+    ${[{ period: model.currentPeriod, rows: change.currentRows, amount: change.current }, { period: model.previousPeriod, rows: change.previousRows, amount: change.previous }].map(({ period, rows, amount }) => {
+      const sorted = [...rows].sort((a, b) => `${b.approvalDate} ${b.approvalTime}`.localeCompare(`${a.approvalDate} ${a.approvalTime}`));
+      return `<section aria-label="${escapeHtml(period.label)} 근거 거래"><div class="monthly-evidence-heading"><h5>${escapeHtml(period.label)}</h5><strong>${formatWon(amount)}</strong><small>내역 ${rows.length}건</small></div>
+        ${rows.length ? `<ul>${sorted.map((item) => `<li><div><strong>${escapeHtml(analysisMerchantName(item))}</strong><b>${formatWon(consumptionAmount(item))}</b></div>
+          <p>${escapeHtml(monthlyAnalysisDate(item, period.month) || "날짜 확인 필요")} · ${escapeHtml(item.subcategory || "미분류")}</p>${foodOccasionBadge(item)}
+          ${isLoanRepaymentTransaction(item) ? `<p>대출 이자 중 내 부담액만 포함 · 원금 제외</p>` : reimbursementFor(item) ? `<p>결제 ${formatWon(item.amount)} · 정산 ${formatWon(reimbursementFor(item))}</p>` : ""}
+          ${item.isInstallmentOccurrence ? `<p>할부 ${item.currentInstallmentIndex}/${item.installmentMonths}회 · 이달 배분액</p>` : ""}
+        </li>`).join("")}</ul>` : `<p class="monthly-evidence-empty">이 기간에 등록된 거래가 없습니다.</p>`}
+      </section>`;
+    }).join("")}</div><p class="monthly-change-help">정산금을 뺀 소비지출 기준입니다. 상황 태그는 거래 맥락이며, 금액에 이미 포함되어 있습니다.</p>`;
+}
+
+function attachMonthlyAnalysisEvidenceHandlers(model) {
+  const buttons = els.monthlyAnalysisBody.querySelectorAll("[data-monthly-change-index]");
+  buttons.forEach((button) => button.addEventListener("click", () => {
+    const index = Number(button.dataset.monthlyChangeIndex);
+    const selected = model.sectorChanges[index];
+    if (!selected) return;
+    monthlyAnalysisEvidenceSelection.sector = button.getAttribute("aria-expanded") === "true" ? "" : selected.sector;
+    buttons.forEach((entry) => {
+      const itemIndex = Number(entry.dataset.monthlyChangeIndex);
+      const item = model.sectorChanges[itemIndex];
+      const expanded = monthlyAnalysisEvidenceSelection.sector === item.sector;
+      entry.setAttribute("aria-expanded", String(expanded));
+      entry.setAttribute("aria-label", `${monthlyAnalysisSectorLabel(item.sector)} ${formatSignedWon(item.delta)}, 근거 거래 ${expanded ? "닫기" : "보기"}`);
+      const panel = els.monthlyAnalysisBody.querySelector(`#monthlyAnalysisEvidence${itemIndex}`);
+      panel.hidden = !expanded;
+      panel.innerHTML = expanded ? renderMonthlyAnalysisEvidence(item, model) : "";
+    });
+  }));
 }
 
 function renderAnalysisInsightList(insights, sourceView, visibleCount = insights.length) {
@@ -320,7 +274,7 @@ function renderMonthlyAnalysisBilling(model, snapshot) {
       <div class="analysis-panel-head">
         <div>
           <h3 id="monthlyAnalysisBillingTitle">다음 카드 결제 주기</h3>
-          <p>등록된 결제 주기와 카드 거래만 반영합니다.</p>
+          <p>정산금 차감 전 카드 거래 기준의 예정액입니다. 위 소비지출과 남은 돈 계산에 다시 더하거나 빼지 않습니다.</p>
         </div>
         <strong class="analysis-billing-amount">${formatWon(model.expectedAmount)}</strong>
       </div>
@@ -352,15 +306,4 @@ function renderAnalysisBillingPoint(label, date, note, tone) {
 function formatAnalysisDate(date) {
   const normalized = normalizeInputDate(date);
   return normalized ? `${Number(normalized.slice(5, 7))}/${Number(normalized.slice(8, 10))}` : "-";
-}
-
-function analysisWaterfallLabel(sector) {
-  return {
-    "고정 주거비": "주거비",
-    "생활용품": "생활용품",
-    "개인관리": "개인관리",
-    "자기개발": "자기개발",
-    "기타 소비": "기타 소비",
-    "기타 섹터": "그 외"
-  }[sector] || sector;
 }

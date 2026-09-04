@@ -103,6 +103,20 @@ async function init() {
   els.clearIncomeBulkButton.addEventListener("click", clearIncomeBulkInput);
   els.saveIncomeBulkButton.addEventListener("click", handleIncomeBulkSave);
   els.recurringForm.addEventListener("submit", handleRecurringSubmit);
+  els.recurringWorkspaceTabButtons.forEach((button, index) => {
+    button.addEventListener("click", () => setRecurringWorkspaceTab(button.dataset.recurringWorkspaceTab));
+    button.addEventListener("keydown", (event) => {
+      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+      event.preventDefault();
+      const lastIndex = els.recurringWorkspaceTabButtons.length - 1;
+      const nextIndex = event.key === "Home"
+        ? 0
+        : event.key === "End"
+          ? lastIndex
+          : (index + (event.key === "ArrowRight" ? 1 : -1) + els.recurringWorkspaceTabButtons.length) % els.recurringWorkspaceTabButtons.length;
+      setRecurringWorkspaceTab(els.recurringWorkspaceTabButtons[nextIndex].dataset.recurringWorkspaceTab, { focus: true });
+    });
+  });
   els.recurringTabButtons.forEach((button, index) => {
     button.addEventListener("click", () => setRecurringTab(button.dataset.recurringTab));
     button.addEventListener("keydown", (event) => {
@@ -118,7 +132,21 @@ async function init() {
     });
   });
   els.recurringSector.addEventListener("change", () => updateSubcategorySelect(els.recurringSector, els.recurringSubcategory));
-  els.recurringMonthFilter.addEventListener("change", renderRecurring);
+  els.recurringMonthFilter.addEventListener("change", () => {
+    setSharedSelectedMonth(els.recurringMonthFilter.value, { syncControls: false });
+    selectedRecurringReviewId = "";
+    recurringReviewFeedback = "";
+    renderRecurring();
+  });
+  els.recurringPrevMonth?.addEventListener("click", () => moveRecurringReviewMonth(-1));
+  els.recurringNextMonth?.addEventListener("click", () => moveRecurringReviewMonth(1));
+  els.recurringAddButton?.addEventListener("click", openRecurringManageForCreate);
+  els.recurringReviewStartButton?.addEventListener("click", startRecurringReview);
+  els.recurringReviewForm?.addEventListener("submit", handleRecurringReviewSubmit);
+  els.recurringReviewEditButton?.addEventListener("click", () => {
+    const id = els.recurringReviewItemId.value;
+    if (id) editRecurringExpense(id, { switchView: false });
+  });
   els.cancelRecurringEditButton.addEventListener("click", resetRecurringForm);
   els.parseRecurringBulkButton.addEventListener("click", handleRecurringBulkParse);
   els.clearRecurringBulkButton.addEventListener("click", clearRecurringBulkInput);

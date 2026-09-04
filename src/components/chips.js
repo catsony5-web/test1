@@ -14,6 +14,12 @@ function isCanceled(value) {
   return text !== "" && text !== "-";
 }
 
+function foodOccasionBadge(item) {
+  const key = foodOccasionFor(item);
+  const occasion = FOOD_OCCASIONS.find((entry) => entry.key === key);
+  return occasion ? `<span class="food-occasion-badge" aria-label="지출 상황: ${escapeHtml(occasion.label)}">${escapeHtml(occasion.label)}</span>` : "";
+}
+
 
 function categoryClass(sector) {
   return sectorTheme(sector).className;
