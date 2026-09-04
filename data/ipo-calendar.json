@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-09-03T14:07:38.689Z",
+  "updatedAt": "2026-09-04T08:27:18.174Z",
   "source": {
     "name": "KRX KIND",
     "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcom.do?method=searchPubofrProgComMain",
@@ -11,7 +11,7 @@
     "to": "2027-09-30",
     "label": "최근 3개월 · 향후 12개월"
   },
-  "itemCount": 19,
+  "itemCount": 20,
   "items": [
     {
       "sourceId": "20260106000356",
@@ -419,6 +419,30 @@
       "missingSince": "",
       "fingerprint": "cd375a76ce95e7653838",
       "changeStatus": "unchanged",
+      "changes": []
+    },
+    {
+      "sourceId": "20260513000472",
+      "company": "엔에이치스팩34호",
+      "market": "코스닥",
+      "filingDate": "2026-07-29",
+      "bookbuildingStart": "2026-08-24",
+      "bookbuildingEnd": "2026-08-25",
+      "subscriptionStart": "2026-09-01",
+      "subscriptionEnd": "2026-09-02",
+      "paymentDate": "2026-09-04",
+      "offerPrice": 2000,
+      "offeringAmountMillions": 17000,
+      "listingDate": "2026-09-10",
+      "broker": "NH투자증권",
+      "priceStatus": "confirmed",
+      "status": "scheduled",
+      "sourceName": "KRX KIND",
+      "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260513000472",
+      "sourceUpdatedAt": "2026-09-04T08:27:18.174Z",
+      "missingSince": "",
+      "fingerprint": "f20bb9540438ffc3ccde",
+      "changeStatus": "new",
       "changes": []
     },
     {
