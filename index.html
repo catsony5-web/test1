@@ -21,7 +21,8 @@
   <link rel="stylesheet" href="src/styles/10-analysis.css?v=175-monthly-close-r3">
   <link rel="stylesheet" href="src/styles/11-summary-insights.css?v=174-food-occasions">
   <link rel="stylesheet" href="src/styles/12-rosso-ink.css?v=169-corsa-themes">
-  <link rel="stylesheet" href="src/styles/13-goals.css?v=170-goal-planner-r2">
+  <link rel="stylesheet" href="src/styles/13-goals.css?v=179-goal-tabs">
+  <link rel="stylesheet" href="src/styles/14-board-overview.css?v=178-board-overview">
   <script src="assets/vendor/xlsx.full.min.js"></script>
 </head>
 <body data-app-name="소비 분석">
@@ -291,7 +292,7 @@
         <div class="section-head ledger-head">
           <div>
             <h2>대시보드</h2>
-            <p>선택 월의 지출, 수입, 잔액과 장기 소비 지표를 한눈에 확인합니다.</p>
+            <p>얼마나 썼는지, 카드값은 얼마인지, 어디에 많이 썼는지 확인하세요.</p>
           </div>
           <div class="ledger-controls">
             <div class="month-control-group">
@@ -303,7 +304,10 @@
         </div>
         <div id="boardMetrics" class="board-metric-grid"></div>
         <div id="boardSectorMap" class="sector-map-panel" hidden></div>
-        <div id="boardSectorSummary" class="board-sector-summary"></div>
+        <div class="board-overview-columns">
+          <div id="boardSectorSummary" class="board-sector-summary"></div>
+          <div id="boardGrid" class="ledger-board"></div>
+        </div>
         <div class="board-filter-legacy-controls" hidden>
           <select id="boardFilterSector"><option value="all">전체</option></select>
           <input id="boardFilterSearch" type="text">
@@ -316,7 +320,6 @@
         </div>
         <div class="board-detail-layout">
           <div class="board-main-stack">
-            <div id="boardGrid" class="ledger-board"></div>
             <div id="boardSummary" class="ledger-summary"></div>
           </div>
           <aside id="boardSideSummary" class="board-side-summary"></aside>
@@ -1433,7 +1436,7 @@
     </article>
   </template>
 
-  <script src="src/data/constants.js?v=176-recurring-review"></script>
+  <script src="src/data/constants.js?v=179-goal-tabs"></script>
   <script src="src/data/categories.js?v=136-mineral-layers"></script>
   <script src="src/data/rules.js?v=93"></script>
   <script src="src/data/board-sections.js?v=151-loan-repayments"></script>
@@ -1450,8 +1453,8 @@
   <script src="src/utils/food-occasion.js?v=174-food-occasions"></script>
   <script src="src/utils/normalize.js?v=174-food-occasions"></script>
   <script src="src/utils/grouping.js?v=156-loan-sharing"></script>
-  <script src="src/utils/storage.js?v=176-recurring-review"></script>
-  <script src="src/utils/backup.js?v=171-calendar-split-summary"></script>
+  <script src="src/utils/storage.js?v=177-storage-recovery"></script>
+  <script src="src/utils/backup.js?v=177-storage-recovery"></script>
 
   <script src="src/components/chips.js?v=174-food-occasions"></script>
   <script src="src/components/tables.js?v=61"></script>
@@ -1465,8 +1468,9 @@
   <script src="src/features/classification/smart-suggestions.js?v=173-food-calendar-r2"></script>
   <script src="src/features/classification/rules-manager.js?v=61"></script>
 
-  <script src="src/features/board/board-view.js?v=156-loan-sharing"></script>
+  <script src="src/features/board/board-view.js?v=178-board-overview"></script>
   <script src="src/features/board/board-summary.js?v=156-loan-sharing"></script>
+  <script src="src/features/board/board-overview.js?v=178-board-overview"></script>
   <script src="src/features/board/board-cards.js?v=156-loan-sharing"></script>
   <script src="src/features/details/details-view.js?v=151-loan-repayments"></script>
   <script src="src/features/summary/comparison-analysis.js?v=171-calendar-split-summary"></script>
@@ -1483,8 +1487,8 @@
   <script src="src/features/income/income-entry.js?v=61"></script>
   <script src="src/features/income/income-bulk.js?v=61"></script>
   <script src="src/features/income/income-list.js?v=156-loan-sharing"></script>
-  <script src="src/features/recurring/recurring-view.js?v=176-recurring-review"></script>
-  <script src="src/features/calendar/calendar-view.js?v=174-food-occasions"></script>
+  <script src="src/features/recurring/recurring-view.js?v=177-storage-recovery"></script>
+  <script src="src/features/calendar/calendar-view.js?v=177-storage-recovery"></script>
   <script src="src/features/analysis/analysis-core.js?v=156-loan-sharing"></script>
   <script src="src/features/analysis/monthly-analysis-core.js?v=175-monthly-close-r2"></script>
   <script src="src/features/analysis/monthly-analysis-view.js?v=175-monthly-close-r2"></script>
@@ -1493,7 +1497,7 @@
   <script src="src/features/ipo/ipo-view.js?v=164-ipo-calendar-readable-full-3line"></script>
   <script src="src/features/unknown/unknown-view.js?v=97"></script>
   <script src="src/features/transactions/transactions-view.js?v=77"></script>
-  <script src="src/features/goals/goals-view.js?v=170-goal-planner-r3"></script>
+  <script src="src/features/goals/goals-view.js?v=179-goal-tabs"></script>
 
   <script src="src/features/app/navigation.js?v=112"></script>
   <script src="src/features/app/appearance.js?v=141-garden-analysis"></script>

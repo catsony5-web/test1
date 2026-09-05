@@ -1,5 +1,53 @@
 let goalControlsReady = false;
 let goalHasRendered = false;
+const goalTabs = [
+  { id: "input", label: "목표 설정" },
+  { id: "route", label: "경로 비교" },
+  { id: "events", label: "생활 이벤트" },
+  { id: "support", label: "정책·절세" },
+  { id: "side", label: "부업·취미" }
+];
+let activeGoalTab = "input";
+
+function renderGoalTabs() {
+  return `<nav class="goal-tabs" role="tablist" aria-label="자산 목표 상세">
+    ${goalTabs.map((tab, index) => `<button type="button" role="tab" id="goal-tab-${tab.id}" data-goal-tab="${tab.id}" aria-controls="goal-panel-${tab.id}" aria-selected="${activeGoalTab === tab.id}" tabindex="${activeGoalTab === tab.id ? 0 : -1}"><span aria-hidden="true">${String(index + 1).padStart(2, "0")}</span>${tab.label}</button>`).join("")}
+  </nav>`;
+}
+
+function renderGoalPanel(id, content) {
+  return `<div id="goal-panel-${id}" class="goal-tab-panel" role="tabpanel" aria-labelledby="goal-tab-${id}" tabindex="0"${activeGoalTab === id ? "" : " hidden"}>${content}</div>`;
+}
+
+function selectGoalTab(id, focus = false) {
+  if (!goalTabs.some((tab) => tab.id === id)) return;
+  activeGoalTab = id;
+  const root = els.goalPlannerRoot;
+  root.querySelectorAll("[data-goal-tab]").forEach((tab) => {
+    const selected = tab.dataset.goalTab === id;
+    tab.setAttribute("aria-selected", String(selected));
+    tab.tabIndex = selected ? 0 : -1;
+    if (selected && focus) tab.focus();
+  });
+  root.querySelectorAll(".goal-tab-panel").forEach((panel) => {
+    panel.hidden = panel.id !== `goal-panel-${id}`;
+  });
+}
+
+function handleGoalTabKeydown(event) {
+  const tab = event.target.closest("[data-goal-tab]");
+  if (!tab) return;
+  const index = goalTabs.findIndex((item) => item.id === tab.dataset.goalTab);
+  const next = { ArrowRight: (index + 1) % goalTabs.length, ArrowLeft: (index + goalTabs.length - 1) % goalTabs.length, Home: 0, End: goalTabs.length - 1 }[event.key];
+  if (next === undefined) return;
+  event.preventDefault();
+  selectGoalTab(goalTabs[next].id, true);
+}
+
+function handleGoalTabFocus(event) {
+  const tab = event.target.closest("[data-goal-tab]");
+  if (tab) selectGoalTab(tab.dataset.goalTab);
+}
 
 function defaultGoalEvents() {
   return [
@@ -25,6 +73,8 @@ function setupGoalControls() {
   goalControlsReady = true;
   root.addEventListener("change", handleGoalControlChange);
   root.addEventListener("click", handleGoalActionClick);
+  root.addEventListener("keydown", handleGoalTabKeydown);
+  root.addEventListener("focusin", handleGoalTabFocus);
 }
 
 function handleGoalControlChange(event) {
@@ -84,6 +134,11 @@ function handleGoalControlChange(event) {
 }
 
 function handleGoalActionClick(event) {
+  const tab = event.target.closest("[data-goal-tab]");
+  if (tab) {
+    selectGoalTab(tab.dataset.goalTab);
+    return;
+  }
   const button = event.target.closest("[data-goal-action]");
   if (!button) return;
   const action = button.dataset.goalAction;
@@ -306,21 +361,28 @@ function renderGoals() {
   const cash = comparisons.find((item) => item.id === "cash") || comparisons[0];
   const deadlineProjection = cash?.[goalPlan.deadlineMonths === 48 ? "projection48" : "projection60"] || 0;
 
-  els.goalPlannerRoot.innerHTML = `
+  // Keep the tab buttons mounted when a field's blur/change recalculates the plan.
+  // Otherwise replacing the clicked button before mouseup can swallow tab navigation.
+  if (!els.goalPlannerRoot.querySelector(".goal-planner")) els.goalPlannerRoot.innerHTML = `
     <div class="goal-planner">
       <p class="goal-sr-only" data-goal-live-status aria-live="polite" aria-atomic="true"></p>
-      ${renderGoalHero(goalPlan, baseline, calculationPlan, comparisons)}
-      ${renderGoalInputs(goalPlan, baseline)}
-      ${renderGoalScenarios(goalPlan, calculationPlan, comparisons)}
-      ${renderGoalEvents(goalPlan)}
-      ${renderGoalPolicies(goalPlan, baseline, comparisons)}
-      ${renderGoalSideHustle(goalPlan, baseline, comparisons)}
+      <div class="goal-shared-summary"></div>
+      ${renderGoalTabs()}
+      <div class="goal-panels"></div>
       <footer class="goal-disclaimer">
         <i class="ti ti-shield-check" aria-hidden="true"></i>
         <p><strong>교육용 추정치입니다.</strong> 수익률은 보장되지 않으며 투자·세무·법률 자문이 아닙니다. 정책 금액은 공식 기관에서 자격과 실제 금액을 확인한 뒤에만 반영하세요.</p>
       </footer>
     </div>
   `;
+  els.goalPlannerRoot.querySelector(".goal-shared-summary").innerHTML = renderGoalHero(goalPlan, baseline, calculationPlan, comparisons);
+  els.goalPlannerRoot.querySelector(".goal-panels").innerHTML = [
+    renderGoalPanel("input", renderGoalInputs(goalPlan, baseline)),
+    renderGoalPanel("route", renderGoalScenarios(goalPlan, calculationPlan, comparisons)),
+    renderGoalPanel("events", renderGoalEvents(goalPlan)),
+    renderGoalPanel("support", renderGoalPolicies(goalPlan, baseline, comparisons)),
+    renderGoalPanel("side", renderGoalSideHustle(goalPlan, baseline, comparisons))
+  ].join("");
   restoreGoalFocus(els.goalPlannerRoot, focusKey);
   if (goalHasRendered) {
     const status = els.goalPlannerRoot.querySelector("[data-goal-live-status]");
@@ -350,9 +412,6 @@ function renderGoalHero(plan, baseline, calculationPlan, comparisons) {
         <span class="goal-kicker">GOAL ROUTE · LOCAL ONLY</span>
         <h2>${escapeHtml(plan.targetName)}</h2>
         <p>현재 현금흐름에서 출발해 저축·투자·생활 이벤트·추가 수입이 목표 시간을 얼마나 바꾸는지 같은 계산선 위에서 비교합니다.</p>
-        <nav class="goal-jump-nav" aria-label="자산 목표 화면 바로가기">
-          <a href="#goalRoute">경로 비교</a><a href="#goalEvents">생활 이벤트</a><a href="#goalSupport">정책·절세</a><a href="#goalSide">부업 실험</a>
-        </nav>
       </div>
       <div class="goal-hero-figure" style="--goal-progress: ${progress.toFixed(1)}%">
         <span>현재 목표 자산</span>

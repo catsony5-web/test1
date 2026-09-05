@@ -1,4 +1,4 @@
-const CACHE_NAME = "monthly-card-budget-v176-recurring-review";
+const CACHE_NAME = "monthly-card-budget-v179-goal-tabs";
 const APP_FILES = [
   "./",
   "./index.html",
@@ -16,6 +16,7 @@ const APP_FILES = [
   "./src/styles/11-summary-insights.css",
   "./src/styles/12-rosso-ink.css",
   "./src/styles/13-goals.css",
+  "./src/styles/14-board-overview.css",
   "./assets/vendor/xlsx.full.min.js",
   "./assets/vendor/xlsx.LICENSE",
   "./assets/tabler/tabler-icons.min.css",
@@ -136,6 +137,7 @@ const APP_FILES = [
   "./src/features/classification/rules-manager.js",
   "./src/features/board/board-view.js",
   "./src/features/board/board-summary.js",
+  "./src/features/board/board-overview.js",
   "./src/features/board/board-cards.js",
   "./src/features/details/details-view.js",
   "./src/features/summary/comparison-analysis.js",

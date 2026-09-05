@@ -383,11 +383,15 @@ test("식비 할부의 상황 태그는 월 배분액으로 집계하고 다음 
 test("소비 달력에서 상황 태그를 저장·변경·해제해도 결제·정산·분류 규칙은 변하지 않는다", async () => {
   const context = loadContext();
   context.transactions = [expense("tag-edit", 26400, 17, { manualSector: "식비", manualSubcategory: "외식-친구" })];
+  vm.runInContext(fs.readFileSync(path.join(__dirname, "../src/data/constants.js"), "utf8"), context);
   context.reimbursements["tag-edit"] = 13200;
   context.createAutoSnapshot = async () => {};
-  context.saveTransactions = async () => true;
-  context.saveReimbursements = async () => {};
-  context.saveRules = () => assert.fail("occasion must not become a merchant rule");
+  context.safeSaveMany = async (entries) => {
+    assert.deepEqual(Array.from(entries, (entry) => entry.key), [
+      "monthly-card-budget-records-v1", "monthly-card-budget-reimbursements-v1"
+    ], "상황 태그는 거래·정산금만 저장하며 가맹점 규칙을 저장하지 않는다");
+    return true;
+  };
   context.setSharedSelectedMonth = () => {};
   context.reclassify = () => {};
   const values = {

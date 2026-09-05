@@ -197,12 +197,7 @@ function saveRules() {
 async function loadTransactions() {
   const stored = await safeLoad(RECORD_STORAGE_KEY, [], { fallbackKeys: [`${RECORD_STORAGE_KEY}${LAST_GOOD_SUFFIX}`] });
   if (Array.isArray(stored)) {
-    const normalized = stored.map(normalizeStoredTransaction);
-    if (!normalized.length) {
-      const lastGood = await safeLoad(`${RECORD_STORAGE_KEY}${LAST_GOOD_SUFFIX}`, []);
-      if (Array.isArray(lastGood) && lastGood.length) return lastGood.map(normalizeStoredTransaction);
-    }
-    return normalized;
+    return stored.map(normalizeStoredTransaction);
   }
   return [];
 }
@@ -237,41 +232,51 @@ async function safeLoad(key, fallback, options = {}) {
   return structuredCloneSafe(fallback);
 }
 
-async function safeSave(key, data, options = {}) {
+function safeSave(key, data, options = {}) {
+  return safeSaveMany([{ key, data, ...options }]);
+}
+
+async function safeSaveMany(entries) {
   try {
-    JSON.stringify(data);
+    entries = structuredCloneSafe(entries);
+    entries.forEach(({ data }) => JSON.stringify(data));
   } catch (error) {
     alert("데이터를 저장하지 못했습니다. 저장할 수 없는 값이 포함되어 있습니다.");
-    console.error("safeSave stringify failed", key, error);
+    console.error("safeSave stringify failed", error);
     return false;
   }
 
-  const previous = await readPrivateData(key);
-  if (options.protectIncomeRecords && !options.allowIncomeDrop) {
-    const previousIncomeCount = countIncomeRecords(previous);
-    const nextIncomeCount = countIncomeRecords(data);
-    if (previousIncomeCount > 0 && nextIncomeCount === 0) {
-      await createAutoSnapshot("수입 기록 보호 차단 전");
-      alert("수입 기록이 0건으로 덮어쓰기 될 가능성이 있어 저장을 중단했습니다. 필요하면 백업/복구에서 최근 자동 저장을 확인해주세요.");
-      console.warn("Blocked suspicious income record drop", { key, previousIncomeCount, nextIncomeCount });
-      return false;
-    }
-  }
-
+  const savedAt = new Date().toISOString();
   try {
-    if (previous !== undefined) {
-      await writePrivateData(`${key}${LAST_GOOD_SUFFIX}`, previous);
+    const writes = [];
+    for (const { key, data, protectIncomeRecords, allowIncomeDrop } of entries) {
+      const previous = await readPrivateData(key);
+      if (protectIncomeRecords && !allowIncomeDrop) {
+        const previousIncomeCount = countIncomeRecords(previous);
+        const nextIncomeCount = countIncomeRecords(data);
+        if (previousIncomeCount > 0 && nextIncomeCount === 0) {
+          await createAutoSnapshot("수입 기록 보호 차단 전");
+          alert("수입 기록이 0건으로 덮어쓰기 될 가능성이 있어 저장을 중단했습니다. 필요하면 백업/복구에서 최근 자동 저장을 확인해주세요.");
+          console.warn("Blocked suspicious income record drop", { key, previousIncomeCount, nextIncomeCount });
+          return false;
+        }
+      }
+      if (previous !== undefined) writes.push({ key: `${key}${LAST_GOOD_SUFFIX}`, value: previous });
+      writes.push({ key, value: key === SETTINGS_STORAGE_KEY ? { ...data, lastSavedAt: savedAt } : data });
     }
-    await writePrivateData(key, data);
-    appSettings.lastSavedAt = new Date().toISOString();
-    await saveSettings();
-    renderSnapshotPanel();
-    return true;
+    if (!entries.some(({ key }) => key === SETTINGS_STORAGE_KEY)) {
+      writes.push({ key: SETTINGS_STORAGE_KEY, value: { ...appSettings, lastSavedAt: savedAt } });
+    }
+    await writePrivateDataMany(writes);
   } catch (error) {
-    alert("브라우저 저장소에 데이터를 저장하지 못했습니다. 자동 스냅샷 또는 수동 백업을 확인해주세요.");
-    console.error("safeSave failed", key, error);
+    alert("브라우저 저장소에 데이터를 저장하지 못했습니다. 입력 내용을 유지한 상태에서 다시 시도해주세요.");
+    console.error("safeSave failed", error);
     return false;
   }
+  appSettings.lastSavedAt = savedAt;
+  // 화면 갱신 실패를 이미 완료된 데이터 저장 실패로 취급하지 않는다.
+  try { await renderSnapshotPanel(); } catch (error) { console.warn("저장 상태 표시 실패", error); }
+  return true;
 }
 
 function structuredCloneSafe(value) {
@@ -379,10 +384,8 @@ async function restoreFromSnapshot(snapshotId) {
     return;
   }
   if (!confirm(`현재 데이터는 복구 전 자동 스냅샷으로 저장됩니다. 선택한 항목만 복구할까요?\n\n대상: ${scopeLabels(scopes).join(", ")}`)) return;
-  await createAutoSnapshot("스냅샷 복구 전");
   const data = snapshot.data || {};
-  applyRestorePayload(data, scopes);
-  await saveSelectedScopes(scopes, { allowIncomeDrop: true });
+  if (!await persistDataScopeChange(scopes, () => applyRestorePayload(data, scopes), "스냅샷 복구 전")) return;
   reclassify();
   alert("자동 스냅샷에서 선택한 항목을 복구했습니다.");
 }
@@ -408,21 +411,49 @@ function readPrivateData(key) {
 }
 
 function writePrivateData(key, value) {
-  const localOk = writeLocalStorageData(key, value);
-  if (!("indexedDB" in window)) return localOk ? Promise.resolve() : Promise.reject(new Error("localStorage save failed"));
+  return writePrivateDataMany([{ key, value }]);
+}
 
-  return openPrivateDb()
-    .then((db) => new Promise((resolve, reject) => {
+async function writePrivateDataMany(entries) {
+  if (!("indexedDB" in window)) {
+    const previous = entries.map(({ key }) => ({ key, raw: localStorage.getItem(key) }));
+    let written = 0;
+    try {
+      for (const { key, value } of entries) {
+        localStorage.setItem(key, JSON.stringify(value));
+        written += 1;
+      }
+    } catch (error) {
+      // IndexedDB 미지원 환경에서도 일부 항목만 저장된 상태를 남기지 않는다.
+      for (const { key, raw } of previous.slice(0, written).reverse()) {
+        if (raw === null) localStorage.removeItem(key);
+        else localStorage.setItem(key, raw);
+      }
+      throw error;
+    }
+    return;
+  }
+
+  const db = await openPrivateDb();
+  try {
+    await new Promise((resolve, reject) => {
       const tx = db.transaction(DB_STORE, "readwrite");
-      tx.objectStore(DB_STORE).put({ key, value, updatedAt: new Date().toISOString() });
       tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    }))
-    .catch((error) => {
-      console.warn(`IndexedDB 저장 실패: ${key}`, error);
-      if (!localOk) throw error;
-      return undefined;
+      tx.onabort = () => reject(tx.error || new Error("IndexedDB transaction aborted"));
+      tx.onerror = () => { /* 중단 완료까지 기다려 부분 저장을 방지한다. */ };
+      try {
+        const store = tx.objectStore(DB_STORE);
+        for (const { key, value } of entries) store.put({ key, value, updatedAt: new Date().toISOString() });
+      } catch (error) {
+        tx.abort();
+        reject(error);
+      }
     });
+  } finally {
+    db.close();
+  }
+  // IndexedDB가 기본 저장소다. 커밋 성공 이후에만 보조 사본을 갱신한다.
+  for (const { key, value } of entries) writeLocalStorageData(key, value);
 }
 
 function openPrivateDb() {

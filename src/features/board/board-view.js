@@ -19,81 +19,26 @@ function renderBoard() {
   els.boardMetrics.classList.remove("is-empty-workspace");
   els.boardSideSummary.hidden = true;
 
-  const monthRows = active.filter((item) => item.month === selectedMonth);
-  const buckets = buildBoardBuckets(monthRows);
-  const fixedSections = boardSections.filter((section) => section.group === "고정비");
-  const variableSections = boardSections.filter((section) => section.group === "변동비");
-  const fixedRows = fixedSections.flatMap((section) => buckets[section.key] || []);
-  const variableRows = variableSections.flatMap((section) => buckets[section.key] || []);
-  const fixedTotal = sumConsumption(fixedRows);
-  const variableTotal = sumConsumption(variableRows);
-  const totalPayment = sum(monthRows, "amount");
-  const reimbursementTotal = sumReimbursements(monthRows);
-  const totalSpend = sumActual(monthRows);
-  const debtRepayment = sumDebtPrincipal(monthRows);
-  const income = Number(monthlyIncome[selectedMonth] || 0) + importedIncomeForMonth(selectedMonth);
-  const supportReceived = loanSupportReceivedForMonth(active, selectedMonth);
-  const net = income + supportReceived - totalSpend;
-  const scheduledTotal = scheduledTotalForMonth(selectedMonth);
-  const unknownTotal = sumConsumption(monthRows.filter((item) => item.sector === "미분류"));
-  const previousMonth = previousMonthKey(selectedMonth);
-  const previousMonthRows = active.filter((item) => item.month === previousMonth);
-  const previousTotalPayment = sum(previousMonthRows, "amount");
-  const previousReimbursementTotal = sumReimbursements(previousMonthRows);
-  const previousTotalSpend = sumActual(previousMonthRows);
-  const previousDebtRepayment = sumDebtPrincipal(previousMonthRows);
-  const previousIncome = Number(monthlyIncome[previousMonth] || 0) + importedIncomeForMonth(previousMonth);
-  const previousSupportReceived = loanSupportReceivedForMonth(active, previousMonth);
-  const sectionStats = boardSections
-    .filter((section) => section.key !== "etc-catchall" || (buckets[section.key] || []).length)
-    .map((section) => buildBoardSectionStat(section, buckets[section.key] || []));
-  const sectorRows = buildSectorSpendRows(monthRows);
-  ensureBoardExpandedSectors(selectedMonth, sectorRows);
-
-  els.boardMetrics.innerHTML = renderBoardCoreMetrics({
-    selectedMonth,
-    totalPayment,
-    reimbursementTotal,
-    totalSpend,
-    debtRepayment,
-    fixedTotal,
-    variableTotal,
-    income,
-    net,
-    scheduledTotal,
-    unknownTotal,
-    previous: {
-      totalPayment: previousTotalPayment,
-      reimbursementTotal: previousReimbursementTotal,
-      totalSpend: previousTotalSpend,
-      income: previousIncome,
-      debtRepayment: previousDebtRepayment,
-      net: previousIncome + previousSupportReceived - previousTotalSpend,
-      scheduledTotal: scheduledTotalForMonth(previousMonth),
-      unknownTotal: sumConsumption(previousMonthRows.filter((item) => item.sector === "미분류"))
-    }
-  });
+  const overview = buildBoardOverviewModel(selectedMonth);
+  els.boardMetrics.innerHTML = renderBoardOverviewMetrics(overview);
   els.boardSectorMap.innerHTML = "";
-  els.boardSectorSummary.innerHTML = renderBoardSectorSummary(monthRows, selectedMonth);
-  const visibleSectionStats = sectionStats
-    .filter((stat) => stat.actualTotal > 0)
-    .sort((a, b) => b.actualTotal - a.actualTotal || b.count - a.count);
-  els.boardGrid.innerHTML = renderBoardTopCategories(visibleSectionStats, selectedMonth);
+  els.boardSectorSummary.innerHTML = renderBoardOverviewSectors(overview);
+  els.boardGrid.innerHTML = renderBoardOverviewTop(overview);
   els.boardSideSummary.innerHTML = "";
   attachBoardMetricHandlers();
   attachBoardSummaryHandlers();
   attachBoardTopCategoryHandlers();
 
-  els.boardSummary.innerHTML = renderBoardLongTermIndicators(active, selectedMonth);
-  attachBoardPeriodHandlers(els.boardSummary, selectedMonth, "board");
+  els.boardSummary.innerHTML = renderBoardOverviewFooter(overview);
+  attachBoardOverviewHandlers(selectedMonth);
   updateBoardMapTopButton();
 }
 
 function isBoardAppEmpty() {
   const hasTransactions = [transactions, classified].some((rows) => Array.isArray(rows) && rows.length > 0);
-  const hasIncome = Object.values(monthlyIncome || {}).some((amount) => {
+  const hasIncome = Object.entries(monthlyIncome || {}).some(([month, amount]) => {
     const value = Number(amount);
-    return Number.isFinite(value) && value !== 0;
+    return isValidMonthKey(month) && amount !== null && amount !== "" && Number.isFinite(value);
   });
   const hasRecurringExpenses = Array.isArray(recurringExpenses) && recurringExpenses.length > 0;
   return !hasTransactions && !hasIncome && !hasRecurringExpenses;
@@ -178,19 +123,19 @@ function renderBoardEmptyWorkspace(selectedMonth) {
         </div>
         <dl class="board-empty-overview-grid">
           <div>
-            <dt>현금 유출</dt>
+            <dt>소비지출</dt>
             <dd>0원</dd>
-            <span>총 결제 0원 · 정산 0원</span>
+            <span>정산 후 · 저축·원금 제외</span>
           </div>
           <div>
             <dt>수입</dt>
-            <dd class="positive">0원</dd>
+            <dd>입력 필요</dd>
             <span>수입 입력 전</span>
           </div>
           <div>
-            <dt>잔액</dt>
-            <dd class="positive">0원</dd>
-            <span>수입 - 현금 유출</span>
+            <dt>기록 기준 남은 돈</dt>
+            <dd>계산 대기</dd>
+            <span>수입을 입력하면 계산됩니다</span>
           </div>
         </dl>
       </section>

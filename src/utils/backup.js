@@ -14,9 +14,7 @@ async function clearRecords() {
   )) {
     return;
   }
-  await createAutoSnapshot("선택 데이터 초기화 전");
-  applyClearScopes(scopes);
-  await saveSelectedScopes(scopes, { allowIncomeDrop: true });
+  if (!await persistDataScopeChange(scopes, () => applyClearScopes(scopes), "선택 데이터 초기화 전")) return;
   reclassify();
   renderRestorePreview(null, scopes);
 }
@@ -64,16 +62,13 @@ async function restoreLocalData(event) {
     } else if (!confirm(message)) {
       return;
     }
-    await createAutoSnapshot("백업 불러오기 전");
-
-    applyRestorePayload(bundle, scopes, { mode });
-    await saveSelectedScopes(scopes, { allowIncomeDrop: true });
+    if (!await persistDataScopeChange(scopes, () => applyRestorePayload(bundle, scopes, { mode }), "백업 불러오기 전")) return;
     reclassify();
     renderRestorePreview(bundle, scopes);
     alert(`선택한 백업 데이터를 ${mode === "overwrite" ? "덮어쓰기" : "병합"} 방식으로 불러왔습니다.`);
   } catch (error) {
     console.error("restoreLocalData failed", error);
-    alert("백업 파일을 읽지 못했습니다. JSON 파일인지 확인해주세요.");
+    alert("백업 복원을 완료하지 못했습니다. 파일 형식과 브라우저 저장소 상태를 확인해주세요.");
   } finally {
     event.target.value = "";
   }
@@ -494,23 +489,50 @@ function applyRestorePayload(payload, scopes, options = {}) {
   }
 }
 
-async function saveSelectedScopes(scopes, options = {}) {
+async function persistDataScopeChange(scopes, applyChange, snapshotReason) {
+  let restoreState;
+  try {
+    await createAutoSnapshot(snapshotReason);
+    restoreState = captureDataState();
+    applyChange();
+    if (await saveSelectedScopes(scopes, { allowIncomeDrop: true })) return true;
+  } catch (error) {
+    console.error("데이터 변경 저장 실패", error);
+    alert("데이터 변경을 완료하지 못했습니다. 백업 파일과 브라우저 저장소 상태를 확인한 후 다시 시도해주세요.");
+  }
+  if (restoreState) restoreState();
+  return false;
+}
+
+function captureDataState() {
+  // 복원/초기화는 배열과 객체를 교체하므로 원본 참조로 정확히 되돌릴 수 있다.
+  const previous = { transactions, reimbursements, importMeta, currentFileName, monthlyIncome,
+    recurringExpenses, rules, products, ipoRecords, calendarMemos, goalPlan, appSettings };
+  return () => {
+    ({ transactions, reimbursements, importMeta, currentFileName, monthlyIncome,
+      recurringExpenses, rules, products, ipoRecords, calendarMemos, goalPlan, appSettings } = previous);
+    applyAppSettings();
+  };
+}
+
+function saveSelectedScopes(scopes, options = {}) {
   const selected = normalizeScopeList(scopes);
   const writes = [];
   if (selected.some((scope) => TRANSACTION_DATA_SCOPES.has(scope))) {
-    writes.push(saveTransactions({ allowIncomeDrop: options.allowIncomeDrop === true }));
-    writes.push(saveReimbursements());
+    writes.push({ key: RECORD_STORAGE_KEY, data: transactions.map(normalizeStoredTransaction),
+      protectIncomeRecords: true, allowIncomeDrop: options.allowIncomeDrop === true });
+    writes.push({ key: REIMBURSEMENT_STORAGE_KEY, data: reimbursements });
   }
-  if (selected.includes("importedExcelTransactions")) writes.push(saveImportMeta());
-  if (selected.includes("rulesAndLearning")) writes.push(saveRules());
-  if (selected.includes("incomeInput")) writes.push(saveIncome());
-  if (selected.includes("products")) writes.push(saveProducts());
-  if (selected.includes("ipoRecords")) writes.push(saveIpoRecords());
-  if (selected.includes("recurringDefinitions")) writes.push(saveRecurringExpenses());
-  if (selected.includes("calendarMemos")) writes.push(saveCalendarMemos());
-  if (selected.includes("goalPlan")) writes.push(saveGoalPlan());
-  if (selected.includes("settings")) writes.push(saveSettings());
-  await Promise.all(writes);
+  if (selected.includes("importedExcelTransactions")) writes.push({ key: IMPORT_META_STORAGE_KEY, data: importMeta });
+  if (selected.includes("rulesAndLearning")) writes.push({ key: STORAGE_KEY, data: rules });
+  if (selected.includes("incomeInput")) writes.push({ key: INCOME_STORAGE_KEY, data: monthlyIncome });
+  if (selected.includes("products")) writes.push({ key: PRODUCT_STORAGE_KEY, data: products.map(normalizeProduct) });
+  if (selected.includes("ipoRecords")) writes.push({ key: IPO_STORAGE_KEY, data: ipoRecords.map(normalizeIpoRecord) });
+  if (selected.includes("recurringDefinitions")) writes.push({ key: RECURRING_STORAGE_KEY, data: recurringExpenses.map(normalizeRecurringExpense) });
+  if (selected.includes("calendarMemos")) writes.push({ key: CALENDAR_MEMO_STORAGE_KEY, data: normalizeCalendarMemos(calendarMemos) });
+  if (selected.includes("goalPlan")) writes.push({ key: GOAL_PLAN_STORAGE_KEY, data: GoalPlannerCore.normalizePlan(goalPlan) });
+  if (selected.includes("settings")) writes.push({ key: SETTINGS_STORAGE_KEY, data: appSettings });
+  return safeSaveMany(writes);
 }
 
 function restoreTransactionSections(bundle, scopes, mode) {
@@ -548,13 +570,13 @@ function mergeTransactionsByRestoreSignature(existing, incoming) {
   const records = existing.map(normalizeStoredTransaction);
   const seenKeys = new Set(records.map((item) => item.recordKey));
   const seenTransactionIds = new Set(records.map((item) => item.transactionId).filter(Boolean));
-  const seenSignatures = new Set(records.map(transactionRestoreSignature));
+  const seenSignatures = new Set(records.map(transactionRestoreSignature).filter(Boolean));
   incoming.map(normalizeStoredTransaction).forEach((item) => {
     const signature = transactionRestoreSignature(item);
-    if (seenKeys.has(item.recordKey) || (item.transactionId && seenTransactionIds.has(item.transactionId)) || seenSignatures.has(signature)) return;
+    if (seenKeys.has(item.recordKey) || (item.transactionId && seenTransactionIds.has(item.transactionId)) || (signature && seenSignatures.has(signature))) return;
     seenKeys.add(item.recordKey);
     if (item.transactionId) seenTransactionIds.add(item.transactionId);
-    seenSignatures.add(signature);
+    if (signature) seenSignatures.add(signature);
     records.push(item);
   });
   records.sort((a, b) =>
@@ -569,6 +591,8 @@ function transactionRestoreSignature(item) {
   if (section === "recurringPostedTransactions" && normalized.recurringId) {
     return `${section}|${normalized.recurringId}|${normalized.month}`;
   }
+  // 날짜·사용처·금액만으로는 별개의 결제를 구분할 수 없다.
+  if (!normalized.approvalNo || !normalized.cardNumber) return "";
   return [
     section,
     normalized.flow,
@@ -576,7 +600,9 @@ function transactionRestoreSignature(item) {
     normalized.approvalTime,
     normalizeKeyText(normalized.merchant),
     normalized.amount,
-    normalized.approvalNo
+    normalized.approvalNo,
+    normalized.cardNumber,
+    normalized.cancel
   ].join("|");
 }
 

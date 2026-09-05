@@ -1288,8 +1288,14 @@ async function saveCalendarTransactionEdit(recordKey, form) {
 
   const assignment = normalizeCategoryAssignment(sector, subcategory, merchant);
   const validInstallment = installmentEnabled && installmentMonthCount > 1;
-  await createAutoSnapshot("소비 달력 거래 수정 전");
-  transactions[index] = normalizeStoredTransaction({
+  try {
+    await createAutoSnapshot("소비 달력 거래 수정 전");
+  } catch (error) {
+    alert("수정 전 백업을 저장하지 못했습니다. 입력 내용을 유지한 상태에서 다시 시도해주세요.");
+    return;
+  }
+  const nextTransactions = transactions.slice();
+  nextTransactions[index] = normalizeStoredTransaction({
     ...transactions[index],
     approvalDate: date,
     month: monthKey(date),
@@ -1310,14 +1316,26 @@ async function saveCalendarTransactionEdit(recordKey, form) {
     recordKey
   });
 
+  const nextReimbursements = { ...reimbursements };
   const normalizedReimbursement = Math.min(amount, reimbursement);
-  if (normalizedReimbursement > 0) reimbursements[recordKey] = normalizedReimbursement;
-  else delete reimbursements[recordKey];
+  if (normalizedReimbursement > 0) nextReimbursements[recordKey] = normalizedReimbursement;
+  else delete nextReimbursements[recordKey];
 
+  const nextRules = rules.slice();
   const ruleResult = form.elements.saveRule.checked
-    ? addCalendarRuleFromTransaction(merchant, assignment.sector, assignment.subcategory)
+    ? addCalendarRuleFromTransaction(merchant, assignment.sector, assignment.subcategory, nextRules)
     : { message: "" };
 
+  const writes = [
+    { key: RECORD_STORAGE_KEY, data: nextTransactions.map(normalizeStoredTransaction), protectIncomeRecords: true },
+    { key: REIMBURSEMENT_STORAGE_KEY, data: nextReimbursements }
+  ];
+  if (ruleResult.added) writes.push({ key: STORAGE_KEY, data: nextRules });
+  if (!await safeSaveMany(writes)) return;
+
+  transactions = nextTransactions;
+  reimbursements = nextReimbursements;
+  if (ruleResult.added) rules = nextRules;
   selectedCalendarMonth = monthKey(date);
   setSharedSelectedMonth(selectedCalendarMonth, { syncControls: false });
   selectedCalendarDate = date;
@@ -1327,19 +1345,16 @@ async function saveCalendarTransactionEdit(recordKey, form) {
     message: `거래를 저장했습니다.${ruleResult.message ? ` ${ruleResult.message}` : ""}`
   };
 
-  await saveTransactions();
-  await saveReimbursements();
-  if (ruleResult.added) await saveRules();
   reclassify();
 }
 
-function addCalendarRuleFromTransaction(merchant, sector, subcategory) {
+function addCalendarRuleFromTransaction(merchant, sector, subcategory, targetRules = rules) {
   const keyword = String(merchant || "").trim();
   if (!keyword || ["미분류", "수입", "제외"].includes(sector)) {
     return { added: false, message: "분류 규칙은 저장하지 않았습니다.", warning: true };
   }
   const normalizedKeyword = normalizeKeyText(keyword);
-  const existing = rules.find((rule) =>
+  const existing = targetRules.find((rule) =>
     rule.keywords.some((candidate) => normalizeKeyText(candidate) === normalizedKeyword)
   );
   if (existing) {
@@ -1352,7 +1367,7 @@ function addCalendarRuleFromTransaction(merchant, sector, subcategory) {
         : `이미 ${existing.sector} / ${existing.subcategory} 규칙에 같은 키워드가 있어 규칙은 추가하지 않았습니다.`
     };
   }
-  rules.push({
+  targetRules.push({
     sector,
     subcategory,
     keywords: [keyword],

@@ -1516,15 +1516,26 @@ async function handleRecurringReviewSubmit(event) {
   const id = els.recurringReviewItemId.value;
   const original = recurringExpenses.find((item) => item.id === id && item.recurringType !== "loan");
   if (!original) return;
-  await createAutoSnapshot("고정 지출 점검 저장 전");
+  try {
+    await createAutoSnapshot("고정 지출 점검 저장 전");
+  } catch (error) {
+    recurringReviewFeedback = "수정 전 백업을 저장하지 못했습니다. 입력 내용을 유지한 상태에서 다시 시도해주세요.";
+    els.recurringReviewFeedback.textContent = recurringReviewFeedback;
+    return;
+  }
   const updated = normalizeRecurringExpense({
     ...original,
     reviewStatus: els.recurringReviewStatus.value,
     nextReviewDate: els.recurringReviewNextDate.value,
     updatedAt: new Date().toISOString()
   });
-  recurringExpenses = recurringExpenses.map((item) => item.id === id ? updated : item);
-  await saveRecurringExpenses();
+  const nextExpenses = recurringExpenses.map((item) => item.id === id ? updated : item);
+  if (!await safeSave(RECURRING_STORAGE_KEY, nextExpenses.map(normalizeRecurringExpense))) {
+    recurringReviewFeedback = "점검 상태를 저장하지 못했습니다. 입력 내용을 유지한 상태에서 다시 시도해주세요.";
+    els.recurringReviewFeedback.textContent = recurringReviewFeedback;
+    return;
+  }
+  recurringExpenses = nextExpenses;
   recurringReviewFeedback = "점검 상태를 저장했습니다.";
   renderAll();
 }
