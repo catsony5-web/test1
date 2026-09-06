@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-09-06T12:47:53.814Z",
+  "updatedAt": "2026-09-06T13:23:21.661Z",
   "checkedDate": "2026-09-06",
   "coverage": {
     "kindCount": 160,
@@ -931,7 +931,7 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "d3f89fcc5581f9b46e22",
-      "changeStatus": "new",
+      "changeStatus": "unchanged",
       "changes": []
     },
     {
@@ -972,7 +972,7 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "7eabc313ce5bd9fccbe5",
-      "changeStatus": "new",
+      "changeStatus": "unchanged",
       "changes": []
     },
     {
@@ -1013,7 +1013,7 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "f494e9c970415dc387f2",
-      "changeStatus": "new",
+      "changeStatus": "unchanged",
       "changes": []
     },
     {
@@ -1054,7 +1054,7 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "aa6923ee7ce4e00e22ca",
-      "changeStatus": "new",
+      "changeStatus": "unchanged",
       "changes": []
     },
     {
@@ -1189,7 +1189,7 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "08d790387917edb3d1f6",
-      "changeStatus": "new",
+      "changeStatus": "unchanged",
       "changes": []
     },
     {
@@ -1232,7 +1232,7 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "acc7b835f944515b47d5",
-      "changeStatus": "new",
+      "changeStatus": "unchanged",
       "changes": []
     },
     {
@@ -1273,7 +1273,7 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "fee30db320bdc5d1e124",
-      "changeStatus": "new",
+      "changeStatus": "unchanged",
       "changes": []
     },
     {
@@ -1314,7 +1314,7 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "35a80f5a690a70d54337",
-      "changeStatus": "new",
+      "changeStatus": "unchanged",
       "changes": []
     },
     {
@@ -1355,7 +1355,7 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "2c56d62cb366b733b24b",
-      "changeStatus": "new",
+      "changeStatus": "unchanged",
       "changes": []
     },
     {
@@ -1396,7 +1396,7 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "17f5e30989fd70fbbbc7",
-      "changeStatus": "new",
+      "changeStatus": "unchanged",
       "changes": []
     },
     {
@@ -1437,7 +1437,7 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "4e65ebd2beb1c4d38b06",
-      "changeStatus": "new",
+      "changeStatus": "unchanged",
       "changes": []
     },
     {
@@ -1478,7 +1478,7 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "ec2faf0da0b516f8a2c5",
-      "changeStatus": "new",
+      "changeStatus": "unchanged",
       "changes": []
     },
     {
@@ -1519,7 +1519,7 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "f884700b90a73d8dad48",
-      "changeStatus": "new",
+      "changeStatus": "unchanged",
       "changes": []
     },
     {
@@ -1560,7 +1560,7 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "258ea2756d1fcf8fc45c",
-      "changeStatus": "new",
+      "changeStatus": "unchanged",
       "changes": []
     }
   ]
