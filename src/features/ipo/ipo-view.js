@@ -985,7 +985,7 @@ function buildIpoRecordCalendarEvents(item) {
 }
 
 function buildIpoScheduleCalendarEvents(item) {
-  const statusSuffix = item.status === "cancelled" ? " 취소" : "";
+  const statusSuffix = item.status === "cancelled" ? " 취소" : ipoScheduleNeedsReview(item) ? " 확인 필요" : "";
   return [
     item.subscriptionStart ? { key: "subscriptionStart", date: item.subscriptionStart, type: `청약 시작${statusSuffix}`, item, publicSchedule: true } : null,
     item.subscriptionEnd ? { key: "subscriptionEnd", date: item.subscriptionEnd, type: `청약 마감${statusSuffix}`, item, publicSchedule: true } : null,
@@ -1062,7 +1062,7 @@ function renderIpoCalendarDetailList(dayEvents, selectedEvent) {
         <button class="${isSelectedIpoCalendarEvent(event) || event === selectedEvent ? "selected" : ""}" type="button" data-ipo-calendar-date="${escapeHtml(event.date)}" data-ipo-calendar-record="${escapeHtml(event.item.id)}" data-ipo-calendar-event="${escapeHtml(event.key)}">
           <span>${escapeHtml(event.type)}</span>
           <strong>${escapeHtml(event.item.company)}</strong>
-          <small>${escapeHtml([event.item.broker || "증권사 미입력", event.publicSchedule ? "KRX 공개" : "내 기록"].join(" · "))}</small>
+          <small>${escapeHtml([event.item.broker || "증권사 미입력", event.publicSchedule ? event.item.sourceName : "내 기록"].join(" · "))}</small>
         </button>
       `).join("")}
     </div>
@@ -1135,11 +1135,11 @@ function renderIpoPublicScheduleDetail(event) {
     <article class="ipo-calendar-selected-card public-schedule-card">
       <div class="ipo-calendar-selected-head">
         <div>
-          <span class="ipo-event-type">KRX 공개 일정</span>
+          <span class="ipo-event-type">${escapeHtml(item.sourceName)} 공개 일정</span>
           <h4>${escapeHtml(item.company)}</h4>
           <p>${escapeHtml([item.market, ipoScheduleStatusLabel(item)].filter(Boolean).join(" · "))}</p>
         </div>
-        <button type="button" data-add-ipo-schedule="${escapeHtml(item.sourceId)}">내 기록에 추가</button>
+        <button type="button" data-add-ipo-schedule="${escapeHtml(item.sourceId)}" ${item.status !== "scheduled" || ipoScheduleNeedsReview(item) ? "disabled" : ""}>내 기록에 추가</button>
       </div>
       <dl class="ipo-calendar-detail-grid">
         ${detailRows.map(([label, value]) => `
@@ -1151,8 +1151,9 @@ function renderIpoPublicScheduleDetail(event) {
       </dl>
       <div class="ipo-public-source-row">
         <span>개인 배정·매도 정보와 분리된 공개 참고 일정입니다.</span>
-        ${item.sourceUrl ? `<a href="${escapeHtml(item.sourceUrl)}" target="_blank" rel="noopener noreferrer">KIND 원문 보기 <i class="ti ti-world-www" aria-hidden="true"></i></a>` : ""}
+        ${renderIpoScheduleSources(item)}
       </div>
+      ${renderIpoScheduleReviewNotes(item)}
     </article>
   `;
 }
@@ -1635,7 +1636,7 @@ async function loadIpoCalendarCandidates(options = {}) {
   if (!els.ipoCalendarStatus) return;
   const silent = options?.silent === true;
   const button = els.loadIpoCalendarButton;
-  if (!silent) els.ipoCalendarStatus.textContent = "KRX 공개 일정을 새로 확인하는 중입니다.";
+  if (!silent) els.ipoCalendarStatus.textContent = "공식 공개 일정을 새로 확인하는 중입니다.";
   if (button) {
     button.disabled = true;
     button.setAttribute("aria-busy", "true");
@@ -1690,8 +1691,15 @@ function normalizeIpoScheduleItem(item) {
     changes: Array.isArray(item?.changes) ? item.changes : [],
     fingerprint: String(item?.fingerprint || "").trim(),
     sourceName: String(item?.sourceName || ipoCalendarPayload?.source?.name || "KRX KIND"),
-    sourceUrl: String(item?.sourceUrl || "").trim(),
-    sourceUpdatedAt: String(item?.sourceUpdatedAt || ipoCalendarPayload?.updatedAt || "").trim()
+    sourceUrl: /^https?:\/\//i.test(String(item?.sourceUrl || "").trim()) ? String(item.sourceUrl).trim() : "",
+    sourceUpdatedAt: String(item?.sourceUpdatedAt || ipoCalendarPayload?.updatedAt || "").trim(),
+    aliases: Array.isArray(item?.aliases) ? item.aliases.map(String) : [],
+    sources: (Array.isArray(item?.sources) ? item.sources : []).filter((source) => /^https:\/\//i.test(String(source?.url || ""))).map((source) => ({ name: String(source.name || "공식 자료"), url: String(source.url), checkedDate: String(source.checkedDate || "") })),
+    conflicts: Array.isArray(item?.conflicts) ? item.conflicts : [],
+    reviewNotes: Array.isArray(item?.reviewNotes) ? item.reviewNotes.map(String) : [],
+    reportedOfferPrice: Math.max(0, toNumber(item?.reportedOfferPrice)),
+    offerPriceLow: Math.max(0, toNumber(item?.offerPriceLow)),
+    offerPriceHigh: Math.max(0, toNumber(item?.offerPriceHigh))
   };
 }
 
@@ -1699,20 +1707,20 @@ function getIpoScheduleReviews() {
   return ipoCalendarCandidates.map((schedule) => {
     const record = findIpoRecordForSchedule(schedule);
     const differences = record ? getIpoScheduleDifferences(record, schedule) : [];
-    const sourceNeedsReview = ["cancelled", "unavailable"].includes(schedule.status);
+    const sourceNeedsReview = ["cancelled", "unavailable"].includes(schedule.status) || ipoScheduleNeedsReview(schedule);
     const state = sourceNeedsReview ? "review" : !record ? "new" : differences.length ? "changed" : "synced";
     return {
       schedule,
       record,
       differences,
       state,
-      actionable: Boolean(record) && (differences.length > 0 || sourceNeedsReview)
+      actionable: Boolean(record) && !ipoScheduleNeedsReview(schedule) && (differences.length > 0 || sourceNeedsReview)
     };
   });
 }
 
 function findIpoRecordForSchedule(schedule) {
-  const direct = ipoRecords.find((record) => record.scheduleId && record.scheduleId === schedule.sourceId);
+  const direct = ipoRecords.find((record) => record.scheduleId && (record.scheduleId === schedule.sourceId || schedule.aliases?.includes(record.scheduleId)));
   if (direct) return direct;
   const companyKey = normalizeKeyText(schedule.company);
   const legacyMatches = ipoRecords.filter((record) =>
@@ -1726,6 +1734,7 @@ function findIpoRecordForSchedule(schedule) {
 function getIpoScheduleDifferences(record, schedule) {
   const differences = IPO_SCHEDULE_MANAGED_FIELDS.flatMap((field) => {
     const incoming = schedule[field.source];
+    if (incoming === "" || incoming === null || incoming === undefined) return [];
     if (field.requireValue && !incoming) return [];
     if (field.local === "broker" && record.broker) return [];
     const current = record[field.local];
@@ -1749,7 +1758,7 @@ function renderIpoCalendarCandidates() {
   syncIpoScheduleSelection(reviews);
   renderIpoScheduleSummary(reviews);
   if (!reviews.length) {
-    els.ipoCalendarCandidates.innerHTML = `<div class="empty compact-empty">현재 조회 범위에 표시할 KRX 공개 일정이 없습니다.</div>`;
+    els.ipoCalendarCandidates.innerHTML = `<div class="empty compact-empty">현재 조회 범위에 표시할 공식 공개 일정이 없습니다.</div>`;
     syncIpoScheduleActionButtons(reviews);
     return;
   }
@@ -1780,11 +1789,12 @@ function renderIpoScheduleReview(review) {
         </div>
         ${differences.length ? `<dl class="ipo-schedule-diffs">${differences.map(renderIpoScheduleDifference).join("")}</dl>` : ""}
         ${record && state === "synced" ? `<small>내 기록 ${escapeHtml(record.company)}과 최신 일정이 일치합니다.</small>` : ""}
+        ${renderIpoScheduleReviewNotes(schedule)}
+        <div class="ipo-public-source-row">${renderIpoScheduleSources(schedule)}</div>
       </div>
       <div class="ipo-schedule-review-actions">
         ${canAdd ? `<button type="button" data-add-ipo-schedule="${escapeHtml(schedule.sourceId)}">내 기록에 추가</button>` : ""}
         ${actionable ? `<button type="button" data-apply-ipo-schedule="${escapeHtml(schedule.sourceId)}">이 변경 반영</button>` : ""}
-        ${schedule.sourceUrl ? `<a href="${escapeHtml(schedule.sourceUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(schedule.company)} KIND 원문 보기"><i class="ti ti-world-www" aria-hidden="true"></i></a>` : ""}
       </div>
     </article>
   `;
@@ -1848,7 +1858,7 @@ function toggleIpoScheduleSelection() {
 
 async function addIpoScheduleToRecords(sourceId) {
   const schedule = ipoCalendarCandidates.find((item) => item.sourceId === sourceId);
-  if (!schedule || schedule.status !== "scheduled") return;
+  if (!schedule || schedule.status !== "scheduled" || ipoScheduleNeedsReview(schedule)) return;
   const existing = findIpoRecordForSchedule(schedule);
   if (existing) {
     els.ipoCalendarStatus.textContent = `${schedule.company}은(는) 이미 내 기록에 연결되어 있습니다.`;
@@ -1869,7 +1879,7 @@ async function addIpoScheduleToRecords(sourceId) {
     allocationResult: "pending",
     calculationVersion: "quantity-v2",
     source: "calendar",
-    sourceLabel: "KRX 공개 일정",
+    sourceLabel: `${schedule.sourceName} 공개 일정`,
     scheduleId: schedule.sourceId,
     scheduleFingerprint: schedule.fingerprint,
     scheduleStatus: schedule.status,
@@ -1894,6 +1904,7 @@ async function applyIpoScheduleUpdates(sourceIds) {
     const next = { ...record };
     IPO_SCHEDULE_MANAGED_FIELDS.forEach((field) => {
       const incoming = review.schedule[field.source];
+      if (incoming === "" || incoming === null || incoming === undefined) return;
       if (field.requireValue && !incoming) return;
       if (field.local === "broker" && record.broker) return;
       next[field.local] = incoming;
@@ -1924,16 +1935,36 @@ function renderIpoCalendarSyncMeta() {
   const sourceName = ipoCalendarPayload.source?.name || "KRX KIND";
   const rangeLabel = ipoCalendarPayload.range?.label || "최근 일정";
   const updated = formatIpoSyncTimestamp(ipoCalendarPayload.updatedAt);
-  els.ipoCalendarSyncMeta.innerHTML = `<span><i class="ti ti-database" aria-hidden="true"></i>${escapeHtml(sourceName)} · ${escapeHtml(rangeLabel)}</span><span>데이터 변경 ${escapeHtml(updated)}</span><span>공개 일정은 투자 참고용이며 실제 일정은 달라질 수 있습니다.</span>`;
+  const unresolved = ipoCalendarPayload.coverage?.unresolved?.length || 0;
+  els.ipoCalendarSyncMeta.innerHTML = `<span><i class="ti ti-database" aria-hidden="true"></i>${escapeHtml(sourceName)} · ${escapeHtml(rangeLabel)}</span><span>자료 갱신 ${escapeHtml(updated)}</span><span>공식 자료도 반영 지연·누락이 있을 수 있습니다. 청약 전 주관사 안내를 확인하세요.${unresolved ? ` DART 후보 ${unresolved}곳은 상세 자료 확인 대기 중입니다.` : ""}</span>`;
+}
+
+function ipoScheduleNeedsReview(schedule) {
+  return Boolean(schedule?.conflicts?.length || schedule?.reviewNotes?.length);
+}
+
+function renderIpoScheduleSources(schedule) {
+  const sources = schedule.sources?.length ? schedule.sources : schedule.sourceUrl ? [{ name: schedule.sourceName || "공식 자료", url: schedule.sourceUrl }] : [];
+  return sources.map((source) => `<a href="${escapeHtml(source.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(source.name)} 원문${source.checkedDate ? ` · 확인 ${escapeHtml(source.checkedDate)}` : ""}</a>`).join(" ");
+}
+
+function renderIpoScheduleReviewNotes(schedule) {
+  const conflicts = (schedule.conflicts || []).map((conflict) => `${conflict.label}: ${(conflict.values || []).map((entry) => `${entry.source} ${entry.value}`).join(" / ")}`);
+  const notes = [...conflicts, ...(schedule.reviewNotes || [])];
+  return notes.length ? `<p class="ipo-schedule-state review">확인 필요 · ${notes.map(escapeHtml).join(" · ")} · 자동 반영하지 않습니다.</p>` : "";
 }
 
 function renderIpoSchedulePrice(schedule) {
-  return Number(schedule?.offerPrice || 0) > 0 ? formatWon(schedule.offerPrice) : "공모가 확정 전";
+  if (Number(schedule?.offerPrice || 0) > 0) return `확정 ${formatWon(schedule.offerPrice)}`;
+  if (schedule?.offerPriceLow && schedule?.offerPriceHigh) return `희망 ${formatWon(schedule.offerPriceLow)}~${formatWon(schedule.offerPriceHigh)}`;
+  if (schedule?.reportedOfferPrice) return `신고서 기재 ${formatWon(schedule.reportedOfferPrice)} · 확정 전`;
+  return "공모가 확정 전";
 }
 
 function ipoScheduleStatusLabel(schedule) {
   if (schedule?.status === "cancelled") return "취소/철회";
   if (schedule?.status === "unavailable") return "출처 확인 필요";
+  if (ipoScheduleNeedsReview(schedule)) return "공식 자료 확인 필요";
   return schedule?.priceStatus === "confirmed" ? "공모가 확정" : "일정 예정";
 }
 

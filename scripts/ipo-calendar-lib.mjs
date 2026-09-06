@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { ipoCompanyKey } from "./ipo-dart.mjs";
 
 const KIND_DETAIL_BASE_URL = "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do";
 const SCHEDULE_FIELDS = [
@@ -67,6 +68,48 @@ export function parseKindTotalCount(html) {
   return Number(value.replace(/,/g, "")) || 0;
 }
 
+export function combineOfficialSchedules(kindItems, dartItems, supplements, previousItems, checkedDate) {
+  const combined = kindItems.map((item) => ({ ...item, aliases: [item.sourceId], sources: [{ name: "KRX KIND", url: item.sourceUrl, checkedDate }], conflicts: [], reviewNotes: [] }));
+  for (const incoming of [...dartItems, ...supplements]) {
+    if (!incoming.sourceId || !incoming.company || !/^https:\/\//.test(incoming.sourceUrl || "")) throw new Error("Official supplement must have an identity and HTTPS source.");
+    const matches = combined.filter((item) => ipoCompanyKey(item.company) === ipoCompanyKey(incoming.company));
+    if (matches.length > 1) throw new Error("Ambiguous IPO identity; previous snapshot retained.");
+    const target = matches[0];
+    if (!target) {
+      combined.push({ ...incoming, aliases: [incoming.sourceId], sources: incoming.sources || [{ name: incoming.sourceName, url: incoming.sourceUrl, checkedDate }], conflicts: [], reviewNotes: incoming.reviewNotes || [] });
+      continue;
+    }
+    target.aliases.push(incoming.sourceId);
+    target.sources.push(...(incoming.sources || [{ name: incoming.sourceName, url: incoming.sourceUrl, checkedDate }]));
+    for (const field of ["subscriptionStart", "subscriptionEnd", "paymentDate", "listingDate", "offerPrice"]) {
+      if (target[field] && incoming[field] && target[field] !== incoming[field]) {
+        target.conflicts.push({ field, label: SCHEDULE_FIELDS.find(([key]) => key === field)?.[1] || field, values: [
+          { source: target.sourceName, value: target[field] }, { source: incoming.sourceName, value: incoming[field] }
+        ] });
+      }
+    }
+    for (const [field] of SCHEDULE_FIELDS) if (!target[field] && incoming[field]) target[field] = incoming[field];
+    target.corpCode ||= incoming.corpCode || "";
+    target.reportedOfferPrice ||= incoming.reportedOfferPrice || 0;
+    target.offerPriceLow ||= incoming.offerPriceLow || 0;
+    target.offerPriceHigh ||= incoming.offerPriceHigh || 0;
+    target.reviewNotes.push(...(incoming.reviewNotes || []));
+    if (incoming.status === "cancelled") target.status = "cancelled";
+    target.priceStatus = target.offerPrice > 0 ? "confirmed" : "pending";
+    target.sourceName = [...new Set(target.sources.map((source) => source.name))].join(" + ");
+  }
+  return combined.map((item) => {
+    const previous = previousItems.find((entry) => entry.sourceId === item.sourceId
+      || item.aliases.includes(entry.sourceId) || (entry.corpCode && entry.corpCode === item.corpCode));
+    // Keep the ID already used by personal records when another source adds the company.
+    if (previous) {
+      item.aliases = [...new Set([...item.aliases, ...(previous.aliases || []), previous.sourceId])];
+      item.sourceId = previous.sourceId;
+    }
+    return item;
+  });
+}
+
 export function mergeScheduleSnapshot(currentItems, previousItems, options = {}) {
   const now = options.now || new Date().toISOString();
   const rangeStart = options.rangeStart || "0000-01-01";
@@ -117,6 +160,13 @@ export function scheduleFingerprint(item) {
   const canonical = Object.fromEntries(SCHEDULE_FIELDS.map(([key]) => [key, normalizeComparableValue(item?.[key])]));
   canonical.status = String(item?.status || "scheduled");
   canonical.priceStatus = String(item?.priceStatus || "pending");
+  canonical.corpCode = item.corpCode || "";
+  canonical.reportedOfferPrice = item.reportedOfferPrice || 0;
+  canonical.offerPriceLow = item.offerPriceLow || 0;
+  canonical.offerPriceHigh = item.offerPriceHigh || 0;
+  canonical.sources = (item.sources || []).map(({ name, url, reportDate }) => ({ name, url, reportDate }));
+  canonical.conflicts = item.conflicts || [];
+  canonical.reviewNotes = item.reviewNotes || [];
   return createHash("sha256").update(JSON.stringify(canonical)).digest("hex").slice(0, 20);
 }
 
@@ -164,7 +214,15 @@ function normalizeScheduleItem(item) {
     sourceName: String(item?.sourceName || "KRX KIND"),
     sourceUrl: String(item?.sourceUrl || ""),
     sourceUpdatedAt: String(item?.sourceUpdatedAt || ""),
-    missingSince: String(item?.missingSince || "")
+    missingSince: String(item?.missingSince || ""),
+    corpCode: String(item?.corpCode || ""),
+    aliases: Array.isArray(item?.aliases) ? item.aliases.map(String) : [],
+    sources: Array.isArray(item?.sources) ? item.sources : [],
+    conflicts: Array.isArray(item?.conflicts) ? item.conflicts : [],
+    reviewNotes: Array.isArray(item?.reviewNotes) ? item.reviewNotes : [],
+    reportedOfferPrice: Math.max(0, Number(item?.reportedOfferPrice || 0)),
+    offerPriceLow: Math.max(0, Number(item?.offerPriceLow || 0)),
+    offerPriceHigh: Math.max(0, Number(item?.offerPriceHigh || 0))
   };
 }
 

@@ -6,8 +6,11 @@ import {
   monthWindow,
   parseKindIpoHtml,
   parseKindTotalCount,
-  semanticScheduleSnapshot
+  semanticScheduleSnapshot,
+  combineOfficialSchedules
 } from "./ipo-calendar-lib.mjs";
+import { createDartClient, fetchDartSchedules } from "./ipo-dart.mjs";
+import { officialIpoSupplements } from "./ipo-official-supplements.mjs";
 
 const KIND_LIST_URL = "https://kind.krx.co.kr/listinvstg/pubofrprogcom.do";
 const KIND_MAIN_URL = `${KIND_LIST_URL}?method=searchPubofrProgComMain`;
@@ -22,7 +25,11 @@ async function main() {
   const fetched = await fetchAllKindSchedules(window.queryStart, window.queryEnd);
   if (!fetched.length) throw new Error("KRX KIND returned no IPO schedule rows; keeping the previous snapshot.");
 
-  const items = mergeScheduleSnapshot(fetched, previous.items, {
+  const checkedDate = now.toISOString().slice(0, 10);
+  const dart = await fetchDartSchedules({ request: createDartClient(process.env.DART_API_KEY), window, kindItems: fetched, previousItems: previous.items, checkedDate });
+  const combined = combineOfficialSchedules(fetched, dart.items, officialIpoSupplements, previous.items, checkedDate);
+
+  const items = mergeScheduleSnapshot(combined, previous.items, {
     now: now.toISOString(),
     rangeStart: window.rangeStart,
     rangeEnd: window.rangeEnd
@@ -31,18 +38,20 @@ async function main() {
 
   const previousSemantic = semanticScheduleSnapshot(previous.items);
   const nextSemantic = semanticScheduleSnapshot(items);
-  if (JSON.stringify(previousSemantic) === JSON.stringify(nextSemantic)) {
+  if (JSON.stringify(previousSemantic) === JSON.stringify(nextSemantic) && previous.checkedDate === checkedDate) {
     console.log(`IPO schedule unchanged (${items.length} items).`);
     return;
   }
 
   const payload = {
-    schemaVersion: 2,
+    schemaVersion: 3,
     updatedAt: now.toISOString(),
+    checkedDate,
+    coverage: { kindCount: fetched.length, dartCount: dart.items.length, dartCheckedCompanies: dart.checkedCompanies, unresolved: dart.unresolved },
     source: {
-      name: "KRX KIND",
+      name: "KRX KIND + DART",
       url: KIND_MAIN_URL,
-      notice: "상장주선인 제공 자료로 실제 일정은 변경되거나 지연될 수 있습니다."
+      notice: "공식 자료를 대조한 참고 일정입니다. 자료 반영 지연·누락 및 정정이 있을 수 있으며 청약 전 주관사 안내를 확인하세요."
     },
     range: {
       from: window.rangeStart,
@@ -69,7 +78,9 @@ async function fetchAllKindSchedules(fromDate, toDate) {
     items.push(...parseKindIpoHtml(await fetchKindPage(page, fromDate, toDate)));
   }
 
-  return [...new Map(items.map((item) => [item.sourceId, item])).values()];
+  const unique = [...new Map(items.map((item) => [item.sourceId, item])).values()];
+  if (unique.length !== total) throw new Error("KRX KIND row count mismatch; previous snapshot retained.");
+  return unique;
 }
 
 async function fetchKindPage(pageIndex, fromDate, toDate) {
