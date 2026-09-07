@@ -1,11 +1,11 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-09-07T00:26:28.401Z",
+  "updatedAt": "2026-09-07T08:53:42.360Z",
   "checkedDate": "2026-09-07",
   "coverage": {
     "kindCount": 160,
-    "dartCount": 172,
-    "dartCheckedCompanies": 179,
+    "dartCount": 173,
+    "dartCheckedCompanies": 180,
     "unresolved": []
   },
   "source": {
@@ -18,7 +18,7 @@
     "to": "2027-09-30",
     "label": "최근 3개월 · 향후 12개월"
   },
-  "itemCount": 34,
+  "itemCount": 35,
   "items": [
     {
       "sourceId": "20260106000356",
@@ -897,7 +897,7 @@
       "sourceId": "dart-01876251",
       "company": "네오사피엔스",
       "market": "상장시장 확인 필요",
-      "filingDate": "2026-09-02",
+      "filingDate": "2026-09-07",
       "bookbuildingStart": "",
       "bookbuildingEnd": "",
       "subscriptionStart": "2026-09-10",
@@ -910,8 +910,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260902000207",
-      "sourceUpdatedAt": "2026-09-06T12:47:53.814Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260907000079",
+      "sourceUpdatedAt": "2026-09-07T08:53:42.360Z",
       "missingSince": "",
       "corpCode": "01876251",
       "aliases": [
@@ -920,9 +920,9 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260902000207",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260907000079",
           "checkedDate": "2026-09-07",
-          "reportDate": "20260902"
+          "reportDate": "20260907"
         }
       ],
       "conflicts": [],
@@ -930,7 +930,7 @@
       "reportedOfferPrice": 13800,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "d3f89fcc5581f9b46e22",
+      "fingerprint": "4f52bc6ec9371a282f75",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -1440,6 +1440,47 @@
       "offerPriceHigh": 0,
       "fingerprint": "4e65ebd2beb1c4d38b06",
       "changeStatus": "unchanged",
+      "changes": []
+    },
+    {
+      "sourceId": "dart-01749559",
+      "company": "엠에스바이오",
+      "market": "상장시장 확인 필요",
+      "filingDate": "2026-09-07",
+      "bookbuildingStart": "",
+      "bookbuildingEnd": "",
+      "subscriptionStart": "2026-10-12",
+      "subscriptionEnd": "2026-10-13",
+      "paymentDate": "2026-10-15",
+      "offerPrice": 0,
+      "offeringAmountMillions": 0,
+      "listingDate": "",
+      "broker": "케이비증권",
+      "priceStatus": "pending",
+      "status": "scheduled",
+      "sourceName": "DART",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260907000305",
+      "sourceUpdatedAt": "2026-09-07T08:53:42.360Z",
+      "missingSince": "",
+      "corpCode": "01749559",
+      "aliases": [
+        "dart-01749559"
+      ],
+      "sources": [
+        {
+          "name": "DART",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260907000305",
+          "checkedDate": "2026-09-07",
+          "reportDate": "20260907"
+        }
+      ],
+      "conflicts": [],
+      "reviewNotes": [],
+      "reportedOfferPrice": 6800,
+      "offerPriceLow": 0,
+      "offerPriceHigh": 0,
+      "fingerprint": "6a2edcfca013512519cd",
+      "changeStatus": "new",
       "changes": []
     },
     {
