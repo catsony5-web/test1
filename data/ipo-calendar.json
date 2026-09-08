@@ -1,11 +1,11 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-09-08T08:34:46.317Z",
+  "updatedAt": "2026-09-08T14:07:41.866Z",
   "checkedDate": "2026-09-08",
   "coverage": {
     "kindCount": 160,
-    "dartCount": 173,
-    "dartCheckedCompanies": 180,
+    "dartCount": 174,
+    "dartCheckedCompanies": 181,
     "unresolved": []
   },
   "source": {
@@ -18,7 +18,7 @@
     "to": "2027-09-30",
     "label": "최근 3개월 · 향후 12개월"
   },
-  "itemCount": 35,
+  "itemCount": 36,
   "items": [
     {
       "sourceId": "20260106000356",
@@ -1610,6 +1610,47 @@
       "offerPriceHigh": 0,
       "fingerprint": "258ea2756d1fcf8fc45c",
       "changeStatus": "unchanged",
+      "changes": []
+    },
+    {
+      "sourceId": "dart-01835829",
+      "company": "바로팜",
+      "market": "상장시장 확인 필요",
+      "filingDate": "2026-09-08",
+      "bookbuildingStart": "",
+      "bookbuildingEnd": "",
+      "subscriptionStart": "2026-11-02",
+      "subscriptionEnd": "2026-11-03",
+      "paymentDate": "2026-11-05",
+      "offerPrice": 0,
+      "offeringAmountMillions": 0,
+      "listingDate": "",
+      "broker": "미래에셋증권",
+      "priceStatus": "pending",
+      "status": "scheduled",
+      "sourceName": "DART",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260908000417",
+      "sourceUpdatedAt": "2026-09-08T14:07:41.866Z",
+      "missingSince": "",
+      "corpCode": "01835829",
+      "aliases": [
+        "dart-01835829"
+      ],
+      "sources": [
+        {
+          "name": "DART",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260908000417",
+          "checkedDate": "2026-09-08",
+          "reportDate": "20260908"
+        }
+      ],
+      "conflicts": [],
+      "reviewNotes": [],
+      "reportedOfferPrice": 16400,
+      "offerPriceLow": 0,
+      "offerPriceHigh": 0,
+      "fingerprint": "286387fe66e91aae6f13",
+      "changeStatus": "new",
       "changes": []
     }
   ]
