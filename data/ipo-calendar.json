@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-09-08T00:46:49.903Z",
+  "updatedAt": "2026-09-08T08:34:46.317Z",
   "checkedDate": "2026-09-08",
   "coverage": {
     "kindCount": 160,
@@ -910,8 +910,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260907000079",
-      "sourceUpdatedAt": "2026-09-07T08:53:42.360Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260908000068",
+      "sourceUpdatedAt": "2026-09-08T08:34:46.317Z",
       "missingSince": "",
       "corpCode": "01876251",
       "aliases": [
@@ -920,17 +920,19 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260907000079",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260908000068",
           "checkedDate": "2026-09-08",
-          "reportDate": "20260907"
+          "reportDate": "20260908"
         }
       ],
       "conflicts": [],
-      "reviewNotes": [],
+      "reviewNotes": [
+        "최신 공시와 구조화 자료의 접수번호가 다릅니다. 정정 내용을 확인하세요."
+      ],
       "reportedOfferPrice": 13800,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "4f52bc6ec9371a282f75",
+      "fingerprint": "bf5cb304adceb3a83077",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -951,8 +953,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260907000018",
-      "sourceUpdatedAt": "2026-09-07T00:26:28.401Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260908000183",
+      "sourceUpdatedAt": "2026-09-08T08:34:46.317Z",
       "missingSince": "",
       "corpCode": "02032155",
       "aliases": [
@@ -961,9 +963,9 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260907000018",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260908000183",
           "checkedDate": "2026-09-08",
-          "reportDate": "20260907"
+          "reportDate": "20260908"
         }
       ],
       "conflicts": [],
@@ -973,7 +975,7 @@
       "reportedOfferPrice": 2000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "308ebd7d5768afc382c2",
+      "fingerprint": "e84bcf781f758fc40d4c",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -994,8 +996,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260828000997",
-      "sourceUpdatedAt": "2026-09-06T12:47:53.814Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260908000110",
+      "sourceUpdatedAt": "2026-09-08T08:34:46.317Z",
       "missingSince": "",
       "corpCode": "02029258",
       "aliases": [
@@ -1004,17 +1006,19 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260828000997",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260908000110",
           "checkedDate": "2026-09-08",
-          "reportDate": "20260828"
+          "reportDate": "20260908"
         }
       ],
       "conflicts": [],
-      "reviewNotes": [],
+      "reviewNotes": [
+        "최신 공시와 구조화 자료의 접수번호가 다릅니다. 정정 내용을 확인하세요."
+      ],
       "reportedOfferPrice": 2000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "f494e9c970415dc387f2",
+      "fingerprint": "d11e10203d1b653d442d",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -1124,7 +1128,7 @@
       "status": "scheduled",
       "sourceName": "KRX KIND + DART",
       "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20251111000317",
-      "sourceUpdatedAt": "2026-09-06T12:47:53.814Z",
+      "sourceUpdatedAt": "2026-09-08T08:34:46.317Z",
       "missingSince": "",
       "corpCode": "01564514",
       "aliases": [
@@ -1139,9 +1143,9 @@
         },
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260819000337",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260908000396",
           "checkedDate": "2026-09-08",
-          "reportDate": "20260819"
+          "reportDate": "20260908"
         }
       ],
       "conflicts": [],
@@ -1149,7 +1153,7 @@
       "reportedOfferPrice": 13000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "b4c85213d1e66f7bc0ce",
+      "fingerprint": "c29035ec9f7bace8e187",
       "changeStatus": "unchanged",
       "changes": []
     },
