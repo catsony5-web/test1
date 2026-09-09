@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-09-09T08:35:24.549Z",
+  "updatedAt": "2026-09-09T14:08:55.660Z",
   "checkedDate": "2026-09-09",
   "coverage": {
     "kindCount": 160,
@@ -1570,7 +1570,7 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "ce8a2e9d20b198a82ff2",
-      "changeStatus": "new",
+      "changeStatus": "unchanged",
       "changes": []
     },
     {
