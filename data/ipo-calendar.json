@@ -1,11 +1,11 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-09-09T00:48:16.480Z",
+  "updatedAt": "2026-09-09T08:35:24.549Z",
   "checkedDate": "2026-09-09",
   "coverage": {
     "kindCount": 160,
-    "dartCount": 174,
-    "dartCheckedCompanies": 181,
+    "dartCount": 175,
+    "dartCheckedCompanies": 182,
     "unresolved": []
   },
   "source": {
@@ -18,7 +18,7 @@
     "to": "2027-09-30",
     "label": "최근 3개월 · 향후 12개월"
   },
-  "itemCount": 36,
+  "itemCount": 37,
   "items": [
     {
       "sourceId": "20260106000356",
@@ -910,8 +910,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260908000068",
-      "sourceUpdatedAt": "2026-09-08T08:34:46.317Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260909000317",
+      "sourceUpdatedAt": "2026-09-09T08:35:24.549Z",
       "missingSince": "",
       "corpCode": "01876251",
       "aliases": [
@@ -920,9 +920,9 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260908000068",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260909000317",
           "checkedDate": "2026-09-09",
-          "reportDate": "20260908"
+          "reportDate": "20260909"
         }
       ],
       "conflicts": [],
@@ -932,7 +932,7 @@
       "reportedOfferPrice": 13800,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "bf5cb304adceb3a83077",
+      "fingerprint": "f70b692be11d27255488",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -996,8 +996,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260908000110",
-      "sourceUpdatedAt": "2026-09-08T08:34:46.317Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260909000285",
+      "sourceUpdatedAt": "2026-09-09T08:35:24.549Z",
       "missingSince": "",
       "corpCode": "02029258",
       "aliases": [
@@ -1006,9 +1006,9 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260908000110",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260909000285",
           "checkedDate": "2026-09-09",
-          "reportDate": "20260908"
+          "reportDate": "20260909"
         }
       ],
       "conflicts": [],
@@ -1018,7 +1018,7 @@
       "reportedOfferPrice": 2000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "d11e10203d1b653d442d",
+      "fingerprint": "9c0c1e0a243816b63efc",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -1039,8 +1039,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260903000071",
-      "sourceUpdatedAt": "2026-09-06T12:47:53.814Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260909000118",
+      "sourceUpdatedAt": "2026-09-09T08:35:24.549Z",
       "missingSince": "",
       "corpCode": "01867688",
       "aliases": [
@@ -1049,17 +1049,19 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260903000071",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260909000118",
           "checkedDate": "2026-09-09",
-          "reportDate": "20260903"
+          "reportDate": "20260909"
         }
       ],
       "conflicts": [],
-      "reviewNotes": [],
+      "reviewNotes": [
+        "최신 공시와 구조화 자료의 접수번호가 다릅니다. 정정 내용을 확인하세요."
+      ],
       "reportedOfferPrice": 10000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "aa6923ee7ce4e00e22ca",
+      "fingerprint": "01b19fb66582c37a40f9",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -1247,7 +1249,7 @@
       "sourceId": "dart-01028933",
       "company": "멜콘",
       "market": "상장시장 확인 필요",
-      "filingDate": "2026-08-21",
+      "filingDate": "2026-09-09",
       "bookbuildingStart": "",
       "bookbuildingEnd": "",
       "subscriptionStart": "2026-10-01",
@@ -1260,8 +1262,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260821000368",
-      "sourceUpdatedAt": "2026-09-06T12:47:53.814Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260909000381",
+      "sourceUpdatedAt": "2026-09-09T08:35:24.549Z",
       "missingSince": "",
       "corpCode": "01028933",
       "aliases": [
@@ -1270,9 +1272,9 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260821000368",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260909000381",
           "checkedDate": "2026-09-09",
-          "reportDate": "20260821"
+          "reportDate": "20260909"
         }
       ],
       "conflicts": [],
@@ -1280,7 +1282,7 @@
       "reportedOfferPrice": 10700,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "fee30db320bdc5d1e124",
+      "fingerprint": "64c0048b258776d9ee57",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -1493,7 +1495,7 @@
       "sourceId": "dart-02032951",
       "company": "에스케이증권제14호기업인수목적",
       "market": "상장시장 확인 필요",
-      "filingDate": "2026-08-26",
+      "filingDate": "2026-09-09",
       "bookbuildingStart": "",
       "bookbuildingEnd": "",
       "subscriptionStart": "2026-10-15",
@@ -1506,8 +1508,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260826000506",
-      "sourceUpdatedAt": "2026-09-06T12:47:53.814Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260909000174",
+      "sourceUpdatedAt": "2026-09-09T08:35:24.549Z",
       "missingSince": "",
       "corpCode": "02032951",
       "aliases": [
@@ -1516,9 +1518,9 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260826000506",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260909000174",
           "checkedDate": "2026-09-09",
-          "reportDate": "20260826"
+          "reportDate": "20260909"
         }
       ],
       "conflicts": [],
@@ -1526,8 +1528,49 @@
       "reportedOfferPrice": 2000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "ec2faf0da0b516f8a2c5",
+      "fingerprint": "bd0ad86bf7697af4e599",
       "changeStatus": "unchanged",
+      "changes": []
+    },
+    {
+      "sourceId": "dart-01705573",
+      "company": "유캐스트",
+      "market": "상장시장 확인 필요",
+      "filingDate": "2026-09-09",
+      "bookbuildingStart": "",
+      "bookbuildingEnd": "",
+      "subscriptionStart": "2026-10-19",
+      "subscriptionEnd": "2026-10-20",
+      "paymentDate": "2026-10-22",
+      "offerPrice": 0,
+      "offeringAmountMillions": 0,
+      "listingDate": "",
+      "broker": "유진증권, 신영증권",
+      "priceStatus": "pending",
+      "status": "scheduled",
+      "sourceName": "DART",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260909000378",
+      "sourceUpdatedAt": "2026-09-09T08:35:24.549Z",
+      "missingSince": "",
+      "corpCode": "01705573",
+      "aliases": [
+        "dart-01705573"
+      ],
+      "sources": [
+        {
+          "name": "DART",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260909000378",
+          "checkedDate": "2026-09-09",
+          "reportDate": "20260909"
+        }
+      ],
+      "conflicts": [],
+      "reviewNotes": [],
+      "reportedOfferPrice": 21000,
+      "offerPriceLow": 0,
+      "offerPriceHigh": 0,
+      "fingerprint": "ce8a2e9d20b198a82ff2",
+      "changeStatus": "new",
       "changes": []
     },
     {
