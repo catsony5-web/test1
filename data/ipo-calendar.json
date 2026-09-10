@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-09-10T08:37:34.739Z",
+  "updatedAt": "2026-09-10T14:02:59.760Z",
   "checkedDate": "2026-09-10",
   "coverage": {
     "kindCount": 160,
@@ -1292,7 +1292,7 @@
       "sourceId": "dart-01158632",
       "company": "진코스텍",
       "market": "코넥스",
-      "filingDate": "2026-08-27",
+      "filingDate": "2026-09-10",
       "bookbuildingStart": "",
       "bookbuildingEnd": "",
       "subscriptionStart": "2026-10-02",
@@ -1305,8 +1305,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260827001060",
-      "sourceUpdatedAt": "2026-09-06T12:47:53.814Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260910000579",
+      "sourceUpdatedAt": "2026-09-10T14:02:59.760Z",
       "missingSince": "",
       "corpCode": "01158632",
       "aliases": [
@@ -1315,9 +1315,9 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260827001060",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260910000579",
           "checkedDate": "2026-09-10",
-          "reportDate": "20260827"
+          "reportDate": "20260910"
         }
       ],
       "conflicts": [],
@@ -1325,7 +1325,7 @@
       "reportedOfferPrice": 19500,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "35a80f5a690a70d54337",
+      "fingerprint": "f0fff2d937819afc9e5e",
       "changeStatus": "unchanged",
       "changes": []
     },
