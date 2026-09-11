@@ -1,11 +1,11 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-09-11T00:38:17.788Z",
+  "updatedAt": "2026-09-11T08:32:10.056Z",
   "checkedDate": "2026-09-11",
   "coverage": {
     "kindCount": 160,
-    "dartCount": 175,
-    "dartCheckedCompanies": 182,
+    "dartCount": 176,
+    "dartCheckedCompanies": 183,
     "unresolved": []
   },
   "source": {
@@ -18,7 +18,7 @@
     "to": "2027-09-30",
     "label": "최근 3개월 · 향후 12개월"
   },
-  "itemCount": 37,
+  "itemCount": 38,
   "items": [
     {
       "sourceId": "20260106000356",
@@ -1039,8 +1039,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260909000118",
-      "sourceUpdatedAt": "2026-09-09T08:35:24.549Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260911000214",
+      "sourceUpdatedAt": "2026-09-11T08:32:10.056Z",
       "missingSince": "",
       "corpCode": "01867688",
       "aliases": [
@@ -1049,9 +1049,9 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260909000118",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260911000214",
           "checkedDate": "2026-09-11",
-          "reportDate": "20260909"
+          "reportDate": "20260911"
         }
       ],
       "conflicts": [],
@@ -1061,7 +1061,7 @@
       "reportedOfferPrice": 10000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "01b19fb66582c37a40f9",
+      "fingerprint": "ff21278e4aa1628f1ae3",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -1305,8 +1305,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260910000579",
-      "sourceUpdatedAt": "2026-09-10T14:02:59.760Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260911000530",
+      "sourceUpdatedAt": "2026-09-11T08:32:10.056Z",
       "missingSince": "",
       "corpCode": "01158632",
       "aliases": [
@@ -1315,17 +1315,19 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260910000579",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260911000530",
           "checkedDate": "2026-09-11",
-          "reportDate": "20260910"
+          "reportDate": "20260911"
         }
       ],
       "conflicts": [],
-      "reviewNotes": [],
+      "reviewNotes": [
+        "최신 공시와 구조화 자료의 접수번호가 다릅니다. 정정 내용을 확인하세요."
+      ],
       "reportedOfferPrice": 19500,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "f0fff2d937819afc9e5e",
+      "fingerprint": "690ff96fb89c1033af01",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -1491,6 +1493,47 @@
       "offerPriceHigh": 0,
       "fingerprint": "6a2edcfca013512519cd",
       "changeStatus": "unchanged",
+      "changes": []
+    },
+    {
+      "sourceId": "dart-00534729",
+      "company": "디티에스",
+      "market": "상장시장 확인 필요",
+      "filingDate": "2026-09-11",
+      "bookbuildingStart": "",
+      "bookbuildingEnd": "",
+      "subscriptionStart": "2026-10-13",
+      "subscriptionEnd": "2026-10-14",
+      "paymentDate": "2026-10-16",
+      "offerPrice": 0,
+      "offeringAmountMillions": 0,
+      "listingDate": "",
+      "broker": "대신증권, 유진증권",
+      "priceStatus": "pending",
+      "status": "scheduled",
+      "sourceName": "DART",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260911000314",
+      "sourceUpdatedAt": "2026-09-11T08:32:10.056Z",
+      "missingSince": "",
+      "corpCode": "00534729",
+      "aliases": [
+        "dart-00534729"
+      ],
+      "sources": [
+        {
+          "name": "DART",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260911000314",
+          "checkedDate": "2026-09-11",
+          "reportDate": "20260911"
+        }
+      ],
+      "conflicts": [],
+      "reviewNotes": [],
+      "reportedOfferPrice": 17000,
+      "offerPriceLow": 0,
+      "offerPriceHigh": 0,
+      "fingerprint": "7079bf3c745e9535df46",
+      "changeStatus": "new",
       "changes": []
     },
     {
