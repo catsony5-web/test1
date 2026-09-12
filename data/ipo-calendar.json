@@ -1,12 +1,24 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-09-11T14:02:34.385Z",
-  "checkedDate": "2026-09-11",
+  "updatedAt": "2026-09-12T04:38:33.802Z",
+  "checkedDate": "2026-09-12",
   "coverage": {
     "kindCount": 160,
     "dartCount": 176,
     "dartCheckedCompanies": 183,
-    "unresolved": []
+    "unresolved": [],
+    "refreshStatus": {
+      "state": "ok",
+      "attemptedAt": "2026-09-12T04:38:33.802Z",
+      "sources": {
+        "kind": {
+          "state": "ok"
+        },
+        "dart": {
+          "state": "ok"
+        }
+      }
+    }
   },
   "source": {
     "name": "KRX KIND + DART",
@@ -49,12 +61,12 @@
         {
           "name": "KRX KIND",
           "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260106000356",
-          "checkedDate": "2026-09-11"
+          "checkedDate": "2026-09-12"
         },
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260528000047",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260528"
         }
       ],
@@ -98,12 +110,12 @@
         {
           "name": "KRX KIND",
           "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20250930000252",
-          "checkedDate": "2026-09-11"
+          "checkedDate": "2026-09-12"
         },
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260529001298",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260529"
         }
       ],
@@ -147,12 +159,12 @@
         {
           "name": "KRX KIND",
           "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260224000360",
-          "checkedDate": "2026-09-11"
+          "checkedDate": "2026-09-12"
         },
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260612000207",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260612"
         }
       ],
@@ -196,12 +208,12 @@
         {
           "name": "KRX KIND",
           "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20250730000176",
-          "checkedDate": "2026-09-11"
+          "checkedDate": "2026-09-12"
         },
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260623000422",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260624"
         }
       ],
@@ -245,12 +257,12 @@
         {
           "name": "KRX KIND",
           "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20250124000429",
-          "checkedDate": "2026-09-11"
+          "checkedDate": "2026-09-12"
         },
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260623000136",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260623"
         }
       ],
@@ -294,12 +306,12 @@
         {
           "name": "KRX KIND",
           "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260223000234",
-          "checkedDate": "2026-09-11"
+          "checkedDate": "2026-09-12"
         },
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260625000050",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260625"
         }
       ],
@@ -343,12 +355,12 @@
         {
           "name": "KRX KIND",
           "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20250328000374",
-          "checkedDate": "2026-09-11"
+          "checkedDate": "2026-09-12"
         },
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260626000469",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260626"
         }
       ],
@@ -392,12 +404,12 @@
         {
           "name": "KRX KIND",
           "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20250120000182",
-          "checkedDate": "2026-09-11"
+          "checkedDate": "2026-09-12"
         },
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260629000505",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260629"
         }
       ],
@@ -441,12 +453,12 @@
         {
           "name": "KRX KIND",
           "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20251127000242",
-          "checkedDate": "2026-09-11"
+          "checkedDate": "2026-09-12"
         },
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260706000401",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260706"
         }
       ],
@@ -490,12 +502,12 @@
         {
           "name": "KRX KIND",
           "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260120000416",
-          "checkedDate": "2026-09-11"
+          "checkedDate": "2026-09-12"
         },
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260716000654",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260716"
         }
       ],
@@ -538,7 +550,7 @@
         {
           "name": "KRX KIND",
           "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20250923000002",
-          "checkedDate": "2026-09-11"
+          "checkedDate": "2026-09-12"
         }
       ],
       "conflicts": [],
@@ -579,12 +591,12 @@
         {
           "name": "KRX KIND",
           "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20251125000262",
-          "checkedDate": "2026-09-11"
+          "checkedDate": "2026-09-12"
         },
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260806000333",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260806"
         }
       ],
@@ -628,12 +640,12 @@
         {
           "name": "KRX KIND",
           "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20250930000130",
-          "checkedDate": "2026-09-11"
+          "checkedDate": "2026-09-12"
         },
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260807000525",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260807"
         }
       ],
@@ -677,12 +689,12 @@
         {
           "name": "KRX KIND",
           "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260129000214",
-          "checkedDate": "2026-09-11"
+          "checkedDate": "2026-09-12"
         },
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814001904",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260814"
         }
       ],
@@ -726,12 +738,12 @@
         {
           "name": "KRX KIND",
           "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20251114000430",
-          "checkedDate": "2026-09-11"
+          "checkedDate": "2026-09-12"
         },
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260818000030",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260818"
         }
       ],
@@ -775,12 +787,12 @@
         {
           "name": "KRX KIND",
           "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260123000294",
-          "checkedDate": "2026-09-11"
+          "checkedDate": "2026-09-12"
         },
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260818000023",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260818"
         }
       ],
@@ -824,12 +836,12 @@
         {
           "name": "KRX KIND",
           "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20251203000592",
-          "checkedDate": "2026-09-11"
+          "checkedDate": "2026-09-12"
         },
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260831001467",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260831"
         }
       ],
@@ -873,12 +885,12 @@
         {
           "name": "KRX KIND",
           "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260513000472",
-          "checkedDate": "2026-09-11"
+          "checkedDate": "2026-09-12"
         },
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260904000037",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260904"
         }
       ],
@@ -921,7 +933,7 @@
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260909000317",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260909"
         }
       ],
@@ -964,7 +976,7 @@
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260908000183",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260908"
         }
       ],
@@ -1007,7 +1019,7 @@
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260909000285",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260909"
         }
       ],
@@ -1050,7 +1062,7 @@
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260911000214",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260911"
         }
       ],
@@ -1094,12 +1106,12 @@
         {
           "name": "KRX KIND",
           "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20251002000228",
-          "checkedDate": "2026-09-11"
+          "checkedDate": "2026-09-12"
         },
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260903000077",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260903"
         }
       ],
@@ -1141,12 +1153,12 @@
         {
           "name": "KRX KIND",
           "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20251111000317",
-          "checkedDate": "2026-09-11"
+          "checkedDate": "2026-09-12"
         },
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260910000096",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260910"
         }
       ],
@@ -1189,7 +1201,7 @@
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260908000047",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260908"
         }
       ],
@@ -1232,7 +1244,7 @@
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260825000494",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260825"
         }
       ],
@@ -1275,7 +1287,7 @@
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260909000381",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260909"
         }
       ],
@@ -1316,7 +1328,7 @@
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260911000530",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260911"
         }
       ],
@@ -1359,7 +1371,7 @@
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260828001853",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260828"
         }
       ],
@@ -1400,7 +1412,7 @@
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260904000517",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260904"
         }
       ],
@@ -1441,7 +1453,7 @@
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260825000318",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260825"
         }
       ],
@@ -1482,7 +1494,7 @@
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260907000305",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260907"
         }
       ],
@@ -1523,7 +1535,7 @@
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260911000314",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260911"
         }
       ],
@@ -1564,7 +1576,7 @@
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260909000174",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260909"
         }
       ],
@@ -1605,7 +1617,7 @@
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260909000378",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260909"
         }
       ],
@@ -1646,7 +1658,7 @@
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260904000286",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260904"
         }
       ],
@@ -1687,7 +1699,7 @@
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260903000275",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260903"
         }
       ],
@@ -1728,7 +1740,7 @@
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260908000417",
-          "checkedDate": "2026-09-11",
+          "checkedDate": "2026-09-12",
           "reportDate": "20260908"
         }
       ],
