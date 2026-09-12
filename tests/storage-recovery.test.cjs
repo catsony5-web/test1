@@ -9,7 +9,7 @@ function load(context, file) {
   vm.runInContext(fs.readFileSync(path.join(__dirname, "..", file), "utf8"), context, { filename: file });
 }
 
-function setup({ indexed = true, failCommit = false, failPut = false, localFails = false } = {}) {
+function setup({ indexed = true, failCommit = false, failPut = false, failRead = false, localFails = false } = {}) {
   const local = new Map();
   const primary = new Map();
   const alerts = [];
@@ -25,39 +25,59 @@ function setup({ indexed = true, failCommit = false, failPut = false, localFails
   });
   load(context, "src/data/constants.js");
   load(context, "src/utils/storage.js");
+  const storageFunctions = { renderSnapshotPanel: context.renderSnapshotPanel, createAutoSnapshot: context.createAutoSnapshot };
   context.renderSnapshotPanel = async () => {};
   context.createAutoSnapshot = async () => ({});
-  let commits = 0;
-  context.openPrivateDb = async () => ({
-    close() {},
+  let commits = 0, opened = 0, closed = 0;
+  const transactionLog = [];
+  context.openPrivateDb = async () => {
+    opened += 1;
+    return {
+    close() { closed += 1; },
     transaction(store, mode) {
       const writes = [];
+      const operations = [];
+      transactionLog.push({ mode, operations });
+      let pendingRequests = 0, completed = false;
       const tx = { error: null, aborted: false,
         abort() { this.aborted = true; queueMicrotask(() => this.onabort?.()); },
         objectStore() { return {
           get(key) {
+            operations.push({ type: "get", key });
             const request = {};
-            queueMicrotask(() => { request.result = primary.has(key) ? { value: copy(primary.get(key)) } : undefined; request.onsuccess?.(); });
+            pendingRequests += 1;
+            queueMicrotask(() => {
+              if (failRead) { tx.error = new Error("read failed"); tx.abort(); return; }
+              if (tx.aborted) return;
+              request.result = primary.has(key) ? { value: copy(primary.get(key)) } : undefined;
+              request.onsuccess?.();
+              pendingRequests -= 1;
+              queueMicrotask(complete);
+            });
             return request;
           },
           put(entry) {
+            operations.push({ type: "put", key: entry.key });
             if (failPut && writes.length) throw new Error("clone failed");
             writes.push(copy(entry));
           }
         }; }
       };
-      if (mode === "readwrite") queueMicrotask(() => {
-        if (tx.aborted) return;
-        if (failCommit) { tx.error = new Error("write failed"); tx.onerror?.(); tx.abort(); return; }
+      function complete() {
+        if (tx.aborted || completed || pendingRequests) return;
+        completed = true;
+        if (mode === "readwrite" && failCommit) { tx.error = new Error("write failed"); tx.onerror?.(); tx.abort(); return; }
         for (const { key, value } of writes) primary.set(key, value);
-        commits += 1;
+        if (mode === "readwrite") commits += 1;
         tx.oncomplete?.();
-      });
+      }
+      queueMicrotask(complete);
       return tx;
     }
-  });
+  }; };
   const keys = vm.runInContext("({...STORAGE_KEYS, lastGood: LAST_GOOD_SUFFIX})", context);
-  return { context, local, primary, alerts, keys, commits: () => commits };
+  return { context, local, primary, alerts, keys, transactionLog, storageFunctions, commits: () => commits,
+    connections: () => ({ opened, closed }) };
 }
 
 test("빈 거래 목록은 이전 정상 백업으로 되살리지 않는다", async () => {
@@ -65,6 +85,124 @@ test("빈 거래 목록은 이전 정상 백업으로 되살리지 않는다", a
   primary.set(keys.records, []);
   primary.set(keys.records + keys.lastGood, [{ recordKey: "old", amount: 50000 }]);
   assert.deepEqual(copy(await c.loadTransactions()), []);
+});
+
+test("읽기 트랜잭션은 성공과 중단 모두 연결을 닫고 웹 보조 사본을 보존한다", async () => {
+  for (const failRead of [false, true]) {
+    const { context: c, primary, local, connections } = setup({ failRead });
+    primary.set("synthetic", 42);
+    local.set("synthetic", "21");
+    for (let index = 0; index < 25; index += 1) {
+      assert.equal(await c.readPrivateData("synthetic"), failRead ? 21 : 42);
+    }
+    assert.deepEqual(connections(), { opened: 25, closed: 25 });
+  }
+});
+
+test("겹친 묶음 저장과 단건 저장은 호출 순서를 지키고 직전 커밋을 마지막 정상값으로 남긴다", async () => {
+  const { context: c, primary, commits, connections } = setup();
+  primary.set("synthetic-records", 0);
+  primary.set("synthetic-meta", 0);
+  const results = await Promise.all([
+    c.safeSaveMany([{ key: "synthetic-records", data: 1 }, { key: "synthetic-meta", data: 1 }]),
+    c.safeSave("synthetic-records", 2)
+  ]);
+  assert.deepEqual(results, [true, true]);
+  assert.equal(primary.get("synthetic-records"), 2);
+  assert.equal(primary.get("synthetic-records:last-good"), 1);
+  assert.equal(commits(), 2);
+  assert.deepEqual(connections(), { opened: 2, closed: 2 });
+});
+
+test("대기 중 원본 변경은 저장 요청에 섞이지 않고 실패한 요청 뒤에도 저장 큐가 진행된다", async () => {
+  const { context: c, primary } = setup();
+  const value = { amount: 1 };
+  const first = c.writePrivateData("synthetic", value);
+  value.amount = 2;
+  await first;
+  assert.deepEqual(primary.get("synthetic"), { amount: 1 });
+  const open = c.openPrivateDb;
+  let calls = 0;
+  c.openPrivateDb = () => ++calls === 1 ? Promise.reject(new Error("temporary failure")) : open();
+  const results = await Promise.all([c.safeSave("synthetic", 3), c.safeSave("synthetic", 4)]);
+  assert.deepEqual(results, [false, true]);
+  assert.equal(primary.get("synthetic"), 4);
+});
+
+test("수입 보호로 중단한 저장은 큐를 해제한 뒤 보호 스냅샷을 저장한다", async () => {
+  const { context: c, primary, keys } = setup();
+  primary.set(keys.records, [{ flow: "income", amount: 1 }]);
+  c.createAutoSnapshot = async () => {
+    await c.writePrivateData("synthetic-snapshot", { preserved: true });
+    return {};
+  };
+  assert.equal(await c.safeSave(keys.records, [], { protectIncomeRecords: true }), false);
+  assert.deepEqual(primary.get("synthetic-snapshot"), { preserved: true });
+  assert.equal(primary.get(keys.records)[0].amount, 1);
+  assert.equal(await c.safeSave("synthetic-next", 2), true);
+});
+
+test("일반 저장은 저장소의 최신 설정을 보존하고 명시적인 설정 저장만 선택값을 바꾼다", async () => {
+  const { context: c, primary, keys, transactionLog } = setup();
+  c.appSettings = { theme: "minimal", backgroundOpacity: 0.1 };
+  primary.set(keys.settings, { theme: "dark", backgroundOpacity: 0.3 });
+  assert.equal(await c.safeSave("synthetic", 1), true);
+  assert.equal(primary.get(keys.settings).theme, "dark");
+  assert.equal(primary.get(keys.settings).backgroundOpacity, 0.3);
+  assert.ok(transactionLog[0].operations.some(({ type, key }) => type === "get" && key === keys.settings));
+  assert.equal(await c.safeSave(keys.settings, { theme: "garden-ink" }), true);
+  assert.equal(primary.get(keys.settings).theme, "garden-ink");
+  assert.equal(primary.get(keys.settings + keys.lastGood).theme, "dark");
+});
+
+function snapshotElements() {
+  return Object.fromEntries([
+    "autoSaveStatus", "snapshotCount", "snapshotList", "restoreLatestSnapshotButton",
+    "fileName", "totalAmount", "transactionCount", "unknownCount"
+  ].map((name) => [name, { textContent: "", innerHTML: "", querySelectorAll: () => [] }]));
+}
+
+test("일반 저장과 상태 갱신은 전체 스냅샷을 읽지 않고 명시적 목록 새로고침만 읽는다", async () => {
+  const { context: c, primary, keys, transactionLog, storageFunctions } = setup();
+  c.els = snapshotElements();
+  c.escapeHtml = String;
+  c.renderSnapshotPanel = storageFunctions.renderSnapshotPanel;
+  Object.assign(c, { classified: [], reportingExpenseRows: () => [], sumConsumption: () => 0,
+    formatWon: String, currentFileName: "", importMeta: {} });
+  load(c, "src/features/app/render-all.js");
+  primary.set(keys.autoSnapshots, Array.from({ length: 12 }, (_,index) => ({
+    id: `snapshot-${index}`, reason: `합성 ${index}`, createdAt: "2026-09-12T00:00:00Z",
+    data: { records: Array.from({ length: 1000 }, (_,id) => ({ id, amount: 1 })) }
+  })));
+  assert.equal(await c.safeSave("synthetic", 1), true);
+  c.renderStatus();
+  const snapshotReads = () => transactionLog.flatMap(({ operations }) => operations)
+    .filter(({ type, key }) => type === "get" && key === keys.autoSnapshots).length;
+  assert.equal(snapshotReads(), 0);
+  assert.notEqual(c.els.autoSaveStatus.textContent, "");
+  await c.renderSnapshotPanel({ type: "click" });
+  assert.equal(snapshotReads(), 1);
+  assert.equal(c.els.snapshotCount.textContent, "12개");
+  assert.match(c.els.snapshotList.innerHTML, /합성 4/);
+  assert.doesNotMatch(c.els.snapshotList.innerHTML, /합성 5/);
+});
+
+test("스냅샷 생성은 기존 목록을 한 번 읽고 방금 저장한 목록으로 화면을 갱신한다", async () => {
+  const { context: c, primary, keys, transactionLog, storageFunctions } = setup();
+  c.els = snapshotElements();
+  c.escapeHtml = String;
+  c.isCreatingSnapshot = false;
+  c.renderSnapshotPanel = storageFunctions.renderSnapshotPanel;
+  c.createAutoSnapshot = storageFunctions.createAutoSnapshot;
+  c.collectSnapshotData = () => ({ records: [{ id: "synthetic", amount: 1 }] });
+  primary.set(keys.autoSnapshots, [{ id: "old", reason: "이전", data: { records: [] } }]);
+  const snapshot = await c.createAutoSnapshot("합성 저장 전");
+  assert.equal(primary.get(keys.autoSnapshots).length, 2);
+  assert.equal(primary.get(keys.autoSnapshots)[0].id, snapshot.id);
+  assert.equal(c.els.snapshotCount.textContent, "2개");
+  assert.equal(transactionLog.flatMap(({ operations }) => operations)
+    .filter(({ type, key }) => type === "get" && key === keys.autoSnapshots).length, 1);
+  assert.equal(c.isCreatingSnapshot, false);
 });
 
 test("거래 키가 없거나 로컬 JSON이 손상된 경우에는 마지막 정상 백업을 읽는다", async () => {
@@ -97,7 +235,7 @@ test("IndexedDB를 열지 못해도 로컬 저장 성공으로 위장하지 않�
 });
 
 test("거래·정산금·이전 백업·저장 시각은 하나의 트랜잭션으로 저장한다", async () => {
-  const { context: c, primary, local, keys, commits } = setup();
+  const { context: c, primary, local, keys, commits, transactionLog, connections } = setup();
   primary.set(keys.records, [{ amount: 10000 }]);
   const entries = [{ key: keys.records, data: [{ amount: 20000 }] }, { key: keys.reimbursements, data: { a: 10000 } }];
   assert.equal(await c.safeSaveMany(entries), true);
@@ -106,6 +244,11 @@ test("거래·정산금·이전 백업·저장 시각은 하나의 트랜잭션�
   assert.deepEqual(primary.get(keys.reimbursements), { a: 10000 });
   assert.deepEqual(JSON.parse(local.get(keys.records)), [{ amount: 20000 }]);
   assert.equal(primary.get(keys.settings).lastSavedAt, c.appSettings.lastSavedAt);
+  assert.equal(transactionLog.length, 1, "Previous values must be read in the same transaction as the commit");
+  assert.equal(transactionLog[0].mode, "readwrite");
+  assert.ok(transactionLog[0].operations.some(({ type }) => type === "get"));
+  assert.ok(transactionLog[0].operations.some(({ type }) => type === "put"));
+  assert.deepEqual(connections(), { opened: 1, closed: 1 });
 });
 
 test("묶음 저장 중 put 예외나 커밋 중단 시 일부 항목도 남기지 않는다", async () => {
@@ -147,7 +290,7 @@ test("수입 보호는 유지하고 명시적인 초기화만 허용한다", asy
 
 test("저장 후 표시 오류는 완료된 저장을 실패로 바꾸지 않는다", async () => {
   const { context: c, keys } = setup();
-  c.renderSnapshotPanel = async () => { throw new Error("render failed"); };
+  c.renderSaveStatus = () => { throw new Error("render failed"); };
   assert.equal(await c.safeSave(keys.records, []), true);
 });
 

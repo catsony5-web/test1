@@ -9,7 +9,7 @@ function context() {
     console, ipoRecords: [], ipoCalendarCandidates: [], ipoCalendarPayload: null, selectedIpoScheduleIds: new Set(),
     toNumber: (value) => Number(value || 0), normalizeInputDate: (value) => value || "", normalizeKeyText: (value) => String(value).toLowerCase(),
     formatWon: (value) => `${value}원`, escapeHtml: (value) => String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll('"', "&quot;"),
-    normalizeIpoRecord: (value) => value, createAutoSnapshot: async () => {}, saveIpoRecords: async () => {},
+    normalizeIpoRecord: (value) => value, createAutoSnapshot: async () => {}, safeSave: async () => true, IPO_STORAGE_KEY: "synthetic-ipo",
     els: { ipoCalendarStatus: {} }
   });
   vm.runInContext(fs.readFileSync(path.join(__dirname, "../src/features/ipo/ipo-view.js"), "utf8"), state);

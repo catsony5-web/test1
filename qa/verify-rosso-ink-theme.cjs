@@ -1,6 +1,7 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
+const vm = require("node:vm");
 
 const root = path.resolve(__dirname, "..");
 const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), "utf8");
@@ -161,13 +162,22 @@ assert.match(
   "theme normalization must preserve every existing theme and allow the Corsa family"
 );
 assert.match(state, /themeRevision:\s*1/, "adding themes must not reset existing user preferences");
-const appVersion = constants.match(/const APP_VERSION = "(v\d+)";/)?.[1] || "";
+const appVersion = vm.runInNewContext(`${constants}\nAPP_VERSION`);
+const cacheName = vm.runInNewContext(`${serviceWorker}\nCACHE_NAME`, {
+  URL,
+  self: {
+    location: new URL("https://budget.test/service-worker.js"),
+    addEventListener() {}
+  }
+});
 assert.match(appVersion, /^v\d+$/, "application version must use the expected version format");
 assert.ok(
-  serviceWorker.includes(`monthly-card-budget-${appVersion}`),
+  cacheName === `monthly-card-budget-${appVersion}` || cacheName.startsWith(`monthly-card-budget-${appVersion}-`),
   "service-worker cache must include the application version"
 );
-assert.match(serviceWorker, /"\.\/src\/styles\/12-rosso-ink\.css"/, "the final Corsa family stylesheet must be cached");
+const corsaStylesReference = index.match(/href="(src\/styles\/12-rosso-ink\.css\?v=[^"]+)"/)?.[1];
+assert.ok(corsaStylesReference, "the final Corsa family stylesheet must have a versioned HTML reference");
+assert.ok(serviceWorker.includes(JSON.stringify(`./${corsaStylesReference}`)), "the exact Corsa family stylesheet version must be cached");
 
 const summaryStylesIndex = index.indexOf("src/styles/11-summary-insights.css");
 const corsaStylesIndex = index.indexOf("src/styles/12-rosso-ink.css?v=169-corsa-themes");

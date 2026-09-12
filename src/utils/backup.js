@@ -26,6 +26,10 @@ async function backupLocalData() {
     return;
   }
   const payload = await buildBackupPayload(scopes);
+  if (window.BudgetNative) {
+    await window.BudgetNative.exportFile(JSON.stringify(payload, null, 2), "가계부_백업.json");
+    return;
+  }
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
@@ -42,7 +46,11 @@ async function restoreLocalData(event) {
   if (!file) return;
 
   try {
-    const payload = JSON.parse(await file.text());
+    if (file.size > 32 * 1024 * 1024) throw new Error("Backup exceeds 32MB");
+    const payload = JSON.parse(await file.text(), (key, value) => {
+      if (["__proto__", "prototype", "constructor"].includes(key)) throw new Error("Unsafe backup key");
+      return value;
+    });
     if (payload?.app !== "monthly-card-budget") {
       alert("이 앱에서 만든 백업 파일이 아닙니다.");
       return;
@@ -722,7 +730,7 @@ function confirmDangerousDataAction(message, phrase) {
   return typed === phrase;
 }
 
-function exportWorkbook() {
+async function exportWorkbook() {
   const wb = XLSX.utils.book_new();
   const summaryRows = tableToRows(els.monthlyTable);
   const detailRows = buildAllDetailSummaryRows();
@@ -812,7 +820,11 @@ function exportWorkbook() {
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(recurringRows), "고정지출");
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(productRows), "화장품사용기록");
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(ruleRows), "분류규칙");
-  XLSX.writeFile(wb, "월별_카드가계부_분류결과.xlsx");
+  if (window.BudgetNative) {
+    await window.BudgetNative.exportFile(XLSX.write(wb, { bookType: "xlsx", type: "base64" }), "가계부_분류결과.xlsx", true);
+  } else {
+    XLSX.writeFile(wb, "월별_카드가계부_분류결과.xlsx");
+  }
 }
 
 function buildAllDetailSummaryRows() {

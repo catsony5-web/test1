@@ -12,6 +12,33 @@
 !tsconfig.json
 !jsconfig.json
 !*.webmanifest
+!data/ipo-calendar.json
+
+# Credentials and signing material, in every subproject.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.mobileprovision
+*.provisionprofile
+id_rsa
+id_ed25519
+
+# Local design/QA captures can include real financial data.
+/audit/
+/design-references/
+/design-qa.md
+/.agents/
+/.codex/
+.playwright-cli/
+playwright-report/
+test-results/
+coverage/
 
 # Local helper scripts and downloaded/import automation files
 *.ps1

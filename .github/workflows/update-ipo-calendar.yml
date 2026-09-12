@@ -13,6 +13,8 @@ on:
       - "tests/ipo-calendar-parser.test.mjs"
       - "tests/ipo-dart.test.mjs"
       - "tests/ipo-sources-view.test.cjs"
+      - "tests/ipo-updater.test.mjs"
+      - "tests/ipo-refresh.test.cjs"
   schedule:
     - cron: "0 23 * * *"
     - cron: "0 4 * * *"
@@ -20,8 +22,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
-  pages: write
+  contents: read
 
 concurrency:
   group: update-ipo-calendar
@@ -31,13 +32,18 @@ jobs:
   update:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: write
+    outputs:
+      changed: ${{ steps.update.outputs.changed }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
-          node-version: 20
+          node-version: 24
+          package-manager-cache: false
       - name: Verify parser
-        run: node --test tests/ipo-calendar-parser.test.mjs tests/ipo-dart.test.mjs tests/ipo-sources-view.test.cjs
+        run: node --test tests/ipo-calendar-parser.test.mjs tests/ipo-dart.test.mjs tests/ipo-sources-view.test.cjs tests/ipo-updater.test.mjs tests/ipo-refresh.test.cjs
       - name: Fetch KRX KIND and DART schedules
         env:
           DART_API_KEY: ${{ secrets.DART_API_KEY }}
@@ -57,16 +63,12 @@ jobs:
           git commit -m "chore: update public IPO schedule"
           git push origin "HEAD:${{ github.event.repository.default_branch }}"
           echo "changed=true" >> "$GITHUB_OUTPUT"
-      - name: Publish refreshed schedule to Pages
-        if: steps.update.outputs.changed == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPOSITORY: ${{ github.repository }}
-        shell: bash
-        run: |
-          curl --fail-with-body --silent --show-error --location \
-            --request POST \
-            --header "Accept: application/vnd.github+json" \
-            --header "Authorization: Bearer $GH_TOKEN" \
-            --header "X-GitHub-Api-Version: 2022-11-28" \
-            "https://api.github.com/repos/$GH_REPOSITORY/pages/builds"
+
+  publish:
+    needs: update
+    if: needs.update.outputs.changed == 'true'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy-pages.yml

@@ -1,4 +1,5 @@
 function registerPwa() {
+  if (window.BudgetNative) return;
   if (!("serviceWorker" in navigator)) return;
   if (!["http:", "https:"].includes(location.protocol)) return;
 
@@ -379,9 +380,14 @@ async function init() {
   els.detailBulkListSort.addEventListener("change", renderDetailBulkSavedRecords);
 
   reclassify();
+  window.BudgetNative?.setImportHandler(importReviewedNotification);
   registerPwa();
   void loadIpoCalendarCandidates({ silent: true });
 }
 
 
-init();
+if (window.BudgetNative) {
+  window.BudgetNative.ready.then(init).catch(() => window.BudgetNative.fail());
+} else {
+  init();
+}

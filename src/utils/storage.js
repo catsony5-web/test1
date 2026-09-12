@@ -1,3 +1,11 @@
+let privateWriteQueue = Promise.resolve();
+
+function queuePrivateWrite(operation) {
+  const pending = privateWriteQueue.then(operation);
+  privateWriteQueue = pending.catch(() => {});
+  return pending;
+}
+
 async function hydrateStoredData() {
   appSettings = await loadSettings();
   applyAppSettings();
@@ -12,7 +20,8 @@ async function hydrateStoredData() {
   calendarMemos = await loadCalendarMemos();
   goalPlan = await loadGoalPlan();
   currentFileName = importMeta.lastFileName || "";
-  await ensureDailyAutoSnapshot();
+  const snapshot = await ensureDailyAutoSnapshot();
+  if (!snapshot) await renderSnapshotPanel();
 }
 
 async function migrateCategorySystem() {
@@ -226,6 +235,8 @@ async function safeLoad(key, fallback, options = {}) {
       const value = await readPrivateData(candidate);
       if (value !== undefined && value !== null) return value;
     } catch (error) {
+      // A native vault failure must never turn into an empty ledger or plaintext fallback.
+      if (window.BudgetNative) throw error;
       console.warn(`저장 데이터 읽기 실패: ${candidate}`, error);
     }
   }
@@ -246,37 +257,105 @@ async function safeSaveMany(entries) {
     return false;
   }
 
-  const savedAt = new Date().toISOString();
+  let blocked;
   try {
-    const writes = [];
-    for (const { key, data, protectIncomeRecords, allowIncomeDrop } of entries) {
-      const previous = await readPrivateData(key);
-      if (protectIncomeRecords && !allowIncomeDrop) {
-        const previousIncomeCount = countIncomeRecords(previous);
-        const nextIncomeCount = countIncomeRecords(data);
-        if (previousIncomeCount > 0 && nextIncomeCount === 0) {
-          await createAutoSnapshot("수입 기록 보호 차단 전");
-          alert("수입 기록이 0건으로 덮어쓰기 될 가능성이 있어 저장을 중단했습니다. 필요하면 백업/복구에서 최근 자동 저장을 확인해주세요.");
-          console.warn("Blocked suspicious income record drop", { key, previousIncomeCount, nextIncomeCount });
-          return false;
-        }
-      }
-      if (previous !== undefined) writes.push({ key: `${key}${LAST_GOOD_SUFFIX}`, value: previous });
-      writes.push({ key, value: key === SETTINGS_STORAGE_KEY ? { ...data, lastSavedAt: savedAt } : data });
+    blocked = await queuePrivateWrite(async () => {
+      const savedAt = new Date().toISOString();
+      const result = await commitSafeSaveEntries(entries, savedAt);
+      if (!result) appSettings.lastSavedAt = savedAt;
+      return result;
+    });
+    if (blocked) {
+      // Snapshot writes must run after this queued transaction has finished.
+      await createAutoSnapshot("수입 기록 보호 차단 전");
+      alert("수입 기록이 0건으로 덮어쓰기 될 가능성이 있어 저장을 중단했습니다. 필요하면 백업/복구에서 최근 자동 저장을 확인해주세요.");
+      console.warn("Blocked suspicious income record drop", blocked);
+      return false;
     }
-    if (!entries.some(({ key }) => key === SETTINGS_STORAGE_KEY)) {
-      writes.push({ key: SETTINGS_STORAGE_KEY, value: { ...appSettings, lastSavedAt: savedAt } });
-    }
-    await writePrivateDataMany(writes);
   } catch (error) {
     alert("브라우저 저장소에 데이터를 저장하지 못했습니다. 입력 내용을 유지한 상태에서 다시 시도해주세요.");
     console.error("safeSave failed", error);
     return false;
   }
-  appSettings.lastSavedAt = savedAt;
   // 화면 갱신 실패를 이미 완료된 데이터 저장 실패로 취급하지 않는다.
-  try { await renderSnapshotPanel(); } catch (error) { console.warn("저장 상태 표시 실패", error); }
+  try { renderSaveStatus(); } catch (error) { console.warn("저장 상태 표시 실패", error); }
   return true;
+}
+
+function prepareSafeSaveWrites(entries, previousValues, savedAt, storedSettings) {
+  const writes = [];
+  for (const [index, { key, data, protectIncomeRecords, allowIncomeDrop }] of entries.entries()) {
+    const previous = previousValues[index];
+    if (protectIncomeRecords && !allowIncomeDrop) {
+      const previousIncomeCount = countIncomeRecords(previous);
+      const nextIncomeCount = countIncomeRecords(data);
+      if (previousIncomeCount > 0 && nextIncomeCount === 0) {
+        return { blocked: { key, previousIncomeCount, nextIncomeCount }, writes: [] };
+      }
+    }
+    if (previous !== undefined) writes.push({ key: `${key}${LAST_GOOD_SUFFIX}`, value: previous });
+    writes.push({ key, value: key === SETTINGS_STORAGE_KEY ? { ...data, lastSavedAt: savedAt } : data });
+  }
+  if (!entries.some(({ key }) => key === SETTINGS_STORAGE_KEY)) {
+    const settings = storedSettings && typeof storedSettings === "object" && !Array.isArray(storedSettings)
+      ? storedSettings : appSettings;
+    writes.push({ key: SETTINGS_STORAGE_KEY, value: { ...settings, lastSavedAt: savedAt } });
+  }
+  return { blocked: null, writes };
+}
+
+async function commitSafeSaveEntries(entries, savedAt) {
+  const readKeys = entries.map(({ key }) => key);
+  let settingsIndex = readKeys.indexOf(SETTINGS_STORAGE_KEY);
+  if (settingsIndex < 0) settingsIndex = readKeys.push(SETTINGS_STORAGE_KEY) - 1;
+  if (window.BudgetNative || !("indexedDB" in window)) {
+    const previous = await Promise.all(readKeys.map((key) => readPrivateData(key)));
+    const { blocked, writes } = prepareSafeSaveWrites(entries, previous, savedAt, previous[settingsIndex]);
+    if (!blocked) await commitPrivateDataMany(writes);
+    return blocked;
+  }
+
+  const db = await openPrivateDb();
+  let writes = [];
+  let blocked = null;
+  try {
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(DB_STORE, "readwrite");
+      tx.oncomplete = resolve;
+      tx.onabort = () => blocked ? resolve() : reject(tx.error || new Error("IndexedDB transaction aborted"));
+      tx.onerror = () => { /* Wait for abort so the transaction cannot partially commit. */ };
+      const store = tx.objectStore(DB_STORE);
+      const previous = new Array(readKeys.length);
+      let remaining = readKeys.length;
+      const prepare = () => {
+        try {
+          ({ blocked, writes } = prepareSafeSaveWrites(entries, previous, savedAt, previous[settingsIndex]));
+          if (blocked) { tx.abort(); return; }
+          for (const { key, value } of writes) store.put({ key, value, updatedAt: savedAt });
+        } catch (error) {
+          tx.abort();
+          reject(error);
+        }
+      };
+      try {
+        if (!remaining) prepare();
+        readKeys.forEach((key, index) => {
+          const request = store.get(key);
+          request.onsuccess = () => {
+            previous[index] = request.result?.value ?? readLocalStorageData(key);
+            if (--remaining === 0) prepare();
+          };
+        });
+      } catch (error) {
+        tx.abort();
+        reject(error);
+      }
+    });
+  } finally {
+    db.close();
+  }
+  if (!blocked) for (const { key, value } of writes) writeLocalStorageData(key, value);
+  return blocked;
 }
 
 function structuredCloneSafe(value) {
@@ -306,7 +385,7 @@ async function createAutoSnapshot(reason = "자동 저장") {
     appSettings.lastSnapshotAt = snapshot.createdAt;
     if (reason === "하루 1회 자동 스냅샷") appSettings.lastDailySnapshotDate = snapshot.createdAt.slice(0, 10);
     await saveSettings();
-    renderSnapshotPanel();
+    try { await renderSnapshotPanel(next); } catch (error) { console.warn("스냅샷 표시 실패", error); }
     return snapshot;
   } finally {
     isCreatingSnapshot = false;
@@ -338,13 +417,18 @@ async function ensureDailyAutoSnapshot() {
   const hasData = transactions.length || Object.keys(monthlyIncome || {}).length || recurringExpenses.length || products.length || ipoRecords.length || Object.keys(calendarMemos || {}).length || rules.length;
   const today = new Date().toISOString().slice(0, 10);
   if (!hasData || appSettings.lastDailySnapshotDate === today) return;
-  await createAutoSnapshot("하루 1회 자동 스냅샷");
+  return createAutoSnapshot("하루 1회 자동 스냅샷");
 }
 
-async function renderSnapshotPanel() {
-  if (!els.autoSaveStatus || !els.snapshotCount || !els.snapshotList) return;
+function renderSaveStatus() {
+  if (typeof els === "undefined" || !els.autoSaveStatus) return;
   els.autoSaveStatus.textContent = appSettings.lastSavedAt ? formatDateTime(appSettings.lastSavedAt) : "아직 저장 기록 없음";
-  const snapshots = await loadAutoSnapshots();
+}
+
+async function renderSnapshotPanel(loadedSnapshots) {
+  if (!els.autoSaveStatus || !els.snapshotCount || !els.snapshotList) return;
+  renderSaveStatus();
+  const snapshots = Array.isArray(loadedSnapshots) ? loadedSnapshots : await loadAutoSnapshots();
   els.snapshotCount.textContent = `${snapshots.length.toLocaleString("ko-KR")}개`;
   els.restoreLatestSnapshotButton.disabled = snapshots.length === 0;
   els.snapshotList.innerHTML = snapshots.length
@@ -397,17 +481,27 @@ function formatDateTime(value) {
   return date.toLocaleString("ko-KR", { dateStyle: "short", timeStyle: "short" });
 }
 
-function readPrivateData(key) {
+async function readPrivateData(key) {
+  if (window.BudgetNative) return window.BudgetNative.read(key);
   if (!("indexedDB" in window)) return readLocalStorageData(key);
 
-  return openPrivateDb()
-    .then((db) => new Promise((resolve, reject) => {
+  let db;
+  try {
+    db = await openPrivateDb();
+    return await new Promise((resolve, reject) => {
       const tx = db.transaction(DB_STORE, "readonly");
+      let value;
+      tx.oncomplete = () => resolve(value);
+      tx.onabort = () => reject(tx.error || new Error("IndexedDB read aborted"));
+      tx.onerror = () => { /* Wait for the transaction to close before falling back. */ };
       const request = tx.objectStore(DB_STORE).get(key);
-      request.onsuccess = () => resolve(request.result?.value ?? readLocalStorageData(key));
-      request.onerror = () => reject(request.error);
-    }))
-    .catch(() => readLocalStorageData(key));
+      request.onsuccess = () => { value = request.result?.value ?? readLocalStorageData(key); };
+    });
+  } catch {
+    return readLocalStorageData(key);
+  } finally {
+    db?.close();
+  }
 }
 
 function writePrivateData(key, value) {
@@ -415,6 +509,12 @@ function writePrivateData(key, value) {
 }
 
 async function writePrivateDataMany(entries) {
+  const pendingEntries = structuredCloneSafe(entries);
+  return queuePrivateWrite(() => commitPrivateDataMany(pendingEntries));
+}
+
+async function commitPrivateDataMany(entries) {
+  if (window.BudgetNative) return window.BudgetNative.writeMany(entries);
   if (!("indexedDB" in window)) {
     const previous = entries.map(({ key }) => ({ key, raw: localStorage.getItem(key) }));
     let written = 0;
@@ -465,7 +565,10 @@ function openPrivateDb() {
         db.createObjectStore(DB_STORE, { keyPath: "key" });
       }
     };
-    request.onsuccess = () => resolve(request.result);
+    request.onsuccess = () => {
+      request.result.onversionchange = () => request.result.close();
+      resolve(request.result);
+    };
     request.onerror = () => reject(request.error);
   });
 }

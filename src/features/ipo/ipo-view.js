@@ -14,6 +14,9 @@ const IPO_SCHEDULE_MANAGED_FIELDS = [
   { local: "offerPrice", source: "offerPrice", label: "확정 공모가", requireValue: true }
 ];
 const IPO_CALENDAR_COMPACT_EVENT_LIMIT = 2;
+const IPO_CALENDAR_LOAD_TIMEOUT_MS = 15000;
+let ipoCalendarLoadPromise = null;
+let ipoScheduleSavePending = false;
 
 function handleIpoSubmit(event) {
   event.preventDefault();
@@ -1632,31 +1635,52 @@ function clearIpoPasteInput() {
   renderIpoPastePreview();
 }
 
-async function loadIpoCalendarCandidates(options = {}) {
+function loadIpoCalendarCandidates(options = {}) {
   if (!els.ipoCalendarStatus) return;
+  if (ipoCalendarLoadPromise) return ipoCalendarLoadPromise;
+  ipoCalendarLoadPromise = fetchIpoCalendarCandidates(options).finally(() => {
+    ipoCalendarLoadPromise = null;
+  });
+  return ipoCalendarLoadPromise;
+}
+
+async function fetchIpoCalendarCandidates(options = {}) {
   const silent = options?.silent === true;
   const button = els.loadIpoCalendarButton;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), IPO_CALENDAR_LOAD_TIMEOUT_MS);
   if (!silent) els.ipoCalendarStatus.textContent = "공식 공개 일정을 새로 확인하는 중입니다.";
   if (button) {
     button.disabled = true;
     button.setAttribute("aria-busy", "true");
   }
   try {
-    const response = await fetch("./data/ipo-calendar.json", { cache: "no-store" });
+    const response = await fetch("./data/ipo-calendar.json", { cache: "no-store", signal: controller.signal });
     if (!response.ok) throw new Error(`ipo-calendar.json HTTP ${response.status}`);
+    const cached = response.headers?.get("X-Budget-Schedule-Cache") === "offline";
     const payload = await response.json();
-    if (!Array.isArray(payload?.items)) throw new Error("invalid ipo-calendar.json schema");
+    if (!Array.isArray(payload?.items) || !payload.items.every((item) =>
+      item !== null && typeof item === "object" && !Array.isArray(item)
+      && typeof item.sourceId === "string" && item.sourceId.trim()
+      && typeof item.company === "string" && item.company.trim()
+    )) throw new Error("invalid ipo-calendar.json schema");
+    const candidates = payload.items.map((item) => normalizeIpoScheduleItem(item, payload)).filter((item) => item.sourceId && item.company);
+    const reviews = getIpoScheduleReviews(candidates);
     ipoCalendarPayload = payload;
-    ipoCalendarCandidates = payload.items.map(normalizeIpoScheduleItem).filter((item) => item.sourceId && item.company);
-    const reviews = getIpoScheduleReviews();
+    ipoCalendarCandidates = candidates;
     syncIpoScheduleSelection(reviews);
-    els.ipoCalendarStatus.textContent = `${ipoCalendarCandidates.length.toLocaleString("ko-KR")}건을 확인했습니다. 새 일정 ${reviews.filter((review) => review.state === "new").length.toLocaleString("ko-KR")}건 · 변경 ${reviews.filter((review) => review.state === "changed" || review.state === "review").length.toLocaleString("ko-KR")}건`;
+    els.ipoCalendarStatus.textContent = cached
+      ? `새로 확인하지 못해 마지막으로 저장된 공개 일정 ${ipoCalendarCandidates.length.toLocaleString("ko-KR")}건을 표시합니다.`
+      : payload.coverage?.refreshStatus?.state === "stale"
+        ? `공식 출처 갱신이 지연되어 마지막 정상 자료 ${ipoCalendarCandidates.length.toLocaleString("ko-KR")}건을 표시합니다.`
+        : `${ipoCalendarCandidates.length.toLocaleString("ko-KR")}건을 확인했습니다. 새 일정 ${reviews.filter((review) => review.state === "new").length.toLocaleString("ko-KR")}건 · 변경 ${reviews.filter((review) => review.state === "changed" || review.state === "review").length.toLocaleString("ko-KR")}건`;
   } catch (error) {
-    console.error(error);
+    console.warn("공개 일정 조회 실패", error?.name || "Error");
     els.ipoCalendarStatus.textContent = ipoCalendarCandidates.length
-      ? "새로고침에 실패해 마지막으로 확인한 공개 일정을 유지합니다."
+      ? `${controller.signal.aborted ? "응답 시간이 초과되어" : "새로고침에 실패해"} 마지막으로 확인한 공개 일정을 유지합니다.`
       : "공개 일정 파일을 불러오지 못했습니다. 내 기록과 직접 입력 기능은 그대로 사용할 수 있습니다.";
   } finally {
+    clearTimeout(timeout);
     if (button) {
       button.disabled = false;
       button.removeAttribute("aria-busy");
@@ -1667,7 +1691,7 @@ async function loadIpoCalendarCandidates(options = {}) {
   renderIpoCalendar();
 }
 
-function normalizeIpoScheduleItem(item) {
+function normalizeIpoScheduleItem(item, payload = ipoCalendarPayload) {
   const sourceId = String(item?.sourceId || "").trim();
   const offerPrice = Math.max(0, toNumber(item?.offerPrice));
   return {
@@ -1690,9 +1714,9 @@ function normalizeIpoScheduleItem(item) {
     changeStatus: String(item?.changeStatus || "unchanged"),
     changes: Array.isArray(item?.changes) ? item.changes : [],
     fingerprint: String(item?.fingerprint || "").trim(),
-    sourceName: String(item?.sourceName || ipoCalendarPayload?.source?.name || "KRX KIND"),
+    sourceName: String(item?.sourceName || payload?.source?.name || "KRX KIND"),
     sourceUrl: /^https?:\/\//i.test(String(item?.sourceUrl || "").trim()) ? String(item.sourceUrl).trim() : "",
-    sourceUpdatedAt: String(item?.sourceUpdatedAt || ipoCalendarPayload?.updatedAt || "").trim(),
+    sourceUpdatedAt: String(item?.sourceUpdatedAt || payload?.updatedAt || "").trim(),
     aliases: Array.isArray(item?.aliases) ? item.aliases.map(String) : [],
     sources: (Array.isArray(item?.sources) ? item.sources : []).filter((source) => /^https:\/\//i.test(String(source?.url || ""))).map((source) => ({ name: String(source.name || "공식 자료"), url: String(source.url), checkedDate: String(source.checkedDate || "") })),
     conflicts: Array.isArray(item?.conflicts) ? item.conflicts : [],
@@ -1703,8 +1727,8 @@ function normalizeIpoScheduleItem(item) {
   };
 }
 
-function getIpoScheduleReviews() {
-  return ipoCalendarCandidates.map((schedule) => {
+function getIpoScheduleReviews(candidates = ipoCalendarCandidates) {
+  return candidates.map((schedule) => {
     const record = findIpoRecordForSchedule(schedule);
     const differences = record ? getIpoScheduleDifferences(record, schedule) : [];
     const sourceNeedsReview = ["cancelled", "unavailable"].includes(schedule.status) || ipoScheduleNeedsReview(schedule);
@@ -1857,6 +1881,7 @@ function toggleIpoScheduleSelection() {
 }
 
 async function addIpoScheduleToRecords(sourceId) {
+  if (ipoScheduleSavePending) return false;
   const schedule = ipoCalendarCandidates.find((item) => item.sourceId === sourceId);
   if (!schedule || schedule.status !== "scheduled" || ipoScheduleNeedsReview(schedule)) return;
   const existing = findIpoRecordForSchedule(schedule);
@@ -1864,66 +1889,93 @@ async function addIpoScheduleToRecords(sourceId) {
     els.ipoCalendarStatus.textContent = `${schedule.company}은(는) 이미 내 기록에 연결되어 있습니다.`;
     return;
   }
-  await createAutoSnapshot("공모주 공개 일정 추가 전");
-  ipoRecords.unshift(normalizeIpoRecord({
-    id: `ipo-calendar-${schedule.sourceId}`,
-    company: schedule.company,
-    baseCompany: schedule.company,
-    market: schedule.market,
-    broker: schedule.broker,
-    subscriptionStart: schedule.subscriptionStart,
-    subscriptionEnd: schedule.subscriptionEnd,
-    refundDate: schedule.paymentDate,
-    listingDate: schedule.listingDate,
-    offerPrice: schedule.offerPrice,
-    allocationResult: "pending",
-    calculationVersion: "quantity-v2",
-    source: "calendar",
-    sourceLabel: `${schedule.sourceName} 공개 일정`,
-    scheduleId: schedule.sourceId,
-    scheduleFingerprint: schedule.fingerprint,
-    scheduleStatus: schedule.status,
-    scheduleSourceUrl: schedule.sourceUrl,
-    scheduleSyncedAt: new Date().toISOString()
+  return persistIpoScheduleChange("공모주 공개 일정 추가 전", () => ({
+    records: [normalizeIpoRecord({
+      id: `ipo-calendar-${schedule.sourceId}`,
+      company: schedule.company,
+      baseCompany: schedule.company,
+      market: schedule.market,
+      broker: schedule.broker,
+      subscriptionStart: schedule.subscriptionStart,
+      subscriptionEnd: schedule.subscriptionEnd,
+      refundDate: schedule.paymentDate,
+      listingDate: schedule.listingDate,
+      offerPrice: schedule.offerPrice,
+      allocationResult: "pending",
+      calculationVersion: "quantity-v2",
+      source: "calendar",
+      sourceLabel: `${schedule.sourceName} 공개 일정`,
+      scheduleId: schedule.sourceId,
+      scheduleFingerprint: schedule.fingerprint,
+      scheduleStatus: schedule.status,
+      scheduleSourceUrl: schedule.sourceUrl,
+      scheduleSyncedAt: new Date().toISOString()
+    }), ...ipoRecords],
+    message: `${schedule.company} 일정을 내 기록에 추가했습니다.`
   }));
-  await saveIpoRecords();
-  els.ipoCalendarStatus.textContent = `${schedule.company} 일정을 내 기록에 추가했습니다.`;
-  renderIpoView();
-  renderIpoCalendarCandidates();
 }
 
 async function applyIpoScheduleUpdates(sourceIds) {
+  if (ipoScheduleSavePending) return false;
   const requested = new Set((sourceIds || []).filter(Boolean));
   const reviews = getIpoScheduleReviews().filter((review) => review.actionable && requested.has(review.schedule.sourceId));
   if (!reviews.length) return;
-  await createAutoSnapshot("공모주 공개 일정 변경 반영 전");
-  const reviewByRecordId = new Map(reviews.map((review) => [review.record.id, review]));
-  ipoRecords = ipoRecords.map((record) => {
-    const review = reviewByRecordId.get(record.id);
-    if (!review) return record;
-    const next = { ...record };
-    IPO_SCHEDULE_MANAGED_FIELDS.forEach((field) => {
-      const incoming = review.schedule[field.source];
-      if (incoming === "" || incoming === null || incoming === undefined) return;
-      if (field.requireValue && !incoming) return;
-      if (field.local === "broker" && record.broker) return;
-      next[field.local] = incoming;
+  return persistIpoScheduleChange("공모주 공개 일정 변경 반영 전", () => {
+    const reviewByRecordId = new Map(reviews.map((review) => [review.record.id, review]));
+    const records = ipoRecords.map((record) => {
+      const review = reviewByRecordId.get(record.id);
+      if (!review) return record;
+      const next = { ...record };
+      IPO_SCHEDULE_MANAGED_FIELDS.forEach((field) => {
+        const incoming = review.schedule[field.source];
+        if (incoming === "" || incoming === null || incoming === undefined) return;
+        if (field.requireValue && !incoming) return;
+        if (field.local === "broker" && record.broker) return;
+        next[field.local] = incoming;
+      });
+      return normalizeIpoRecord({
+        ...next,
+        scheduleId: review.schedule.sourceId,
+        scheduleFingerprint: review.schedule.fingerprint,
+        scheduleStatus: review.schedule.status,
+        scheduleSourceUrl: review.schedule.sourceUrl,
+        scheduleSyncedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
     });
-    return normalizeIpoRecord({
-      ...next,
-      scheduleId: review.schedule.sourceId,
-      scheduleFingerprint: review.schedule.fingerprint,
-      scheduleStatus: review.schedule.status,
-      scheduleSourceUrl: review.schedule.sourceUrl,
-      scheduleSyncedAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    });
+    return {
+      records,
+      sourceIds: reviews.map((review) => review.schedule.sourceId),
+      message: `${reviews.length.toLocaleString("ko-KR")}건의 공개 일정 변경을 내 기록에 반영했습니다.`
+    };
   });
-  await saveIpoRecords();
-  reviews.forEach((review) => selectedIpoScheduleIds.delete(review.schedule.sourceId));
-  els.ipoCalendarStatus.textContent = `${reviews.length.toLocaleString("ko-KR")}건의 공개 일정 변경을 내 기록에 반영했습니다.`;
-  renderIpoView();
-  renderIpoCalendarCandidates();
+}
+
+async function persistIpoScheduleChange(reason, prepare) {
+  if (ipoScheduleSavePending) return false;
+  ipoScheduleSavePending = true;
+  try {
+    await createAutoSnapshot(reason);
+    const change = prepare();
+    const nextRecords = change.records.map(normalizeIpoRecord);
+    if (!await safeSave(IPO_STORAGE_KEY, nextRecords)) {
+      els.ipoCalendarStatus.textContent = "공개 일정 변경을 저장하지 못했습니다. 기존 기록과 선택을 유지합니다. 다시 시도해주세요.";
+      return false;
+    }
+    ipoRecords = nextRecords;
+    (change.sourceIds || []).forEach((sourceId) => selectedIpoScheduleIds.delete(sourceId));
+    els.ipoCalendarStatus.textContent = change.message;
+    try {
+      renderIpoView();
+      renderIpoCalendarCandidates();
+    } catch { console.warn("공개 일정 저장은 완료했지만 화면을 다시 표시하지 못했습니다."); }
+    return true;
+  } catch {
+    els.ipoCalendarStatus.textContent = "공개 일정 변경을 완료하지 못했습니다. 기존 기록을 확인한 뒤 다시 시도해주세요.";
+    return false;
+  } finally {
+    ipoScheduleSavePending = false;
+  }
 }
 
 function renderIpoCalendarSyncMeta() {
@@ -1936,7 +1988,13 @@ function renderIpoCalendarSyncMeta() {
   const rangeLabel = ipoCalendarPayload.range?.label || "최근 일정";
   const updated = formatIpoSyncTimestamp(ipoCalendarPayload.updatedAt);
   const unresolved = ipoCalendarPayload.coverage?.unresolved?.length || 0;
-  els.ipoCalendarSyncMeta.innerHTML = `<span><i class="ti ti-database" aria-hidden="true"></i>${escapeHtml(sourceName)} · ${escapeHtml(rangeLabel)}</span><span>자료 갱신 ${escapeHtml(updated)}</span><span>공식 자료도 반영 지연·누락이 있을 수 있습니다. 청약 전 주관사 안내를 확인하세요.${unresolved ? ` DART 후보 ${unresolved}곳은 상세 자료 확인 대기 중입니다.` : ""}</span>`;
+  const refresh = ipoCalendarPayload.coverage?.refreshStatus;
+  const failedSources = Object.entries(refresh?.sources || {}).filter(([, status]) => status?.state === "failed")
+    .map(([key]) => key === "kind" ? "KRX KIND" : key === "dart" ? "DART" : "공식 출처");
+  const refreshNotice = refresh?.state === "stale"
+    ? `<span role="status">${escapeHtml(failedSources.join(" · ") || "공식 출처")} 조회 실패 · 마지막 정상 자료 유지 · 확인 시도 ${escapeHtml(formatIpoSyncTimestamp(refresh.attemptedAt))}</span>`
+    : "";
+  els.ipoCalendarSyncMeta.innerHTML = `<span><i class="ti ti-database" aria-hidden="true"></i>${escapeHtml(sourceName)} · ${escapeHtml(rangeLabel)}</span><span>자료 갱신 ${escapeHtml(updated)}</span>${refreshNotice}<span>공식 자료도 반영 지연·누락이 있을 수 있습니다. 청약 전 주관사 안내를 확인하세요.${unresolved ? ` DART 후보 ${unresolved}곳은 상세 자료 확인 대기 중입니다.` : ""}</span>`;
 }
 
 function ipoScheduleNeedsReview(schedule) {

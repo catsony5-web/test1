@@ -237,6 +237,9 @@ function attachCalendarWorkspaceHandlers() {
   syncMemoToggle();
 }
 
+let calendarMemoSaveRevision = 0;
+const calendarMemoSaveStates = new Map();
+
 function renderCalendarMonthlyMemo(month) {
   if (!els.calendarMonthlyMemo || !isValidMonthKey(month)) return;
   const memo = normalizeCalendarMemo(calendarMemos[month] || {});
@@ -297,7 +300,8 @@ function renderCalendarMonthlyMemo(month) {
       </div>
       <div class="calendar-memo-head">
         <strong>${escapeHtml(month)} 메모</strong>
-        <span data-calendar-memo-status>${memo.updatedAt ? "저장됨" : "새 메모"}</span>
+        <span data-calendar-memo-status aria-live="polite">${calendarMemoSaveStates.get(month) === "failed" ? "저장 실패" : calendarMemoSaveStates.has(month) ? "저장 중" : memo.updatedAt ? "저장됨" : "새 메모"}</span>
+        <button type="button" data-calendar-memo-retry ${calendarMemoSaveStates.get(month) === "failed" ? "" : "hidden"}>다시 저장</button>
       </div>
       <div class="calendar-memo-editor" contenteditable="true" data-calendar-memo-editor aria-label="${escapeHtml(`${month} 월별 메모`)}">${memo.html}</div>
     </section>
@@ -315,6 +319,7 @@ function attachCalendarMemoHandlers(month) {
   editor.addEventListener("mouseup", rememberSelection);
   editor.addEventListener("focus", rememberSelection);
   editor.addEventListener("input", () => scheduleCalendarMemoSave(month));
+  card.querySelector("[data-calendar-memo-retry]")?.addEventListener("click", () => scheduleCalendarMemoSave(month, { immediate: true }));
   editor.addEventListener("paste", (event) => {
     event.preventDefault();
     const text = event.clipboardData?.getData("text/plain") || "";
@@ -409,12 +414,30 @@ function scheduleCalendarMemoSave(month, options = {}) {
     html: sanitizeCalendarMemoHtml(editor.innerHTML),
     updatedAt: new Date().toISOString()
   });
+  calendarMemoSaveRevision += 1;
+  calendarMemoSaveStates.set(month, "pending");
   if (status) status.textContent = "저장 중";
+  const retry = els.calendarMonthlyMemo?.querySelector("[data-calendar-memo-retry]");
+  if (retry) retry.hidden = true;
   clearTimeout(calendarMemoSaveTimer);
   calendarMemoSaveTimer = setTimeout(async () => {
-    await saveCalendarMemos();
+    const revision = calendarMemoSaveRevision;
+    const savingMonths = new Set(calendarMemoSaveStates.keys());
+    let saved = false;
+    try {
+      saved = await saveCalendarMemos();
+    } catch {
+      // 입력은 메모리에 유지하고 사용자가 같은 내용을 다시 저장할 수 있게 한다.
+    }
+    if (revision !== calendarMemoSaveRevision) return;
+    if (saved) calendarMemoSaveStates.clear();
+    else calendarMemoSaveStates.forEach((value, pendingMonth) => calendarMemoSaveStates.set(pendingMonth, "failed"));
     const latestStatus = els.calendarMonthlyMemo?.querySelector("[data-calendar-memo-status]");
-    if (latestStatus && selectedCalendarMonth === month) latestStatus.textContent = "자동 저장됨";
+    const latestRetry = els.calendarMonthlyMemo?.querySelector("[data-calendar-memo-retry]");
+    const currentMonth = els.calendarMonthlyMemo?.querySelector("[data-calendar-memo-card]")?.dataset.calendarMemoMonth;
+    if (!savingMonths.has(currentMonth)) return;
+    if (latestStatus) latestStatus.textContent = saved ? "자동 저장됨" : calendarMemoSaveStates.has(currentMonth) ? "저장 실패" : "저장됨";
+    if (latestRetry) latestRetry.hidden = !calendarMemoSaveStates.has(currentMonth);
   }, options.immediate ? 0 : 450);
 }
 
@@ -1191,14 +1214,20 @@ async function cleanupCalendarDuplicateGroup(signature) {
 async function deleteCalendarTransactions(recordKeys, options = {}) {
   const keys = new Set(recordKeys.filter(Boolean));
   if (!keys.size) return;
-  await createAutoSnapshot(options.snapshotReason || "소비 달력 거래 삭제 전");
+  try {
+    await createAutoSnapshot(options.snapshotReason || "소비 달력 거래 삭제 전");
+  } catch {
+    alert("삭제 전 백업을 저장하지 못했습니다. 기록을 유지한 상태에서 다시 시도해주세요.");
+    return;
+  }
   const now = new Date().toISOString();
   let removed = 0;
   let tombstoned = 0;
-  transactions = transactions.flatMap((transaction) => {
+  const nextReimbursements = { ...reimbursements };
+  const nextTransactions = transactions.flatMap((transaction) => {
     const item = normalizeStoredTransaction(transaction);
     if (!keys.has(item.recordKey)) return [transaction];
-    delete reimbursements[item.recordKey];
+    delete nextReimbursements[item.recordKey];
     const recurring = item.sourceType === "recurring" && item.recurringId
       ? recurringExpenses.find((expense) => expense.id === item.recurringId)
       : null;
@@ -1216,13 +1245,17 @@ async function deleteCalendarTransactions(recordKeys, options = {}) {
     removed++;
     return [];
   });
+  if (!await safeSaveMany([
+    { key: RECORD_STORAGE_KEY, data: nextTransactions.map(normalizeStoredTransaction), protectIncomeRecords: true },
+    { key: REIMBURSEMENT_STORAGE_KEY, data: nextReimbursements }
+  ])) return;
+  transactions = nextTransactions;
+  reimbursements = nextReimbursements;
   calendarEditingRecordKey = "";
   calendarEditFeedback = {
     type: "success",
     message: options.feedbackMessage || `거래 ${Number(removed + tombstoned).toLocaleString("ko-KR")}건을 삭제했습니다.`
   };
-  await saveTransactions();
-  await saveReimbursements();
   reclassify();
 }
 
@@ -1231,19 +1264,28 @@ async function applyCalendarSuggestion(recordKey, sector, subcategory) {
   const index = calendarTransactionIndex(recordKey);
   if (!item || index < 0) return;
   const assignment = normalizeCategoryAssignment(sector, subcategory, item.merchant);
-  await createAutoSnapshot("소비 달력 추천 분류 적용 전");
-  transactions[index] = normalizeStoredTransaction({
+  try {
+    await createAutoSnapshot("소비 달력 추천 분류 적용 전");
+  } catch {
+    alert("분류 전 백업을 저장하지 못했습니다. 기록을 유지한 상태에서 다시 시도해주세요.");
+    return;
+  }
+  const nextTransactions = transactions.slice();
+  nextTransactions[index] = normalizeStoredTransaction({
     ...transactions[index],
     manualSector: assignment.sector,
     manualSubcategory: assignment.subcategory,
     recordKey
   });
+  if (!await safeSaveMany([
+    { key: RECORD_STORAGE_KEY, data: nextTransactions.map(normalizeStoredTransaction), protectIncomeRecords: true }
+  ])) return;
+  transactions = nextTransactions;
   calendarEditingRecordKey = "";
   calendarEditFeedback = { type: "success", message: `${assignment.sector} / ${assignment.subcategory}로 분류했습니다.` };
   selectedCalendarMonth = item.month;
   setSharedSelectedMonth(item.month, { syncControls: false });
   selectedCalendarDate = normalizeInputDate(item.approvalDate) || selectedCalendarDate;
-  await saveTransactions();
   reclassify();
 }
 

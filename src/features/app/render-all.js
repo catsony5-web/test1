@@ -51,5 +51,5 @@ function renderStatus() {
   els.totalAmount.textContent = formatWon(total);
   els.transactionCount.textContent = `${classified.length.toLocaleString("ko-KR")}건`;
   els.unknownCount.textContent = `${unknown.length.toLocaleString("ko-KR")}건`;
-  renderSnapshotPanel();
+  renderSaveStatus();
 }

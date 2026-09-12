@@ -1,3 +1,33 @@
+async function importReviewedNotification(notice) {
+  if (!window.BudgetNative || notice?.kind !== "card" || notice.source !== "samsung-kakao"
+    || !/^[a-f0-9]{64}$/.test(notice.id) || !Number.isSafeInteger(notice.amount) || notice.amount <= 0
+    || !/^\d{4}-\d{2}-\d{2}$/.test(notice.date) || !/^\d{2}:\d{2}$/.test(notice.time)
+    || typeof notice.merchant !== "string" || !notice.merchant.trim() || notice.merchant.length > 160) {
+    throw new Error("Invalid reviewed notification");
+  }
+  const transactionId = `notification-${notice.id}`;
+  // A crash after committing the ledger but before clearing the inbox is safe to retry.
+  if (transactions.some((item) => item.transactionId === transactionId)) return;
+  if (transactions.some((item) => item.flow !== "income" && item.approvalDate === notice.date
+    && String(item.approvalTime).slice(0, 5) === notice.time && item.amount === notice.amount
+    && normalizeKeyText(item.merchant) === normalizeKeyText(notice.merchant))) {
+    throw new Error("Possible duplicate transaction");
+  }
+  const item = buildManualTransaction({ sourceType: "card", flow: "expense", date: notice.date,
+    time: notice.time, merchant: notice.merchant, amount: notice.amount, sector: "", subcategory: "" });
+  if (!item) throw new Error("Invalid transaction");
+  item.transactionId = transactionId;
+  item.approvalNo = `manual-${transactionId}`;
+  item.recordKey = createRecordKey(item);
+  item.sourceFile = "삼성카드 알림 사용자 확인";
+  item.memo = "알림 기반 사용자 확인 · 금융사 원장 미대조";
+  const merged = mergeTransactions(transactions, [item]).records;
+  const saved = await safeSave(RECORD_STORAGE_KEY, merged, { protectIncomeRecords: true });
+  if (!saved) throw new Error("Notification commit failed");
+  transactions = merged;
+  reclassify();
+}
+
 async function handleManualEntry(event) {
   event.preventDefault();
   const item = buildManualTransaction({
