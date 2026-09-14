@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-09-14T09:32:10.602Z",
+  "updatedAt": "2026-09-14T16:09:06.942Z",
   "checkedDate": "2026-09-14",
   "coverage": {
     "kindCount": 162,
@@ -9,7 +9,7 @@
     "unresolved": [],
     "refreshStatus": {
       "state": "ok",
-      "attemptedAt": "2026-09-14T09:32:10.602Z",
+      "attemptedAt": "2026-09-14T16:09:06.942Z",
       "sources": {
         "kind": {
           "state": "ok"
@@ -951,33 +951,8 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "cf2d04e0d3e4a37943de",
-      "changeStatus": "changed",
-      "changes": [
-        {
-          "field": "market",
-          "label": "시장",
-          "before": "상장시장 확인 필요",
-          "after": "코스닥"
-        },
-        {
-          "field": "bookbuildingStart",
-          "label": "수요예측 시작",
-          "before": "",
-          "after": "2026-09-02"
-        },
-        {
-          "field": "bookbuildingEnd",
-          "label": "수요예측 종료",
-          "before": "",
-          "after": "2026-09-08"
-        },
-        {
-          "field": "listingDate",
-          "label": "상장 예정일",
-          "before": "",
-          "after": "2026-09-21"
-        }
-      ]
+      "changeStatus": "unchanged",
+      "changes": []
     },
     {
       "sourceId": "dart-02032155",
@@ -989,15 +964,15 @@
       "subscriptionStart": "2026-09-10",
       "subscriptionEnd": "2026-09-11",
       "paymentDate": "2026-09-15",
-      "offerPrice": 0,
-      "offeringAmountMillions": 0,
+      "offerPrice": 2000,
+      "offeringAmountMillions": 14000,
       "listingDate": "2026-09-22",
       "broker": "KB증권",
-      "priceStatus": "pending",
+      "priceStatus": "confirmed",
       "status": "scheduled",
       "sourceName": "KRX KIND + DART",
       "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260605000248",
-      "sourceUpdatedAt": "2026-09-14T09:32:10.602Z",
+      "sourceUpdatedAt": "2026-09-14T16:09:06.942Z",
       "missingSince": "",
       "corpCode": "02032155",
       "aliases": [
@@ -1024,44 +999,20 @@
       "reportedOfferPrice": 2000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "03011e1576964feb7338",
+      "fingerprint": "d8aed090b901ea7e7a92",
       "changeStatus": "changed",
       "changes": [
         {
-          "field": "company",
-          "label": "종목명",
-          "before": "케이비제34호기업인수목적",
-          "after": "케이비제34호스팩"
+          "field": "offerPrice",
+          "label": "확정 공모가",
+          "before": 0,
+          "after": 2000
         },
         {
-          "field": "market",
-          "label": "시장",
-          "before": "상장시장 확인 필요",
-          "after": "코스닥"
-        },
-        {
-          "field": "bookbuildingStart",
-          "label": "수요예측 시작",
-          "before": "",
-          "after": "2026-09-04"
-        },
-        {
-          "field": "bookbuildingEnd",
-          "label": "수요예측 종료",
-          "before": "",
-          "after": "2026-09-07"
-        },
-        {
-          "field": "listingDate",
-          "label": "상장 예정일",
-          "before": "",
-          "after": "2026-09-22"
-        },
-        {
-          "field": "broker",
-          "label": "주관사",
-          "before": "케이비증권",
-          "after": "KB증권"
+          "field": "offeringAmountMillions",
+          "label": "공모금액",
+          "before": 0,
+          "after": 14000
         }
       ]
     },
