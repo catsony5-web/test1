@@ -156,15 +156,21 @@ function saveSettings() {
 }
 
 const THEME_BROWSER_COLORS = Object.freeze({
+  "mineral-blue": "#426b98",
+  "graphite-studio": "#171b21",
+  "offwhite-olive": "#717b49",
   minimal: "#1e5748",
-  dark: "#18211e",
   "rosso-ink": "#181818",
   "corsa-technical": "#181818",
   "corsa-editorial": "#181818",
-  "clear-aqua": "#317b9f",
-  "lilac-aqua": "#706eae",
-  "garden-ink": "#365f7e",
-  "warm-earth": "#966157"
+  "lilac-aqua": "#706eae"
+});
+
+const THEME_ALIASES = Object.freeze({
+  "garden-ink": "mineral-blue",
+  "clear-aqua": "mineral-blue",
+  dark: "graphite-studio",
+  "warm-earth": "offwhite-olive"
 });
 
 function applyAppSettings() {
@@ -182,9 +188,9 @@ function applyAppSettings() {
 
 
 function normalizeTheme(value) {
-  return ["minimal", "dark", "rosso-ink", "corsa-technical", "corsa-editorial", "clear-aqua", "lilac-aqua", "garden-ink", "warm-earth"].includes(value)
-    ? value
-    : "garden-ink";
+  if (typeof value !== "string") return "mineral-blue";
+  const theme = Object.hasOwn(THEME_ALIASES, value) ? THEME_ALIASES[value] : value;
+  return Object.hasOwn(THEME_BROWSER_COLORS, theme) ? theme : "mineral-blue";
 }
 
 function clampNumber(value, min, max, fallback) {

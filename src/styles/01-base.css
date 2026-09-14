@@ -58,7 +58,7 @@ body::after {
   pointer-events: none;
 }
 
-:root[data-theme="dark"] body::after {
+:root[data-theme="graphite-studio"] body::after {
   background: rgba(13, 17, 23, var(--app-bg-overlay));
 }
 

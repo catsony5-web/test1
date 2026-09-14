@@ -201,18 +201,18 @@ textarea,
   --theme-preview-4: #b1545b;
 }
 
-.theme-choice[data-theme-choice="dark"] {
-  --theme-preview-1: #18211e;
-  --theme-preview-2: #78a091;
-  --theme-preview-3: #8ba6b8;
-  --theme-preview-4: #cf858a;
+.theme-choice[data-theme-choice="graphite-studio"] {
+  --theme-preview-1: #171b21;
+  --theme-preview-2: #8babc7;
+  --theme-preview-3: #83a79c;
+  --theme-preview-4: #bd909b;
 }
 
-.theme-choice[data-theme-choice="clear-aqua"] {
-  --theme-preview-1: #317b9f;
-  --theme-preview-2: #6bbab4;
-  --theme-preview-3: #4c9b72;
-  --theme-preview-4: #de7470;
+.theme-choice[data-theme-choice="mineral-blue"] {
+  --theme-preview-1: #1a2129;
+  --theme-preview-2: #426b98;
+  --theme-preview-3: #56847a;
+  --theme-preview-4: #b77c83;
 }
 
 .theme-choice[data-theme-choice="lilac-aqua"] {
@@ -222,18 +222,11 @@ textarea,
   --theme-preview-4: #b6536d;
 }
 
-.theme-choice[data-theme-choice="garden-ink"] {
-  --theme-preview-1: #365f7e;
-  --theme-preview-2: #4995a6;
-  --theme-preview-3: #2f7b70;
-  --theme-preview-4: #b65d71;
-}
-
-.theme-choice[data-theme-choice="warm-earth"] {
-  --theme-preview-1: #966157;
-  --theme-preview-2: #607986;
-  --theme-preview-3: #557762;
-  --theme-preview-4: #b65f58;
+.theme-choice[data-theme-choice="offwhite-olive"] {
+  --theme-preview-1: #f6f5ef;
+  --theme-preview-2: #717b49;
+  --theme-preview-3: #627e69;
+  --theme-preview-4: #ba8778;
 }
 
 .theme-choice[data-theme-choice="rosso-ink"] {
@@ -460,62 +453,62 @@ textarea,
   align-content: start;
 }
 
-:root[data-theme="dark"] .topbar,
-:root[data-theme="dark"] .privacy-note,
-:root[data-theme="dark"] .tabs,
-:root[data-theme="dark"] .section-head,
-:root[data-theme="dark"] .monthly-filterbar,
-:root[data-theme="dark"] .manual-entry-panel,
-:root[data-theme="dark"] .product-form,
-:root[data-theme="dark"] .rule-form,
-:root[data-theme="dark"] .board-metric,
-:root[data-theme="dark"] .monthly-kpi,
-:root[data-theme="dark"] .board-sector-summary-panel,
-:root[data-theme="dark"] .board-filter-panel,
-:root[data-theme="dark"] .board-side-summary,
-:root[data-theme="dark"] .board-top-panel,
-:root[data-theme="dark"] .detail-results-panel,
-:root[data-theme="dark"] .detail-filter-panel,
-:root[data-theme="dark"] .detail-bulk-panel,
-:root[data-theme="dark"] .category-card,
-:root[data-theme="dark"] .board-sector-accordion,
-:root[data-theme="dark"] .table-wrap,
-:root[data-theme="dark"] .transaction-list,
-:root[data-theme="dark"] .monthly-chart-panel,
-:root[data-theme="dark"] .sector-trend-panel,
-:root[data-theme="dark"] .sector-analysis-card,
-:root[data-theme="dark"] .food-analysis-card,
-:root[data-theme="dark"] .panel,
-:root[data-theme="dark"] .day-panel,
-:root[data-theme="dark"] .summary-metric-card,
-:root[data-theme="dark"] .selected-sector-card,
-:root[data-theme="dark"] .income-entry-card,
-:root[data-theme="dark"] .recurring-form,
-:root[data-theme="dark"] .recurring-bulk-panel,
-:root[data-theme="dark"] .recurring-list-panel,
-:root[data-theme="dark"] .product-card,
-:root[data-theme="dark"] .final-summary-card,
-:root[data-theme="dark"] .admin-menu,
-:root[data-theme="dark"] .admin-status-card,
-:root[data-theme="dark"] .auto-save-card > div,
-:root[data-theme="dark"] .snapshot-item,
-:root[data-theme="dark"] .snapshot-empty {
+:root[data-theme="graphite-studio"] .topbar,
+:root[data-theme="graphite-studio"] .privacy-note,
+:root[data-theme="graphite-studio"] .tabs,
+:root[data-theme="graphite-studio"] .section-head,
+:root[data-theme="graphite-studio"] .monthly-filterbar,
+:root[data-theme="graphite-studio"] .manual-entry-panel,
+:root[data-theme="graphite-studio"] .product-form,
+:root[data-theme="graphite-studio"] .rule-form,
+:root[data-theme="graphite-studio"] .board-metric,
+:root[data-theme="graphite-studio"] .monthly-kpi,
+:root[data-theme="graphite-studio"] .board-sector-summary-panel,
+:root[data-theme="graphite-studio"] .board-filter-panel,
+:root[data-theme="graphite-studio"] .board-side-summary,
+:root[data-theme="graphite-studio"] .board-top-panel,
+:root[data-theme="graphite-studio"] .detail-results-panel,
+:root[data-theme="graphite-studio"] .detail-filter-panel,
+:root[data-theme="graphite-studio"] .detail-bulk-panel,
+:root[data-theme="graphite-studio"] .category-card,
+:root[data-theme="graphite-studio"] .board-sector-accordion,
+:root[data-theme="graphite-studio"] .table-wrap,
+:root[data-theme="graphite-studio"] .transaction-list,
+:root[data-theme="graphite-studio"] .monthly-chart-panel,
+:root[data-theme="graphite-studio"] .sector-trend-panel,
+:root[data-theme="graphite-studio"] .sector-analysis-card,
+:root[data-theme="graphite-studio"] .food-analysis-card,
+:root[data-theme="graphite-studio"] .panel,
+:root[data-theme="graphite-studio"] .day-panel,
+:root[data-theme="graphite-studio"] .summary-metric-card,
+:root[data-theme="graphite-studio"] .selected-sector-card,
+:root[data-theme="graphite-studio"] .income-entry-card,
+:root[data-theme="graphite-studio"] .recurring-form,
+:root[data-theme="graphite-studio"] .recurring-bulk-panel,
+:root[data-theme="graphite-studio"] .recurring-list-panel,
+:root[data-theme="graphite-studio"] .product-card,
+:root[data-theme="graphite-studio"] .final-summary-card,
+:root[data-theme="graphite-studio"] .admin-menu,
+:root[data-theme="graphite-studio"] .admin-status-card,
+:root[data-theme="graphite-studio"] .auto-save-card > div,
+:root[data-theme="graphite-studio"] .snapshot-item,
+:root[data-theme="graphite-studio"] .snapshot-empty {
   background: color-mix(in srgb, var(--bg-card) 94%, transparent);
 }
 
-:root[data-theme="dark"] .transaction-head,
-:root[data-theme="dark"] th,
-:root[data-theme="dark"] .summary-matrix-table .total-col,
-:root[data-theme="dark"] .net-cell,
-:root[data-theme="dark"] .matrix-bar {
+:root[data-theme="graphite-studio"] .transaction-head,
+:root[data-theme="graphite-studio"] th,
+:root[data-theme="graphite-studio"] .summary-matrix-table .total-col,
+:root[data-theme="graphite-studio"] .net-cell,
+:root[data-theme="graphite-studio"] .matrix-bar {
   background: var(--bg-muted);
 }
 
-:root[data-theme="dark"] .chart-dot {
+:root[data-theme="graphite-studio"] .chart-dot {
   stroke: var(--bg-card);
 }
 
-:root[data-theme="dark"] .trend-delta-label {
+:root[data-theme="graphite-studio"] .trend-delta-label {
   stroke: var(--bg-card);
 }
 
@@ -1300,6 +1293,11 @@ main {
 .tab.active .nav-icon {
   background: rgba(255, 255, 255, 0.14);
   color: inherit;
+}
+
+/* Tabler's local subset paints masks with background-color. */
+:root:is([data-theme="mineral-blue"], [data-theme="offwhite-olive"], [data-theme="graphite-studio"]) .tab.active .nav-icon.ti {
+  background-color: currentColor;
 }
 
 .nav-label {

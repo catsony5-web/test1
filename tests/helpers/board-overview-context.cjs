@@ -13,7 +13,7 @@ function loadContext(rows = [], income = {}) {
   for (const file of [
     "src/data/categories.js", "src/utils/format.js", "src/utils/date.js", "src/utils/dom.js",
     "src/utils/food-occasion.js", "src/utils/normalize.js", "src/utils/grouping.js", "src/utils/storage.js",
-    "src/components/chips.js", "src/features/board/board-view.js", "src/features/board/board-summary.js",
+    "src/components/chips.js", "src/features/board/board-view.js", "src/features/board/board-summary.js", "src/features/board/board-cards.js",
     "src/features/monthly/monthly-flow.js", "src/features/analysis/analysis-core.js",
     "src/features/analysis/monthly-analysis-core.js", "src/features/calendar/calendar-view.js",
     "src/features/board/board-overview.js"

@@ -156,12 +156,25 @@ Object.entries(themes).forEach(([theme, config]) => {
   );
 });
 
-assert.match(
-  storage,
-  /\["minimal", "dark", "rosso-ink", "corsa-technical", "corsa-editorial", "clear-aqua", "lilac-aqua", "garden-ink", "warm-earth"\]/,
-  "theme normalization must preserve every existing theme and allow the Corsa family"
-);
-assert.match(state, /themeRevision:\s*1/, "adding themes must not reset existing user preferences");
+const normalizeTheme = vm.runInNewContext(`${storage}\nnormalizeTheme`);
+const activeThemes = [
+  "mineral-blue", "graphite-studio", "offwhite-olive", "minimal",
+  "lilac-aqua", "rosso-ink", "corsa-technical", "corsa-editorial"
+];
+const offeredThemes = [...index.matchAll(/data-theme-choice="([^"]+)"/g)].map((match) => match[1]);
+assert.deepEqual(offeredThemes.toSorted(), activeThemes.toSorted(), "the picker must offer exactly the eight approved themes");
+activeThemes.forEach((theme) => {
+  assert.equal(normalizeTheme(theme), theme, `${theme} must remain selectable`);
+});
+Object.entries({
+  "garden-ink": "mineral-blue", "clear-aqua": "mineral-blue",
+  dark: "graphite-studio", "warm-earth": "offwhite-olive"
+}).forEach(([previous, replacement]) => {
+  assert.equal(normalizeTheme(previous), replacement, `${previous} must migrate to ${replacement}`);
+});
+assert.equal(normalizeTheme("unknown-theme"), "mineral-blue", "unknown themes must use the new default");
+assert.match(state, /theme:\s*"mineral-blue"/, "new settings must use Mineral Blue");
+assert.match(state, /themeRevision:\s*1/, "replacing themes must not reset preserved user preferences");
 const appVersion = vm.runInNewContext(`${constants}\nAPP_VERSION`);
 const cacheName = vm.runInNewContext(`${serviceWorker}\nCACHE_NAME`, {
   URL,

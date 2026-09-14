@@ -1,121 +1,198 @@
-/* Dashboard: consumption first, billing and asset movements kept distinct. */
-#boardView #boardMetrics:not(.is-empty-workspace) {
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-  gap: 0;
-  padding: 0;
-  margin-bottom: 18px;
-  overflow: hidden;
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: 12px;
-}
-#boardView .board-overview-hero {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 26px 28px 20px;
-  background: color-mix(in srgb, var(--accent-primary) 7%, var(--bg-card));
-  border: 0;
-  border-right: 1px solid var(--border-subtle);
-}
-#boardView .board-overview-eyebrow { color: var(--text-secondary); font-size: 11px; font-weight: 600; }
-#boardView .board-overview-hero h3 { margin: 22px 0 4px; font-size: 16px; color: var(--text-primary); }
-#boardView .board-overview-total { font-size: clamp(30px, 3.2vw, 48px); font-weight: 800; letter-spacing: -1.7px; line-height: 1.3; color: var(--text-primary); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-#boardView .board-overview-comparison { margin: 12px 0 6px; font-size: 13px; font-weight: 600; color: var(--accent-primary); }
-#boardView .board-overview-hero > small { color: var(--text-secondary); font-size: 11px; line-height: 1.6; }
-#boardView .board-overview-hero-footer { margin-top: auto; padding-top: 24px; width: 100%; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
-#boardView .board-overview-hero-footer > span { font-size: 11px; color: var(--text-secondary); }
-#boardView .board-overview-hero-footer button { padding: 7px 10px; background: var(--bg-card); font-size: 11px; }
-#boardView .board-overview-money { padding: 8px 22px 12px; min-width: 0; }
-#boardView .board-overview-money-row,
-#boardView .board-overview-check { display: flex; align-items: center; justify-content: space-between; gap: 14px; width: 100%; padding: 16px 0; min-width: 0; border: 0; border-bottom: 1px solid var(--border-subtle); border-radius: 0; background: transparent; box-shadow: none; text-align: left; }
-#boardView .board-overview-money-row > span,
-#boardView .board-overview-check > span { display: grid; gap: 5px; min-width: 0; }
-#boardView .board-overview-money-row b,
-#boardView .board-overview-check b { font-size: 13px; font-weight: 650; color: var(--text-primary); }
-#boardView .board-overview-money-row small,
-#boardView .board-overview-check small { color: var(--text-secondary); font-size: 10px; line-height: 1.5; font-weight: 400; }
-#boardView .board-overview-money-row strong { font-size: clamp(17px, 1.65vw, 24px); white-space: nowrap; letter-spacing: -.6px; font-variant-numeric: tabular-nums; color: var(--text-primary); }
-#boardView .board-overview-money-row strong > span,
-#boardView .board-overview-check strong > span { font-size: 17px; padding-left: 8px; color: var(--text-secondary); }
-#boardView .board-overview-money-row .board-overview-missing { font-size: 14px; color: var(--text-secondary); font-weight: 600; }
-#boardView .board-overview-money-row .board-overview-positive { color: var(--accent-positive); }
+/* Shared columns align the spending hero, billing, and completed-month history. */
+#boardView { --board-columns: minmax(0, 2fr) minmax(0, 1.05fr); --board-gap: 20px; }
+:root:is([data-theme="mineral-blue"], [data-theme="offwhite-olive"], [data-theme="graphite-studio"]) #boardView { --board-card-radius: 16px; }
+#boardView #boardMetrics:not(.is-empty-workspace),
+#boardView .board-overview-columns,
+#boardView .board-overview-history { display: grid; grid-template-columns: var(--board-columns); gap: var(--board-gap); }
+#boardView #boardMetrics:not(.is-empty-workspace) { align-items: stretch; padding: 0; margin-bottom: 24px; overflow: visible; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+#boardView .board-overview-hero { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 16px 20px; align-items: center; min-width: 0; padding: 28px 28px 20px; border: 1px solid color-mix(in srgb, var(--board-hero-muted, var(--border-subtle)) 24%, transparent); border-radius: var(--board-card-radius, var(--radius-card, 14px)); background: var(--board-hero-bg, var(--bg-card)); color: var(--board-hero-text, var(--text-primary)); }
+#boardView .board-overview-hero-copy { min-width: 0; }
+#boardView .board-overview-eyebrow { color: var(--board-hero-muted, var(--text-secondary)); font-size: 11px; font-weight: 500; line-height: 1.6; }
+#boardView .board-overview-hero h3 { margin: 15px 0 9px; color: inherit; font-size: 18px; font-weight: 700; letter-spacing: -.45px; }
+#boardView .board-overview-total { display: block; color: inherit; font-size: clamp(34px, 4.35vw, 68px); font-weight: 800; letter-spacing: -2.5px; line-height: 1.15; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+#boardView .board-overview-comparison { margin: 18px 0 7px; color: var(--board-hero-muted, var(--text-secondary)); font-size: 16px; font-weight: 700; line-height: 1.65; word-break: keep-all; }
+#boardView .board-overview-comparison.is-decrease { color: var(--board-hero-positive, var(--accent-positive)); }
+#boardView .board-overview-comparison.is-increase { color: var(--board-hero-negative, var(--accent-negative)); }
+#boardView .board-overview-hero-copy > small { color: var(--board-hero-muted, var(--text-secondary)); font-size: 12px; line-height: 1.65; }
+#boardView .board-overview-hero-footer { grid-column: 1 / -1; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; padding-top: 10px; }
+#boardView .board-overview-hero-footer > span { color: var(--board-hero-muted, var(--text-secondary)); font-size: 10px; line-height: 1.6; }
+#boardView .board-overview-hero-footer button { padding: 7px 9px; border: 1px solid color-mix(in srgb, var(--board-hero-muted, var(--border-subtle)) 40%, transparent); border-radius: var(--radius-control, 8px); background: transparent; color: var(--board-hero-text, var(--text-primary)); font-size: 11px; }
+#boardView .board-overview-hero-footer button:hover { background: color-mix(in srgb, var(--board-hero-text, var(--text-primary)) 9%, transparent); }
+#boardView .board-overview-trend { width: 100%; min-width: 0; margin: 0; align-self: center; color: var(--board-hero-muted, var(--text-secondary)); }
+#boardView .board-overview-chart-legend { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.5; }
+#boardView .board-overview-chart-legend span { display: inline-flex; align-items: center; gap: 7px; }
+#boardView .board-overview-chart-legend span::before { content: ""; width: 22px; border-top: 2px solid var(--board-hero-chart, var(--accent-primary)); }
+#boardView .board-overview-chart-legend .is-previous::before { border-top: 1.5px dashed var(--board-hero-previous, var(--text-secondary)); }
+#boardView .board-overview-line-chart { display: block; width: 100%; height: auto; overflow: visible; }
+#boardView .board-overview-line-baseline { stroke: var(--board-hero-previous, var(--border-subtle)); stroke-opacity: .4; stroke-width: 1; }
+#boardView .board-overview-line-current { stroke: var(--board-hero-chart, var(--accent-primary)); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+#boardView .board-overview-line-previous { stroke: var(--board-hero-previous, var(--text-secondary)); stroke-width: 1.6; stroke-dasharray: 4 5; stroke-linecap: round; stroke-linejoin: round; }
+#boardView .board-overview-chart-range { display: flex; justify-content: space-between; gap: 8px; margin-top: 6px; font-size: 10px; }
+#boardView .board-overview-trend > small { display: block; margin-top: 7px; font-size: 10px; line-height: 1.5; }
+#boardView .board-overview-trend-empty { display: grid; align-content: center; justify-items: center; gap: 10px; min-height: 140px; padding: 18px; border: 1px dashed color-mix(in srgb, var(--board-hero-muted, var(--border-subtle)) 40%, transparent); border-radius: var(--radius-control, 8px); text-align: center; }
+#boardView .board-overview-trend-empty i { font-size: 24px; }
+#boardView .board-overview-trend-empty p { margin: 0; font-size: 12px; line-height: 1.8; }
+#boardView .board-overview-money { display: flex; flex-direction: column; min-width: 0; padding: 3px 6px 0; }
+#boardView .board-overview-money-row { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-width: 0; width: 100%; padding: 17px 0; border: 0; border-bottom: 1px solid var(--border-subtle); border-radius: 0; background: transparent; box-shadow: none; text-align: left; }
+#boardView .board-overview-money-row > span { display: grid; gap: 4px; min-width: 0; }
+#boardView .board-overview-money-row b { color: var(--text-primary); font-size: 16px; font-weight: 700; }
+#boardView .board-overview-money-row small { color: var(--text-secondary); font-size: 11px; line-height: 1.6; font-weight: 400; }
+#boardView .board-overview-money-row strong { color: var(--text-primary); font-size: clamp(25px, 2.55vw, 40px); font-weight: 800; letter-spacing: -1.3px; line-height: 1.2; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+#boardView .board-overview-money-row strong > span { padding-left: 3px; font-size: 22px; color: var(--text-secondary); }
+#boardView .board-overview-money-row .board-overview-missing { color: var(--text-secondary); font-size: 18px; font-weight: 600; letter-spacing: -.4px; }
 #boardView .board-overview-money-row .board-overview-negative { color: var(--accent-negative); }
-#boardView .board-overview-billing-note,
-#boardView .board-overview-balance-note { margin: 6px 0 0; color: var(--text-secondary); font-size: 10px; line-height: 1.65; }
-#boardView .board-overview-columns { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 18px; margin-bottom: 18px; align-items: stretch; }
+#boardView .board-overview-money-row + .board-overview-money-row { border-bottom: 0; padding-bottom: 10px; }
+#boardView .board-overview-balance-note { margin: 0; color: var(--text-secondary); font-size: 12px; line-height: 1.7; }
+#boardView .board-overview-columns { align-items: start; margin-bottom: 26px; }
 #boardView #boardSectorSummary,
-#boardView #boardGrid { display: block; padding: 0; margin: 0; min-width: 0; background: none; border: 0; box-shadow: none; }
-#boardView .board-overview-panel { height: 100%; min-width: 0; padding: 20px 22px 12px; border: 1px solid var(--border-subtle); border-radius: 12px; background: var(--bg-card); box-shadow: none; }
-#boardView .board-overview-panel-head { display: flex; justify-content: space-between; gap: 14px; align-items: center; margin-bottom: 12px; }
-#boardView .board-overview-panel-head h3 { margin: 0; color: var(--text-primary); font-size: 16px; letter-spacing: -.4px; }
-#boardView .board-overview-panel-head p { margin: 5px 0 0; color: var(--text-secondary); font-size: 11px; }
+#boardView #boardGrid { display: block; min-width: 0; padding: 0; margin: 0; border: 0; background: none; box-shadow: none; }
+#boardView .board-overview-panel { min-width: 0; padding: 20px 22px 14px; border: 1px solid var(--border-subtle); border-radius: var(--radius-card, 14px); background: var(--bg-card); box-shadow: none; }
+#boardView .board-overview-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 15px; }
+#boardView .board-overview-panel-head h3 { margin: 0; color: var(--text-primary); font-size: 20px; font-weight: 750; letter-spacing: -.6px; line-height: 1.35; }
+#boardView .board-overview-panel-head p { margin: 6px 0 0; color: var(--text-secondary); font-size: 12px; line-height: 1.5; }
 #boardView .board-overview-panel-head > span { color: var(--text-secondary); font-size: 11px; white-space: nowrap; }
 #boardView .board-overview-panel-head button { padding: 6px 8px; font-size: 11px; white-space: nowrap; background: transparent; }
-#boardView .board-overview-sector-list { display: grid; gap: 5px; }
-#boardView .board-overview-sector { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 7px 16px; padding: 10px 0; border: 0; border-radius: 4px; background: transparent; box-shadow: none; text-align: left; min-width: 0; }
-#boardView .board-overview-sector-name { display: flex; gap: 10px; align-items: center; min-width: 0; color: var(--text-primary); font-size: 13px; }
-#boardView .board-overview-sector-name b { overflow-wrap: anywhere; }
-#boardView .board-overview-sector-name i { color: var(--accent-primary); font-size: 17px; }
-#boardView .board-overview-sector-amount { display: flex; align-items: baseline; gap: 12px; font-weight: 750; font-size: 14px; color: var(--text-primary); font-variant-numeric: tabular-nums; }
-#boardView .board-overview-sector-amount small { width: 45px; text-align: right; color: var(--text-secondary); font-size: 11px; font-weight: 500; }
-#boardView .board-overview-sector meter { grid-column: 1 / -1; width: 100%; height: 7px; appearance: none; -webkit-appearance: none; border: 0; border-radius: 3px; background: var(--bg-muted); }
-#boardView .board-overview-sector meter::-webkit-meter-bar { border: 0; border-radius: 3px; background: var(--bg-muted); height: 7px; }
-#boardView .board-overview-sector meter::-webkit-meter-optimum-value { background: var(--accent-primary); border-radius: 3px; }
-#boardView .board-overview-sector meter::-moz-meter-bar { background: var(--accent-primary); border-radius: 3px; }
+#boardView .board-overview-sector-panel { padding: 3px 0 0; border: 0; border-radius: 0; background: transparent; }
+#boardView .board-overview-sector-panel .board-overview-panel-head h3 { font-size: 26px; letter-spacing: -.8px; }
+#boardView .board-overview-sector-layout { display: grid; grid-template-columns: minmax(0, .96fr) minmax(0, 1.04fr); align-items: center; gap: 20px; }
+#boardView .board-overview-donut-wrap { position: relative; width: 100%; max-width: 320px; margin-inline: auto; }
+#boardView .board-overview-donut { display: block; width: 100%; height: auto; }
+#boardView .board-overview-donut-label { position: absolute; inset: 24%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; text-align: center; pointer-events: none; }
+#boardView .board-overview-donut-label b { color: var(--text-primary); font-size: 15px; font-weight: 650; line-height: 1.4; }
+#boardView .board-overview-donut-label strong { color: var(--text-primary); font-size: clamp(23px, 2.8vw, 40px); font-weight: 800; letter-spacing: -1px; line-height: 1.15; font-variant-numeric: tabular-nums; }
+#boardView .board-overview-donut-label small { color: var(--text-secondary); font-size: 13px; font-variant-numeric: tabular-nums; }
+#boardView .board-overview-sector-list { display: grid; min-width: 0; }
+#boardView .board-overview-sector { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto auto; align-items: center; gap: 10px; width: 100%; min-width: 0; padding: 15px 10px; border: 0; border-bottom: 1px solid var(--border-subtle); border-radius: 0; background: transparent; box-shadow: none; text-align: left; }
+#boardView .board-overview-sector:last-child { border-bottom-color: transparent; }
+#boardView .board-overview-sector.is-leading { border-bottom-color: transparent; border-radius: var(--radius-control, 8px); background: color-mix(in srgb, var(--board-sector-color) 12%, transparent); }
+#boardView .board-overview-sector-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--board-sector-color); }
+#boardView .board-overview-sector-name { min-width: 0; color: var(--text-primary); font-size: 16px; font-weight: 650; overflow-wrap: anywhere; }
+#boardView .board-overview-sector-amount { color: var(--text-primary); font-size: 16px; font-weight: 750; font-variant-numeric: tabular-nums; white-space: nowrap; }
+#boardView .board-overview-sector-share { min-width: 38px; color: var(--text-secondary); font-size: 14px; font-weight: 500; text-align: right; font-variant-numeric: tabular-nums; }
+#boardView .board-overview-panel-foot { margin: 15px 0 0; padding-top: 10px; border-top: 1px solid var(--border-subtle); color: var(--text-secondary); font-size: 11px; line-height: 1.7; }
+#boardView .board-overview-sector-panel .board-overview-panel-foot { margin-top: 10px; padding-top: 0; border: 0; color: var(--accent-primary); font-size: 13px; font-weight: 650; text-align: right; }
+#boardView .board-overview-next { display: grid; min-width: 0; gap: 10px; }
+#boardView .board-overview-billing { min-width: 0; padding: 23px 24px 18px; border: 1px solid var(--border-subtle); border-radius: var(--board-card-radius, var(--radius-card, 14px)); background: var(--board-billing-bg, var(--bg-muted)); }
+#boardView .board-overview-billing header { display: flex; align-items: center; gap: 10px; color: var(--text-primary); }
+#boardView .board-overview-billing header i { color: var(--accent-primary); font-size: 24px; }
+#boardView .board-overview-billing h3 { margin: 0; font-size: 16px; font-weight: 700; letter-spacing: -.4px; }
+#boardView .board-overview-due { margin: 16px 0 5px; color: var(--text-primary); font-size: 21px; font-weight: 750; letter-spacing: -.7px; }
+#boardView .board-overview-billing-total { display: block; color: var(--text-primary); font-size: clamp(31px, 3.25vw, 46px); font-weight: 800; letter-spacing: -1.5px; line-height: 1.2; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+#boardView .board-overview-timeline { margin: 22px 0 17px; }
+#boardView .board-overview-timeline-track { height: 4px; overflow: hidden; border-radius: 4px; background: color-mix(in srgb, var(--accent-primary) 25%, var(--bg-card)); }
+#boardView .board-overview-timeline-track > span { display: block; height: 100%; border-radius: inherit; background: var(--accent-primary); }
+#boardView .board-overview-timeline-labels { display: flex; justify-content: space-between; gap: 12px; margin-top: 9px; color: var(--text-secondary); font-size: 11px; line-height: 1.5; }
+#boardView .board-overview-timeline-labels span:last-child { text-align: right; }
+#boardView .board-overview-billing > button { display: inline-flex; align-items: center; gap: 7px; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; color: var(--accent-primary); font-size: 15px; font-weight: 700; }
+#boardView .board-overview-billing > button i { font-size: 18px; }
+#boardView .board-overview-billing-note { margin: 12px 0 0; color: var(--text-secondary); font-size: 12px; line-height: 1.7; }
+#boardView .board-overview-check { display: grid; grid-template-columns: 22px minmax(0, 1fr) 16px; align-items: center; gap: 12px; width: 100%; min-width: 0; padding: 12px 18px; border: 1px solid var(--border-subtle); border-radius: var(--radius-control, 8px); background: var(--bg-card); box-shadow: none; text-align: left; }
+#boardView .board-overview-check > i:first-child { color: var(--text-primary); font-size: 22px; }
+#boardView .board-overview-check > i:last-child { color: var(--accent-primary); font-size: 16px; }
+#boardView .board-overview-check > span { display: grid; gap: 4px; min-width: 0; }
+#boardView .board-overview-check b { color: var(--accent-primary); font-size: 14px; font-weight: 700; }
+#boardView .board-overview-check small { color: var(--text-secondary); font-size: 10px; font-weight: 400; line-height: 1.5; }
+#boardView #boardSummary { display: block; min-width: 0; padding: 0; border: 0; background: transparent; box-shadow: none; }
+#boardView .board-overview-history-panel { padding-top: 1px; }
+#boardView .board-overview-history-panel .board-overview-panel-head { margin-bottom: 13px; }
+#boardView .board-overview-history-panel .board-overview-panel-head > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: 7px 14px; }
+#boardView .board-overview-history-panel .board-overview-panel-head h3 { font-size: 18px; }
+#boardView .board-overview-history-panel .board-overview-panel-head p { margin: 0; font-size: 11px; }
+#boardView .board-overview-history-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--board-gap); min-width: 0; }
+#boardView .board-overview-history-month { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; min-width: 0; padding: 10px 16px; border: 0; border-left: 1px solid var(--border-subtle); border-radius: 0; background: transparent; box-shadow: none; text-align: left; }
+#boardView .board-overview-history-pair .board-overview-history-month:first-child { padding-left: 0; border-left: 0; }
+#boardView .board-overview-history-value { display: grid; min-width: 0; gap: 6px; }
+#boardView .board-overview-history-value > span { color: var(--text-secondary); font-size: 12px; line-height: 1.4; }
+#boardView .board-overview-history-value strong { color: var(--accent-primary); font-size: clamp(17px, 1.65vw, 25px); font-weight: 750; letter-spacing: -.6px; line-height: 1.2; font-variant-numeric: tabular-nums; white-space: nowrap; }
+#boardView .board-overview-history-bars { display: block; width: 42%; min-width: 0; max-width: 155px; height: 48px; fill: color-mix(in srgb, var(--accent-primary) 42%, var(--bg-card)); }
+#boardView .board-overview-top-details,
+#boardView .board-overview-extras { margin-top: 18px; padding: 14px 18px; border: 1px solid var(--border-subtle); border-radius: var(--radius-control, 8px); background: var(--bg-card); }
+#boardView :is(.board-overview-top-details, .board-overview-extras) > summary { color: var(--text-primary); font-size: 12px; font-weight: 650; cursor: pointer; line-height: 1.6; }
+#boardView :is(.board-overview-top-details, .board-overview-extras) > summary span { margin-left: 12px; color: var(--text-secondary); font-size: 10px; font-weight: 400; }
+#boardView .board-overview-top-details > .board-overview-panel { margin-top: 18px; padding: 0; border: 0; border-radius: 0; }
 #boardView .board-overview-top-list { margin: 0; padding: 0; list-style: none; }
-#boardView .board-overview-top-list button { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto 8px; align-items: center; gap: 12px; width: 100%; padding: 10px 0; border: 0; border-bottom: 1px solid var(--border-subtle); border-radius: 0; background: transparent; box-shadow: none; text-align: left; }
+#boardView .board-overview-top-list button { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto 8px; align-items: center; gap: 12px; width: 100%; padding: 12px 0; border: 0; border-bottom: 1px solid var(--border-subtle); border-radius: 0; background: transparent; box-shadow: none; text-align: left; }
 #boardView .board-overview-top-list li:last-child button { border-bottom: 0; }
-#boardView .board-overview-rank { font-size: 14px; font-weight: 600; color: var(--text-secondary); }
+#boardView .board-overview-rank { color: var(--text-secondary); font-size: 14px; font-weight: 600; }
 #boardView .board-overview-top-list li:first-child .board-overview-rank { color: var(--accent-primary); font-weight: 800; }
 #boardView .board-overview-top-name { display: grid; gap: 5px; min-width: 0; }
-#boardView .board-overview-top-name b { font-size: 13px; overflow-wrap: anywhere; color: var(--text-primary); }
-#boardView .board-overview-top-name small { font-size: 10px; color: var(--text-secondary); }
-#boardView .board-overview-top-list strong { font-size: 15px; color: var(--text-primary); font-variant-numeric: tabular-nums; white-space: nowrap; }
-#boardView .board-overview-panel-foot { margin: 12px 0 0; padding-top: 10px; border-top: 1px solid var(--border-subtle); color: var(--text-secondary); font-size: 10px; line-height: 1.6; }
-#boardView .board-overview-bottom { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 18px; }
-#boardView #boardSummary { display: block; padding: 0; border: 0; background: transparent; box-shadow: none; }
-#boardView .board-overview-check { padding: 12px 0; }
-#boardView .board-overview-check:last-child { border-bottom: 0; }
-#boardView .board-overview-check strong { white-space: nowrap; font-size: 15px; color: var(--text-primary); font-variant-numeric: tabular-nums; }
-#boardView .board-overview-history { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 12px 0; }
-#boardView .board-overview-history > div { display: grid; gap: 6px; text-align: center; }
-#boardView .board-overview-history span { font-size: 11px; color: var(--text-secondary); }
-#boardView .board-overview-history strong { font-size: 13px; font-variant-numeric: tabular-nums; color: var(--text-primary); overflow-wrap: anywhere; }
-#boardView .board-overview-bottom svg { display: block; width: 100%; height: 56px; }
-#boardView .board-overview-extras { margin-top: 18px; border: 1px solid var(--border-subtle); background: var(--bg-card); border-radius: 8px; padding: 14px 20px; }
-#boardView .board-overview-extras summary { cursor: pointer; color: var(--text-primary); font-size: 12px; font-weight: 650; }
-#boardView .board-overview-extras summary span { margin-left: 12px; font-size: 10px; font-weight: 400; color: var(--text-secondary); }
+#boardView .board-overview-top-name b { color: var(--text-primary); font-size: 13px; overflow-wrap: anywhere; }
+#boardView .board-overview-top-name small { color: var(--text-secondary); font-size: 10px; }
+#boardView .board-overview-top-list strong { color: var(--text-primary); font-size: 15px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 #boardView .board-overview-extras dl { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 18px 0; }
-#boardView .board-overview-extras dt { font-size: 11px; color: var(--text-secondary); }
-#boardView .board-overview-extras dd { margin: 6px 0 0; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
-#boardView .board-overview-extras p { font-size: 11px; line-height: 1.8; color: var(--text-secondary); }
-#boardView .board-overview-empty { padding: 35px 12px; text-align: center; font-size: 13px; line-height: 1.8; color: var(--text-secondary); }
-#boardView :is(.board-overview-money-row, .board-overview-sector, .board-overview-top-list button, .board-overview-check):is(button):hover { background: var(--control-hover-bg); }
+#boardView .board-overview-extras dt { color: var(--text-secondary); font-size: 11px; }
+#boardView .board-overview-extras dd { margin: 6px 0 0; color: var(--text-primary); font-weight: 700; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+#boardView .board-overview-extras p { color: var(--text-secondary); font-size: 11px; line-height: 1.8; }
+#boardView .board-overview-empty { padding: 35px 12px; color: var(--text-secondary); font-size: 13px; line-height: 1.8; text-align: center; }
+#boardView :is(button.board-overview-money-row, .board-overview-sector, .board-overview-top-list button, .board-overview-check, .board-overview-history-month):hover { background: var(--control-hover-bg); }
 #boardView button:focus-visible,
 #boardView summary:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 3px; }
-@media (max-width: 1100px) {
-  #boardView .board-overview-money-row { flex-wrap: wrap; gap: 8px; }
-  #boardView .board-overview-hero { padding: 22px; }
-  #boardView .board-overview-sector-amount { gap: 5px; }
+#boardView .board-overview-hero button:focus-visible { outline-color: var(--board-hero-chart, var(--accent-primary)); }
+
+@media (max-width: 1250px) {
+  #boardView { --board-gap: 16px; }
+  #boardView .board-overview-hero { grid-template-columns: minmax(0, 1fr); gap: 18px; padding: 23px; }
+  #boardView .board-overview-total { font-size: clamp(36px, 4.9vw, 58px); }
+  #boardView .board-overview-trend { width: min(100%, 320px); justify-self: end; }
+  #boardView .board-overview-line-chart { max-height: 135px; }
+  #boardView .board-overview-chart-legend { margin-bottom: 5px; }
+  #boardView .board-overview-sector-layout { gap: 12px; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); }
+  #boardView .board-overview-sector { padding-inline: 7px; column-gap: 7px; }
+  #boardView .board-overview-sector-name,
+  #boardView .board-overview-sector-amount { font-size: 12px; }
+  #boardView .board-overview-sector-share { min-width: 32px; font-size: 11px; }
+  #boardView .board-overview-donut-label strong { font-size: 27px; }
+  #boardView .board-overview-donut-label small { font-size: 11px; }
+  #boardView .board-overview-billing { padding: 20px 18px 16px; }
+  #boardView .board-overview-check { padding-inline: 14px; }
+  #boardView .board-overview-history-month { flex-wrap: wrap; gap: 6px; padding-inline: 12px; }
+  #boardView .board-overview-history-bars { width: 100%; max-width: 155px; height: 34px; }
 }
-@media (max-width: 760px) {
-  #boardView #boardMetrics:not(.is-empty-workspace),
-  #boardView .board-overview-columns,
-  #boardView .board-overview-bottom { grid-template-columns: minmax(0, 1fr); }
-  #boardView .board-overview-hero { border-right: 0; border-bottom: 1px solid var(--border-subtle); }
-  #boardView .board-overview-hero h3 { margin-top: 16px; }
-  #boardView .board-overview-money { padding: 4px 18px 12px; }
-  #boardView .board-overview-money-row { flex-wrap: nowrap; }
-  #boardView .board-overview-money-row strong { font-size: 19px; }
-  #boardView .board-overview-panel { padding: 18px 16px 12px; }
+@media (max-width: 900px) {
+  #boardView { --board-columns: minmax(0, 1fr); }
+  #boardView .board-overview-hero { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); }
+  #boardView .board-overview-total { font-size: clamp(36px, 5.8vw, 58px); }
+  #boardView .board-overview-money { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 20px; padding: 0; }
+  #boardView .board-overview-money-row { padding: 12px 0; border-bottom: 0; }
+  #boardView .board-overview-money-row strong { font-size: clamp(23px, 3.8vw, 34px); }
+  #boardView .board-overview-balance-note { grid-column: 1 / -1; }
+  #boardView .board-overview-sector-layout { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 20px; }
+  #boardView .board-overview-sector-name,
+  #boardView .board-overview-sector-amount { font-size: 14px; }
+  #boardView .board-overview-sector-share { font-size: 12px; }
+  #boardView .board-overview-donut-label strong { font-size: 36px; }
+  #boardView .board-overview-donut-label small { font-size: 13px; }
+  #boardView .board-overview-billing-total { font-size: 38px; }
+  #boardView .board-overview-history { gap: 0; }
+  #boardView .board-overview-history-pair { display: contents; }
+  #boardView .board-overview-history-month,
+  #boardView .board-overview-history-pair .board-overview-history-month:first-child { flex-wrap: nowrap; gap: 15px; padding: 14px 0; border-left: 0; border-bottom: 1px solid var(--border-subtle); }
+  #boardView .board-overview-history-value strong { font-size: 22px; }
+  #boardView .board-overview-history-bars { width: 40%; max-width: 180px; height: 40px; }
   #boardView .board-overview-extras dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-@media (max-width: 420px) {
-  #boardView .board-overview-money-row { flex-wrap: wrap; }
-  #boardView .board-overview-sector-amount { display: grid; gap: 2px; text-align: right; }
-  #boardView .board-overview-sector-amount small { width: auto; }
+@media (max-width: 540px) {
+  #boardView .board-overview-hero { grid-template-columns: minmax(0, 1fr); padding: 22px 18px 16px; gap: 18px; }
+  #boardView .board-overview-hero h3 { margin-top: 12px; font-size: 17px; }
+  #boardView .board-overview-total { font-size: clamp(35px, 10.6vw, 48px); letter-spacing: -1.8px; }
+  #boardView .board-overview-comparison { margin-top: 13px; font-size: 13px; }
+  #boardView .board-overview-trend { width: 100%; }
+  #boardView .board-overview-line-chart { max-height: 148px; }
+  #boardView .board-overview-hero-footer { padding-top: 0; }
+  #boardView .board-overview-money { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  #boardView .board-overview-money-row { gap: 8px; padding: 15px 0; border-bottom: 1px solid var(--border-subtle); }
+  #boardView .board-overview-money-row strong { font-size: 32px; }
+  #boardView .board-overview-money-row + .board-overview-money-row { padding-bottom: 12px; }
+  #boardView .board-overview-sector-panel .board-overview-panel-head h3 { font-size: 24px; }
+  #boardView .board-overview-sector-layout { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  #boardView .board-overview-donut-wrap { max-width: 280px; }
+  #boardView .board-overview-sector { padding: 14px 10px; column-gap: 10px; }
+  #boardView .board-overview-sector-panel .board-overview-panel-foot { text-align: left; }
+  #boardView .board-overview-billing { padding: 22px 20px 18px; }
+  #boardView .board-overview-check { padding: 13px 16px; }
+  #boardView .board-overview-top-details,
+  #boardView .board-overview-extras { padding-inline: 14px; }
+  #boardView :is(.board-overview-top-details, .board-overview-extras) > summary span { display: block; margin: 4px 0 0; }
   #boardView .board-overview-top-list button { gap: 7px; }
-  #boardView .board-overview-extras summary span { display: block; margin: 6px 0 0; }
+  #boardView .board-overview-top-list strong { font-size: 13px; }
 }

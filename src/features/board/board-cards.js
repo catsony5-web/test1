@@ -212,10 +212,10 @@ function renderBoardTopCategories(sectionStats, selectedMonth) {
 }
 
 function attachBoardTopCategoryHandlers() {
-  els.boardGrid.querySelectorAll("[data-open-detail-month]").forEach((button) => {
+  els.boardSummary.querySelectorAll("[data-open-detail-month]").forEach((button) => {
     button.addEventListener("click", () => openDetailView(boardDetailOptions({ month: button.dataset.openDetailMonth || els.boardMonth.value })));
   });
-  els.boardGrid.querySelectorAll("[data-board-top-sector]").forEach((button) => {
+  els.boardSummary.querySelectorAll("[data-board-top-sector]").forEach((button) => {
     button.addEventListener("click", () => openDetailView(boardDetailOptions({
       month: els.boardMonth.value,
       sector: button.dataset.boardTopSector,

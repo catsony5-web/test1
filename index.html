@@ -1,30 +1,30 @@
 <!doctype html>
-<html lang="ko">
+<html lang="ko" data-theme="mineral-blue">
 <head>
   <meta charset="utf-8">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'self'">
   <meta name="referrer" content="no-referrer">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>소비 분석</title>
-  <meta name="theme-color" content="#365f7e">
+  <meta name="theme-color" content="#426b98">
   <link rel="icon" href="app-icon.svg" type="image/svg+xml">
-  <link rel="manifest" href="manifest.webmanifest?v=146-professional-analysis">
-  <link rel="stylesheet" href="src/styles/00-tokens.css?v=169-corsa-themes">
-  <link rel="stylesheet" href="src/styles/01-base.css?v=151-loan-repayments">
+  <link rel="manifest" href="manifest.webmanifest?v=185-theme-refresh">
+  <link rel="stylesheet" href="src/styles/00-tokens.css?v=185-theme-refresh">
+  <link rel="stylesheet" href="src/styles/01-base.css?v=185-theme-refresh">
   <link rel="stylesheet" href="src/styles/02-layout.css?v=76">
   <link rel="stylesheet" href="src/styles/03-components.css?v=140-long-term-trend">
   <link rel="stylesheet" href="src/styles/04-forms-tables.css?v=83">
   <link rel="stylesheet" href="src/styles/05-charts.css?v=176-recurring-review">
   <link rel="stylesheet" href="src/styles/06-features.css?v=174-food-occasions">
   <link rel="stylesheet" href="src/styles/07-responsive.css?v=176-recurring-review">
-  <link rel="stylesheet" href="src/styles/08-themes.css?v=169-corsa-themes">
+  <link rel="stylesheet" href="src/styles/08-themes.css?v=185-theme-refresh">
   <link rel="stylesheet" href="assets/tabler/tabler-icons.min.css?v=135-subcategory-icons">
   <link rel="stylesheet" href="src/styles/09-production-ui.css?v=172-calendar-layout-r2">
   <link rel="stylesheet" href="src/styles/10-analysis.css?v=175-monthly-close-r3">
   <link rel="stylesheet" href="src/styles/11-summary-insights.css?v=174-food-occasions">
   <link rel="stylesheet" href="src/styles/12-rosso-ink.css?v=169-corsa-themes">
   <link rel="stylesheet" href="src/styles/13-goals.css?v=179-goal-tabs">
-  <link rel="stylesheet" href="src/styles/14-board-overview.css?v=178-board-overview">
+  <link rel="stylesheet" href="src/styles/14-board-overview.css?v=185-theme-refresh">
 </head>
 <body data-app-name="소비 분석">
   <header class="topbar compact-topbar">
@@ -62,14 +62,19 @@
                   <p class="admin-menu-help">내용은 유지하고 화면 분위기만 바꿉니다.</p>
                 </div>
                 <div id="themeChoiceGroup" class="theme-choice-grid" role="group" aria-label="화면 테마 선택">
-                  <button type="button" class="theme-choice" data-theme-choice="minimal" aria-pressed="false">
-                    <strong>미니멀 라이트 · Minimal Light</strong>
-                    <span>흰색과 회색 중심</span>
+                  <button type="button" class="theme-choice" data-theme-choice="mineral-blue" aria-pressed="false">
+                    <strong>미네랄 블루 · Mineral Blue</strong>
+                    <span>기본 테마 · 밝은 화면과 차분한 잉크 블루</span>
                     <span class="theme-choice-swatches" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
                   </button>
-                  <button type="button" class="theme-choice" data-theme-choice="dark" aria-pressed="false">
-                    <strong>다크 모드 · Dark Mode</strong>
-                    <span>어두운 화면 대비</span>
+                  <button type="button" class="theme-choice" data-theme-choice="graphite-studio" aria-pressed="false">
+                    <strong>그래파이트 스튜디오 · Graphite Studio</strong>
+                    <span>다크 테마 · 짙은 회색과 부드러운 블루</span>
+                    <span class="theme-choice-swatches" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+                  </button>
+                  <button type="button" class="theme-choice" data-theme-choice="offwhite-olive" aria-pressed="false">
+                    <strong>오프화이트 올리브 · Offwhite Olive</strong>
+                    <span>부드러운 테마 · 따뜻한 흰색과 은은한 올리브</span>
                     <span class="theme-choice-swatches" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
                   </button>
                   <button type="button" class="theme-choice" data-theme-choice="rosso-ink" aria-pressed="false">
@@ -87,24 +92,14 @@
                     <span>카멜과 버건디의 따뜻한 편집 톤</span>
                     <span class="theme-choice-swatches" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
                   </button>
-                  <button type="button" class="theme-choice" data-theme-choice="clear-aqua" aria-pressed="false">
-                    <strong>맑은 아쿠아 · Clear Aqua</strong>
-                    <span>청량하고 분석적인 여름 톤</span>
-                    <span class="theme-choice-swatches" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-                  </button>
                   <button type="button" class="theme-choice" data-theme-choice="lilac-aqua" aria-pressed="false">
                     <strong>라일락 아쿠아 · Lilac Aqua</strong>
                     <span>라일락과 아쿠아의 맑은 분석 톤</span>
                     <span class="theme-choice-swatches" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
                   </button>
-                  <button type="button" class="theme-choice" data-theme-choice="garden-ink" aria-pressed="false">
-                    <strong>정원 그늘 · Garden &amp; Ink</strong>
-                    <span>잉크 블루와 라군, 베리 포인트</span>
-                    <span class="theme-choice-swatches" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-                  </button>
-                  <button type="button" class="theme-choice" data-theme-choice="warm-earth" aria-pressed="false">
-                    <strong>웜 어스 · Warm Earth</strong>
-                    <span>클레이와 세이지의 차분한 온기</span>
+                  <button type="button" class="theme-choice" data-theme-choice="minimal" aria-pressed="false">
+                    <strong>미니멀 라이트 · Minimal Light</strong>
+                    <span>흰색과 회색 중심</span>
                     <span class="theme-choice-swatches" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
                   </button>
                 </div>
@@ -1438,7 +1433,7 @@
   </template>
 
   <script src="assets/vendor/xlsx.full.min.js?v=182-maintenance"></script>
-  <script src="src/data/constants.js?v=183-storage-release"></script>
+  <script src="src/data/constants.js?v=185-theme-refresh"></script>
   <script src="src/data/categories.js?v=136-mineral-layers"></script>
   <script src="src/data/rules.js?v=93"></script>
   <script src="src/data/board-sections.js?v=151-loan-repayments"></script>
@@ -1446,7 +1441,7 @@
   <script src="src/data/goal-resources.js?v=170-goal-planner-r3"></script>
   <script src="src/features/goals/goals-core.js?v=170-goal-planner"></script>
 
-  <script src="src/features/app/state.js?v=176-recurring-review"></script>
+  <script src="src/features/app/state.js?v=185-theme-refresh"></script>
 
   <script src="src/utils/format.js?v=80"></script>
   <script src="src/utils/date.js?v=141-garden-analysis"></script>
@@ -1455,7 +1450,7 @@
   <script src="src/utils/food-occasion.js?v=174-food-occasions"></script>
   <script src="src/utils/normalize.js?v=174-food-occasions"></script>
   <script src="src/utils/grouping.js?v=156-loan-sharing"></script>
-  <script src="src/utils/storage.js?v=183-storage-release"></script>
+  <script src="src/utils/storage.js?v=185-theme-refresh"></script>
   <script src="src/utils/backup.js?v=182-maintenance"></script>
 
   <script src="src/components/chips.js?v=174-food-occasions"></script>
@@ -1470,10 +1465,10 @@
   <script src="src/features/classification/smart-suggestions.js?v=173-food-calendar-r2"></script>
   <script src="src/features/classification/rules-manager.js?v=61"></script>
 
-  <script src="src/features/board/board-view.js?v=178-board-overview"></script>
+  <script src="src/features/board/board-view.js?v=185-theme-refresh"></script>
   <script src="src/features/board/board-summary.js?v=156-loan-sharing"></script>
-  <script src="src/features/board/board-overview.js?v=178-board-overview"></script>
-  <script src="src/features/board/board-cards.js?v=156-loan-sharing"></script>
+  <script src="src/features/board/board-overview.js?v=185-theme-refresh"></script>
+  <script src="src/features/board/board-cards.js?v=185-theme-refresh"></script>
   <script src="src/features/details/details-view.js?v=151-loan-repayments"></script>
   <script src="src/features/summary/comparison-analysis.js?v=171-calendar-split-summary"></script>
   <script src="src/features/summary/summary-priority.js?v=165-summary-insights-r2"></script>

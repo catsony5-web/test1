@@ -1,6 +1,6 @@
 function defaultAppSettings() {
   return {
-    theme: "garden-ink",
+    theme: "mineral-blue",
     themeRevision: 1,
     backgroundImage: "",
     backgroundOpacity: 0.14,

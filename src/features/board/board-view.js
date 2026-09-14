@@ -23,13 +23,12 @@ function renderBoard() {
   els.boardMetrics.innerHTML = renderBoardOverviewMetrics(overview);
   els.boardSectorMap.innerHTML = "";
   els.boardSectorSummary.innerHTML = renderBoardOverviewSectors(overview);
-  els.boardGrid.innerHTML = renderBoardOverviewTop(overview);
+  els.boardGrid.innerHTML = renderBoardOverviewBilling(overview);
   els.boardSideSummary.innerHTML = "";
   attachBoardMetricHandlers();
   attachBoardSummaryHandlers();
-  attachBoardTopCategoryHandlers();
-
   els.boardSummary.innerHTML = renderBoardOverviewFooter(overview);
+  attachBoardTopCategoryHandlers();
   attachBoardOverviewHandlers(selectedMonth);
   updateBoardMapTopButton();
 }
