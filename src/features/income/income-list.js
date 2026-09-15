@@ -152,71 +152,81 @@ function attachIncomeEntryHandlers() {
 }
 
 async function saveIncomeEntryEdit(recordKey) {
-  const card = els.incomeEntryList.querySelector(`[data-save-income="${cssEscape(recordKey)}"]`)?.closest(".income-entry-item");
-  if (!card) return;
-  const date = normalizeInputDate(card.querySelector('[data-income-edit-field="date"]')?.value);
-  const merchant = card.querySelector('[data-income-edit-field="merchant"]')?.value.trim();
-  const amount = toNumber(card.querySelector('[data-income-edit-field="amount"]')?.value);
-  if (!date || !merchant || !amount) {
-    alert("수입 날짜, 내용, 금액을 모두 입력해주세요.");
-    return;
-  }
+  return runManualTransactionSave(async () => {
+    const card = els.incomeEntryList.querySelector(`[data-save-income="${cssEscape(recordKey)}"]`)?.closest(".income-entry-item");
+    if (!card) return;
+    const date = normalizeInputDate(card.querySelector('[data-income-edit-field="date"]')?.value);
+    const merchant = card.querySelector('[data-income-edit-field="merchant"]')?.value.trim();
+    const amount = toNumber(card.querySelector('[data-income-edit-field="amount"]')?.value);
+    if (!date || !merchant || !amount) {
+      alert("수입 날짜, 내용, 금액을 모두 입력해주세요.");
+      return;
+    }
 
-  const index = transactions.findIndex((item) => item.recordKey === recordKey);
-  if (index < 0) return;
-  await createAutoSnapshot("수입 수정 전");
-  const original = normalizeStoredTransaction(transactions[index]);
-  const linkedSupport = loanSupportLinkedIncomeAmount(original.transactionId || original.recordKey);
-  if (amount < linkedSupport) {
-    alert(`이 수입에는 대출 분담금 ${formatWon(linkedSupport)}이 연결되어 있습니다. 연결 금액 이상으로 입력하거나 대출 상환 내역에서 연결을 먼저 해제해주세요.`);
-    return;
-  }
-  const updated = {
-    ...original,
-    sourceType: original.sourceType || "transfer",
-    flow: "income",
-    approvalDate: date,
-    month: monthKey(date),
-    merchant,
-    amount: Math.abs(amount),
-    manualSector: "수입",
-    manualSubcategory: "이체입금",
-    sourceFile: original.sourceFile || "수입 직접 입력",
-    importedAt: original.importedAt || new Date().toISOString()
-  };
-  updated.recordKey = createRecordKey(updated);
-  const duplicated = transactions.some((item, itemIndex) => itemIndex !== index && normalizeStoredTransaction(item).recordKey === updated.recordKey);
-  if (duplicated) {
-    alert("같은 수입 기록이 이미 있습니다. 날짜, 내용, 금액을 확인해주세요.");
-    return;
-  }
+    const index = transactions.findIndex((item) => item.recordKey === recordKey);
+    if (index < 0) return;
+    await createAutoSnapshot("수입 수정 전");
+    const original = normalizeStoredTransaction(transactions[index]);
+    const linkedSupport = loanSupportLinkedIncomeAmount(original.transactionId || original.recordKey);
+    if (amount < linkedSupport) {
+      alert(`이 수입에는 대출 분담금 ${formatWon(linkedSupport)}이 연결되어 있습니다. 연결 금액 이상으로 입력하거나 대출 상환 내역에서 연결을 먼저 해제해주세요.`);
+      return;
+    }
+    const updated = {
+      ...original,
+      sourceType: original.sourceType || "transfer",
+      flow: "income",
+      approvalDate: date,
+      month: monthKey(date),
+      merchant,
+      amount: Math.abs(amount),
+      manualSector: "수입",
+      manualSubcategory: "이체입금",
+      sourceFile: original.sourceFile || "수입 직접 입력",
+      importedAt: original.importedAt || new Date().toISOString()
+    };
+    updated.recordKey = createRecordKey(updated);
+    const duplicated = transactions.some((item, itemIndex) => itemIndex !== index && normalizeStoredTransaction(item).recordKey === updated.recordKey);
+    if (duplicated) {
+      alert("같은 수입 기록이 이미 있습니다. 날짜, 내용, 금액을 확인해주세요.");
+      return;
+    }
 
-  transactions = transactions.map((item, itemIndex) => {
-    if (itemIndex === index) return updated;
-    const normalized = normalizeStoredTransaction(item);
-    if (normalized.loanSupportIncomeTransactionId !== original.transactionId) return item;
-    return normalizeStoredTransaction({
-      ...normalized,
-      loanSupportReceivedDate: date,
-      updatedAt: new Date().toISOString()
+    const nextTransactions = transactions.map((item, itemIndex) => {
+      if (itemIndex === index) return updated;
+      const normalized = normalizeStoredTransaction(item);
+      if (normalized.loanSupportIncomeTransactionId !== original.transactionId) return item;
+      return normalizeStoredTransaction({
+        ...normalized,
+        loanSupportReceivedDate: date,
+        updatedAt: new Date().toISOString()
+      });
     });
+    if (!await safeSaveMany([
+      { key: RECORD_STORAGE_KEY, data: nextTransactions, protectIncomeRecords: true }
+    ])) return;
+    transactions = nextTransactions;
+    editingIncomeKey = "";
+    reclassify();
   });
-  editingIncomeKey = "";
-  await saveTransactions();
-  reclassify();
 }
 
 async function deleteIncomeEntry(recordKey) {
-  const original = transactions.map(normalizeStoredTransaction).find((item) => item.recordKey === recordKey);
-  const linkedSupport = loanSupportLinkedIncomeAmount(original?.transactionId || original?.recordKey);
-  if (linkedSupport > 0) {
-    alert(`이 수입에는 대출 분담금 ${formatWon(linkedSupport)}이 연결되어 있습니다. 대출 상환 내역에서 수입 연결을 먼저 해제해주세요.`);
-    return;
-  }
-  if (!confirm("이 수입 기록을 삭제할까요?")) return;
-  await createAutoSnapshot("수입 삭제 전");
-  transactions = transactions.filter((item) => item.recordKey !== recordKey);
-  editingIncomeKey = "";
-  await saveTransactions({ allowIncomeDrop: true });
-  reclassify();
+  return runManualTransactionSave(async () => {
+    const original = transactions.map(normalizeStoredTransaction).find((item) => item.recordKey === recordKey);
+    const linkedSupport = loanSupportLinkedIncomeAmount(original?.transactionId || original?.recordKey);
+    if (linkedSupport > 0) {
+      alert(`이 수입에는 대출 분담금 ${formatWon(linkedSupport)}이 연결되어 있습니다. 대출 상환 내역에서 수입 연결을 먼저 해제해주세요.`);
+      return;
+    }
+    if (!confirm("이 수입 기록을 삭제할까요?")) return;
+    await createAutoSnapshot("수입 삭제 전");
+    const nextTransactions = transactions.filter((item) => item.recordKey !== recordKey);
+    if (!await safeSaveMany([
+      { key: RECORD_STORAGE_KEY, data: nextTransactions, protectIncomeRecords: true, allowIncomeDrop: true }
+    ])) return;
+    transactions = nextTransactions;
+    editingIncomeKey = "";
+    reclassify();
+  });
 }

@@ -11,40 +11,45 @@ function clearIncomeBulkInput() {
 }
 
 async function handleIncomeBulkSave() {
-  updateIncomeBulkRowsFromPreview();
-  const validRows = incomeBulkRows.map(validateIncomeBulkRow).filter((row) => row.valid);
-  if (!validRows.length) {
-    renderIncomeBulkPreview("저장할 수 있는 정상 수입 항목이 없습니다.");
-    return;
-  }
+  return runManualTransactionSave(async () => {
+    updateIncomeBulkRowsFromPreview();
+    const validRows = incomeBulkRows.map(validateIncomeBulkRow).filter((row) => row.valid);
+    if (!validRows.length) {
+      renderIncomeBulkPreview("저장할 수 있는 정상 수입 항목이 없습니다.");
+      return;
+    }
 
-  const incoming = validRows.map((row) => buildManualTransaction({
-    sourceType: "transfer",
-    flow: "income",
-    date: row.date,
-    time: "",
-    merchant: row.description,
-    amount: row.amount,
-    sector: "수입",
-    subcategory: "이체입금"
-  })).filter(Boolean);
-  await createAutoSnapshot("수입 일괄 저장 전");
-  const mergeResult = mergeTransactions(transactions, incoming);
-  transactions = mergeResult.records;
-  importMeta = {
-    ...importMeta,
-    lastFileName: "수입 일괄 입력",
-    lastImportedAt: new Date().toISOString(),
-    lastAddedCount: mergeResult.added,
-    lastSkippedCount: mergeResult.skipped
-  };
-  currentFileName = "수입 일괄 입력";
-  await saveTransactions();
-  await saveImportMeta();
-  incomeBulkRows = [];
-  els.incomeBulkPaste.value = "";
-  els.incomeBulkFeedback.textContent = `수입 ${mergeResult.added.toLocaleString("ko-KR")}건을 저장했습니다. 중복 ${mergeResult.skipped.toLocaleString("ko-KR")}건은 건너뛰었습니다.`;
-  reclassify();
+    const incoming = validRows.map((row) => buildManualTransaction({
+      sourceType: "transfer",
+      flow: "income",
+      date: row.date,
+      time: "",
+      merchant: row.description,
+      amount: row.amount,
+      sector: "수입",
+      subcategory: "이체입금"
+    })).filter(Boolean);
+    await createAutoSnapshot("수입 일괄 저장 전");
+    const mergeResult = mergeTransactions(transactions, incoming);
+    const nextImportMeta = {
+      ...importMeta,
+      lastFileName: "수입 일괄 입력",
+      lastImportedAt: new Date().toISOString(),
+      lastAddedCount: mergeResult.added,
+      lastSkippedCount: mergeResult.skipped
+    };
+    if (!await safeSaveMany([
+      { key: RECORD_STORAGE_KEY, data: mergeResult.records, protectIncomeRecords: true },
+      { key: IMPORT_META_STORAGE_KEY, data: nextImportMeta }
+    ])) return;
+    transactions = mergeResult.records;
+    importMeta = nextImportMeta;
+    currentFileName = "수입 일괄 입력";
+    incomeBulkRows = [];
+    els.incomeBulkPaste.value = "";
+    els.incomeBulkFeedback.textContent = `수입 ${mergeResult.added.toLocaleString("ko-KR")}건을 저장했습니다. 중복 ${mergeResult.skipped.toLocaleString("ko-KR")}건은 건너뛰었습니다.`;
+    reclassify();
+  });
 }
 
 function parseIncomeBulkText(text) {

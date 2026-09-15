@@ -37,10 +37,13 @@ async function init() {
   els.fileInput.addEventListener("change", handleFile);
   els.exportButton.addEventListener("click", exportWorkbook);
   els.backupButton.addEventListener("click", backupLocalData);
+  document.getElementById("backupSelectedButton")?.addEventListener("click", () => backupLocalData({ selectedOnly: true }));
   els.restoreInput.addEventListener("change", restoreLocalData);
   els.clearRecordsButton.addEventListener("click", clearRecords);
   els.selectAllDataScopesButton?.addEventListener("click", () => setDataScopeSelection("all"));
   els.selectImportedDataScopeButton?.addEventListener("click", () => setDataScopeSelection("imported"));
+  document.getElementById("selectAllClearScopesButton")?.addEventListener("click", () => setClearDataScopeSelection("all"));
+  document.getElementById("selectImportedClearScopeButton")?.addEventListener("click", () => setClearDataScopeSelection("imported"));
   els.dataScopeControls?.forEach((input) => input.addEventListener("change", () => renderRestorePreview(null)));
   els.restoreModeControls?.forEach((input) => input.addEventListener("change", () => renderRestorePreview(null)));
   els.restoreLatestSnapshotButton.addEventListener("click", restoreLatestSnapshot);

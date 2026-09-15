@@ -39,6 +39,7 @@ const els = {
   restoreInput: document.querySelector("#restoreInput"),
   clearRecordsButton: document.querySelector("#clearRecordsButton"),
   dataScopeControls: document.querySelectorAll("[data-data-scope]"),
+  clearDataScopeControls: document.querySelectorAll("[data-clear-scope]"),
   restoreModeControls: document.querySelectorAll("[data-restore-mode]"),
   restorePreview: document.querySelector("#restorePreview"),
   selectAllDataScopesButton: document.querySelector("#selectAllDataScopesButton"),

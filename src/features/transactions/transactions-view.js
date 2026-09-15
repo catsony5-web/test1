@@ -28,73 +28,96 @@ async function importReviewedNotification(notice) {
   reclassify();
 }
 
+let manualTransactionSavePending = false;
+
+async function runManualTransactionSave(operation) {
+  if (manualTransactionSavePending) return;
+  manualTransactionSavePending = true;
+  try {
+    return await operation();
+  } finally {
+    manualTransactionSavePending = false;
+  }
+}
+
 async function handleManualEntry(event) {
   event.preventDefault();
-  const item = buildManualTransaction({
-    sourceType: els.manualSourceType.value,
-    flow: els.manualFlow.value,
-    date: els.manualDate.value,
-    time: els.manualTime.value,
-    merchant: els.manualMerchant.value,
-    amount: els.manualAmount.value,
-    sector: els.manualSector.value,
-    subcategory: els.manualSubcategory.value
-  });
-  if (!item) {
-    alert("날짜, 내용, 금액을 입력해주세요.");
-    return;
-  }
+  return runManualTransactionSave(async () => {
+    const item = buildManualTransaction({
+      sourceType: els.manualSourceType.value,
+      flow: els.manualFlow.value,
+      date: els.manualDate.value,
+      time: els.manualTime.value,
+      merchant: els.manualMerchant.value,
+      amount: els.manualAmount.value,
+      sector: els.manualSector.value,
+      subcategory: els.manualSubcategory.value
+    });
+    if (!item) {
+      alert("날짜, 내용, 금액을 입력해주세요.");
+      return;
+    }
 
-  await createAutoSnapshot("직접 거래 입력 전");
-  transactions = mergeTransactions(transactions, [item]).records;
-  importMeta = { ...importMeta, lastFileName: "직접 입력", lastImportedAt: new Date().toISOString(), lastAddedCount: 1, lastSkippedCount: 0 };
-  currentFileName = "직접 입력";
-  await saveTransactions();
-  await saveImportMeta();
-  els.manualMerchant.value = "";
-  els.manualAmount.value = "";
-  reclassify();
+    await createAutoSnapshot("직접 거래 입력 전");
+    const nextTransactions = mergeTransactions(transactions, [item]).records;
+    const nextImportMeta = { ...importMeta, lastFileName: "직접 입력", lastImportedAt: new Date().toISOString(), lastAddedCount: 1, lastSkippedCount: 0 };
+    if (!await safeSaveMany([
+      { key: RECORD_STORAGE_KEY, data: nextTransactions, protectIncomeRecords: true },
+      { key: IMPORT_META_STORAGE_KEY, data: nextImportMeta }
+    ])) return;
+    transactions = nextTransactions;
+    importMeta = nextImportMeta;
+    currentFileName = "직접 입력";
+    els.manualMerchant.value = "";
+    els.manualAmount.value = "";
+    reclassify();
+  });
 }
 
 
 async function handlePasteEntries() {
-  const text = els.pasteEntries.value.trim();
-  if (!text) return;
-  const entries = text.split(/\r?\n/)
-    .map((line) => parsePastedLine(line))
-    .filter(Boolean)
-    .map((entry) => buildManualTransaction({
-      sourceType: els.manualSourceType.value,
-      flow: els.manualFlow.value,
-      date: entry.date,
-      time: entry.time,
-      merchant: entry.merchant,
-      amount: entry.amount,
-      sector: els.manualSector.value,
-      subcategory: els.manualSubcategory.value
-    }))
-    .filter(Boolean);
+  return runManualTransactionSave(async () => {
+    const text = els.pasteEntries.value.trim();
+    if (!text) return;
+    const entries = text.split(/\r?\n/)
+      .map((line) => parsePastedLine(line))
+      .filter(Boolean)
+      .map((entry) => buildManualTransaction({
+        sourceType: els.manualSourceType.value,
+        flow: els.manualFlow.value,
+        date: entry.date,
+        time: entry.time,
+        merchant: entry.merchant,
+        amount: entry.amount,
+        sector: els.manualSector.value,
+        subcategory: els.manualSubcategory.value
+      }))
+      .filter(Boolean);
 
-  if (!entries.length) {
-    alert("붙여넣은 내용에서 날짜, 내용, 금액을 찾지 못했습니다.");
-    return;
-  }
+    if (!entries.length) {
+      alert("붙여넣은 내용에서 날짜, 내용, 금액을 찾지 못했습니다.");
+      return;
+    }
 
-  const mergeResult = mergeTransactions(transactions, entries);
-  transactions = mergeResult.records;
-  importMeta = {
-    ...importMeta,
-    lastFileName: "붙여넣기 입력",
-    lastImportedAt: new Date().toISOString(),
-    lastAddedCount: mergeResult.added,
-    lastSkippedCount: mergeResult.skipped
-  };
-  currentFileName = "붙여넣기 입력";
-  await saveTransactions();
-  await saveImportMeta();
-  els.pasteEntries.value = "";
-  reclassify();
-  alert(`붙여넣은 내역 ${mergeResult.added.toLocaleString("ko-KR")}건을 추가했습니다. 중복 ${mergeResult.skipped.toLocaleString("ko-KR")}건은 건너뛰었습니다.`);
+    const mergeResult = mergeTransactions(transactions, entries);
+    const nextImportMeta = {
+      ...importMeta,
+      lastFileName: "붙여넣기 입력",
+      lastImportedAt: new Date().toISOString(),
+      lastAddedCount: mergeResult.added,
+      lastSkippedCount: mergeResult.skipped
+    };
+    if (!await safeSaveMany([
+      { key: RECORD_STORAGE_KEY, data: mergeResult.records, protectIncomeRecords: true },
+      { key: IMPORT_META_STORAGE_KEY, data: nextImportMeta }
+    ])) return;
+    transactions = mergeResult.records;
+    importMeta = nextImportMeta;
+    currentFileName = "붙여넣기 입력";
+    els.pasteEntries.value = "";
+    reclassify();
+    alert(`붙여넣은 내역 ${mergeResult.added.toLocaleString("ko-KR")}건을 추가했습니다. 중복 ${mergeResult.skipped.toLocaleString("ko-KR")}건은 건너뛰었습니다.`);
+  });
 }
 
 function buildManualTransaction({ sourceType, flow, date, time, merchant, amount, sector, subcategory }) {

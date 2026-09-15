@@ -33,6 +33,7 @@
 | 전체 재렌더링·화면별 재렌더링 | `src/features/app/render-all.js` |
 | 저장·복구·정규화·마이그레이션 | `src/utils/storage.js` |
 | 백업 내보내기·선택 복원·초기화 | `src/utils/backup.js` |
+| 백업 거래·월 수입 비교 계획 / 선택 화면 | `src/utils/backup-merge.js` / `src/features/app/backup-review.js` |
 | 소비지출 포함 여부·실소비 집계 | `src/utils/grouping.js` |
 | 거래 형식·분류명 정규화 | `src/utils/normalize.js` |
 | 날짜·월 공유 선택 | `src/utils/date.js` |
@@ -126,6 +127,7 @@ CSS는 `index.html`에 기재된 순서대로 적용됩니다. 같은 우선순�
 | `12-rosso-ink.css` | Rosso·Corsa 테마의 구조·표시 보정 |
 | `13-goals.css` | 목표 화면 |
 | `14-board-overview.css` | 대시보드 개요 |
+| `16-backup.css` | 백업 내용 비교·초기화 선택 |
 
 아이콘 CSS는 `08-themes.css` 뒤에 로드됩니다. `07-responsive.css` 뒤의 화면별 파일에도 반응형 규칙이 있으므로 수정한 선택자를 전체 스타일 폴더에서 검색해야 합니다. 새 테마는 색상 변수, `normalizeTheme()`, `THEME_BROWSER_COLORS`, 선택 버튼과 미리보기를 함께 확인하세요. 전체 `!important` 추가보다 해당 테마·화면의 정확한 선택자와 기존 변수를 사용합니다.
 
@@ -134,6 +136,8 @@ CSS는 `index.html`에 기재된 순서대로 적용됩니다. 같은 우선순�
 웹의 개인 데이터 경로는 `storage.js` → IndexedDB이며, IndexedDB API가 없는 환경에서는 localStorage 경로를 사용합니다. 기존 localStorage와 저장 버전의 호환·복구 처리도 이 파일에 있습니다. 네이티브 환경에서는 `BudgetNative` 저장 어댑터로 연결되므로 브라우저 저장소에 직접 쓰는 코드를 추가하지 않습니다.
 
 저장 키, DB 이름과 버전은 `constants.js`에 있습니다. `safeSaveMany()`와 백업의 범위별 저장 흐름을 사용해 여러 값이 함께 바뀔 때 저장 실패를 처리합니다. 저장소 이름 변경, 초기화, 자동 데이터 이전은 사용자의 금융 기록에 영향을 주므로 별도 마이그레이션과 실패 시 복구를 검증해야 합니다.
+
+전체 JSON 백업은 저장 큐를 기다린 뒤 모든 데이터 범위를 복사합니다. 선택 백업·복원과 초기화는 별도 체크박스를 사용합니다. 병합 복원은 거래 ID 또는 기존 복원 서명으로 대상을 찾아 거래 내용·정산금·월 수입의 차이를 먼저 비교하고 명시적으로 선택한 값을 적용합니다. 비교 이후 원본 상태가 달라지거나 연결 식별자가 모호하면 적용을 중단합니다. 복원 전 스냅샷과 범위별 묶음 저장에 실패하면 메모리 상태도 되돌립니다. 분류 규칙 등 나머지 범위는 기존 병합 정책을 유지합니다. 수기·수입 입력은 관련 저장을 완료한 뒤에만 입력칸을 비우고 성공을 표시합니다.
 
 공개 공모주 일정은 `scripts/update-ipo-calendar.mjs`와 관련 수집기에서 생성되어 `data/ipo-calendar.json`으로 제공됩니다. 브라우저는 이 공개 파일을 가져오고, 사용자가 확인한 일정만 개인 기록에 반영합니다. API 인증값은 수집 환경의 비밀값이며 웹 자산에 포함하지 않습니다. 출처·정정·충돌 처리 정책은 [ipo-sources.md](ipo-sources.md)에 있습니다.
 

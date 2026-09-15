@@ -524,51 +524,58 @@ function clearDetailBulkInput() {
 }
 
 async function handleDetailBulkSave() {
-  updateDetailBulkRowsFromPreview();
-  markDetailBulkDuplicateRows();
-  const allowDuplicates = Boolean(els.detailBulkAllowDuplicates.checked);
-  const saveableRows = detailBulkRows.filter((row) => row.valid && (allowDuplicates || !row.duplicate));
-  if (!saveableRows.length) {
-    renderDetailBulkPreview();
-    setDetailBulkFeedback("저장할 정상 항목이 없습니다. 오류 또는 중복 상태를 확인해주세요.", "error");
-    return;
-  }
+  return runManualTransactionSave(async () => {
+    updateDetailBulkRowsFromPreview();
+    markDetailBulkDuplicateRows();
+    const allowDuplicates = Boolean(els.detailBulkAllowDuplicates.checked);
+    const saveableRows = detailBulkRows.filter((row) => row.valid && (allowDuplicates || !row.duplicate));
+    if (!saveableRows.length) {
+      renderDetailBulkPreview();
+      setDetailBulkFeedback("저장할 정상 항목이 없습니다. 오류 또는 중복 상태를 확인해주세요.", "error");
+      return;
+    }
 
-  await createAutoSnapshot("과거 거래 일괄 입력 전");
-  const now = new Date().toISOString();
-  const beforeKeys = new Set(transactions.map((item) => item.recordKey));
-  const entries = saveableRows
-    .map((row) => ({ row, transaction: buildDetailBulkTransaction(row, now) }))
-    .filter((entry) => entry.transaction);
-  const mergeResult = mergeTransactions(transactions, entries.map((entry) => entry.transaction));
-  transactions = mergeResult.records;
-  entries.forEach(({ row, transaction }) => {
-    if (beforeKeys.has(transaction.recordKey)) return;
-    if (Number(row.reimbursement || 0) > 0) reimbursements[transaction.recordKey] = Math.min(Number(transaction.amount || 0), Number(row.reimbursement || 0));
+    await createAutoSnapshot("과거 거래 일괄 입력 전");
+    const now = new Date().toISOString();
+    const beforeKeys = new Set(transactions.map((item) => item.recordKey));
+    const entries = saveableRows
+      .map((row) => ({ row, transaction: buildDetailBulkTransaction(row, now) }))
+      .filter((entry) => entry.transaction);
+    const mergeResult = mergeTransactions(transactions, entries.map((entry) => entry.transaction));
+    const nextReimbursements = { ...reimbursements };
+    entries.forEach(({ row, transaction }) => {
+      if (beforeKeys.has(transaction.recordKey)) return;
+      if (Number(row.reimbursement || 0) > 0) nextReimbursements[transaction.recordKey] = Math.min(Number(transaction.amount || 0), Number(row.reimbursement || 0));
+    });
+    const skippedDuplicates = detailBulkRows.filter((row) => row.valid && row.duplicate && !allowDuplicates).length;
+    const nextImportMeta = {
+      ...importMeta,
+      lastFileName: "과거 거래 일괄 입력",
+      lastImportedAt: now,
+      lastAddedCount: mergeResult.added,
+      lastSkippedCount: mergeResult.skipped + skippedDuplicates
+    };
+    if (!await safeSaveMany([
+      { key: RECORD_STORAGE_KEY, data: mergeResult.records, protectIncomeRecords: true },
+      { key: REIMBURSEMENT_STORAGE_KEY, data: nextReimbursements },
+      { key: IMPORT_META_STORAGE_KEY, data: nextImportMeta }
+    ])) return;
+    transactions = mergeResult.records;
+    reimbursements = nextReimbursements;
+    importMeta = nextImportMeta;
+    currentFileName = "과거 거래 일괄 입력";
+
+    detailBulkRows = [];
+    els.detailBulkPaste.value = "";
+    els.detailBulkPreview.innerHTML = "";
+    els.saveDetailBulkButton.disabled = true;
+    if (els.detailBulkListMonth) els.detailBulkListMonth.value = "all";
+    if (els.detailBulkListSector) els.detailBulkListSector.value = "all";
+    if (els.detailBulkListSubcategory) els.detailBulkListSubcategory.value = "all";
+    setDetailBulkFeedback(`${mergeResult.added.toLocaleString("ko-KR")}건의 직접 입력 거래를 저장했습니다. 중복 ${Number(mergeResult.skipped + skippedDuplicates).toLocaleString("ko-KR")}건은 건너뛰었습니다.`, "success");
+    selectedDetailBulkSubtab = "records";
+    reclassify();
   });
-  const skippedDuplicates = detailBulkRows.filter((row) => row.valid && row.duplicate && !allowDuplicates).length;
-  importMeta = {
-    ...importMeta,
-    lastFileName: "과거 거래 일괄 입력",
-    lastImportedAt: now,
-    lastAddedCount: mergeResult.added,
-    lastSkippedCount: mergeResult.skipped + skippedDuplicates
-  };
-  currentFileName = "과거 거래 일괄 입력";
-
-  detailBulkRows = [];
-  els.detailBulkPaste.value = "";
-  els.detailBulkPreview.innerHTML = "";
-  els.saveDetailBulkButton.disabled = true;
-  if (els.detailBulkListMonth) els.detailBulkListMonth.value = "all";
-  if (els.detailBulkListSector) els.detailBulkListSector.value = "all";
-  if (els.detailBulkListSubcategory) els.detailBulkListSubcategory.value = "all";
-  setDetailBulkFeedback(`${mergeResult.added.toLocaleString("ko-KR")}건의 직접 입력 거래를 저장했습니다. 중복 ${Number(mergeResult.skipped + skippedDuplicates).toLocaleString("ko-KR")}건은 건너뛰었습니다.`, "success");
-  await saveTransactions();
-  await saveReimbursements();
-  await saveImportMeta();
-  selectedDetailBulkSubtab = "records";
-  reclassify();
 }
 
 function readDetailBulkDefaults() {
@@ -947,88 +954,102 @@ function updateDetailBulkRecordEditSubcategory(sectorSelect) {
 }
 
 async function saveDetailBulkRecordEdit(recordKey) {
-  const card = els.detailBulkRecordList.querySelector(`[data-save-detail-bulk-record="${cssEscape(recordKey)}"]`)?.closest(".detail-bulk-record-item");
-  if (!card) return;
-  const date = normalizeInputDate(card.querySelector('[data-detail-bulk-record-field="date"]')?.value);
-  const merchant = card.querySelector('[data-detail-bulk-record-field="merchant"]')?.value.trim();
-  const amount = Math.abs(toNumber(card.querySelector('[data-detail-bulk-record-field="amount"]')?.value));
-  const sourceType = card.querySelector('[data-detail-bulk-record-field="sourceType"]')?.value || "manual";
-  const reimbursement = Math.max(0, parseDetailBulkAmount(card.querySelector('[data-detail-bulk-record-field="reimbursement"]')?.value));
-  const sector = card.querySelector('[data-detail-bulk-record-field="sector"]')?.value || "식비";
-  const subcategory = card.querySelector('[data-detail-bulk-record-field="subcategory"]')?.value || "";
-  const installmentEnabled = Boolean(card.querySelector('[data-detail-bulk-record-field="installmentEnabled"]')?.checked);
-  const installmentMonthCount = Math.max(0, Number(card.querySelector('[data-detail-bulk-record-field="installmentMonths"]')?.value || 0));
-  const installmentStartMonth = card.querySelector('[data-detail-bulk-record-field="installmentStartMonth"]')?.value || monthKey(date);
+  return runManualTransactionSave(async () => {
+    const card = els.detailBulkRecordList.querySelector(`[data-save-detail-bulk-record="${cssEscape(recordKey)}"]`)?.closest(".detail-bulk-record-item");
+    if (!card) return;
+    const date = normalizeInputDate(card.querySelector('[data-detail-bulk-record-field="date"]')?.value);
+    const merchant = card.querySelector('[data-detail-bulk-record-field="merchant"]')?.value.trim();
+    const amount = Math.abs(toNumber(card.querySelector('[data-detail-bulk-record-field="amount"]')?.value));
+    const sourceType = card.querySelector('[data-detail-bulk-record-field="sourceType"]')?.value || "manual";
+    const reimbursement = Math.max(0, parseDetailBulkAmount(card.querySelector('[data-detail-bulk-record-field="reimbursement"]')?.value));
+    const sector = card.querySelector('[data-detail-bulk-record-field="sector"]')?.value || "식비";
+    const subcategory = card.querySelector('[data-detail-bulk-record-field="subcategory"]')?.value || "";
+    const installmentEnabled = Boolean(card.querySelector('[data-detail-bulk-record-field="installmentEnabled"]')?.checked);
+    const installmentMonthCount = Math.max(0, Number(card.querySelector('[data-detail-bulk-record-field="installmentMonths"]')?.value || 0));
+    const installmentStartMonth = card.querySelector('[data-detail-bulk-record-field="installmentStartMonth"]')?.value || monthKey(date);
 
-  if (!date || !merchant || !amount) {
-    alert("날짜, 내용, 금액을 모두 입력해주세요.");
-    return;
-  }
-  if (reimbursement > amount) {
-    alert("정산 기준값은 총 결제액보다 클 수 없습니다.");
-    return;
-  }
-  if (installmentEnabled && (installmentMonthCount < 2 || !isValidMonthKey(installmentStartMonth))) {
-    alert("할부 개월 수는 2개월 이상, 시작 월은 YYYY-MM 형식으로 입력해주세요.");
-    return;
-  }
+    if (!date || !merchant || !amount) {
+      alert("날짜, 내용, 금액을 모두 입력해주세요.");
+      return;
+    }
+    if (reimbursement > amount) {
+      alert("정산 기준값은 총 결제액보다 클 수 없습니다.");
+      return;
+    }
+    if (installmentEnabled && (installmentMonthCount < 2 || !isValidMonthKey(installmentStartMonth))) {
+      alert("할부 개월 수는 2개월 이상, 시작 월은 YYYY-MM 형식으로 입력해주세요.");
+      return;
+    }
 
-  const index = transactions.findIndex((item) => normalizeStoredTransaction(item).recordKey === recordKey);
-  if (index < 0) return;
-  const original = normalizeStoredTransaction(transactions[index]);
-  const assignment = normalizeCategoryAssignment(sector, subcategory, merchant);
-  const now = new Date().toISOString();
-  const validInstallment = installmentEnabled && installmentMonthCount > 1;
-  const updated = {
-    ...original,
-    sourceType,
-    flow: "expense",
-    approvalDate: date,
-    month: monthKey(date),
-    merchant,
-    amount,
-    manualSector: assignment.sector,
-    manualSubcategory: assignment.subcategory,
-    installmentEnabled: validInstallment,
-    installmentMonths: validInstallment ? installmentMonthCount : 0,
-    installmentStartMonth: validInstallment ? installmentStartMonth : "",
-    installmentOriginalAmount: validInstallment ? amount : 0,
-    installmentMonthlyAmount: validInstallment ? Math.floor(amount / installmentMonthCount) : 0,
-    installmentGroupId: validInstallment ? original.installmentGroupId || original.recordKey : "",
-    sourceFile: original.sourceFile || "과거 거래 일괄 입력",
-    importedAt: original.importedAt || now,
-    createdAt: original.createdAt || original.importedAt || now,
-    updatedAt: now,
-    approvalNo: original.approvalNo || `direct-bulk-${now}-${Math.random().toString(36).slice(2, 8)}`
-  };
-  updated.recordKey = createRecordKey(updated);
-  const duplicated = transactions.some((item, itemIndex) => itemIndex !== index && normalizeStoredTransaction(item).recordKey === updated.recordKey);
-  if (duplicated) {
-    alert("같은 과거 거래 기록이 이미 있습니다. 날짜, 내용, 금액을 확인해주세요.");
-    return;
-  }
+    const index = transactions.findIndex((item) => normalizeStoredTransaction(item).recordKey === recordKey);
+    if (index < 0) return;
+    const original = normalizeStoredTransaction(transactions[index]);
+    const assignment = normalizeCategoryAssignment(sector, subcategory, merchant);
+    const now = new Date().toISOString();
+    const validInstallment = installmentEnabled && installmentMonthCount > 1;
+    const updated = {
+      ...original,
+      sourceType,
+      flow: "expense",
+      approvalDate: date,
+      month: monthKey(date),
+      merchant,
+      amount,
+      manualSector: assignment.sector,
+      manualSubcategory: assignment.subcategory,
+      installmentEnabled: validInstallment,
+      installmentMonths: validInstallment ? installmentMonthCount : 0,
+      installmentStartMonth: validInstallment ? installmentStartMonth : "",
+      installmentOriginalAmount: validInstallment ? amount : 0,
+      installmentMonthlyAmount: validInstallment ? Math.floor(amount / installmentMonthCount) : 0,
+      installmentGroupId: validInstallment ? original.installmentGroupId || original.recordKey : "",
+      sourceFile: original.sourceFile || "과거 거래 일괄 입력",
+      importedAt: original.importedAt || now,
+      createdAt: original.createdAt || original.importedAt || now,
+      updatedAt: now,
+      approvalNo: original.approvalNo || `direct-bulk-${now}-${Math.random().toString(36).slice(2, 8)}`
+    };
+    updated.recordKey = createRecordKey(updated);
+    const duplicated = transactions.some((item, itemIndex) => itemIndex !== index && normalizeStoredTransaction(item).recordKey === updated.recordKey);
+    if (duplicated) {
+      alert("같은 과거 거래 기록이 이미 있습니다. 날짜, 내용, 금액을 확인해주세요.");
+      return;
+    }
 
-  await createAutoSnapshot("과거 거래 수정 전");
-  transactions[index] = updated;
-  delete reimbursements[recordKey];
-  if (reimbursement > 0) reimbursements[updated.recordKey] = Math.min(amount, reimbursement);
-  editingDetailBulkRecordKey = "";
-  await saveTransactions();
-  await saveReimbursements();
-  setDetailBulkFeedback("과거 거래를 수정했습니다.", "success");
-  reclassify();
+    await createAutoSnapshot("과거 거래 수정 전");
+    const nextTransactions = transactions.map((item, itemIndex) => itemIndex === index ? updated : item);
+    const nextReimbursements = { ...reimbursements };
+    delete nextReimbursements[recordKey];
+    if (reimbursement > 0) nextReimbursements[updated.recordKey] = Math.min(amount, reimbursement);
+    if (!await safeSaveMany([
+      { key: RECORD_STORAGE_KEY, data: nextTransactions, protectIncomeRecords: true },
+      { key: REIMBURSEMENT_STORAGE_KEY, data: nextReimbursements }
+    ])) return;
+    transactions = nextTransactions;
+    reimbursements = nextReimbursements;
+    editingDetailBulkRecordKey = "";
+    setDetailBulkFeedback("과거 거래를 수정했습니다.", "success");
+    reclassify();
+  });
 }
 
 async function deleteDetailBulkRecord(recordKey) {
-  if (!confirm("이 과거 거래 기록을 삭제할까요?")) return;
-  await createAutoSnapshot("과거 거래 삭제 전");
-  transactions = transactions.filter((item) => normalizeStoredTransaction(item).recordKey !== recordKey);
-  delete reimbursements[recordKey];
-  editingDetailBulkRecordKey = "";
-  await saveTransactions();
-  await saveReimbursements();
-  setDetailBulkFeedback("과거 거래를 삭제했습니다.", "success");
-  reclassify();
+  return runManualTransactionSave(async () => {
+    if (!confirm("이 과거 거래 기록을 삭제할까요?")) return;
+    await createAutoSnapshot("과거 거래 삭제 전");
+    const nextTransactions = transactions.filter((item) => normalizeStoredTransaction(item).recordKey !== recordKey);
+    const nextReimbursements = { ...reimbursements };
+    delete nextReimbursements[recordKey];
+    if (!await safeSaveMany([
+      { key: RECORD_STORAGE_KEY, data: nextTransactions, protectIncomeRecords: true },
+      { key: REIMBURSEMENT_STORAGE_KEY, data: nextReimbursements }
+    ])) return;
+    transactions = nextTransactions;
+    reimbursements = nextReimbursements;
+    editingDetailBulkRecordKey = "";
+    setDetailBulkFeedback("과거 거래를 삭제했습니다.", "success");
+    reclassify();
+  });
 }
 
 function updateDetailBulkSaveButton() {

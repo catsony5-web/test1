@@ -1,5 +1,5 @@
 async function clearRecords() {
-  const scopes = selectedDataScopes();
+  const scopes = selectedClearDataScopes();
   if (!scopes.length) {
     alert("초기화할 데이터 항목을 하나 이상 선택해주세요.");
     return;
@@ -16,15 +16,16 @@ async function clearRecords() {
   }
   if (!await persistDataScopeChange(scopes, () => applyClearScopes(scopes), "선택 데이터 초기화 전")) return;
   reclassify();
-  renderRestorePreview(null, scopes);
+  renderRestorePreview(null);
 }
 
-async function backupLocalData() {
-  const scopes = selectedDataScopes();
+async function backupLocalData({ selectedOnly = false } = {}) {
+  const scopes = selectedOnly ? selectedDataScopes() : DATA_SCOPE_META.map(({ key }) => key);
   if (!scopes.length) {
     alert("백업할 데이터 항목을 하나 이상 선택해주세요.");
     return;
   }
+  await privateWriteQueue;
   const payload = await buildBackupPayload(scopes);
   if (window.BudgetNative) {
     await window.BudgetNative.exportFile(JSON.stringify(payload, null, 2), "가계부_백업.json");
@@ -34,16 +35,20 @@ async function backupLocalData() {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `월별_카드가계부_선택백업_${new Date().toISOString().slice(0, 10)}.json`;
+  link.download = `월별_카드가계부_${selectedOnly ? "선택" : "전체"}백업_${new Date().toISOString().slice(0, 10)}.json`;
   document.body.appendChild(link);
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
 }
 
+let backupRestoreInProgress = false;
+
 async function restoreLocalData(event) {
   const file = event.target.files?.[0];
-  if (!file) return;
+  if (!file || backupRestoreInProgress) return;
+  backupRestoreInProgress = true;
+  event.target.disabled = true;
 
   try {
     if (file.size > 32 * 1024 * 1024) throw new Error("Backup exceeds 32MB");
@@ -63,14 +68,18 @@ async function restoreLocalData(event) {
     }
     const mode = selectedRestoreMode();
     renderRestorePreview(bundle, scopes);
-    const counts = scopeLabels(scopes).map((label, index) => `${label} ${formatScopeCount(bundle.sectionCounts[scopes[index]])}`).join("\n");
+    await privateWriteQueue;
+    const mergePlan = mode === "merge" ? buildBackupMergePlan(bundle, scopes) : null;
+    const mergeChoices = mergePlan?.conflicts.length ? await reviewBackupDifferences(mergePlan.conflicts) : {};
+    if (mergeChoices === null) return;
+    const counts = scopeLabels(scopes).map((label, index) => `${label} ${formatBackupScopeCount(bundle, scopes[index])}`).join("\n");
     const message = `백업 파일에서 선택한 항목만 ${mode === "overwrite" ? "덮어쓰기 복원" : "병합 복원"}할까요?\n\n${counts}\n\n선택하지 않은 현재 데이터는 유지됩니다.`;
     if (mode === "overwrite") {
       if (!confirmDangerousDataAction(`${message}\n\n덮어쓰기는 선택한 섹션의 현재 데이터를 먼저 지웁니다.`, "복원")) return;
     } else if (!confirm(message)) {
       return;
     }
-    if (!await persistDataScopeChange(scopes, () => applyRestorePayload(bundle, scopes, { mode }), "백업 불러오기 전")) return;
+    if (!await persistDataScopeChange(scopes, () => applyRestorePayload(bundle, scopes, { mode, mergePlan, mergeChoices }), "백업 불러오기 전")) return;
     reclassify();
     renderRestorePreview(bundle, scopes);
     alert(`선택한 백업 데이터를 ${mode === "overwrite" ? "덮어쓰기" : "병합"} 방식으로 불러왔습니다.`);
@@ -78,6 +87,8 @@ async function restoreLocalData(event) {
     console.error("restoreLocalData failed", error);
     alert("백업 복원을 완료하지 못했습니다. 파일 형식과 브라우저 저장소 상태를 확인해주세요.");
   } finally {
+    backupRestoreInProgress = false;
+    event.target.disabled = false;
     event.target.value = "";
   }
 }
@@ -120,6 +131,18 @@ function selectedDataScopes() {
     .filter((input) => input.checked)
     .map((input) => input.dataset.dataScope)
     .filter(Boolean));
+}
+
+function selectedClearDataScopes() {
+  return normalizeScopeList([...(els.clearDataScopeControls || [])]
+    .filter((input) => input.checked)
+    .map((input) => input.dataset.clearScope));
+}
+
+function setClearDataScopeSelection(mode = "imported") {
+  for (const input of els.clearDataScopeControls || []) {
+    input.checked = mode === "all" || input.dataset.clearScope === "importedExcelTransactions";
+  }
 }
 
 function setDataScopeSelection(mode = "imported") {
@@ -212,7 +235,7 @@ async function buildBackupPayload(scopes) {
   const sections = {};
   selected.forEach((scope) => {
     const section = buildBackupSection(scope);
-    if (section) sections[scope] = section;
+    if (section) sections[scope] = structuredCloneSafe(section);
   });
   const flattened = flattenTransactionSections(sections);
   const exportedAt = new Date().toISOString();
@@ -301,6 +324,8 @@ function normalizeBackupPayload(payload) {
 
   if (!sections.importedExcelTransactions && payload?.importMeta) {
     sections.importedExcelTransactions = { records: [], reimbursements: {}, importMeta: payload.importMeta };
+  } else if (sections.importedExcelTransactions && payload?.importMeta && !sections.importedExcelTransactions.importMeta) {
+    sections.importedExcelTransactions.importMeta = payload.importMeta;
   }
   if (!sections.incomeInput && payload?.monthlyIncome) {
     sections.incomeInput = { records: [], reimbursements: {}, monthlyIncome: payload.monthlyIncome };
@@ -397,6 +422,12 @@ function formatScopeCount(count) {
   return `(${Number(count || 0).toLocaleString("ko-KR")}건)`;
 }
 
+function formatBackupScopeCount(bundle, scope) {
+  const count = bundle.sectionCounts[scope];
+  const months = scope === "incomeInput" ? Object.keys(bundle.sections.incomeInput?.monthlyIncome || {}).length : 0;
+  return months ? `(수입 거래 ${Number(count || 0).toLocaleString("ko-KR")}건 · 월별 직접 입력 ${months}개월)` : formatScopeCount(count);
+}
+
 function renderRestorePreview(bundle, selectedScopes = selectedDataScopes()) {
   if (!els.restorePreview) return;
   const selected = normalizeScopeList(selectedScopes);
@@ -406,7 +437,7 @@ function renderRestorePreview(bundle, selectedScopes = selectedDataScopes()) {
   }
   const rows = selected
     .filter((scope) => backupBundleHasScope(bundle, scope))
-    .map((scope) => `<li><strong>${escapeHtml(scopeLabels([scope])[0])}</strong><span>${escapeHtml(formatScopeCount(bundle.sectionCounts[scope]))}</span></li>`)
+    .map((scope) => `<li><strong>${escapeHtml(scopeLabels([scope])[0])}</strong><span>${escapeHtml(formatBackupScopeCount(bundle, scope))}</span></li>`)
     .join("");
   els.restorePreview.innerHTML = rows
     ? `<strong>복원 미리보기</strong><ul>${rows}</ul>`
@@ -446,13 +477,23 @@ function applyRestorePayload(payload, scopes, options = {}) {
   const bundle = payload?.sections ? payload : normalizeBackupPayload(payload);
   const selected = normalizeScopeList(scopes).filter((scope) => backupBundleHasScope(bundle, scope));
   const mode = options.mode === "merge" ? "merge" : "overwrite";
-  restoreTransactionSections(bundle, selected, mode);
+  if (mode === "merge") {
+    const plan = options.mergePlan || buildBackupMergePlan(bundle, selected);
+    const merged = resolveBackupMergePlan(plan, options.mergeChoices || {}, bundle, selected);
+    if (selected.some((scope) => TRANSACTION_DATA_SCOPES.has(scope))) {
+      transactions = merged.transactions;
+      reimbursements = merged.reimbursements;
+    }
+    if (selected.includes("incomeInput")) monthlyIncome = merged.monthlyIncome;
+  } else {
+    restoreTransactionSections(bundle, selected, mode);
+  }
 
-  if (selected.includes("incomeInput")) {
+  if (selected.includes("incomeInput") && mode !== "merge") {
     const incomingIncome = bundle.sections.incomeInput?.monthlyIncome && typeof bundle.sections.incomeInput.monthlyIncome === "object"
       ? bundle.sections.incomeInput.monthlyIncome
       : {};
-    monthlyIncome = mode === "merge" ? { ...incomingIncome, ...monthlyIncome } : incomingIncome;
+    monthlyIncome = incomingIncome;
   }
   if (selected.includes("recurringDefinitions")) {
     const incoming = Array.isArray(bundle.sections.recurringDefinitions?.recurringExpenses)
@@ -499,6 +540,9 @@ function applyRestorePayload(payload, scopes, options = {}) {
 
 async function persistDataScopeChange(scopes, applyChange, snapshotReason) {
   let restoreState;
+  const body = typeof document === "undefined" ? null : document.body;
+  const wasInert = body?.inert;
+  if (body) body.inert = true;
   try {
     await createAutoSnapshot(snapshotReason);
     restoreState = captureDataState();
@@ -507,6 +551,8 @@ async function persistDataScopeChange(scopes, applyChange, snapshotReason) {
   } catch (error) {
     console.error("데이터 변경 저장 실패", error);
     alert("데이터 변경을 완료하지 못했습니다. 백업 파일과 브라우저 저장소 상태를 확인한 후 다시 시도해주세요.");
+  } finally {
+    if (body) body.inert = wasInert;
   }
   if (restoreState) restoreState();
   return false;

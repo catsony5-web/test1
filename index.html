@@ -25,6 +25,7 @@
   <link rel="stylesheet" href="src/styles/12-rosso-ink.css?v=169-corsa-themes">
   <link rel="stylesheet" href="src/styles/13-goals.css?v=179-goal-tabs">
   <link rel="stylesheet" href="src/styles/14-board-overview.css?v=185-theme-refresh">
+  <link rel="stylesheet" href="src/styles/16-backup.css?v=187-backup-restore">
 </head>
 <body data-app-name="소비 분석">
   <header class="topbar compact-topbar">
@@ -183,12 +184,12 @@
               </div>
               <div class="admin-menu-section">
                 <div class="admin-section-heading">
-                  <span class="admin-menu-label">백업과 초기화</span>
-                  <p class="admin-menu-help">체크한 항목만 백업, 복원하거나 초기화합니다.</p>
+                  <span class="admin-menu-label">백업과 복원</span>
+                  <p class="admin-menu-help">전체 백업으로 현재 가계부를 보관하고, 복원할 때 다른 내용을 비교합니다.</p>
                 </div>
-                <div class="data-scope-panel" aria-label="백업, 복원, 초기화 데이터 선택">
+                <div class="data-scope-panel" aria-label="복원 및 선택 백업 데이터 선택">
                   <div class="data-scope-head">
-                    <strong>처리할 데이터 항목</strong>
+                    <strong>복원 및 선택 백업 항목</strong>
                     <div>
                       <button id="selectAllDataScopesButton" type="button">전체 선택</button>
                       <button id="selectImportedDataScopeButton" type="button">엑셀만</button>
@@ -196,18 +197,18 @@
                   </div>
                   <div class="data-scope-grid">
                     <label><input type="checkbox" data-data-scope="importedExcelTransactions" checked> 엑셀 업로드 거래</label>
-                    <label><input type="checkbox" data-data-scope="pastBulkTransactions"> 과거 거래 입력</label>
-                    <label><input type="checkbox" data-data-scope="directManualTransactions"> 직접 추가 거래</label>
-                    <label><input type="checkbox" data-data-scope="incomeInput"> 수입 입력</label>
-                    <label><input type="checkbox" data-data-scope="recurringDefinitions"> 고정 지출 원본</label>
-                    <label><input type="checkbox" data-data-scope="recurringPostedTransactions"> 고정 지출 실제 반영</label>
-                    <label><input type="checkbox" data-data-scope="rulesAndLearning"> 분류 규칙/추천</label>
-                    <label><input type="checkbox" data-data-scope="products"> 소모품 사용</label>
-                    <label><input type="checkbox" data-data-scope="ipoRecords"> 공모주 기록</label>
-                    <label><input type="checkbox" data-data-scope="calendarMemos"> 달력 메모</label>
-                    <label><input type="checkbox" data-data-scope="goalPlan"> 자산 목표 플랜</label>
-                    <label><input type="checkbox" data-data-scope="settings"> 설정/테마</label>
-                    <label><input type="checkbox" data-data-scope="legacyUnknown"> 기타 legacy 데이터</label>
+                    <label><input type="checkbox" data-data-scope="pastBulkTransactions" checked> 과거 거래 입력</label>
+                    <label><input type="checkbox" data-data-scope="directManualTransactions" checked> 직접 추가 거래</label>
+                    <label><input type="checkbox" data-data-scope="incomeInput" checked> 수입 입력</label>
+                    <label><input type="checkbox" data-data-scope="recurringDefinitions" checked> 고정 지출 원본</label>
+                    <label><input type="checkbox" data-data-scope="recurringPostedTransactions" checked> 고정 지출 실제 반영</label>
+                    <label><input type="checkbox" data-data-scope="rulesAndLearning" checked> 분류 규칙/추천</label>
+                    <label><input type="checkbox" data-data-scope="products" checked> 소모품 사용</label>
+                    <label><input type="checkbox" data-data-scope="ipoRecords" checked> 공모주 기록</label>
+                    <label><input type="checkbox" data-data-scope="calendarMemos" checked> 달력 메모</label>
+                    <label><input type="checkbox" data-data-scope="goalPlan" checked> 자산 목표 플랜</label>
+                    <label><input type="checkbox" data-data-scope="settings" checked> 설정/테마</label>
+                    <label><input type="checkbox" data-data-scope="legacyUnknown" checked> 기타 legacy 데이터</label>
                   </div>
                   <div class="restore-mode-panel" aria-label="백업 복원 방식">
                     <strong>복원 방식</strong>
@@ -217,18 +218,46 @@
                   <div id="restorePreview" class="restore-preview">
                     <span>백업 파일을 선택하면 포함 항목과 건수를 확인한 뒤 복원합니다.</span>
                   </div>
-                  <small>정산금은 선택한 거래 기록과 함께 보존됩니다. 직접 입력 기록을 보호하도록 기본값은 엑셀 업로드 거래만 선택합니다.</small>
+                  <small>전체 백업에는 수기 거래·수입·수정 내역을 모두 담습니다. 아래 선택은 복원과 선택 백업에만 사용하며, 초기화 범위와는 별개입니다.</small>
                 </div>
                 <div class="admin-menu-actions">
                   <button id="exportButton" type="button" disabled><i class="ti ti-file-export" aria-hidden="true"></i><span>분류 결과 내보내기</span></button>
-                  <button id="backupButton" type="button"><i class="ti ti-download" aria-hidden="true"></i><span>데이터 백업</span></button>
+                  <button id="backupButton" type="button"><i class="ti ti-download" aria-hidden="true"></i><span>전체 데이터 백업</span></button>
+                  <button id="backupSelectedButton" type="button">선택 항목만 백업</button>
                   <label class="ghost-file-button">
                     <input id="restoreInput" type="file" accept=".json,application/json">
                     <i class="ti ti-upload" aria-hidden="true"></i><span>백업 불러오기</span>
                   </label>
+
+                </div>
+
+                <details class="data-scope-panel clear-data-panel">
+                  <summary>기록 초기화 · 별도 항목 선택</summary>
+                  <p>여기서 체크한 항목만 초기화합니다. 백업·복원 항목 선택은 영향을 주지 않습니다.</p>
+                  <div class="data-scope-head">
+                    <strong>초기화할 항목</strong>
+                    <div><button id="selectAllClearScopesButton" type="button">전체 선택</button><button id="selectImportedClearScopeButton" type="button">엑셀만</button></div>
+                  </div>
+                  <div class="data-scope-grid">
+                    <label><input type="checkbox" data-clear-scope="importedExcelTransactions" checked> 엑셀 업로드 거래</label>
+                    <label><input type="checkbox" data-clear-scope="pastBulkTransactions"> 과거 거래 입력</label>
+                    <label><input type="checkbox" data-clear-scope="directManualTransactions"> 직접 추가 거래</label>
+                    <label><input type="checkbox" data-clear-scope="incomeInput"> 수입 입력</label>
+                    <label><input type="checkbox" data-clear-scope="recurringDefinitions"> 고정 지출 원본</label>
+                    <label><input type="checkbox" data-clear-scope="recurringPostedTransactions"> 고정 지출 실제 반영</label>
+                    <label><input type="checkbox" data-clear-scope="rulesAndLearning"> 분류 규칙/추천</label>
+                    <label><input type="checkbox" data-clear-scope="products"> 소모품 사용</label>
+                    <label><input type="checkbox" data-clear-scope="ipoRecords"> 공모주 기록</label>
+                    <label><input type="checkbox" data-clear-scope="calendarMemos"> 달력 메모</label>
+                    <label><input type="checkbox" data-clear-scope="goalPlan"> 자산 목표 플랜</label>
+                    <label><input type="checkbox" data-clear-scope="settings"> 설정/테마</label>
+                    <label><input type="checkbox" data-clear-scope="legacyUnknown"> 기타 legacy 데이터</label>
+                  </div>
+                  <div class="admin-menu-actions">
                   <button id="clearRecordsButton" class="danger-outline" type="button"><i class="ti ti-trash" aria-hidden="true"></i><span>기록 초기화</span></button>
                   <button id="resetRulesButton" class="danger-outline" type="button"><i class="ti ti-refresh" aria-hidden="true"></i><span>기본 규칙 복원</span></button>
-                </div>
+                  </div>
+                </details>
               </div>
             </section>
             <section id="adminPanelRecovery" class="admin-tab-panel" role="tabpanel" aria-labelledby="adminTabRecovery" data-admin-panel="recovery" hidden>
@@ -1432,8 +1461,21 @@
     </article>
   </template>
 
+  <dialog id="backupCompareDialog" class="backup-compare-dialog" aria-labelledby="backupCompareTitle">
+    <form id="backupCompareForm">
+      <h2 id="backupCompareTitle">수정된 내용 비교</h2>
+      <p id="backupCompareStatus" role="status"></p>
+      <p>선택한 쪽의 거래 내용과 정산금을 함께 사용합니다. 취소하면 현재 가계부를 유지합니다.</p>
+      <div id="backupCompareItems"></div>
+      <div class="backup-compare-choices">
+        <button id="backupCompareCancel" type="button">복원 취소</button>
+        <button type="submit" class="primary-action">선택한 내용으로 복원 계속</button>
+      </div>
+    </form>
+  </dialog>
+
   <script src="assets/vendor/xlsx.full.min.js?v=182-maintenance"></script>
-  <script src="src/data/constants.js?v=185-theme-refresh"></script>
+  <script src="src/data/constants.js?v=187-backup-restore"></script>
   <script src="src/data/categories.js?v=136-mineral-layers"></script>
   <script src="src/data/rules.js?v=93"></script>
   <script src="src/data/board-sections.js?v=151-loan-repayments"></script>
@@ -1441,7 +1483,7 @@
   <script src="src/data/goal-resources.js?v=170-goal-planner-r3"></script>
   <script src="src/features/goals/goals-core.js?v=170-goal-planner"></script>
 
-  <script src="src/features/app/state.js?v=185-theme-refresh"></script>
+  <script src="src/features/app/state.js?v=187-backup-restore"></script>
 
   <script src="src/utils/format.js?v=80"></script>
   <script src="src/utils/date.js?v=141-garden-analysis"></script>
@@ -1451,13 +1493,15 @@
   <script src="src/utils/normalize.js?v=174-food-occasions"></script>
   <script src="src/utils/grouping.js?v=156-loan-sharing"></script>
   <script src="src/utils/storage.js?v=185-theme-refresh"></script>
-  <script src="src/utils/backup.js?v=182-maintenance"></script>
+  <script src="src/utils/backup-merge.js?v=187-backup-restore"></script>
+  <script src="src/utils/backup.js?v=187-backup-restore"></script>
+  <script src="src/features/app/backup-review.js?v=187-backup-restore"></script>
 
   <script src="src/components/chips.js?v=174-food-occasions"></script>
   <script src="src/components/tables.js?v=61"></script>
   <script src="src/components/metrics.js?v=131-yearly"></script>
   <script src="src/components/charts.js?v=61"></script>
-  <script src="src/components/quick-add.js?v=61"></script>
+  <script src="src/components/quick-add.js?v=187-backup-restore"></script>
 
   <script src="src/features/import/excel-import.js?v=183-storage-release"></script>
   <script src="src/features/import/transaction-parser.js?v=77"></script>
@@ -1468,8 +1512,8 @@
   <script src="src/features/board/board-view.js?v=185-theme-refresh"></script>
   <script src="src/features/board/board-summary.js?v=156-loan-sharing"></script>
   <script src="src/features/board/board-overview.js?v=185-theme-refresh"></script>
-  <script src="src/features/board/board-cards.js?v=185-theme-refresh"></script>
-  <script src="src/features/details/details-view.js?v=151-loan-repayments"></script>
+  <script src="src/features/board/board-cards.js?v=187-backup-restore"></script>
+  <script src="src/features/details/details-view.js?v=187-backup-restore"></script>
   <script src="src/features/summary/comparison-analysis.js?v=171-calendar-split-summary"></script>
   <script src="src/features/summary/summary-priority.js?v=165-summary-insights-r2"></script>
   <script src="src/features/summary/summary-food-core.js?v=174-food-occasions"></script>
@@ -1481,9 +1525,9 @@
   <script src="src/features/summary/summary-chart.js?v=165-summary-insights-r2"></script>
   <script src="src/features/monthly/monthly-flow.js?v=165-summary-insights-r2"></script>
   <script src="src/features/monthly/monthly-chart.js?v=156-loan-sharing"></script>
-  <script src="src/features/income/income-entry.js?v=61"></script>
-  <script src="src/features/income/income-bulk.js?v=61"></script>
-  <script src="src/features/income/income-list.js?v=156-loan-sharing"></script>
+  <script src="src/features/income/income-entry.js?v=187-backup-restore"></script>
+  <script src="src/features/income/income-bulk.js?v=187-backup-restore"></script>
+  <script src="src/features/income/income-list.js?v=187-backup-restore"></script>
   <script src="src/features/recurring/recurring-view.js?v=177-storage-recovery"></script>
   <script src="src/features/calendar/calendar-view.js?v=183-storage-release"></script>
   <script src="src/features/analysis/analysis-core.js?v=156-loan-sharing"></script>
@@ -1493,12 +1537,12 @@
   <script src="src/features/products/products-view.js?v=62"></script>
   <script src="src/features/ipo/ipo-view.js?v=183-storage-release"></script>
   <script src="src/features/unknown/unknown-view.js?v=97"></script>
-  <script src="src/features/transactions/transactions-view.js?v=182-maintenance"></script>
+  <script src="src/features/transactions/transactions-view.js?v=187-backup-restore"></script>
   <script src="src/features/goals/goals-view.js?v=179-goal-tabs"></script>
 
   <script src="src/features/app/navigation.js?v=112"></script>
   <script src="src/features/app/appearance.js?v=141-garden-analysis"></script>
   <script src="src/features/app/render-all.js?v=183-storage-release"></script>
-  <script src="src/features/app/init.js?v=182-maintenance"></script>
+  <script src="src/features/app/init.js?v=187-backup-restore"></script>
 </body>
 </html>

@@ -299,6 +299,7 @@ function setupBackup(options) {
   const c = env.context;
   load(c, "src/utils/normalize.js");
   load(c, "src/utils/food-occasion.js");
+  load(c, "src/utils/backup-merge.js");
   load(c, "src/utils/backup.js");
   Object.assign(c, {
     transactions: [], reimbursements: {}, importMeta: {}, currentFileName: "", monthlyIncome: {},
@@ -359,7 +360,7 @@ test("백업 복원 실패 시 원본 상태를 되돌리고 완료 안내를 �
 test("초기화 실패 시 원래 목록을 유지한다", async () => {
   const { context: c } = setupBackup();
   const original = [{ id: "old" }]; c.products = original;
-  c.selectedDataScopes = () => ["products"];
+  c.selectedClearDataScopes = () => ["products"];
   c.confirmDangerousDataAction = () => true;
   c.saveSelectedScopes = async () => false;
   await c.clearRecords();
