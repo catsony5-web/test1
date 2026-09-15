@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "monthly-card-budget-";
-const CACHE_NAME = `${CACHE_PREFIX}v187-backup-restore`;
+const CACHE_NAME = `${CACHE_PREFIX}v188-pattern-readability`;
 const APP_FILES = [
   "./",
   "./index.html",
@@ -14,7 +14,7 @@ const APP_FILES = [
   "./src/styles/08-themes.css?v=185-theme-refresh",
   "./src/styles/09-production-ui.css?v=172-calendar-layout-r2",
   "./src/styles/10-analysis.css?v=175-monthly-close-r3",
-  "./src/styles/11-summary-insights.css?v=174-food-occasions",
+  "./src/styles/11-summary-insights.css?v=188-pattern-readability",
   "./src/styles/12-rosso-ink.css?v=169-corsa-themes",
   "./src/styles/13-goals.css?v=179-goal-tabs",
   "./src/styles/14-board-overview.css?v=185-theme-refresh",
@@ -109,7 +109,7 @@ const APP_FILES = [
   "./assets/tabler/icons/x.svg",
   "./assets/tabler/LICENSE",
   "./data/ipo-calendar.json",
-  "./src/data/constants.js?v=187-backup-restore",
+  "./src/data/constants.js?v=188-pattern-readability",
   "./src/data/categories.js?v=136-mineral-layers",
   "./src/data/rules.js?v=93",
   "./src/data/board-sections.js?v=151-loan-repayments",

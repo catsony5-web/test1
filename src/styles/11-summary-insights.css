@@ -429,8 +429,6 @@
 #summaryView .summary-food-week-total strong { font-size: 13px; }
 #summaryView .summary-food-day[aria-pressed="true"],
 #summaryView .summary-food-week-total[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--accent-primary); background: color-mix(in srgb, var(--accent-primary) 10%, var(--bg-card)); }
-#summaryView .summary-food-day:hover:not(:disabled),
-#summaryView .summary-food-week-total:hover { background: color-mix(in srgb, var(--accent-positive) 16%, var(--bg-card)); }
 #summaryView .summary-food-day:focus-visible,
 #summaryView .summary-food-week-total:focus-visible { outline: 2px solid var(--text-primary); outline-offset: -3px; }
 #summaryView .summary-food-today { width: 5px; height: 5px; border-radius: 50%; background: var(--accent-primary); }
@@ -501,6 +499,83 @@
   #summaryView .summary-food-review-controls button { grid-column: 1 / -1; }
   #summaryView .summary-food-budget-totals strong { font-size: 18px; }
   #summaryView .summary-food-review > summary > span { display: block; margin: 6px 0 0 18px; }
+}
+
+/* Graphite pattern detail: readable resting counts and matching heat legend. */
+:root[data-theme="graphite-studio"] #summaryView .summary-pattern-heatmap {
+  --pattern-heat-0: var(--bg-surface);
+  --pattern-heat-1: color-mix(in srgb, var(--accent-positive) 14%, var(--bg-card));
+  --pattern-heat-2: color-mix(in srgb, var(--accent-positive) 25%, var(--bg-card));
+  --pattern-heat-3: color-mix(in srgb, var(--accent-positive) 40%, var(--bg-card));
+  --pattern-heat-4: color-mix(in srgb, var(--accent-positive) 70%, var(--bg-card));
+  --pattern-heat-5: var(--accent-positive);
+}
+:root[data-theme="graphite-studio"] #summaryView .pattern-heat-cell { background: var(--pattern-heat-0); color: var(--text-primary); border-color: var(--border-strong); }
+:root[data-theme="graphite-studio"] #summaryView .pattern-heat-cell.level-1,
+:root[data-theme="graphite-studio"] #summaryView .pattern-heat-legend i:nth-of-type(1) { background: var(--pattern-heat-1); }
+:root[data-theme="graphite-studio"] #summaryView .pattern-heat-cell.level-2,
+:root[data-theme="graphite-studio"] #summaryView .pattern-heat-legend i:nth-of-type(2) { background: var(--pattern-heat-2); }
+:root[data-theme="graphite-studio"] #summaryView .pattern-heat-cell.level-3,
+:root[data-theme="graphite-studio"] #summaryView .pattern-heat-legend i:nth-of-type(3) { background: var(--pattern-heat-3); }
+:root[data-theme="graphite-studio"] #summaryView .pattern-heat-cell.level-4,
+:root[data-theme="graphite-studio"] #summaryView .pattern-heat-legend i:nth-of-type(4) { background: var(--pattern-heat-4); }
+:root[data-theme="graphite-studio"] #summaryView .pattern-heat-cell.level-5,
+:root[data-theme="graphite-studio"] #summaryView .pattern-heat-legend i:nth-of-type(5) { background: var(--pattern-heat-5); }
+:root[data-theme="graphite-studio"] #summaryView :is(.pattern-heat-cell.level-4, .pattern-heat-cell.level-5) { color: var(--text-on-primary); }
+:root[data-theme="graphite-studio"] #summaryView .pattern-heat-cell i { opacity: 1; font-size: 14px; font-variant-numeric: tabular-nums; }
+:root[data-theme="graphite-studio"] #summaryView .pattern-heat-cell:focus-visible { outline: 2px solid var(--accent-blue); outline-offset: 2px; box-shadow: none; }
+:root[data-theme="graphite-studio"] #summaryView :is(.pattern-period-label small, .pattern-heat-legend) { color: var(--text-secondary); font-size: 12px; }
+:root[data-theme="graphite-studio"] #summaryView :is(.pattern-heatmap-grid > b, .pattern-period-label b) { font-size: 13px; }
+:root[data-theme="graphite-studio"] #summaryView :is(.summary-pattern-heatmap, .summary-pattern-findings, .summary-pattern-merchants, .summary-food-budget, .summary-food-calendar, .summary-food-inspector, .summary-food-weekly, .summary-food-occasions, .summary-food-review) { border-color: var(--border-strong); }
+:root[data-theme="graphite-studio"] #summaryView :is(.summary-pattern-conclusion span, .summary-pattern-kpis article span, .summary-pattern-kpis article em, .summary-pattern-merchants li b, .summary-pattern-merchants li em, .summary-food-help, .summary-food-budget-totals span, .summary-food-budget-form label, .summary-food-week-budget, .summary-food-inspector-summary, .summary-food-entry-list p, .summary-food-entry-note) { font-size: 13px; }
+:root[data-theme="graphite-studio"] #summaryView :is(.summary-pattern-findings article p, .summary-pattern-merchants li span, .summary-food-entry-heading) { font-size: 14px; line-height: 1.6; }
+:root[data-theme="graphite-studio"] #summaryView .summary-pattern-kpis article strong { font-size: 22px; }
+:root[data-theme="graphite-studio"] #summaryView .summary-pattern-kpis article { grid-template-columns: 28px minmax(0, 1fr); grid-template-areas: "icon label" "icon value" ". delta"; row-gap: 5px; }
+:root[data-theme="graphite-studio"] #summaryView :is(.summary-food-calendar, .summary-food-inspector, .summary-food-weekly) { --food-detail-muted: #cbd3dc; }
+:root[data-theme="graphite-studio"] #summaryView :is(.summary-food-weekdays b, .summary-food-day > span) { color: var(--text-primary); font-size: 14px; }
+:root[data-theme="graphite-studio"] #summaryView :is(.summary-food-day > strong, .summary-food-week-total strong) { color: var(--text-primary); font-size: 16px; }
+:root[data-theme="graphite-studio"] #summaryView :is(.summary-food-day > small, .summary-food-week-total span, .summary-food-week-total small, .summary-food-week-table small, .summary-food-entry-meta time) { color: var(--text-secondary); font-size: 12px; }
+:root[data-theme="graphite-studio"] #summaryView .summary-food-day.has-spending { background: color-mix(in srgb, var(--accent-positive) 14%, var(--bg-card)); }
+:root[data-theme="graphite-studio"] #summaryView .summary-food-day.is-future { opacity: 1; background: var(--bg-surface); }
+:root[data-theme="graphite-studio"] #summaryView :is(.summary-food-day, .summary-food-week-total)[aria-pressed="true"] { background: var(--bg-raised); box-shadow: inset 0 0 0 2px var(--accent-primary); }
+:root[data-theme="graphite-studio"] #summaryView :is(.summary-food-calendar, .summary-food-inspector, .summary-food-weekly) :is(.summary-food-help, .summary-card-heading > span, small, time) { color: var(--food-detail-muted); font-size: 13px; }
+:root[data-theme="graphite-studio"] #summaryView :is(.summary-food-weekdays, .summary-food-week-total) { background: var(--bg-raised); }
+:root[data-theme="graphite-studio"] #summaryView .summary-food-day { min-height: 94px; }
+:root[data-theme="graphite-studio"] #summaryView :is(.summary-food-entry-heading, .summary-food-week-table td) { color: var(--text-primary); font-size: 16px; }
+:root[data-theme="graphite-studio"] #summaryView :is(.summary-food-week-table th, .summary-food-week-table thead th) { color: var(--text-primary); font-size: 14px; }
+:root[data-theme="graphite-studio"] #summaryView :is(.summary-food-week-table th, .summary-food-week-table td) { border-color: var(--border-strong); padding: 14px 10px; }
+:root[data-theme="graphite-studio"] #summaryView .summary-food-week-table { min-width: 860px; }
+:root[data-theme="graphite-studio"] #summaryView .summary-food-week-table tbody :is(th, td) { background: var(--bg-card); }
+:root[data-theme="graphite-studio"] #summaryView .summary-food-week-table tbody tr.is-selected > :is(th, td) { background: var(--bg-raised); }
+:root[data-theme="graphite-studio"] #summaryView .summary-food-week-table :is(thead, tfoot) :is(th, td) { background: var(--bg-muted); }
+:root[data-theme="graphite-studio"] #summaryView .summary-food-week-table tfoot :is(th, td) { border-top: 2px solid var(--border-strong); }
+@media (max-width: 1400px) {
+  :root[data-theme="graphite-studio"] #summaryView .summary-food-layout { grid-template-columns: minmax(0, 1fr); }
+}
+@media (min-width: 1401px) and (max-width: 1700px) {
+  :root[data-theme="graphite-studio"] #summaryView .summary-food-day > strong { font-size: 14px; }
+}
+@media (max-width: 680px) {
+  :root[data-theme="graphite-studio"] #summaryView .summary-food-day { padding-inline: 1px; }
+  :root[data-theme="graphite-studio"] #summaryView .summary-food-day > strong { font-size: 11px; }
+  :root[data-theme="graphite-studio"] #summaryView .summary-food-day > small { font-size: 11px; }
+}
+
+/* Shared food-detail feedback follows each theme; selection remains distinct. */
+#summaryView .summary-food-week-table tbody tr.is-selected > th { box-shadow: inset 3px 0 var(--accent-primary); }
+#summaryView :is(.summary-food-day, .summary-food-week-total, .summary-food-entry-edit > summary),
+#summaryView .summary-food-week-table tbody :is(th, td) { transition: background-color 150ms ease, box-shadow 150ms ease; }
+:root[data-theme] #summaryView .summary-food-week-table tbody tr:focus-within > :is(th, td),
+:root[data-theme] #summaryView .summary-food-entry-edit > summary:focus-visible { background: var(--control-hover-bg); }
+@media (hover: hover) and (pointer: fine) {
+  :root[data-theme] #summaryView :is(button.summary-food-day, button.summary-food-week-total):not(:disabled):hover,
+  :root[data-theme] #summaryView .summary-food-week-table tbody tr:hover > :is(th, td),
+  :root[data-theme] #summaryView .summary-food-entry-edit > summary:hover { background: var(--control-hover-bg); }
+  :root[data-theme] #summaryView :is(button.summary-food-day, button.summary-food-week-total):not(:disabled):not([aria-pressed="true"]):hover { box-shadow: inset 0 0 0 1px var(--border-strong); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #summaryView :is(.summary-food-day, .summary-food-week-total, .summary-food-entry-edit > summary),
+  #summaryView .summary-food-week-table tbody :is(th, td) { transition: none; }
 }
 
 /* Monthly feedback */

@@ -6,6 +6,7 @@ const path = require("node:path");
 const root = path.resolve(__dirname, "..");
 const tokenCss = fs.readFileSync(path.join(root, "src/styles/00-tokens.css"), "utf8");
 const calendarCss = fs.readFileSync(path.join(root, "src/styles/09-production-ui.css"), "utf8");
+const summaryCss = fs.readFileSync(path.join(root, "src/styles/11-summary-insights.css"), "utf8").replace(/\r\n/g, "\n");
 const themes = ["mineral-blue", "offwhite-olive", "graphite-studio"];
 const sectors = ["fixed", "food", "household", "shopping", "personal", "selfdev", "gift", "transport", "saving", "income", "etc", "unknown"];
 
@@ -67,6 +68,53 @@ const calendarLevels = [calendarBase, ...[1, 2, 3, 4].map((level) =>
   declarations(calendarCss, `#calendarView .calendar-cell[data-spend-level="${level}"]`)
 )];
 
+test("Food hover feedback is shared, excludes unavailable dates, and respects reduced motion", () => {
+  const feedback = summaryCss.split("/* Shared food-detail feedback")[1].split("/* Monthly feedback */")[0];
+  assert.ok(!feedback.includes('data-theme="'), "Feedback must not be limited to a named theme");
+  assert.match(feedback, /@media \(hover: hover\) and \(pointer: fine\)/);
+  assert.ok(feedback.includes(':is(button.summary-food-day, button.summary-food-week-total):not(:disabled):hover'));
+  assert.ok(feedback.includes(':not([aria-pressed="true"]):hover'), "Hover borders must preserve selection borders");
+  assert.match(feedback, /tr:hover > :is\(th, td\)/);
+  assert.match(feedback, /summary:focus-visible/);
+  assert.match(feedback, /background-color 150ms ease/);
+  assert.match(feedback, /@media \(prefers-reduced-motion: reduce\)[\s\S]*transition: none/);
+});
+
+test("Graphite pattern heatmap: all six resting count levels meet AA and brighten monotonically", () => {
+  const scope = ':root[data-theme="graphite-studio"] #summaryView';
+  const tokens = {
+    ...baseTokens,
+    ...declarations(tokenCss, ':root[data-theme="graphite-studio"]'),
+    ...declarations(summaryCss, `${scope} .summary-pattern-heatmap`)
+  };
+  let previous = -1;
+  for (let level = 0; level <= 5; level += 1) {
+    const background = `var(--pattern-heat-${level})`;
+    readable(tokens, level >= 4 ? "var(--text-on-primary)" : "var(--text-primary)", background, `Pattern heat ${level}`);
+    const brightness = luminance(color(background, tokens));
+    assert.ok(brightness > previous, `Pattern heat ${level} must be brighter than the previous level`);
+    previous = brightness;
+    if (level > 0) {
+      assert.ok(summaryCss.includes(`${scope} .pattern-heat-cell.level-${level},\n${scope} .pattern-heat-legend i:nth-of-type(${level}) { background: ${background}; }`), "Cell and legend must use the same scale");
+    }
+  }
+  assert.ok(summaryCss.includes(`${scope} .pattern-heat-cell i { opacity: 1; font-size: 14px;`), "Counts must be visible without hover");
+  readable(tokens, "var(--text-secondary)", "var(--pattern-heat-1)", "Food calendar supporting text");
+});
+
+test("Graphite food details: amounts, supporting text and over-budget status remain readable in every row state", () => {
+  const tokens = {
+    ...baseTokens,
+    ...declarations(tokenCss, ':root[data-theme="graphite-studio"]'),
+    ...declarations(summaryCss, ':root[data-theme="graphite-studio"] #summaryView :is(.summary-food-calendar, .summary-food-inspector, .summary-food-weekly)')
+  };
+  for (const background of ["bg-card", "bg-raised", "bg-muted", "bg-surface"]) {
+    for (const foreground of ["text-primary", "food-detail-muted", "accent-negative"]) {
+      readable(tokens, `var(--${foreground})`, `var(--${background})`, `Food detail ${foreground}/${background}`);
+    }
+  }
+});
+
 for (const theme of themes) {
   const tokens = { ...baseTokens, ...declarations(tokenCss, `:root[data-theme="${theme}"]`) };
 
@@ -77,6 +125,9 @@ for (const theme of themes) {
       }
     }
     readable(tokens, "var(--text-on-primary)", "var(--accent-primary)", `${theme} primary button`);
+    for (const foreground of ["text-primary", "text-secondary", "accent-negative"]) {
+      readable(tokens, `var(--${foreground})`, "var(--control-hover-bg)", `${theme} food hover ${foreground}`);
+    }
     for (const status of ["positive", "negative", "warning"]) {
       readable(tokens, `var(--status-${status}-text)`, `var(--status-${status}-bg)`, `${theme} ${status} status`);
     }
