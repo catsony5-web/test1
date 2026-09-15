@@ -26,6 +26,9 @@ const { chromium } = require(process.env.BUDGET_PLAYWRIGHT_PATH || 'playwright')
   async function read(page) {
     return page.evaluate(() => ({ transactions, reimbursements, monthlyIncome }));
   }
+  async function readStored(page) {
+    return page.evaluate(async () => ({ transactions: await readPrivateData(STORAGE_KEYS.records), reimbursements: await readPrivateData(STORAGE_KEYS.reimbursements), monthlyIncome: await readPrivateData(STORAGE_KEYS.monthlyIncome) }));
+  }
   async function restore(page, payload) {
     await page.locator('#restoreInput').setInputFiles({ name: 'synthetic-backup.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(payload)) });
   }
@@ -45,11 +48,12 @@ const { chromium } = require(process.env.BUDGET_PLAYWRIGHT_PATH || 'playwright')
       ].map(normalizeStoredTransaction);
       reimbursements = { 'synthetic-manual': 6500 };
       monthlyIncome = { '2026-09': 3200000 };
-      if (!await safeSaveMany([{ key: STORAGE_KEYS.records, value: transactions }, { key: STORAGE_KEYS.reimbursements, value: reimbursements }, { key: STORAGE_KEYS.monthlyIncome, value: monthlyIncome }])) throw new Error('Synthetic seed failed');
+      if (!await safeSaveMany([{ key: STORAGE_KEYS.records, data: transactions }, { key: STORAGE_KEYS.reimbursements, data: reimbursements }, { key: STORAGE_KEYS.monthlyIncome, data: monthlyIncome }])) throw new Error('Synthetic seed failed');
       reclassify();
       setDataScopeSelection('imported');
     });
     const original = await read(source);
+    assert.deepEqual(await readStored(source), original, 'synthetic fixtures must be committed before backup');
     const downloadEvent = source.waitForEvent('download');
     await source.locator('#backupButton').click();
     const download = await downloadEvent;
@@ -72,10 +76,11 @@ const { chromium } = require(process.env.BUDGET_PLAYWRIGHT_PATH || 'playwright')
       transactions = transactions.map(row => row.recordKey === 'synthetic-manual' ? { ...row, amount: 28000, memo: '현재 기기에서 바꾼 합성 메모' } : row);
       reimbursements = { 'synthetic-manual': 7000 };
       monthlyIncome = { '2026-09': 3500000 };
-      if (!await safeSaveMany([{ key: STORAGE_KEYS.records, value: transactions }, { key: STORAGE_KEYS.reimbursements, value: reimbursements }, { key: STORAGE_KEYS.monthlyIncome, value: monthlyIncome }])) throw new Error('Synthetic edit failed');
+      if (!await safeSaveMany([{ key: STORAGE_KEYS.records, data: transactions }, { key: STORAGE_KEYS.reimbursements, data: reimbursements }, { key: STORAGE_KEYS.monthlyIncome, data: monthlyIncome }])) throw new Error('Synthetic edit failed');
       reclassify();
     });
     const edited = await read(target);
+    assert.deepEqual(await readStored(target), edited, 'synthetic edits must be committed before comparison');
     await restore(target, payload);
     await target.locator('#backupCompareDialog[open]').waitFor();
     assert.equal(await target.locator('#backupCompareItems fieldset').count(), 2);
@@ -90,6 +95,7 @@ const { chromium } = require(process.env.BUDGET_PLAYWRIGHT_PATH || 'playwright')
     assert.deepEqual(await read(target), edited, 'unresolved differences must not mutate the ledger');
     await target.locator('#backupCompareCancel').click(); await done(target);
     assert.deepEqual(await read(target), edited, 'cancel must leave all current values intact');
+    assert.deepEqual(await readStored(target), edited, 'cancel must leave committed data intact');
     await restore(target, payload);
     await target.locator('#backupCompareDialog[open]').waitFor();
     await target.locator('#backupCompareItems fieldset').filter({ hasText: '합성 수기 거래' }).locator('input[value="backup"]').check();
