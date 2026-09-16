@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-09-16T09:02:43.361Z",
+  "updatedAt": "2026-09-16T14:34:43.267Z",
   "checkedDate": "2026-09-16",
   "coverage": {
     "kindCount": 164,
@@ -9,7 +9,7 @@
     "unresolved": [],
     "refreshStatus": {
       "state": "ok",
-      "attemptedAt": "2026-09-16T09:02:43.361Z",
+      "attemptedAt": "2026-09-16T14:34:43.267Z",
       "sources": {
         "kind": {
           "state": "ok"
@@ -1098,33 +1098,8 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "9a9e3d0f94420d617004",
-      "changeStatus": "changed",
-      "changes": [
-        {
-          "field": "market",
-          "label": "시장",
-          "before": "상장시장 확인 필요",
-          "after": "코스닥"
-        },
-        {
-          "field": "bookbuildingStart",
-          "label": "수요예측 시작",
-          "before": "",
-          "after": "2026-09-04"
-        },
-        {
-          "field": "bookbuildingEnd",
-          "label": "수요예측 종료",
-          "before": "",
-          "after": "2026-09-10"
-        },
-        {
-          "field": "listingDate",
-          "label": "상장 예정일",
-          "before": "",
-          "after": "2026-09-23"
-        }
-      ]
+      "changeStatus": "unchanged",
+      "changes": []
     },
     {
       "sourceId": "20251002000228",
@@ -1844,7 +1819,7 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "2a8f80115f13744b0414",
-      "changeStatus": "new",
+      "changeStatus": "unchanged",
       "changes": []
     },
     {
