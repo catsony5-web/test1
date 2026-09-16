@@ -180,7 +180,7 @@ function getTransactionDataSection(item) {
   const normalized = normalizeStoredTransaction(item);
   const sourceFile = String(normalized.sourceFile || "").trim();
   const approvalNo = String(normalized.approvalNo || "").trim();
-  if (!normalized.loanLinkedExisting && (normalized.sourceType === "recurring" || normalized.recurringId || sourceFile === "고정 지출" || approvalNo.startsWith("recurring-"))) {
+  if (!normalized.loanLinkedExisting && !normalized.recurringLinkedExisting && (normalized.sourceType === "recurring" || normalized.recurringId || sourceFile === "고정 지출" || approvalNo.startsWith("recurring-"))) {
     return "recurringPostedTransactions";
   }
   if (approvalNo.startsWith("direct-bulk-") || sourceFile === "과거 거래 일괄 입력") return "pastBulkTransactions";

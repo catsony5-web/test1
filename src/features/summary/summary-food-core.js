@@ -79,6 +79,8 @@ function buildSummaryFoodModel(comparison, settings, today = defaultDateForMonth
   const [year, monthNumber] = month.split("-").map(Number);
   const dayCount = new Date(year, monthNumber, 0).getDate();
   const budget = normalizeFoodBudgetSettings(settings);
+  const monthlyScoped = settings?.monthlyScoped === true;
+  if (monthlyScoped && settings.monthlyTarget === 0) budget.monthlyTarget = 0;
   const isCurrentMonth = month === today.slice(0, 7);
   const isPastMonth = month < today.slice(0, 7);
   const cutoffDay = comparison.cutoffDay || dayCount;
@@ -115,27 +117,27 @@ function buildSummaryFoodModel(comparison, settings, today = defaultDateForMonth
     const rows = validDays.flatMap((day) => day.rows);
     const weekTotals = summaryFoodTotals(rows);
     // Cumulative rounding keeps partial-week budgets equal to the exact monthly target.
-    const target = Math.round(budget.monthlyTarget * endDay / dayCount)
-      - Math.round(budget.monthlyTarget * (startDay - 1) / dayCount);
+    const target = budget.monthlyTarget ? Math.round(budget.monthlyTarget * endDay / dayCount)
+      - Math.round(budget.monthlyTarget * (startDay - 1) / dayCount) : null;
     return {
       index, days: weekDays, rows, startDay, endDay, target,
       startDate: validDays[0].date,
       endDate: validDays.at(-1).date,
       ...weekTotals,
-      remaining: target - weekTotals.amount,
+      remaining: target === null ? null : target - weekTotals.amount,
       pendingCount: rows.filter(summaryFoodIsPending).length
     };
   });
   const undatedRows = visibleRows.filter((item) => !summaryFoodDateKey(item, month));
   const remainingDays = isCurrentMonth ? Math.max(1, dayCount - Number(today.slice(8)) + 1) : 0;
-  const remaining = budget.monthlyTarget - totals.amount;
-  const afterDining = remaining - budget.diningCost;
+  const remaining = budget.monthlyTarget ? budget.monthlyTarget - totals.amount : null;
+  const afterDining = remaining === null ? null : remaining - budget.diningCost;
   return {
     month, today, dayCount, cutoffDay, isCurrentMonth, isPastMonth,
-    budget, foodRows, pendingRows, reviewRows, totals, days, weeks,
+    budget, monthlyScoped, foodRows, pendingRows, reviewRows, totals, days, weeks,
     undatedRows, undatedTotals: summaryFoodTotals(undatedRows),
     remaining, afterDining, remainingDays,
-    dailyAfterDining: remainingDays ? Math.floor(Math.max(0, afterDining) / remainingDays) : null,
+    dailyAfterDining: remainingDays && afterDining !== null ? Math.floor(Math.max(0, afterDining) / remainingDays) : null,
     hasInstallments: foodRows.some((item) => item.isInstallmentOccurrence)
   };
 }

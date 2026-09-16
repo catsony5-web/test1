@@ -55,6 +55,8 @@ function normalizeStoredTransaction(item) {
     createdAt: item.createdAt || item.importedAt || "",
     updatedAt: item.updatedAt || item.createdAt || item.importedAt || "",
     recurringId: item.recurringId || "",
+    recurringPostMethod: ["auto", "manual"].includes(item.recurringPostMethod) ? item.recurringPostMethod : "",
+    recurringLinkedExisting: item.recurringLinkedExisting === true,
     recurringType: item.recurringType === "loan" ? "loan" : "expense",
     loanType: item.loanType || "",
     loanPrincipalAmount,

@@ -24,6 +24,7 @@ async function handleFile(event) {
     let found;
     let mergeResult;
     let nextImportMeta;
+    let recurringOverlapCount = 0;
     try {
       const buffer = await file.arrayBuffer();
       const workbook = XLSX.read(buffer, { type: "array", raw: false, cellDates: false });
@@ -34,6 +35,11 @@ async function handleFile(event) {
       }
 
       const incoming = parseImportedTransactions(found, file.name);
+      recurringOverlapCount = recurringExpenses.filter((item) => item.recurringType !== "loan")
+        .reduce((count, item) => count + unique(incoming.map((row) => row.month)).filter((month) => {
+          const posted = findPostedRecurringTransaction(item.id, month);
+          return posted?.recurringPostMethod === "auto" && recurringImportCandidates(item, month, incoming).length > 0;
+        }).length, 0);
       await createAutoSnapshot("엑셀 업로드 전");
       mergeResult = mergeTransactions(transactions, incoming);
       nextImportMeta = {
@@ -56,6 +62,7 @@ async function handleFile(event) {
     currentFileName = file.name;
     importMeta = nextImportMeta;
     const notices = [];
+    if (recurringOverlapCount) notices.push(`자동 고정 지출과 겹칠 수 있는 항목 ${recurringOverlapCount}건이 있습니다. 중복으로 단정하거나 삭제하지 않았습니다. 고정 지출 등록·관리에서 가져온 출금을 연결하면 자동 기록을 대체할 수 있습니다.`);
     try {
       await createAutoSnapshot("엑셀 업로드 완료 후");
     } catch {

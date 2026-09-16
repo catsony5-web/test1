@@ -292,6 +292,54 @@ test("식비 목표 저장 중 다른 섹터로 이동해도 저장한 목표를
   assert.equal(renderCount, 1);
 });
 
+test("월별 식비 목표 수정은 예산 점검과 공유하고 다른 달·공통 목표는 보존한다", async () => {
+  const context = loadContext();
+  context.appSettings.spendingBudget = { profile: { living: "alone" }, monthlyTargets: {
+    "2026-08": { monthlyLimit: 1000000, foodTarget: 400000, savingsTarget: 100000, source: "recommendation" },
+    "2026-07": { monthlyLimit: 800000, foodTarget: 200000 }
+  } };
+  const status = { textContent: "" };
+  const fields = {
+    '[data-food-budget="monthlyTarget"]': { value: "300000" },
+    '[data-food-budget="diningCost"]': { value: "25000" },
+    "[data-food-budget-submit]": { disabled: false }
+  };
+  context.els = { summaryPatternPanel: { querySelector: (selector) => selector === "[data-food-budget-status]" ? status : null } };
+  context.renderSummary = () => {};
+  context.saveSettings = async () => {};
+  const event = { preventDefault() {}, currentTarget: {
+    dataset: { foodBudgetMonth: "2026-08" }, checkValidity: () => true, querySelector: (selector) => fields[selector]
+  } };
+  await context.saveSummaryFoodBudget(event);
+  assert.equal(context.appSettings.foodBudget.monthlyTarget, 250000);
+  assert.equal(context.appSettings.spendingBudget.monthlyTargets["2026-08"].foodTarget, 300000);
+  assert.equal(context.appSettings.spendingBudget.monthlyTargets["2026-08"].source, "manual");
+  assert.equal(context.appSettings.spendingBudget.monthlyTargets["2026-07"].foodTarget, 200000);
+  const previous = context.appSettings.spendingBudget;
+  context.saveSettings = async () => { throw new Error("synthetic denial"); };
+  fields['[data-food-budget="monthlyTarget"]'].value = "350000";
+  await context.saveSummaryFoodBudget(event);
+  assert.equal(context.appSettings.spendingBudget, previous);
+  assert.equal(context.appSettings.spendingBudget.monthlyTargets["2026-08"].foodTarget, 300000);
+  fields['[data-food-budget="monthlyTarget"]'].value = "1100000";
+  await context.saveSummaryFoodBudget(event);
+  assert.match(status.textContent, /전체 소비 목표를 넘을 수 없습니다/);
+});
+
+test("월별 식비 목표 0은 소비 상세에서도 목표 미설정이며 초과로 오인하지 않는다", () => {
+  const context = loadContext();
+  const result = context.buildSummaryFoodModel({ selectedMonth: "2026-08", currentRows: [expense("one", 30000)] },
+    { monthlyTarget: 0, diningCost: 20000, monthlyScoped: true }, "2026-08-20");
+  assert.equal(result.monthlyScoped, true);
+  assert.equal(result.remaining, null);
+  assert.equal(result.afterDining, null);
+  assert.ok(result.weeks.every((week) => week.target === null && week.remaining === null));
+  const html = context.renderSummaryFoodBudget(result);
+  assert.match(html, /목표 미설정/);
+  assert.doesNotMatch(html, /30,000원 초과|하루 0원/);
+  assert.match(html, /data-food-budget-month="2026-08"/);
+});
+
 test("지출 상황은 정해진 네 가지 단일 태그만 저장하며 기존 백업도 열 수 있다", () => {
   const context = loadContext();
   for (const tag of ["family", "date", "celebration", "treat"]) {

@@ -32,6 +32,7 @@ function selectGoalTab(id, focus = false) {
   root.querySelectorAll(".goal-tab-panel").forEach((panel) => {
     panel.hidden = panel.id !== `goal-panel-${id}`;
   });
+  if (id === "side" && typeof loadGoalInsights === "function") void loadGoalInsights();
 }
 
 function handleGoalTabKeydown(event) {
@@ -142,6 +143,7 @@ function handleGoalActionClick(event) {
   const button = event.target.closest("[data-goal-action]");
   if (!button) return;
   const action = button.dataset.goalAction;
+  if (typeof handleGoalInsightAction === "function" && handleGoalInsightAction(button)) return;
 
   if (action === "reset") {
     if (!confirm("자산 목표 설정과 시나리오를 추천 기본값으로 되돌릴까요?")) return;
@@ -392,6 +394,7 @@ function renderGoals() {
     }, 0);
   }
   goalHasRendered = true;
+  if (activeGoalTab === "side" && typeof loadGoalInsights === "function") void loadGoalInsights();
 }
 
 function renderGoalHero(plan, baseline, calculationPlan, comparisons) {
@@ -672,6 +675,7 @@ function renderGoalSideHustle(plan, baseline, comparisons) {
         <div><span class="goal-section-index">05 / EARN</span><h3 id="goalSideTitle">취미를 작은 수익 실험으로</h3><p>AI가 수입을 꾸며내지 않습니다. 첫 유료 검증을 설계하고 확인한 단가·판매량·비용으로만 목표 시간을 다시 계산합니다.</p></div>
         <div class="goal-impact-badge"><span>부업 반영 효과</span><strong>${escapeHtml(impact)}</strong></div>
       </div>
+      ${typeof renderGoalInsights === "function" ? renderGoalInsights() : ""}
       <div class="goal-side-search">
         <label><span>내가 좋아하거나 잘하는 것</span><input type="text" data-goal-side-field="hobby" value="${escapeHtml(plan.sideHustle.hobby)}" placeholder="예: 엑셀, 사진, 글쓰기, 반려동물"></label>
         <p>입력한 단어와 가까운 실험을 앞으로 정렬합니다. 아이디어는 전부 로컬에서 고릅니다.</p>

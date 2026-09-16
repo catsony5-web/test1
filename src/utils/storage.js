@@ -85,6 +85,7 @@ function normalizeAppSettings(value) {
   settings.cardBilling = normalizeCardBillingSettings(settings.cardBilling);
   settings.analysis = normalizeAnalysisSettings(settings.analysis);
   settings.foodBudget = normalizeFoodBudgetSettings(settings.foodBudget);
+  settings.spendingBudget = SpendingBudgetCore.normalizeSettings(settings.spendingBudget);
   settings.ipoPerformance = normalizeIpoPerformanceSettings(settings.ipoPerformance);
   return settings;
 }
@@ -862,7 +863,9 @@ function normalizeRecurringExpense(item) {
     reviewStatus: recurringType === "loan" ? "unknown" : normalizeRecurringReviewStatus(item?.reviewStatus),
     nextReviewDate: recurringType === "loan" ? "" : normalizeInputDate(item?.nextReviewDate),
     showOnCalendar: item?.showOnCalendar !== false,
-    autoPost: recurringType === "loan" ? false : item?.autoPost === true,
+    amountMode: item?.amountMode === "variable" ? "variable" : "fixed",
+    autoPost: recurringType === "loan" || item?.amountMode === "variable" ? false : item?.autoPost === true,
+    autoPostStartDate: normalizeInputDate(item?.autoPostStartDate),
     paused: item?.paused === true,
     loanType: recurringType === "loan" ? String(item?.loanType || "신용대출").trim() : "",
     loanOpeningBalance: recurringType === "loan" ? Math.max(0, toNumber(item?.loanOpeningBalance)) : 0,

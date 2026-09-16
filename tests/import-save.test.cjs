@@ -21,6 +21,7 @@ function setup() {
     window: { XLSX: xlsx }, XLSX: xlsx,
     alert: (message) => alerts.push(message),
     transactions: [{ recordKey: "old", amount: 100 }],
+    recurringExpenses: [],
     importMeta: { lastFileName: "previous.xlsx" }, currentFileName: "previous.xlsx",
     RECORD_STORAGE_KEY: "records", IMPORT_META_STORAGE_KEY: "importMeta",
     normalizeStoredTransaction: (value) => ({ ...value }),
@@ -127,4 +128,71 @@ test("엑셀 크기 제한과 파서 미로딩은 기존 기록을 바꾸지 않
   await c.handleFile({ target: input });
   assert.equal(writes.length, 0);
   assert.equal(c.transactions.length, 1);
+});
+
+function prepareRecurringImport(context, options = {}) {
+  Object.assign(context, {
+    normalizeFoodOccasion: () => "",
+    isCanceled: (value) => Boolean(value),
+    unique: (values) => [...new Set(values)]
+  });
+  for (const filename of ["src/utils/date.js", "src/utils/normalize.js", "src/features/recurring/recurring-view.js"]) {
+    vm.runInContext(fs.readFileSync(path.join(__dirname, "..", filename), "utf8"), context, { filename });
+  }
+  context.defaultDateForMonth = () => "2026-09-16";
+  context.currentMonthKey = () => "2026-09";
+  context.recurringExpenses = [{ id: "rent", name: "월세", amount: 50000, recurringType: options.recurringType || "expense" }];
+  context.transactions = [{
+    recordKey: "generated", transactionId: "generated", sourceType: "recurring", flow: "expense",
+    recurringId: "rent", recurringPostMethod: options.postMethod || "auto",
+    approvalDate: "2026-09-15", month: "2026-09", merchant: "월세", amount: 50000
+  }];
+  const incoming = [{
+    recordKey: "imported", transactionId: "imported", sourceType: "transfer", flow: "expense",
+    approvalDate: "2026-09-15", month: "2026-09", merchant: "임대인 출금", amount: 50000,
+    ...options.incoming
+  }];
+  context.parseImportedTransactions = () => incoming;
+  return incoming;
+}
+
+test("자동 기록 후 가져온 출금 후보는 저장 후 연결 안내만 표시하고 자동 연결·삭제하지 않는다", async () => {
+  const { context: c, input, alerts, writes } = setup();
+  prepareRecurringImport(c);
+  await c.handleFile({ target: input });
+  assert.equal(writes.length, 1);
+  assert.equal(c.transactions.length, 2);
+  assert.equal(c.transactions.find((record) => record.transactionId === "generated").recurringPostMethod, "auto");
+  assert.equal(c.transactions.find((record) => record.transactionId === "imported").recurringId, "");
+  assert.match(alerts.at(-1), /겹칠 수 있는 항목 1건/);
+  assert.match(alerts.at(-1), /중복으로 단정하거나 삭제하지 않았습니다/);
+  assert.match(alerts.at(-1), /가져온 출금을 연결하면 자동 기록을 대체/);
+});
+
+test("수동 기록·대출·가져온 수입·취소 내역에는 자동 고정 지출 중복 안내를 표시하지 않는다", async () => {
+  for (const options of [
+    { postMethod: "manual" },
+    { recurringType: "loan" },
+    { incoming: { flow: "income" } },
+    { incoming: { cancel: "취소" } },
+    { incoming: { amount: 12345, merchant: "관련 없는 출금" } }
+  ]) {
+    const { context: c, input, alerts } = setup();
+    prepareRecurringImport(c, options);
+    await c.handleFile({ target: input });
+    assert.equal(c.transactions.length, 2);
+    assert.match(alerts.at(-1), /불러왔습니다/);
+    assert.doesNotMatch(alerts.at(-1), /겹칠 수 있는 항목/);
+  }
+});
+
+test("중복 후보가 있어도 저장 실패 때는 기존 기록을 유지하고 연결 안내를 성공처럼 표시하지 않는다", async () => {
+  const { context: c, input, alerts } = setup();
+  prepareRecurringImport(c);
+  c.safeSaveMany = async () => false;
+  const original = c.transactions;
+  await c.handleFile({ target: input });
+  assert.equal(c.transactions, original);
+  assert.equal(c.transactions.length, 1);
+  assert.ok(alerts.every((message) => !/불러왔습니다|겹칠 수 있는 항목/.test(message)));
 });

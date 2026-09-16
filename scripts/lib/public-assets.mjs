@@ -11,7 +11,7 @@ const assetPatterns = [
   /^assets\/tabler\/icons\/[a-z0-9-]+\.svg$/,
   /^assets\/tabler\/(?:tabler-icons\.min\.css|LICENSE)$/,
   /^assets\/vendor\/(?:xlsx\.full\.min\.js|xlsx\.LICENSE)$/,
-  /^data\/ipo-calendar\.json$/
+  /^data\/(?:ipo-calendar|hobby-insights)\.json$/
 ];
 
 export function publicAssetPath(value) {

@@ -1,6 +1,8 @@
 const CACHE_PREFIX = "monthly-card-budget-";
-const CACHE_NAME = `${CACHE_PREFIX}v188-pattern-readability`;
+const CACHE_NAME = `${CACHE_PREFIX}v190-budget-check`;
+importScripts("./src/features/goals/goals-insights.js?v=189-budget-planning");
 const APP_FILES = [
+  "./data/hobby-insights.json",
   "./",
   "./index.html",
   "./src/styles/00-tokens.css?v=185-theme-refresh",
@@ -12,11 +14,11 @@ const APP_FILES = [
   "./src/styles/06-features.css?v=174-food-occasions",
   "./src/styles/07-responsive.css?v=176-recurring-review",
   "./src/styles/08-themes.css?v=185-theme-refresh",
-  "./src/styles/09-production-ui.css?v=172-calendar-layout-r2",
+  "./src/styles/09-production-ui.css?v=190-budget-check",
   "./src/styles/10-analysis.css?v=175-monthly-close-r3",
   "./src/styles/11-summary-insights.css?v=188-pattern-readability",
   "./src/styles/12-rosso-ink.css?v=169-corsa-themes",
-  "./src/styles/13-goals.css?v=179-goal-tabs",
+  "./src/styles/13-goals.css?v=190-budget-check",
   "./src/styles/14-board-overview.css?v=185-theme-refresh",
   "./assets/vendor/xlsx.full.min.js?v=182-maintenance",
   "./assets/vendor/xlsx.LICENSE",
@@ -109,29 +111,29 @@ const APP_FILES = [
   "./assets/tabler/icons/x.svg",
   "./assets/tabler/LICENSE",
   "./data/ipo-calendar.json",
-  "./src/data/constants.js?v=188-pattern-readability",
+  "./src/data/constants.js?v=190-budget-check",
   "./src/data/categories.js?v=136-mineral-layers",
   "./src/data/rules.js?v=93",
   "./src/data/board-sections.js?v=151-loan-repayments",
   "./src/data/field-aliases.js?v=77",
   "./src/data/goal-resources.js?v=170-goal-planner-r3",
   "./src/features/goals/goals-core.js?v=170-goal-planner",
-  "./src/features/app/state.js?v=187-backup-restore",
+  "./src/features/app/state.js?v=190-budget-check",
   "./src/utils/format.js?v=80",
   "./src/utils/date.js?v=141-garden-analysis",
   "./src/utils/dom.js?v=61",
   "./src/features/recurring/recurring-review-core.js?v=176-recurring-review",
   "./src/utils/food-occasion.js?v=174-food-occasions",
-  "./src/utils/normalize.js?v=174-food-occasions",
+  "./src/utils/normalize.js?v=190-budget-check",
   "./src/utils/grouping.js?v=156-loan-sharing",
-  "./src/utils/storage.js?v=185-theme-refresh",
-  "./src/utils/backup.js?v=187-backup-restore",
+  "./src/utils/storage.js?v=190-budget-check",
+  "./src/utils/backup.js?v=190-budget-check",
   "./src/components/chips.js?v=174-food-occasions",
   "./src/components/tables.js?v=61",
   "./src/components/metrics.js?v=131-yearly",
   "./src/components/charts.js?v=61",
   "./src/components/quick-add.js?v=187-backup-restore",
-  "./src/features/import/excel-import.js?v=183-storage-release",
+  "./src/features/import/excel-import.js?v=190-budget-check",
   "./src/features/import/transaction-parser.js?v=77",
   "./src/features/classification/classifier.js?v=61",
   "./src/features/classification/smart-suggestions.js?v=173-food-calendar-r2",
@@ -143,11 +145,11 @@ const APP_FILES = [
   "./src/features/details/details-view.js?v=187-backup-restore",
   "./src/features/summary/comparison-analysis.js?v=171-calendar-split-summary",
   "./src/features/summary/summary-priority.js?v=165-summary-insights-r2",
-  "./src/features/summary/summary-food-core.js?v=174-food-occasions",
-  "./src/features/summary/summary-food-view.js?v=174-food-occasions",
-  "./src/features/summary/summary-pattern.js?v=173-food-calendar-r2",
+  "./src/features/summary/summary-food-core.js?v=190-budget-check",
+  "./src/features/summary/summary-food-view.js?v=190-budget-check",
+  "./src/features/summary/summary-pattern.js?v=190-budget-check",
   "./src/features/summary/summary-period.js?v=165-summary-insights-r2",
-  "./src/features/summary/summary-view.js?v=171-calendar-split-summary",
+  "./src/features/summary/summary-view.js?v=190-budget-check",
   "./src/features/summary/sector-analysis.js?v=165-summary-insights-r2",
   "./src/features/summary/summary-chart.js?v=165-summary-insights-r2",
   "./src/features/monthly/monthly-flow.js?v=165-summary-insights-r2",
@@ -155,8 +157,8 @@ const APP_FILES = [
   "./src/features/income/income-entry.js?v=187-backup-restore",
   "./src/features/income/income-bulk.js?v=187-backup-restore",
   "./src/features/income/income-list.js?v=187-backup-restore",
-  "./src/features/recurring/recurring-view.js?v=177-storage-recovery",
-  "./src/features/calendar/calendar-view.js?v=183-storage-release",
+  "./src/features/recurring/recurring-view.js?v=190-budget-check",
+  "./src/features/calendar/calendar-view.js?v=190-budget-check",
   "./src/features/analysis/analysis-core.js?v=156-loan-sharing",
   "./src/features/analysis/monthly-analysis-core.js?v=175-monthly-close-r2",
   "./src/features/analysis/monthly-analysis-view.js?v=175-monthly-close-r2",
@@ -165,7 +167,7 @@ const APP_FILES = [
   "./src/features/ipo/ipo-view.js?v=183-storage-release",
   "./src/features/unknown/unknown-view.js?v=97",
   "./src/features/transactions/transactions-view.js?v=187-backup-restore",
-  "./src/features/goals/goals-view.js?v=179-goal-tabs",
+  "./src/features/goals/goals-view.js?v=190-budget-check",
   "./src/features/app/navigation.js?v=112",
   "./src/features/app/appearance.js?v=141-garden-analysis",
   "./src/features/app/render-all.js?v=183-storage-release",
@@ -174,7 +176,12 @@ const APP_FILES = [
   "./app-icon.svg",
   "./src/styles/16-backup.css?v=187-backup-restore",
   "./src/utils/backup-merge.js?v=187-backup-restore",
-  "./src/features/app/backup-review.js?v=187-backup-restore"
+  "./src/features/app/backup-review.js?v=187-backup-restore",
+  "./src/styles/17-spending-budget.css?v=190-budget-check",
+  "./src/features/budget/spending-budget-core.js?v=190-budget-check",
+  "./src/features/budget/spending-budget-view.js?v=190-budget-check",
+  "./src/features/budget/spending-budget-targets.js?v=190-budget-check",
+  "./src/features/goals/goals-insights.js?v=189-budget-planning"
 ];
 
 const PUBLIC_PATHS = new Set(APP_FILES.map((file) => new URL(file, self.location.href).pathname));
@@ -224,13 +231,36 @@ async function fetchPublicSchedule(request) {
   }
 }
 
+async function fetchPublicInsights(request) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
+  try {
+    const response = await fetch(request, { cache: "no-store", signal: controller.signal });
+    if (!response.ok) throw new Error("Public insights unavailable");
+    const source = await GoalInsights.readBoundedText(response.clone(), 1024 * 1024);
+    if (!GoalInsights.normalizeSnapshot(JSON.parse(source))) throw new Error("Invalid public insights");
+    if (!/\b(no-store|private)\b/i.test(response.headers.get("Cache-Control") || "")) {
+      try {
+        const cache = await caches.open(CACHE_NAME);
+        await cache.put("./data/hobby-insights.json", response.clone());
+      } catch { /* A cache failure must not hide a valid network response. */ }
+    }
+    return response;
+  } catch {
+    return (await matchAppCache("./data/hobby-insights.json").catch(() => undefined)) || Response.error();
+  } finally { clearTimeout(timeout); }
+}
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(async (cache) => {
         // An unavailable feed must not block app installation or cache a malformed snapshot.
-        await cache.addAll(APP_FILES.filter((file) => file !== "./data/ipo-calendar.json"));
-        await fetchPublicSchedule(new Request(new URL("./data/ipo-calendar.json", self.location.href)));
+        await cache.addAll(APP_FILES.filter((file) => !["./data/ipo-calendar.json", "./data/hobby-insights.json"].includes(file)));
+        await Promise.all([
+          fetchPublicSchedule(new Request(new URL("./data/ipo-calendar.json", self.location.href))),
+          fetchPublicInsights(new Request(new URL("./data/hobby-insights.json", self.location.href)))
+        ]);
       })
       .then(() => self.skipWaiting())
   );
@@ -251,6 +281,10 @@ self.addEventListener("fetch", (event) => {
   // Only public application files may enter this cache. Never intercept financial APIs.
   if (requestUrl.origin !== self.location.origin || event.request.headers.has("Authorization")) return;
   if (!PUBLIC_PATHS.has(requestUrl.pathname)) return;
+  if (requestUrl.pathname.endsWith("/data/hobby-insights.json")) {
+    event.respondWith(fetchPublicInsights(event.request));
+    return;
+  }
   if (requestUrl.pathname.endsWith("/data/ipo-calendar.json")) {
     event.respondWith(fetchPublicSchedule(event.request));
     return;

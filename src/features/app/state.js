@@ -20,6 +20,11 @@ function defaultAppSettings() {
       monthlyTarget: 250000,
       diningCost: 20000
     },
+    spendingBudget: {
+      monthlyLimit: 0,
+      savingsTarget: 0,
+      plans: []
+    },
     ipoPerformance: {
       filter: "all",
       startMonth: "",
@@ -332,6 +337,7 @@ const els = {
   recurringId: document.querySelector("#recurringId"),
   recurringName: document.querySelector("#recurringName"),
   recurringAmount: document.querySelector("#recurringAmount"),
+  recurringAmountMode: document.querySelector("#recurringAmountMode"),
   recurringDay: document.querySelector("#recurringDay"),
   recurringSector: document.querySelector("#recurringSector"),
   recurringSubcategory: document.querySelector("#recurringSubcategory"),

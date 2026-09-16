@@ -1,0 +1,139 @@
+.spending-budget { color: var(--text-primary); --budget-gap: 22px; }
+.spending-budget [hidden] { display: none !important; }
+.spending-budget :is(h3, h4, p) { margin-top: 0; }
+.spending-budget h3 { font-size: 20px; letter-spacing: -.4px; }
+.spending-budget :is(p, small) { color: var(--text-secondary); font-size: 13px; line-height: 1.7; }
+.spending-budget :is(strong, b, dd) { font-variant-numeric: tabular-nums; }
+.spending-budget .is-over { color: var(--accent-negative); }
+.spending-budget .is-positive { color: var(--accent-positive); }
+.budget-balance, .budget-main-panel, .budget-food-panel, .budget-scenario-panel, .spending-budget-settings, .spending-budget-plans, .budget-calculation { border: 1px solid var(--border-subtle); border-radius: var(--radius-card, 16px); background: var(--bg-card); }
+.budget-balance { padding: 26px 28px 18px; }
+.spending-budget-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 22px; }
+.spending-budget-heading h3 { margin: 0; font-size: 23px; }
+.budget-equation { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr auto 1.55fr; align-items: center; gap: 15px; }
+.budget-equation > div { display: grid; gap: 10px; min-width: 0; }
+.budget-equation > div > span { color: var(--text-secondary); font-size: 14px; font-weight: 650; }
+.budget-equation > div > strong { font-size: clamp(22px, 2.05vw, 34px); line-height: 1.3; letter-spacing: -.8px; overflow-wrap: anywhere; }
+.budget-equation > span { color: var(--text-secondary); font-size: 25px; }
+.budget-equation .budget-answer { padding-left: 12px; }
+.budget-equation .budget-answer > strong { font-size: clamp(30px, 3.5vw, 52px); color: var(--accent-positive); }
+.budget-equation .budget-answer.is-over > strong { color: var(--accent-negative); }
+.budget-track { display: flex; height: 10px; overflow: hidden; background: var(--bg-muted); border-radius: 5px; margin-top: 23px; }
+.budget-segment-0 { background: var(--accent-primary); }
+.budget-segment-1 { background: var(--text-secondary); }
+.budget-segment-2 { background: var(--accent-positive); }
+.budget-balance-foot { display: flex; justify-content: space-between; gap: 8px 24px; flex-wrap: wrap; padding-top: 11px; font-size: 12px; color: var(--text-secondary); }
+.budget-inner-tabs { display: flex; gap: 4px; margin: 22px 0 18px; border-bottom: 1px solid var(--border-subtle); }
+.budget-inner-tabs button { border: 0; border-radius: 0; background: transparent; padding: 12px 20px; color: var(--text-secondary); font-weight: 700; }
+.budget-inner-tabs button[aria-selected="true"] { color: var(--text-primary); box-shadow: inset 0 -3px var(--accent-primary); }
+.budget-content-grid { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(290px, 1fr); align-items: start; gap: var(--budget-gap); }
+.budget-main-panel { padding: 25px; min-width: 0; }
+.budget-side-panels { display: grid; gap: var(--budget-gap); min-width: 0; }
+.budget-food-panel, .budget-scenario-panel { padding: 24px; }
+.budget-food-panel > span { color: var(--text-secondary); font-size: 14px; }
+.budget-food-amount { display: block; margin: 10px 0 20px; color: var(--accent-positive); font-size: clamp(25px, 2.1vw, 34px); line-height: 1.3; }
+.spending-budget dl { margin: 0; }
+.spending-budget dl > div { display: flex; justify-content: space-between; gap: 14px; padding: 6px 0; font-size: 14px; }
+.spending-budget dt { color: var(--text-secondary); }
+.spending-budget dd { margin: 0; text-align: right; font-weight: 700; }
+.budget-food-panel > p { padding-top: 15px; margin: 14px 0 4px; border-top: 1px solid var(--border-subtle); }
+.budget-food-panel ul { list-style: none; padding: 12px 0 0; margin: 15px 0 0; border-top: 1px solid var(--border-subtle); }
+.budget-food-panel li { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; font-size: 14px; }
+.budget-week-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding-bottom: 22px; border-bottom: 1px solid var(--border-subtle); }
+.budget-week-summary > div { display: grid; gap: 10px; align-content: start; }
+.budget-week-summary span { color: var(--text-secondary); font-size: 14px; }
+.budget-week-summary strong { font-size: clamp(23px, 2vw, 32px); line-height: 1.3; }
+.budget-chart-head { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+.budget-chart-head h3 { margin: 0; }
+.budget-chart-head > span { font-size: 13px; color: var(--text-secondary); }
+.budget-weeks-scroll { overflow-x: auto; padding-top: 25px; }
+.budget-weeks { display: grid; grid-template-columns: 70px repeat(var(--budget-week-count), minmax(85px, 1fr)); column-gap: 8px; min-width: 565px; }
+.budget-chart-axis { position: relative; height: 260px; color: var(--text-secondary); font-size: 12px; text-align: right; }
+.budget-chart-axis > span { position: absolute; right: 5px; transform: translateY(-50%); }
+.budget-week-column { display: flex; flex-direction: column; align-items: center; gap: 5px; padding-bottom: 14px; min-width: 0; }
+.budget-week-column.is-current { background: var(--control-hover-bg); border-radius: 10px; box-shadow: inset 0 -3px var(--accent-primary); }
+.budget-week-column > strong { font-size: 16px; margin-top: 9px; }
+.budget-week-column > span:not(.budget-sr-only), .budget-week-column > small { font-size: 12px; color: var(--text-secondary); }
+.budget-week-column > b { margin-top: 8px; font-size: 14px; text-align: center; word-break: keep-all; }
+.budget-week-plot { position: relative; height: 260px; width: 100%; border-bottom: 1px solid var(--border-subtle); background: repeating-linear-gradient(to top, transparent 0, transparent calc(25% - 1px), var(--border-subtle) calc(25% - 1px), var(--border-subtle) 25%); }
+.budget-week-bar { position: absolute; width: 48%; max-width: 62px; bottom: 0; left: 50%; transform: translateX(-50%); background: var(--accent-primary); border-radius: 5px 5px 0 0; overflow: hidden; }
+.budget-week-excess { position: absolute; top: 0; left: 0; right: 0; background: var(--accent-negative); }
+.budget-bar-label { position: absolute; left: 0; right: 0; text-align: center; margin-bottom: 8px; font-size: 13px; z-index: 2; }
+.budget-week-target { position: absolute; left: 5%; right: 5%; border-top: 2px dashed var(--text-secondary); }
+.budget-week-target > span { position: absolute; right: 0; top: 3px; font-size: 12px; color: var(--text-secondary); background: var(--bg-card); padding: 1px 3px; border-radius: 3px; }
+.spending-budget-table-wrap { overflow-x: auto; margin-top: 24px; }
+.spending-budget-table { width: 100%; min-width: 520px; border-collapse: collapse; }
+.spending-budget-table caption { text-align: left; color: var(--text-primary); font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+.spending-budget-table :is(th, td) { padding: 14px 10px; border-bottom: 1px solid var(--border-subtle); text-align: right; color: var(--text-primary); font-size: 15px; font-variant-numeric: tabular-nums; }
+.spending-budget-table th:first-child { text-align: left; }
+.spending-budget-table thead th { color: var(--text-secondary); font-size: 12px; }
+.spending-budget-table tfoot { background: var(--bg-muted); font-weight: 750; }
+.spending-budget details { margin-top: 18px; padding: 18px 22px; }
+.spending-budget summary { font-size: 15px; font-weight: 700; cursor: pointer; line-height: 1.5; }
+.spending-budget details[open] > summary { margin-bottom: 18px; }
+.budget-target-columns { display: grid; grid-template-columns: 1.2fr 1fr; gap: 32px; }
+.budget-profile-form { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.budget-manual-form { display: grid; gap: 15px; margin-bottom: 15px; }
+.spending-budget label { display: grid; gap: 7px; flex: 1 1 160px; color: var(--text-secondary); font-size: 13px; line-height: 1.6; }
+.spending-budget input, .spending-budget select { width: 100%; min-width: 0; min-height: 42px; color: var(--text-primary); background: var(--bg-input, var(--bg-card)); font-size: 15px; padding: 10px 12px; border: 1px solid var(--border-strong, var(--border-subtle)); border-radius: var(--radius-control, 8px); }
+.spending-budget button { min-height: 42px; padding: 10px 15px; font-size: 14px; }
+.spending-budget :is(input, select, button, summary, [tabindex="0"]):focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 3px; }
+.spending-budget .budget-check { display: flex; align-items: start; grid-column: 1 / -1; }
+.budget-check input { width: 18px; min-height: 18px; height: 18px; flex: 0 0 18px; margin-top: 2px; }
+.budget-form-actions { display: flex; gap: 10px; flex-wrap: wrap; grid-column: 1 / -1; margin-bottom: 12px; }
+.budget-recommendation { padding: 20px; margin-top: 24px; background: var(--bg-muted); border-radius: var(--radius-control, 10px); }
+.budget-recommendation h4 { margin-bottom: 9px; font-size: 16px; }
+.budget-recommended-amount { display: block; margin-bottom: 18px; font-size: 32px; color: var(--accent-primary); }
+.budget-recommendation > p { margin-top: 14px; }
+.budget-recommendation details { padding: 14px 0 0; border-top: 1px solid var(--border-subtle); }
+.spending-budget-form, .spending-budget-scenario { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin-top: 15px; }
+.spending-budget-scenario label { flex-basis: 120px; }
+.spending-budget-scenario output { display: grid; width: 100%; grid-template-columns: 1fr 1fr; gap: 15px; padding-top: 16px; border-top: 1px solid var(--border-subtle); font-size: 12px; line-height: 1.7; color: var(--text-secondary); }
+.spending-budget-scenario output strong { display: block; font-size: 17px; color: var(--text-primary); }
+.spending-budget-scenario output strong.is-over { color: var(--accent-negative); }
+.budget-scenario-panel > small { display: block; margin-top: 13px; }
+.spending-budget-plans ul, .budget-pending-list { list-style: none; padding: 0; }
+.spending-budget-plans li, .budget-pending-list li { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; padding: 13px 0; border-bottom: 1px solid var(--border-subtle); }
+.spending-budget-plans li > div, .budget-pending-list li > span { flex: 1 1 200px; }
+.spending-budget-plans li small { display: block; }
+.spending-budget-plans li label { flex: 1 1 170px; }
+.budget-alert { border-left: 3px solid var(--accent-negative); background: var(--bg-muted); color: var(--text-primary) !important; padding: 12px 16px; font-size: 14px; line-height: 1.6; }
+.spending-budget-warnings { padding-left: 22px; color: var(--text-secondary); font-size: 13px; line-height: 1.7; }
+.spending-budget-data-note { margin: 16px 0 0; }
+.spending-budget .spending-budget-feedback { color: var(--text-primary); font-weight: 600; }
+.budget-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (hover: hover) and (pointer: fine) { .spending-budget-table tbody tr:hover, .spending-budget summary:hover { background: var(--control-hover-bg); } }
+@media (max-width: 1100px) {
+  .budget-content-grid { grid-template-columns: minmax(0, 1fr); }
+  .budget-side-panels { grid-template-columns: 1fr 1fr; }
+  .budget-equation { gap: 9px; }
+  .budget-equation > div > strong { font-size: 22px; }
+  .budget-equation .budget-answer > strong { font-size: 32px; }
+}
+@media (max-width: 760px) {
+  .budget-balance { padding: 20px; }
+  .spending-budget-heading h3 { font-size: 20px; }
+  .budget-equation { grid-template-columns: 1fr 1fr; gap: 18px 12px; }
+  .budget-equation > span { display: none; }
+  .budget-equation > div { gap: 6px; }
+  .budget-equation .budget-answer { padding: 0; }
+  .budget-equation .budget-answer > strong { font-size: 28px; }
+  .budget-target-columns, .budget-side-panels { grid-template-columns: 1fr; }
+  .budget-main-panel, .budget-food-panel, .budget-scenario-panel { padding: 20px; }
+  .spending-budget details { padding: 16px; }
+  .budget-recommendation details { padding: 14px 0 0; }
+  .budget-week-summary { gap: 14px; }
+  .budget-week-summary strong { font-size: 22px; }
+}
+@media (max-width: 440px) {
+  .spending-budget-heading { align-items: start; flex-direction: column; gap: 10px; }
+  .budget-equation > div > span { font-size: 12px; }
+  .budget-equation > div > strong { font-size: 21px; }
+  .budget-equation .budget-answer > strong { font-size: 25px; }
+  .budget-profile-form, .budget-week-summary { grid-template-columns: 1fr; }
+  .budget-inner-tabs button { flex: 1; }
+}
+@media (max-width: 360px) {
+  .budget-equation .budget-answer { grid-column: 1 / -1; }
+  .spending-budget-scenario output { grid-template-columns: 1fr; }
+}

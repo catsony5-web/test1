@@ -54,7 +54,7 @@ function setup() {
   });
   for (const file of [
     "src/data/constants.js", "src/data/categories.js", "src/features/app/state.js",
-    "src/utils/storage.js", "src/features/app/appearance.js", "src/utils/backup.js"
+    "src/features/budget/spending-budget-core.js", "src/utils/storage.js", "src/features/app/appearance.js", "src/utils/backup.js"
   ]) {
     vm.runInContext(fs.readFileSync(path.join(__dirname, "..", file), "utf8"), context, { filename: file });
   }

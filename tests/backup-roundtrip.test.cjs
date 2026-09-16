@@ -28,7 +28,7 @@ function setup() {
   // Load the production defaults without instantiating the complete browser UI state.
   vm.runInContext(read("src/features/app/state.js").split("\nconst els =")[0], context);
   const files = ["src/data/constants.js", "src/data/categories.js", "src/utils/date.js", "src/utils/food-occasion.js",
-    "src/utils/normalize.js", "src/features/goals/goals-core.js", "src/utils/storage.js", "src/features/products/products-view.js",
+    "src/utils/normalize.js", "src/features/goals/goals-core.js", "src/features/budget/spending-budget-core.js", "src/utils/storage.js", "src/features/products/products-view.js",
     "src/features/recurring/recurring-review-core.js", "src/utils/backup.js", "src/utils/backup-merge.js"];
   for (const file of files) vm.runInContext(read(file), context, { filename: file });
   Object.assign(context, {

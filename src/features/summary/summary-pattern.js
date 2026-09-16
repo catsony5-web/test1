@@ -99,7 +99,9 @@ function renderSummaryPattern(comparison, selectedSector) {
   if (!els.summaryPatternPanel) return;
   const model = buildSummaryPatternModel(comparison, selectedSector);
   const { current, baseline } = model;
-  const foodModel = selectedSector === "식비" ? buildSummaryFoodModel(comparison, appSettings.foodBudget) : null;
+  const monthTarget = appSettings.spendingBudget?.monthlyTargets?.[comparison.selectedMonth];
+  const foodSettings = monthTarget ? { ...appSettings.foodBudget, monthlyTarget: monthTarget.foodTarget, monthlyScoped: true } : appSettings.foodBudget;
+  const foodModel = selectedSector === "식비" ? buildSummaryFoodModel(comparison, foodSettings) : null;
   if (!selectedSector || (!current.totalCount && !foodModel)) {
     els.summaryPatternPanel.innerHTML = `<div class="empty compact-empty">선택 월의 ${escapeHtml(selectedSector || "섹터")} 소비 패턴을 분석할 거래가 없습니다.</div>`;
     return;

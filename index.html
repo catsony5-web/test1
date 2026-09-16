@@ -19,13 +19,14 @@
   <link rel="stylesheet" href="src/styles/07-responsive.css?v=176-recurring-review">
   <link rel="stylesheet" href="src/styles/08-themes.css?v=185-theme-refresh">
   <link rel="stylesheet" href="assets/tabler/tabler-icons.min.css?v=135-subcategory-icons">
-  <link rel="stylesheet" href="src/styles/09-production-ui.css?v=172-calendar-layout-r2">
+  <link rel="stylesheet" href="src/styles/09-production-ui.css?v=190-budget-check">
   <link rel="stylesheet" href="src/styles/10-analysis.css?v=175-monthly-close-r3">
   <link rel="stylesheet" href="src/styles/11-summary-insights.css?v=188-pattern-readability">
   <link rel="stylesheet" href="src/styles/12-rosso-ink.css?v=169-corsa-themes">
-  <link rel="stylesheet" href="src/styles/13-goals.css?v=179-goal-tabs">
+  <link rel="stylesheet" href="src/styles/13-goals.css?v=190-budget-check">
   <link rel="stylesheet" href="src/styles/14-board-overview.css?v=185-theme-refresh">
   <link rel="stylesheet" href="src/styles/16-backup.css?v=187-backup-restore">
+  <link rel="stylesheet" href="src/styles/17-spending-budget.css?v=190-budget-check">
 </head>
 <body data-app-name="소비 분석">
   <header class="topbar compact-topbar">
@@ -646,13 +647,14 @@
             <div class="panel-head">
               <div>
                 <h3>고정 지출 등록</h3>
-                <p>저장해도 실제 지출에는 합산하지 않고 예정 지출로 표시합니다.</p>
+                <p>예정액은 예산에 미리 포함됩니다. 실제 기록은 수동 또는 정액 자동 기록으로 선택합니다.</p>
               </div>
               <button id="cancelRecurringEditButton" type="button" hidden>수정 취소</button>
             </div>
             <input id="recurringId" type="hidden">
             <label>지출명<input id="recurringName" type="text" placeholder="예: 카드값, 보험료, 월세, 통신비"></label>
             <label>금액<input id="recurringAmount" type="text" inputmode="numeric" placeholder="예: 95000"></label>
+            <label>금액 유형<select id="recurringAmountMode"><option value="fixed">정액 (매월 동일)</option><option value="variable">변동액 (예상 금액)</option></select></label>
             <label>매월 지출일<input id="recurringDay" type="number" min="1" max="31" placeholder="예: 20"></label>
             <label>섹터<select id="recurringSector"></select></label>
             <label>세부항목<select id="recurringSubcategory"></select></label>
@@ -661,7 +663,9 @@
             <label>종료 월 선택사항<input id="recurringEndMonth" type="month" aria-describedby="recurringEndMonthHint"><small id="recurringEndMonthHint">비워두면 매월 계속 반복됩니다.</small></label>
             <label class="wide-field">메모<input id="recurringMemo" type="text" placeholder="필요한 메모"></label>
             <label class="check-line"><input id="recurringShowOnCalendar" type="checkbox" checked> 소비 달력에 예정 지출 표시</label>
-            <label class="check-line"><input id="recurringAutoPost" type="checkbox"> 실제 지출 자동 반영</label>
+            <label class="check-line"><input id="recurringAutoPost" type="checkbox"> 정액 지출 자동 기록 (예정일 이후)</label>
+            <p class="wide-field">자동 기록은 실제 출금 확인이 아닙니다. 변동액·대출은 내역 확인 후 수동 반영합니다. 앱을 열 때 도래한 일정을 확인하며, 활성화 전 과거 내역은 자동 생성하지 않습니다.</p>
+            <p class="wide-field">수정한 기본값은 아직 기록하지 않은 예정 내역부터 적용되며 이미 기록한 거래는 바뀌지 않습니다.</p>
             <button id="saveRecurringButton" type="submit" class="primary-action">고정 지출 저장</button>
           </form>
           <section class="recurring-bulk-panel">
@@ -766,6 +770,7 @@
             <option value="patterns">소비 패턴 상세</option>
             <option value="report">월간 소비 피드백</option>
             <option value="period">기간 분석</option>
+            <option value="budget">예산 점검</option>
           </select>
         </label>
         <div class="summary-subtabs" role="tablist" aria-label="월별 섹터 요약 보기">
@@ -774,6 +779,7 @@
           <button id="summaryTabDetail" class="summary-subtab" type="button" role="tab" tabindex="-1" aria-selected="false" aria-controls="summarySubtabDetail" data-summary-subtab="detail"><span class="summary-subtab-index">3</span><span class="summary-subtab-text">소비 패턴 상세</span></button>
           <button id="summaryTabReport" class="summary-subtab" type="button" role="tab" tabindex="-1" aria-selected="false" aria-controls="summarySubtabReport" data-summary-subtab="report"><span class="summary-subtab-index">4</span><span class="summary-subtab-text">월간 소비 피드백</span></button>
           <button id="summaryTabMatrix" class="summary-subtab" type="button" role="tab" tabindex="-1" aria-selected="false" aria-controls="summarySubtabMatrix" data-summary-subtab="matrix"><span class="summary-subtab-index">5</span><span class="summary-subtab-text">기간 분석</span></button>
+          <button id="summaryTabBudget" class="summary-subtab" type="button" role="tab" tabindex="-1" aria-selected="false" aria-controls="summarySubtabBudget" data-summary-subtab="budget"><span class="summary-subtab-index">6</span><span class="summary-subtab-text">예산 점검</span></button>
         </div>
 
         <section class="summary-context-bar" aria-label="공통 분석 조건">
@@ -847,6 +853,10 @@
             </div>
             <div id="summaryPatternPanel" class="summary-pattern-panel"></div>
           </section>
+        </div>
+
+        <div id="summarySubtabBudget" class="summary-subtab-panel" role="tabpanel" aria-labelledby="summaryTabBudget" data-summary-subtab-panel="budget" hidden>
+          <div id="summarySpendingBudget"></div>
         </div>
 
         <div id="summarySubtabReport" class="summary-subtab-panel" role="tabpanel" aria-labelledby="summaryTabReport" data-summary-subtab-panel="report" hidden>
@@ -1475,26 +1485,27 @@
   </dialog>
 
   <script src="assets/vendor/xlsx.full.min.js?v=182-maintenance"></script>
-  <script src="src/data/constants.js?v=188-pattern-readability"></script>
+  <script src="src/data/constants.js?v=190-budget-check"></script>
   <script src="src/data/categories.js?v=136-mineral-layers"></script>
   <script src="src/data/rules.js?v=93"></script>
   <script src="src/data/board-sections.js?v=151-loan-repayments"></script>
   <script src="src/data/field-aliases.js?v=77"></script>
   <script src="src/data/goal-resources.js?v=170-goal-planner-r3"></script>
   <script src="src/features/goals/goals-core.js?v=170-goal-planner"></script>
+  <script src="src/features/budget/spending-budget-core.js?v=190-budget-check"></script>
 
-  <script src="src/features/app/state.js?v=187-backup-restore"></script>
+  <script src="src/features/app/state.js?v=190-budget-check"></script>
 
   <script src="src/utils/format.js?v=80"></script>
   <script src="src/utils/date.js?v=141-garden-analysis"></script>
   <script src="src/utils/dom.js?v=61"></script>
   <script src="src/features/recurring/recurring-review-core.js?v=176-recurring-review"></script>
   <script src="src/utils/food-occasion.js?v=174-food-occasions"></script>
-  <script src="src/utils/normalize.js?v=174-food-occasions"></script>
+  <script src="src/utils/normalize.js?v=190-budget-check"></script>
   <script src="src/utils/grouping.js?v=156-loan-sharing"></script>
-  <script src="src/utils/storage.js?v=185-theme-refresh"></script>
+  <script src="src/utils/storage.js?v=190-budget-check"></script>
   <script src="src/utils/backup-merge.js?v=187-backup-restore"></script>
-  <script src="src/utils/backup.js?v=187-backup-restore"></script>
+  <script src="src/utils/backup.js?v=190-budget-check"></script>
   <script src="src/features/app/backup-review.js?v=187-backup-restore"></script>
 
   <script src="src/components/chips.js?v=174-food-occasions"></script>
@@ -1503,33 +1514,35 @@
   <script src="src/components/charts.js?v=61"></script>
   <script src="src/components/quick-add.js?v=187-backup-restore"></script>
 
-  <script src="src/features/import/excel-import.js?v=183-storage-release"></script>
+  <script src="src/features/import/excel-import.js?v=190-budget-check"></script>
   <script src="src/features/import/transaction-parser.js?v=77"></script>
   <script src="src/features/classification/classifier.js?v=61"></script>
   <script src="src/features/classification/smart-suggestions.js?v=173-food-calendar-r2"></script>
   <script src="src/features/classification/rules-manager.js?v=61"></script>
 
   <script src="src/features/board/board-view.js?v=185-theme-refresh"></script>
+  <script src="src/features/budget/spending-budget-view.js?v=190-budget-check"></script>
+  <script src="src/features/budget/spending-budget-targets.js?v=190-budget-check"></script>
   <script src="src/features/board/board-summary.js?v=156-loan-sharing"></script>
   <script src="src/features/board/board-overview.js?v=185-theme-refresh"></script>
   <script src="src/features/board/board-cards.js?v=187-backup-restore"></script>
   <script src="src/features/details/details-view.js?v=187-backup-restore"></script>
   <script src="src/features/summary/comparison-analysis.js?v=171-calendar-split-summary"></script>
   <script src="src/features/summary/summary-priority.js?v=165-summary-insights-r2"></script>
-  <script src="src/features/summary/summary-food-core.js?v=174-food-occasions"></script>
-  <script src="src/features/summary/summary-food-view.js?v=174-food-occasions"></script>
-  <script src="src/features/summary/summary-pattern.js?v=173-food-calendar-r2"></script>
+  <script src="src/features/summary/summary-food-core.js?v=190-budget-check"></script>
+  <script src="src/features/summary/summary-food-view.js?v=190-budget-check"></script>
+  <script src="src/features/summary/summary-pattern.js?v=190-budget-check"></script>
   <script src="src/features/summary/sector-analysis.js?v=165-summary-insights-r2"></script>
   <script src="src/features/summary/summary-period.js?v=165-summary-insights-r2"></script>
-  <script src="src/features/summary/summary-view.js?v=171-calendar-split-summary"></script>
+  <script src="src/features/summary/summary-view.js?v=190-budget-check"></script>
   <script src="src/features/summary/summary-chart.js?v=165-summary-insights-r2"></script>
   <script src="src/features/monthly/monthly-flow.js?v=165-summary-insights-r2"></script>
   <script src="src/features/monthly/monthly-chart.js?v=156-loan-sharing"></script>
   <script src="src/features/income/income-entry.js?v=187-backup-restore"></script>
   <script src="src/features/income/income-bulk.js?v=187-backup-restore"></script>
   <script src="src/features/income/income-list.js?v=187-backup-restore"></script>
-  <script src="src/features/recurring/recurring-view.js?v=177-storage-recovery"></script>
-  <script src="src/features/calendar/calendar-view.js?v=183-storage-release"></script>
+  <script src="src/features/recurring/recurring-view.js?v=190-budget-check"></script>
+  <script src="src/features/calendar/calendar-view.js?v=190-budget-check"></script>
   <script src="src/features/analysis/analysis-core.js?v=156-loan-sharing"></script>
   <script src="src/features/analysis/monthly-analysis-core.js?v=175-monthly-close-r2"></script>
   <script src="src/features/analysis/monthly-analysis-view.js?v=175-monthly-close-r2"></script>
@@ -1538,7 +1551,8 @@
   <script src="src/features/ipo/ipo-view.js?v=183-storage-release"></script>
   <script src="src/features/unknown/unknown-view.js?v=97"></script>
   <script src="src/features/transactions/transactions-view.js?v=187-backup-restore"></script>
-  <script src="src/features/goals/goals-view.js?v=179-goal-tabs"></script>
+  <script src="src/features/goals/goals-insights.js?v=189-budget-planning"></script>
+  <script src="src/features/goals/goals-view.js?v=190-budget-check"></script>
 
   <script src="src/features/app/navigation.js?v=112"></script>
   <script src="src/features/app/appearance.js?v=141-garden-analysis"></script>

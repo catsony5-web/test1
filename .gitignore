@@ -13,6 +13,7 @@
 !jsconfig.json
 !*.webmanifest
 !data/ipo-calendar.json
+!data/hobby-insights.json
 
 # Credentials and signing material, in every subproject.
 .env

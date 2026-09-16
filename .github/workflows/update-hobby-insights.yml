@@ -1,0 +1,63 @@
+name: Update public hobby insights
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/update-hobby-insights.yml"
+      - "scripts/update-hobby-insights.mjs"
+      - "src/features/goals/goals-insights.js"
+      - "tests/goals-insights.test.cjs"
+      - "tests/goals-insights-updater.test.mjs"
+  schedule:
+    - cron: "30 22 * * *" # 07:30 Asia/Seoul; GitHub may delay scheduled jobs.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: update-public-hobby-insights
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    outputs:
+      changed: ${{ steps.update.outputs.changed }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Verify public feed parsing and fallback
+        run: node --test tests/goals-insights.test.cjs tests/goals-insights-updater.test.mjs
+      - name: Read public official feeds only
+        run: node scripts/update-hobby-insights.mjs
+      - name: Commit public snapshot only
+        id: update
+        shell: bash
+        run: |
+          if git diff --quiet -- data/hobby-insights.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/hobby-insights.json
+          git commit -m "chore: update public hobby insights"
+          git push origin "HEAD:${{ github.event.repository.default_branch }}"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+  publish:
+    needs: update
+    if: needs.update.outputs.changed == 'true'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy-pages.yml

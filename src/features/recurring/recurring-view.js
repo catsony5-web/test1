@@ -102,6 +102,8 @@ async function handleRecurringSubmit(event) {
 
   const now = new Date().toISOString();
   const original = recurringExpenses.find((item) => item.id === els.recurringId.value);
+  const amountMode = els.recurringAmountMode?.value === "variable" ? "variable" : "fixed";
+  const autoPost = amountMode === "fixed" && els.recurringAutoPost.checked;
   await createAutoSnapshot(original ? "고정 지출 수정 전" : "고정 지출 저장 전");
   const item = normalizeRecurringExpense({
     ...(original || {}),
@@ -117,87 +119,25 @@ async function handleRecurringSubmit(event) {
     endMonth,
     memo: els.recurringMemo.value.trim(),
     showOnCalendar: els.recurringShowOnCalendar.checked,
-    autoPost: els.recurringAutoPost.checked,
+    amountMode,
+    autoPost,
+    autoPostStartDate: autoPost ? defaultDateForMonth() : "",
     paused: original?.paused || false,
     createdAt: original?.createdAt || now,
     updatedAt: now
   });
 
-  if (original) {
-    recurringExpenses = recurringExpenses.map((expense) => expense.id === original.id ? item : expense);
-  } else {
-    recurringExpenses.unshift(item);
-  }
-  await saveRecurringExpenses();
-  if (original) {
-    await syncPostedRecurringTransactions(item);
+  const previousExpenses = recurringExpenses;
+  recurringExpenses = original
+    ? recurringExpenses.map((expense) => expense.id === original.id ? item : expense)
+    : [item, ...recurringExpenses];
+  if (await saveRecurringExpenses() === false) {
+    recurringExpenses = previousExpenses;
+    return;
   }
   await ensureAutoPostedRecurringExpenses();
   resetRecurringForm();
   renderAll();
-}
-
-async function syncPostedRecurringTransactions(recurringItem) {
-  if (!recurringItem?.id) return 0;
-  const syncedAt = new Date().toISOString();
-  let updated = 0;
-  let removed = 0;
-  transactions = transactions.map((record) => {
-    const normalized = normalizeStoredTransaction(record);
-    if (
-      normalized.sourceType !== "recurring" ||
-      normalized.recurringId !== recurringItem.id ||
-      isCanceled(normalized.cancel)
-    ) {
-      return record;
-    }
-
-    const isLoan = recurringItem.recurringType === "loan";
-    const nextRecord = {
-      ...normalized,
-      merchant: recurringItem.name,
-      amount: isLoan ? normalized.amount : Number(recurringItem.amount || 0),
-      manualSector: recurringItem.sector,
-      manualSubcategory: recurringItem.subcategory,
-      recurringType: recurringItem.recurringType,
-      loanType: isLoan ? recurringItem.loanType : "",
-      memo: recurringItem.memo || "",
-      updatedAt: syncedAt
-    };
-    nextRecord.recordKey = createRecordKey(nextRecord);
-
-    const changed = [
-      "merchant",
-      "manualSector",
-      "manualSubcategory",
-      "recurringType",
-      "loanType",
-      "memo",
-      "recordKey"
-    ].concat(isLoan ? [] : ["amount"]).some((key) => normalized[key] !== nextRecord[key]);
-
-    if (!changed) return normalized;
-    updated += 1;
-    return normalizeStoredTransaction(nextRecord);
-  }).filter((record) => {
-    const normalized = normalizeStoredTransaction(record);
-    if (
-      normalized.sourceType !== "recurring" ||
-      normalized.recurringId !== recurringItem.id ||
-      isCanceled(normalized.cancel)
-    ) {
-      return true;
-    }
-    if (recurringItem.recurringType === "loan") return true;
-    if (isRecurringActiveForMonth(recurringItem, normalized.month)) return true;
-    removed += 1;
-    return false;
-  });
-
-  if (!updated && !removed) return 0;
-  await saveTransactions();
-  reclassify();
-  return updated + removed;
 }
 
 function handleRecurringBulkParse() {
@@ -508,9 +448,19 @@ function resetRecurringForm() {
   els.recurringEndMonth.value = "";
   els.recurringShowOnCalendar.checked = true;
   els.recurringAutoPost.checked = false;
+  if (els.recurringAmountMode) els.recurringAmountMode.value = "fixed";
+  syncRecurringAutoPostFields();
   fillRecurringCategorySelects();
   els.saveRecurringButton.textContent = "고정 지출 저장";
   els.cancelRecurringEditButton.hidden = true;
+}
+
+function syncRecurringAutoPostFields() {
+  if (!els.recurringAutoPost) return;
+  const variable = els.recurringAmountMode?.value === "variable";
+  els.recurringAutoPost.disabled = variable;
+  if (variable) els.recurringAutoPost.checked = false;
+  if (els.recurringAmountMode) els.recurringAmountMode.onchange = syncRecurringAutoPostFields;
 }
 
 function resetLoanForm() {
@@ -609,11 +559,14 @@ async function handleLoanSubmit(event) {
     updatedAt: now
   });
 
+  const previousExpenses = recurringExpenses;
   recurringExpenses = original
     ? recurringExpenses.map((expense) => expense.id === original.id ? item : expense)
     : [item, ...recurringExpenses];
-  await saveRecurringExpenses();
-  if (original) await syncPostedRecurringTransactions(item);
+  if (await saveRecurringExpenses() === false) {
+    recurringExpenses = previousExpenses;
+    return;
+  }
   resetLoanForm();
   renderAll();
   setRecurringTab("loan");
@@ -673,6 +626,8 @@ function editRecurringExpense(id, options = {}) {
   els.recurringMemo.value = item.memo || "";
   els.recurringShowOnCalendar.checked = item.showOnCalendar !== false;
   els.recurringAutoPost.checked = item.autoPost === true;
+  if (els.recurringAmountMode) els.recurringAmountMode.value = item.amountMode || "fixed";
+  syncRecurringAutoPostFields();
   els.saveRecurringButton.textContent = "수정 저장";
   els.cancelRecurringEditButton.hidden = false;
   document.querySelector("#recurringView")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -692,10 +647,19 @@ async function deleteRecurringExpense(id) {
 }
 
 async function toggleRecurringPaused(id) {
+  const previousExpenses = recurringExpenses;
   recurringExpenses = recurringExpenses.map((expense) => expense.id === id
-    ? normalizeRecurringExpense({ ...expense, paused: !expense.paused, updatedAt: new Date().toISOString() })
+    ? normalizeRecurringExpense({
+      ...expense,
+      paused: !expense.paused,
+      autoPostStartDate: expense.paused && expense.autoPost ? defaultDateForMonth() : expense.autoPostStartDate,
+      updatedAt: new Date().toISOString()
+    })
     : expense);
-  await saveRecurringExpenses();
+  if (await saveRecurringExpenses() === false) {
+    recurringExpenses = previousExpenses;
+    return;
+  }
   await ensureAutoPostedRecurringExpenses();
   renderAll();
 }
@@ -733,6 +697,7 @@ function buildRecurringTransaction(item, targetMonth, options = {}) {
     sourceFile: "고정 지출",
     importedAt: new Date().toISOString(),
     recurringId: item.id,
+    recurringPostMethod: options.autoPost === true ? "auto" : "manual",
     recurringType: item.recurringType,
     loanType: isLoan ? item.loanType : "",
     loanPrincipalAmount,
@@ -762,18 +727,41 @@ function recurringMonthsThrough(item, throughMonth = currentMonthKey()) {
 }
 
 async function ensureAutoPostedRecurringExpenses(options = {}) {
-  const throughMonth = monthKey(options.throughMonth) || currentMonthKey();
+  const today = defaultDateForMonth();
+  const currentMonth = monthKey(today);
+  const requestedMonth = monthKey(options.throughMonth) || currentMonth;
+  const throughMonth = requestedMonth < currentMonth ? requestedMonth : currentMonth;
+  let initialized = false;
+  const previousExpenses = recurringExpenses;
+  recurringExpenses = recurringExpenses.map((item) => {
+    if (!item.autoPost || item.recurringType === "loan" || item.amountMode === "variable" || item.autoPostStartDate) return item;
+    initialized = true;
+    return normalizeRecurringExpense({ ...item, autoPostStartDate: today });
+  });
+  if (initialized && await saveRecurringExpenses() === false) {
+    recurringExpenses = previousExpenses;
+    return { added: 0, skipped: 0, saveFailed: true };
+  }
   const candidates = recurringExpenses
-    .filter((item) => item.recurringType !== "loan" && item.autoPost === true && !item.paused)
+    .filter((item) => item.recurringType !== "loan" && item.amountMode !== "variable" && item.autoPost === true && !item.paused)
     .flatMap((item) => recurringMonthsThrough(item, throughMonth)
+      .filter((month) => {
+        const date = getRecurringDateForMonth(month, item.dayOfMonth);
+        return date <= today && date >= item.autoPostStartDate;
+      })
       .filter((month) => !findPostedRecurringTransaction(item.id, month) && !findDeletedRecurringTransaction(item.id, month))
-      .map((month) => buildRecurringTransaction(item, month)));
+      .filter((month) => !recurringImportCandidates(item, month).length)
+      .map((month) => buildRecurringTransaction(item, month, { autoPost: true })));
 
   if (!candidates.length) return { added: 0, skipped: 0 };
   const mergeResult = mergeTransactions(transactions, candidates);
   if (!mergeResult.added) return mergeResult;
+  const previousTransactions = transactions;
   transactions = mergeResult.records;
-  await saveTransactions();
+  if (await saveTransactions() === false) {
+    transactions = previousTransactions;
+    return { added: 0, skipped: 0, saveFailed: true };
+  }
   reclassify();
   return mergeResult;
 }
@@ -1030,6 +1018,10 @@ function openLoanPaymentDialog(id, month, recordKey = "") {
   const recurringId = id || existing?.recurringId || "";
   const item = recurringExpenses.find((expense) => expense.id === recurringId && expense.recurringType === "loan");
   if ((!item && !existing) || !targetMonth) return;
+  if (!existing && (!isRecurringActiveForMonth(item, targetMonth) || getRecurringDateForMonth(targetMonth, item.dayOfMonth) > defaultDateForMonth())) {
+    alert("상환 예정일이 도래한 활성 대출만 반영할 수 있습니다.");
+    return;
+  }
   const displayName = item?.name || existing?.merchant || "대출";
   els.loanPaymentRecurringId.value = recurringId;
   els.loanPaymentRecordKey.value = existing?.recordKey || "";
@@ -1138,6 +1130,10 @@ async function handleLoanPaymentSubmit(event) {
   }
   if (existingRecordKey && !existing) {
     alert("수정할 대출 상환 내역을 찾지 못했습니다.");
+    return;
+  }
+  if (!existing && (!isRecurringActiveForMonth(item, targetMonth) || getRecurringDateForMonth(targetMonth, item.dayOfMonth) > defaultDateForMonth())) {
+    alert("상환 예정일이 도래한 활성 대출만 반영할 수 있습니다.");
     return;
   }
   const recurringId = item?.id || existing?.recurringId || "";
@@ -1290,6 +1286,10 @@ async function postRecurringExpense(id, month, options = {}) {
   const item = recurringExpenses.find((expense) => expense.id === id);
   const targetMonth = monthKey(month) || selectedCalendarMonth || els.recurringMonthFilter.value || currentMonthKey();
   if (!item || !targetMonth) return { added: 0, skipped: 0 };
+  if (!isRecurringActiveForMonth(item, targetMonth) || getRecurringDateForMonth(targetMonth, item.dayOfMonth) > defaultDateForMonth()) {
+    if (!options.silent) alert("예정일이 도래한 활성 고정 지출만 실제 지출로 반영할 수 있습니다.");
+    return { added: 0, skipped: 1 };
+  }
   if (item.recurringType === "loan") {
     openLoanPaymentDialog(item.id, targetMonth);
     return { added: 0, skipped: 0, pendingConfirmation: true };
@@ -1298,11 +1298,34 @@ async function postRecurringExpense(id, month, options = {}) {
     if (!options.silent) alert(`이미 ${targetMonth}에 반영된 고정 지출입니다.`);
     return { added: 0, skipped: 1 };
   }
-  const transaction = buildRecurringTransaction(item, targetMonth);
+  if (findDeletedRecurringTransaction(item.id, targetMonth)) {
+    if (!options.silent) alert("삭제한 월별 거래는 자동으로 다시 만들지 않습니다. 삭제 내역을 먼저 확인해주세요.");
+    return { added: 0, skipped: 1 };
+  }
+  let amount = item.amount;
+  if (item.amountMode === "variable") {
+    if (options.silent) return { added: 0, skipped: 1, pendingConfirmation: true };
+    const entered = prompt(`${targetMonth} ${item.name}의 실제 출금액을 입력해주세요. 예정액: ${formatWon(item.amount)}`, String(item.amount));
+    if (entered === null) return { added: 0, skipped: 1 };
+    amount = toNumber(entered);
+    if (amount <= 0) {
+      alert("실제 출금액은 0보다 큰 금액으로 입력해주세요.");
+      return { added: 0, skipped: 1 };
+    }
+  }
+  const importCandidates = recurringImportCandidates({ ...item, amount }, targetMonth);
+  if (importCandidates.length && (options.silent || !confirm(`같은 달에 금액 또는 지출명이 같은 가져온 출금 내역 ${importCandidates.length}건이 있습니다.\n같은 거래라면 취소하고 기존 내역을 확인해주세요. 별개의 지출임을 확인했고 새 거래를 추가할까요?`))) {
+    return { added: 0, skipped: 1, pendingConfirmation: true };
+  }
+  const transaction = buildRecurringTransaction({ ...item, amount }, targetMonth);
   const mergeResult = mergeTransactions(transactions, [transaction]);
+  const previousTransactions = transactions;
   transactions = mergeResult.records;
   if (mergeResult.added) {
-    await saveTransactions();
+    if (await saveTransactions() === false) {
+      transactions = previousTransactions;
+      return { added: 0, skipped: 0, saveFailed: true };
+    }
     reclassify();
     if (!options.skipRender) renderAll();
   }
@@ -1329,12 +1352,82 @@ function findPostedRecurringTransaction(recurringId, month, options = {}) {
 function findDeletedRecurringTransaction(recurringId, month) {
   return transactions
     .map(normalizeStoredTransaction)
-    .find((item) => item.sourceType === "recurring" && item.recurringId === recurringId && item.month === month && isCanceled(item.cancel));
+    .find((item) => (item.sourceType === "recurring" || item.recurringLinkedExisting)
+      && item.recurringId === recurringId && item.month === month && isCanceled(item.cancel));
+}
+
+function recurringImportCandidates(item, month, records = transactions) {
+  const name = normalizeKeyText(item.name);
+  return recurringLinkCandidates(month, records).filter((record) =>
+    Number(record.amount) === Number(item.amount) || (name && normalizeKeyText(record.merchant) === name)
+  );
+}
+
+function recurringLinkCandidates(month, records = transactions) {
+  const today = defaultDateForMonth();
+  return records.map(normalizeStoredTransaction).filter((record) =>
+    ["card", "transfer"].includes(record.sourceType)
+    && record.flow === "expense"
+    && !record.recurringId
+    && record.month === month
+    && monthKey(record.approvalDate) === month
+    && record.approvalDate <= today
+    && Number(record.amount) > 0
+    && !isCanceled(record.cancel)
+  );
+}
+
+async function linkRecurringImportedTransaction(recurringId, month, transactionId) {
+  const item = recurringExpenses.find((expense) => expense.id === recurringId && expense.recurringType !== "loan");
+  const targetMonth = monthKey(month);
+  const selected = recurringLinkCandidates(targetMonth).find((record) => record.transactionId === transactionId);
+  if (!item || !selected || targetMonth > currentMonthKey()) {
+    alert("연결할 같은 월의 가져온 출금 내역을 선택해주세요.");
+    return false;
+  }
+  const posted = transactions.map(normalizeStoredTransaction).filter((record) => record.recurringId === recurringId
+    && record.month === targetMonth && !isCanceled(record.cancel));
+  if (findDeletedRecurringTransaction(recurringId, targetMonth)
+    || posted.some((record) => record.sourceType !== "recurring" || record.recurringPostMethod !== "auto")) {
+    alert("이미 수동으로 기록·연결했거나 삭제한 월입니다. 기존 거래를 먼저 확인해주세요.");
+    return false;
+  }
+  if (!confirm(`${selected.approvalDate} ${selected.merchant} ${formatWon(selected.amount)}을 ${item.name}에 연결할까요?\n${posted.length ? `자동 기록 ${posted.length}건을 선택한 출금으로 대체합니다. ` : ""}선택한 거래의 날짜·금액·분류는 유지되고 새 지출은 추가하지 않습니다.`)) return false;
+  try {
+    await createAutoSnapshot("고정 지출 출금 연결 전");
+  } catch {
+    alert("연결 전 백업을 저장하지 못했습니다. 기존 거래는 유지됩니다.");
+    return false;
+  }
+  const currentSelected = recurringLinkCandidates(targetMonth).find((record) => record.transactionId === transactionId);
+  const currentPosted = transactions.map(normalizeStoredTransaction).filter((record) => record.recurringId === recurringId
+    && record.month === targetMonth && !isCanceled(record.cancel));
+  if (!currentSelected || findDeletedRecurringTransaction(recurringId, targetMonth)
+    || currentPosted.some((record) => record.sourceType !== "recurring" || record.recurringPostMethod !== "auto")) {
+    alert("그동안 거래 상태가 바뀌었습니다. 내역을 다시 확인해주세요.");
+    return false;
+  }
+  const replaceIds = new Set(currentPosted.map((record) => record.transactionId));
+  const nextTransactions = transactions.map(normalizeStoredTransaction)
+    .filter((record) => !replaceIds.has(record.transactionId))
+    .map((record) => record.transactionId === transactionId ? normalizeStoredTransaction({
+      ...record,
+      recurringId,
+      recurringType: "expense",
+      recurringPostMethod: "manual",
+      recurringLinkedExisting: true,
+      updatedAt: new Date().toISOString()
+    }) : record);
+  if (!await safeSave(RECORD_STORAGE_KEY, nextTransactions, { protectIncomeRecords: true })) return false;
+  transactions = nextTransactions;
+  reclassify();
+  renderAll();
+  return true;
 }
 
 function isDeletedRecurringTombstone(item) {
   const normalized = normalizeStoredTransaction(item);
-  return normalized.sourceType === "recurring" && isCanceled(normalized.cancel);
+  return (normalized.sourceType === "recurring" || normalized.recurringLinkedExisting) && isCanceled(normalized.cancel);
 }
 
 function recurringPostingStatus(item, month) {
@@ -1342,15 +1435,20 @@ function recurringPostingStatus(item, month) {
   const postedTransaction = findPostedRecurringTransaction(item.id, month) || null;
   const deletedTransaction = findDeletedRecurringTransaction(item.id, month) || null;
   const posted = Boolean(postedTransaction);
-  const isFuture = monthKey(month) > currentMonthKey();
+  const scheduledDate = getRecurringDateForMonth(month, item.dayOfMonth);
+  const isFuture = scheduledDate > defaultDateForMonth();
   if (deletedTransaction) {
     return { active, posted: false, postedTransaction: null, deletedTransaction, canManualPost: false, label: "실제 지출 삭제됨", className: "deleted-post" };
   }
-  if (posted && item.autoPost) {
-    return { active, posted, postedTransaction, canManualPost: false, label: "자동 반영됨", className: "auto-posted" };
+  if (posted && postedTransaction.recurringPostMethod === "auto") {
+    const possibleDuplicate = recurringImportCandidates({ ...item, amount: postedTransaction.amount }, month).length > 0;
+    return { active, posted, postedTransaction, canManualPost: false, label: possibleDuplicate ? "자동 기록 · 중복 확인 필요" : "자동 기록 · 출금 미확인", className: "auto-posted" };
+  }
+  if (posted && postedTransaction.recurringLinkedExisting) {
+    return { active, posted, postedTransaction, canManualPost: false, label: "가져온 출금 연결됨", className: "posted" };
   }
   if (posted) {
-    return { active, posted, postedTransaction, canManualPost: false, label: "반영 완료", className: "posted" };
+    return { active, posted, postedTransaction, canManualPost: false, label: postedTransaction.recurringPostMethod === "manual" ? "수동 기록됨" : "기록됨 · 출금 확인 필요", className: "posted" };
   }
   if (!active) {
     const inactiveLabel = item.paused
@@ -1362,17 +1460,23 @@ function recurringPostingStatus(item, month) {
           : "종료됨";
     return { active, posted, postedTransaction, canManualPost: false, label: inactiveLabel, className: "muted" };
   }
-  if (item.autoPost) {
+  if (isFuture) {
+    return { active, posted, postedTransaction, canManualPost: false, label: "예정일 전 · 예산 예약", className: "auto-pending" };
+  }
+  if (item.recurringType !== "loan" && recurringImportCandidates(item, month).length) {
+    return { active, posted, postedTransaction, canManualPost: true, label: "가져온 내역 중복 확인 필요", className: "manual-needed" };
+  }
+  if (item.autoPost && item.amountMode !== "variable" && scheduledDate >= (item.autoPostStartDate || defaultDateForMonth())) {
     return {
       active,
       posted,
       postedTransaction,
       canManualPost: false,
-      label: isFuture ? "자동 반영 예정" : "자동 반영 대기",
+      label: "자동 기록 대기 · 예산 예약",
       className: "auto-pending"
     };
   }
-  return { active, posted, postedTransaction, canManualPost: true, label: "수동 반영 필요", className: "manual-needed" };
+  return { active, posted, postedTransaction, canManualPost: true, label: "출금 확인 후 수동 반영", className: "manual-needed" };
 }
 
 function recurringReviewIncomeKnown(month) {
@@ -1550,13 +1654,13 @@ function renderRecurring() {
   const monthOccurrences = recurringOccurrencesForMonth(selectedMonth)
     .filter((item) => item.recurringType !== "loan");
   const pendingItems = monthOccurrences.filter((item) => !item.posted);
-  const autoPostedItems = monthOccurrences.filter((item) => item.autoPost && item.posted);
-  const manualPendingItems = monthOccurrences.filter((item) => !item.autoPost && !item.posted);
+  const autoPostedItems = monthOccurrences.filter((item) => item.postedTransaction?.recurringPostMethod === "auto");
+  const manualPendingItems = monthOccurrences.filter((item) => item.canManualPost && !item.posted);
   renderRecurringReview(selectedMonth, expenseDefinitions);
   els.recurringListSummary.textContent = `${expenseDefinitions.length.toLocaleString("ko-KR")}건 등록`;
   els.recurringSummaryCards.innerHTML = [
-    renderRecurringSummaryCard("미반영 예정", formatWon(sum(pendingItems, "amount")), `${pendingItems.length.toLocaleString("ko-KR")}건 · 실제 합산 전`),
-    renderRecurringSummaryCard("자동 반영 완료", `${autoPostedItems.length.toLocaleString("ko-KR")}건`, formatWon(sum(autoPostedItems, "amount"))),
+    renderRecurringSummaryCard("예산에 예약한 예정액", formatWon(sum(pendingItems, "amount")), `${pendingItems.length.toLocaleString("ko-KR")}건 · 실제 지출과 구분`),
+    renderRecurringSummaryCard("자동 기록 · 출금 미확인", `${autoPostedItems.length.toLocaleString("ko-KR")}건`, formatWon(sum(autoPostedItems.map((item) => item.postedTransaction), "amount"))),
     renderRecurringSummaryCard("수동 반영 필요", `${manualPendingItems.length.toLocaleString("ko-KR")}건`, manualPendingItems.length ? "달력/목록에서 반영 가능" : "반영 대기 없음")
   ].join("");
 
@@ -1709,12 +1813,12 @@ function renderRecurringCard(item, month) {
           <h3>${escapeHtml(item.name)}</h3>
           <p>${escapeHtml(item.paymentType || "카드")} · 매월 ${Number(item.dayOfMonth || 1)}일${scheduledDate ? ` · ${escapeHtml(scheduledDate)}` : ""}</p>
         </div>
-        <strong>${formatWon(item.amount)}</strong>
+        <strong>${formatWon(status.postedTransaction?.amount ?? item.amount)}</strong>
       </div>
       <div class="recurring-card-tags">
         ${categoryChip(item.sector, item.subcategory)}
         ${item.showOnCalendar ? `<span class="scheduled-badge soft">달력 표시</span>` : `<span class="scheduled-badge muted">달력 숨김</span>`}
-        ${item.autoPost ? `<span class="scheduled-badge soft">자동 반영</span>` : `<span class="scheduled-badge muted">수동 반영</span>`}
+        ${item.autoPost && item.amountMode !== "variable" ? `<span class="scheduled-badge soft">정액 자동 기록</span>` : `<span class="scheduled-badge muted">${item.amountMode === "variable" ? "변동액 · 수동 확인" : "수동 반영"}</span>`}
         <span class="scheduled-badge ${escapeHtml(status.className)}">${escapeHtml(status.label)}</span>
       </div>
       <dl class="recurring-meta">
@@ -1728,7 +1832,28 @@ function renderRecurringCard(item, month) {
         <button type="button" data-toggle-recurring="${escapeHtml(item.id)}">${item.paused ? "다시 활성화" : "일시중지"}</button>
         <button type="button" class="danger-outline" data-delete-recurring="${escapeHtml(item.id)}">삭제</button>
       </div>
+      ${renderRecurringImportLink(item, month, status)}
     </article>
+  `;
+}
+
+function renderRecurringImportLink(item, month, status) {
+  if (item.recurringType === "loan" || status.deletedTransaction || month > currentMonthKey()) return "";
+  if (status.posted && status.postedTransaction.recurringPostMethod !== "auto") return "";
+  const candidates = recurringLinkCandidates(month);
+  if (!candidates.length) return "";
+  return `
+    <details class="recurring-import-link" data-recurring-link-container>
+      <summary>가져온 출금과 연결${status.posted ? " · 자동 기록 대체" : ""}</summary>
+      <p class="hint">같은 거래인지 직접 확인해 선택하세요. ${status.posted ? "자동 기록 대신 선택한 출금 한 건만 합산합니다." : "기존 거래를 연결하며 새 지출은 만들지 않습니다."}</p>
+      <label>연결할 실제 출금
+        <select data-recurring-link-select>
+          <option value="">같은 달의 가져온 출금 선택</option>
+          ${candidates.map((record) => `<option value="${escapeHtml(record.transactionId)}">${escapeHtml(record.approvalDate)} · ${escapeHtml(record.merchant)} · ${escapeHtml(formatWon(record.amount))}</option>`).join("")}
+        </select>
+      </label>
+      <button type="button" data-link-recurring="${escapeHtml(item.id)}" data-post-month="${escapeHtml(month)}">선택한 출금 연결</button>
+    </details>
   `;
 }
 
@@ -1744,6 +1869,20 @@ function attachRecurringHandlers(root = els.recurringList) {
   });
   root.querySelectorAll("[data-post-recurring]").forEach((button) => {
     button.addEventListener("click", () => postRecurringExpense(button.dataset.postRecurring, button.dataset.postMonth));
+  });
+  root.querySelectorAll("[data-link-recurring]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      button.disabled = true;
+      try {
+        await linkRecurringImportedTransaction(
+          button.dataset.linkRecurring,
+          button.dataset.postMonth,
+          button.closest("[data-recurring-link-container]")?.querySelector("[data-recurring-link-select]")?.value || ""
+        );
+      } finally {
+        button.disabled = false;
+      }
+    });
   });
   root.querySelectorAll("[data-edit-loan-payment]").forEach((button) => {
     button.addEventListener("click", () => openLoanPaymentDialog(

@@ -178,6 +178,7 @@ assert.match(state, /themeRevision:\s*1/, "replacing themes must not reset prese
 const appVersion = vm.runInNewContext(`${constants}\nAPP_VERSION`);
 const cacheName = vm.runInNewContext(`${serviceWorker}\nCACHE_NAME`, {
   URL,
+  importScripts() {}, // This assertion only reads the cache version; worker behavior has dedicated tests.
   self: {
     location: new URL("https://budget.test/service-worker.js"),
     addEventListener() {}

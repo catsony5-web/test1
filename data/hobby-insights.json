@@ -1,0 +1,558 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-09-16T03:11:08.418Z",
+  "attemptedAt": "2026-09-16T03:11:08.418Z",
+  "refreshStatus": "ok",
+  "sources": {
+    "youtube": {
+      "state": "ok"
+    },
+    "wordpress": {
+      "state": "ok"
+    },
+    "shopify": {
+      "state": "ok"
+    }
+  },
+  "items": [
+    {
+      "sourceId": "wordpress",
+      "title": "Meet Purple: A Head Start for Your Ecommerce Store",
+      "url": "https://wordpress.com/blog/2026/09/16/purple-woocommerce-theme/",
+      "publishedAt": "2026-09-16T00:31:19.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "wordpress",
+      "title": "How to Monetize a Blog Without Turning It Into a Job",
+      "url": "https://wordpress.com/blog/2026/09/15/monetize-blog/",
+      "publishedAt": "2026-09-15T22:18:40.000Z",
+      "topicId": "writing"
+    },
+    {
+      "sourceId": "wordpress",
+      "title": "WordPress.com Changelog: Custom AI Themes and A New Video Player",
+      "url": "https://wordpress.com/blog/2026/09/15/changelog-custom-ai-themes/",
+      "publishedAt": "2026-09-15T15:00:00.000Z",
+      "topicId": "service"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Keep the cart in view on mobile POS",
+      "url": "https://changelog.shopify.com/posts/keep-the-cart-in-view-on-mobile-pos",
+      "publishedAt": "2026-09-14T16:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "youtube",
+      "title": "Has mainstream culture disappeared? New YouTube trends research says no",
+      "url": "https://blog.youtube/culture-and-trends/youtube-culture-trends-modern-mainstream-research/",
+      "publishedAt": "2026-09-10T13:00:00.000Z",
+      "topicId": "audience"
+    },
+    {
+      "sourceId": "wordpress",
+      "title": "8 Ways to Grow Website Traffic When Google Sends Less of It",
+      "url": "https://wordpress.com/blog/2026/09/09/grow-website-traffic/",
+      "publishedAt": "2026-09-09T01:15:11.000Z",
+      "topicId": "audience"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Product variants now support multiple barcodes",
+      "url": "https://changelog.shopify.com/posts/multiple-barcodes-in-variants",
+      "publishedAt": "2026-09-08T17:30:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Permitted store staff can now see an identified customer's online cart in POS",
+      "url": "https://changelog.shopify.com/posts/permitted-store-staff-can-now-see-an-identified-customer-s-online-cart-in-pos",
+      "publishedAt": "2026-09-03T20:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Scan and search variants with multiple barcodes",
+      "url": "https://changelog.shopify.com/posts/scan-and-search-variants-with-multiple-barcodes",
+      "publishedAt": "2026-09-01T16:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "youtube",
+      "title": "You’re invited: Ina Garten launches official YouTube channel & video podcast series",
+      "url": "https://blog.youtube/creator-and-artist-stories/ina-garten-official-youtube-channel-happy-hour/",
+      "publishedAt": "2026-08-28T13:05:00.000Z",
+      "topicId": "video"
+    },
+    {
+      "sourceId": "wordpress",
+      "title": "Build with Your Expert WordPress Agent: WordPress Studio’s New Desktop Experience is in Beta",
+      "url": "https://wordpress.com/blog/2026/08/24/studio-agentic-beta/",
+      "publishedAt": "2026-08-24T19:32:39.000Z",
+      "topicId": "service"
+    },
+    {
+      "sourceId": "youtube",
+      "title": "How SubwayTakes turned vertical video into Emmy-nominated television",
+      "url": "https://blog.youtube/creator-and-artist-stories/kareem-rahma-subwaytakes-emmy-nomination-interview/",
+      "publishedAt": "2026-08-24T19:00:00.000Z",
+      "topicId": "video"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Checkout now defaults to last used payment method for signed-in customers",
+      "url": "https://changelog.shopify.com/posts/checkout-now-defaults-to-last-used-payment-method-for-signed-in-customers",
+      "publishedAt": "2026-08-21T16:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Recommended changes to checkout field settings are now available",
+      "url": "https://changelog.shopify.com/posts/recommended-changes-to-checkout-field-settings-are-now-available",
+      "publishedAt": "2026-08-13T20:30:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "youtube",
+      "title": "New opportunities to earn and changes to the YouTube Partner Program",
+      "url": "https://blog.youtube/news-and-events/youtube-partner-program-updates-2027-new-opportunities-earn/",
+      "publishedAt": "2026-08-10T15:00:00.000Z",
+      "topicId": "video"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Cart sharing on Shopify POS",
+      "url": "https://changelog.shopify.com/posts/cart-sharing-on-shopify-pos",
+      "publishedAt": "2026-07-27T16:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "youtube",
+      "title": "Making thumbnails easier on YouTube",
+      "url": "https://blog.youtube/news-and-events/youtube-studio-custom-thumbnail-updates/",
+      "publishedAt": "2026-07-24T16:10:00.000Z",
+      "topicId": "video"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Localized address fields are rolling out to checkout and Shopify admin for Brazil, the Philippines, Kuwait, Peru and Panama",
+      "url": "https://changelog.shopify.com/posts/localized-address-fields-are-rolling-out-to-checkout-and-shopify-admin",
+      "publishedAt": "2026-07-17T16:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Collections now support multi-source and variants",
+      "url": "https://changelog.shopify.com/posts/collections-now-support-multi-source-and-variants",
+      "publishedAt": "2026-07-16T14:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Multiple product discounts on the same item",
+      "url": "https://changelog.shopify.com/posts/multiple-product-discounts-on-the-same-item",
+      "publishedAt": "2026-07-15T16:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "youtube",
+      "title": "How to convert YouTube Shorts views into long-form channel growth",
+      "url": "https://blog.youtube/creator-and-artist-stories/youtube-related-videos-traffic-guide/",
+      "publishedAt": "2026-07-14T18:00:00.000Z",
+      "topicId": "video"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Filter and group your reports by physical storefront",
+      "url": "https://changelog.shopify.com/posts/filter-and-group-your-reports-by-physical-storefront",
+      "publishedAt": "2026-06-30T16:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Define and manage metafields on inventory transfers",
+      "url": "https://changelog.shopify.com/posts/define-and-manage-metafields-on-inventory-transfers",
+      "publishedAt": "2026-06-30T16:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Custom draft order line item discounts now use presentment currency",
+      "url": "https://changelog.shopify.com/posts/improvement-to-draft-order-custom-discount-currency",
+      "publishedAt": "2026-06-24T16:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "B2B discounts are now enabled by default for new B2B stores and eligible existing stores",
+      "url": "https://changelog.shopify.com/posts/b2b-discounts-are-now-available-by-default-on-new-stores",
+      "publishedAt": "2026-06-23T21:05:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Checkout email field: new saved indicator and tooltip",
+      "url": "https://changelog.shopify.com/posts/checkout-email-field-new-saved-indicator-and-tooltip",
+      "publishedAt": "2026-06-22T16:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Purchase orders now create transfers to move inventory",
+      "url": "https://changelog.shopify.com/posts/purchase-orders-now-create-transfers-to-move-inventory",
+      "publishedAt": "2026-06-22T16:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Updated disclosure for subscription purchases on Checkout",
+      "url": "https://changelog.shopify.com/posts/updated-disclosure-for-subscription-purchases-on-checkout",
+      "publishedAt": "2026-06-17T19:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Product listings now support a disclosures field",
+      "url": "https://changelog.shopify.com/posts/product-listings-now-support-a-disclosures-field",
+      "publishedAt": "2026-06-17T15:45:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Checkout Blocks: Prevent non-compliant shipping addresses at checkout",
+      "url": "https://changelog.shopify.com/posts/checkout-blocks-block-non-compliant-shipping-addresses-at-checkout",
+      "publishedAt": "2026-06-17T15:45:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Online Store Editor with Sidekick on mobile",
+      "url": "https://changelog.shopify.com/posts/online-store-editor-with-sidekick-on-mobile",
+      "publishedAt": "2026-06-17T15:45:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Schedule, publish, and A/B test new themes and checkout and customer account configurations",
+      "url": "https://changelog.shopify.com/posts/schedule-publish-and-a-b-test-new-themes-and-checkout-and-customer-account-configurations",
+      "publishedAt": "2026-06-05T14:30:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Unified branding customization across checkout and customer accounts",
+      "url": "https://changelog.shopify.com/posts/draft-unified-branding-customization-across-checkout-and-customer-accounts",
+      "publishedAt": "2026-05-13T15:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Simpler inventory transfers",
+      "url": "https://changelog.shopify.com/posts/simpler-inventory-transfers",
+      "publishedAt": "2026-05-12T03:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Print packing slips for inventory transfers",
+      "url": "https://changelog.shopify.com/posts/print-packing-slips-for-inventory-transfers",
+      "publishedAt": "2026-05-11T20:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Product Variant Publishing",
+      "url": "https://changelog.shopify.com/posts/product-variant-publishing",
+      "publishedAt": "2026-05-07T17:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Assign discounts to specific markets",
+      "url": "https://changelog.shopify.com/posts/assign-discounts-to-specific-markets",
+      "publishedAt": "2026-05-07T16:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Inventory adjustment workflow now with full change tracking",
+      "url": "https://changelog.shopify.com/posts/inventory-adjustment-workflow-now-with-full-change-tracking",
+      "publishedAt": "2026-05-07T16:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Apply discounts to items on the refund page",
+      "url": "https://changelog.shopify.com/posts/apply-discounts-to-items-on-the-refund-page",
+      "publishedAt": "2026-05-04T16:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Track inventory that isn't for sale or fulfillment",
+      "url": "https://changelog.shopify.com/posts/manage-inventory-at-locations-without-activating-them-for-fulfillment",
+      "publishedAt": "2026-05-01T22:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Flow: New triggers for inventory transfer completed and inventory transfer ready to ship",
+      "url": "https://changelog.shopify.com/posts/flow-new-triggers-for-inventory-transfers-completed-and-inventory-transfer-ready-to-ship",
+      "publishedAt": "2026-04-30T21:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Returns and exchanges in cart for POS",
+      "url": "https://changelog.shopify.com/posts/returns-and-exchanges-in-cart-for-pos",
+      "publishedAt": "2026-04-27T18:05:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Custom discount amounts on line items in POS now apply per item",
+      "url": "https://changelog.shopify.com/posts/custom-discount-amounts-on-line-items-in-pos-now-apply-per-item",
+      "publishedAt": "2026-04-27T16:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Scan discount codes",
+      "url": "https://changelog.shopify.com/posts/scan-discount-codes-in-shopify-pos",
+      "publishedAt": "2026-04-27T16:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Updates to local pickup user experience in checkout",
+      "url": "https://changelog.shopify.com/posts/updates-to-local-pickup-user-experience-in-checkout",
+      "publishedAt": "2026-04-21T16:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Customers can set and manage default addresses in checkout",
+      "url": "https://changelog.shopify.com/posts/customers-can-now-set-and-manage-default-addresses-in-checkout",
+      "publishedAt": "2026-04-13T20:35:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Checkout Blocks: Order value limits available on all plans",
+      "url": "https://changelog.shopify.com/posts/checkout-blocks-order-value-limits-available-on-all-plans",
+      "publishedAt": "2026-04-13T14:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Add tags to your discounts",
+      "url": "https://changelog.shopify.com/posts/add-tags-to-your-discounts",
+      "publishedAt": "2026-04-01T21:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "See which apps use Extensions and Functions to power your checkout, online store, and more",
+      "url": "https://changelog.shopify.com/posts/see-which-apps-use-extensions-and-functions-to-power-your-checkout-online-store-and-more",
+      "publishedAt": "2026-04-01T20:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Product bundles and their components now represented on draft order status page in customer accounts",
+      "url": "https://changelog.shopify.com/posts/product-bundles-and-their-components-now-represented-on-draft-order-status-page-in-customer-accounts",
+      "publishedAt": "2026-04-01T16:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Visual updates to Checkout Blocks app",
+      "url": "https://changelog.shopify.com/posts/visual-updates-to-checkout-blocks-app",
+      "publishedAt": "2026-03-31T16:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Schedule and test storefront changes with Rollouts",
+      "url": "https://changelog.shopify.com/posts/schedule-and-test-storefront-changes-with-rollouts",
+      "publishedAt": "2026-03-31T14:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Run a deep analysis on your online store theme with SimGym",
+      "url": "https://changelog.shopify.com/posts/run-a-deep-analysis-on-your-online-store-theme-with-simgym",
+      "publishedAt": "2026-03-26T15:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Customize your product detail pages on Shop with blocks",
+      "url": "https://changelog.shopify.com/posts/customize-your-product-detail-pages-on-shop-with-blocks",
+      "publishedAt": "2026-03-25T17:30:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Flow: New actions to get data about workflow runs, abandoned checkouts, inventory items, catalogs, and pages",
+      "url": "https://changelog.shopify.com/posts/flow-new-actions-to-get-data-about-workflow-runs-abandoned-checkouts-inventory-items-catalogs-and-pages",
+      "publishedAt": "2026-03-24T21:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Faster discount entry in POS",
+      "url": "https://changelog.shopify.com/posts/faster-discount-entry-in-pos",
+      "publishedAt": "2026-03-18T16:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Customize checkout and customer accounts by market",
+      "url": "https://changelog.shopify.com/posts/customize-checkout-and-customer-accounts-by-market",
+      "publishedAt": "2026-03-16T16:30:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Storefront filter URLs now use stable identifiers instead of text values",
+      "url": "https://changelog.shopify.com/posts/storefront-filter-urls-now-use-stable-identifiers-instead-of-text-values",
+      "publishedAt": "2026-03-16T16:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Easier Smart Grid setup for discount tiles",
+      "url": "https://changelog.shopify.com/posts/easier-smart-grid-setup-for-discount-tiles",
+      "publishedAt": "2026-03-16T16:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Track discounts with marketing campaigns",
+      "url": "https://changelog.shopify.com/posts/track-discount-promotions-with-marketing-campaigns",
+      "publishedAt": "2026-03-13T16:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "VAT number validation available in checkout",
+      "url": "https://changelog.shopify.com/posts/vat-number-validation-available-in-checkout",
+      "publishedAt": "2026-02-25T14:50:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Enable Offline Checkout from POS Device Setting",
+      "url": "https://changelog.shopify.com/posts/enable-offline-checkout-from-pos-device-setting",
+      "publishedAt": "2026-02-18T18:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Sell fixed bundles on Google",
+      "url": "https://changelog.shopify.com/posts/sell-fixed-bundles-on-google",
+      "publishedAt": "2026-02-10T15:33:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Improved product availability for market-specific inventory",
+      "url": "https://changelog.shopify.com/posts/improved-product-availability-for-market-specific-inventory",
+      "publishedAt": "2026-01-20T17:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Greater flexibility for inventory transfers",
+      "url": "https://changelog.shopify.com/posts/greater-flexibility-for-inventory-transfers",
+      "publishedAt": "2026-01-06T17:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Prevent accidental inventory overwrite in bulk editor",
+      "url": "https://changelog.shopify.com/posts/prevent-accidental-inventory-overwrite-in-bulk-editor",
+      "publishedAt": "2025-12-11T17:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Expand your catalog instantly with the Shopify Product Network",
+      "url": "https://changelog.shopify.com/posts/expand-your-catalog-instantly-with-the-shopify-product-network",
+      "publishedAt": "2025-12-10T15:30:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Combine repeat bundle options",
+      "url": "https://changelog.shopify.com/posts/combine-repeat-bundle-options",
+      "publishedAt": "2025-12-10T14:30:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Apple Pay available as a payment method in Shop Pay checkout",
+      "url": "https://changelog.shopify.com/posts/apple-pay-available-as-a-payment-method-in-shop-pay-checkout",
+      "publishedAt": "2025-11-13T17:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Control search engine indexing for your shop.app storefront",
+      "url": "https://changelog.shopify.com/posts/control-search-engine-indexing-for-your-shop-app-storefront",
+      "publishedAt": "2025-10-29T14:30:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "New: Unlisted product status",
+      "url": "https://changelog.shopify.com/posts/new-unlisted-product-status-1",
+      "publishedAt": "2025-10-21T16:15:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "We’ve increased the product variant limit to 2048",
+      "url": "https://changelog.shopify.com/posts/we-ve-increased-the-product-variant-limit-to-2048",
+      "publishedAt": "2025-10-15T13:30:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Integrate accelerated checkout buttons (Shop Pay and Apple Pay) on your mobile app storefronts",
+      "url": "https://changelog.shopify.com/posts/integrate-accelerated-checkout-buttons-shop-pay-and-apple-pay-on-your-mobile-app-storefronts",
+      "publishedAt": "2025-10-08T19:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Flow: New triggers for discounts, disputes, and fulfillment order splits",
+      "url": "https://changelog.shopify.com/posts/flow-new-triggers-for-discounts-disputes-and-fulfillment-order-splits",
+      "publishedAt": "2025-10-02T16:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Control when B2B orders require review at checkout",
+      "url": "https://changelog.shopify.com/posts/control-when-b2b-orders-require-review-at-checkout",
+      "publishedAt": "2025-10-01T04:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Shopify Email now supports dynamic product sections",
+      "url": "https://changelog.shopify.com/posts/shopify-email-now-supports-dynamic-product-sections",
+      "publishedAt": "2025-09-25T22:15:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Segment customers based on the product categories they’ve browsed or bought",
+      "url": "https://changelog.shopify.com/posts/segment-customers-based-on-the-product-categories-they-ve-browsed-or-bought",
+      "publishedAt": "2025-09-19T11:00:00.000Z",
+      "topicId": "product"
+    }
+  ]
+}

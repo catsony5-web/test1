@@ -1181,8 +1181,8 @@ function calendarDuplicateRemovalKeys(items) {
 async function deleteCalendarTransaction(recordKey) {
   const item = calendarClassifiedItem(recordKey);
   if (!item) return;
-  const recurringMessage = item.sourceType === "recurring" && item.recurringId
-    ? "\n\n고정 지출에서 반영된 거래는 실제 지출 기록만 삭제하며, 고정 지출 원본은 유지됩니다."
+  const recurringMessage = (item.sourceType === "recurring" || item.recurringLinkedExisting) && item.recurringId
+    ? "\n\n고정 지출과 연결한 거래는 실제 지출 기록만 삭제하며, 고정 지출 원본은 유지됩니다."
     : "";
   if (!confirm(`이 거래를 삭제할까요? 삭제 후에는 복구하기 어렵습니다.${recurringMessage}`)) return;
   await deleteCalendarTransactions([recordKey], {
@@ -1228,7 +1228,7 @@ async function deleteCalendarTransactions(recordKeys, options = {}) {
     const item = normalizeStoredTransaction(transaction);
     if (!keys.has(item.recordKey)) return [transaction];
     delete nextReimbursements[item.recordKey];
-    const recurring = item.sourceType === "recurring" && item.recurringId
+    const recurring = (item.sourceType === "recurring" || item.recurringLinkedExisting) && item.recurringId
       ? recurringExpenses.find((expense) => expense.id === item.recurringId)
       : null;
     if (recurring?.autoPost) {

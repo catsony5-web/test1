@@ -6,6 +6,7 @@ function renderSummary() {
   const sectorNames = summaryMatrixSectors(rangedActive);
   const selectedSector = updateSummarySectorOptions(sectorNames);
   const selectedMonth = updateSummaryMonthOptions(months);
+  renderSpendingBudget("summarySpendingBudget", selectedMonth || currentMonthKey(), true);
   const comparisonMonth = updateSummaryComparisonControls(allMonths, selectedMonth);
   const comparison = buildSummaryComparison(active, selectedMonth, selectedSector, {
     mode: selectedSummaryComparisonMode,
@@ -27,7 +28,8 @@ const summaryMobileToDesktopSubtab = Object.freeze({
   priority: "share",
   patterns: "detail",
   report: "report",
-  period: "matrix"
+  period: "matrix",
+  budget: "budget"
 });
 
 function summaryMobileValueForSubtab(subtab) {
@@ -38,8 +40,10 @@ function summaryMobileValueForSubtab(subtab) {
 function selectSummarySubtab(subtab, { focus = false } = {}) {
   const button = document.querySelector(`[data-summary-subtab="${cssEscape(subtab)}"]`);
   if (!button) return;
+  const refreshMonths = subtab === "budget" || selectedSummarySubtab === "budget";
   selectedSummarySubtab = subtab;
-  syncSummarySubtabs();
+  if (refreshMonths) renderSummary();
+  else syncSummarySubtabs();
   if (focus) button.focus();
 }
 
@@ -181,6 +185,10 @@ function syncSummarySubtabs() {
 }
 
 function syncSummaryContextVisibility() {
+  const budgetVisible = selectedSummarySubtab === "budget";
+  document.querySelector(".summary-context-comparison")?.toggleAttribute("hidden", budgetVisible);
+  els.summaryComparisonNotice?.toggleAttribute("hidden", budgetVisible);
+  if (els.summaryComparisonMonthField) els.summaryComparisonMonthField.hidden = budgetVisible || selectedSummaryComparisonMode !== "custom";
   const sectorVisible = ["trend", "share", "detail"].includes(selectedSummarySubtab);
   const rangeVisible = ["trend", "matrix"].includes(selectedSummarySubtab);
   if (els.summarySectorPicker) els.summarySectorPicker.hidden = !sectorVisible;
@@ -727,6 +735,11 @@ function summaryDisplaySubcategory(item) {
 
 function updateSummaryMonthOptions(months) {
   const controls = summaryMonthControls();
+  if (selectedSummarySubtab === "budget") {
+    const settings = SpendingBudgetCore.normalizeSettings(appSettings.spendingBudget);
+    months = [...new Set([...months, currentMonthKey(), ...Object.keys(settings.monthlyTargets || {}),
+      ...settings.plans.map((plan) => plan.month)])].filter(isValidMonthKey).sort();
+  }
   if (!months.length) {
     controls.forEach((control) => {
       control.innerHTML = `<option value="">기록 없음</option>`;

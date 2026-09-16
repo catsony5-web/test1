@@ -11,23 +11,23 @@ function syncSummaryFoodSelection(model) {
 }
 
 function renderSummaryFoodBudget(model) {
-  const afterText = model.afterDining < 0
+  const afterText = model.afterDining === null ? "목표 미설정" : model.afterDining < 0
     ? `${formatWon(-model.afterDining)} 초과` : `${formatWon(model.afterDining)} 남음`;
   return `<section class="summary-food-budget" aria-labelledby="summaryFoodBudgetTitle">
     <div class="summary-card-heading"><h4 id="summaryFoodBudgetTitle">외식 한 번의 여유는?</h4><span>등록한 식비 기준</span></div>
-    <form class="summary-food-budget-form" data-food-budget-form>
-      <label>월 식비 목표<input type="number" min="1" max="100000000" step="1" required data-food-budget="monthlyTarget" value="${model.budget.monthlyTarget}" aria-label="월 식비 목표 (원)"></label>
+    <form class="summary-food-budget-form" data-food-budget-form data-food-budget-month="${model.monthlyScoped ? model.month : ""}">
+      <label>월 식비 목표<input type="number" min="${model.monthlyScoped ? 0 : 1}" max="100000000" step="1" required data-food-budget="monthlyTarget" value="${model.budget.monthlyTarget}" aria-label="월 식비 목표 (원)"></label>
       <label>외식 1회 예상<input type="number" min="0" max="100000000" step="1" required data-food-budget="diningCost" value="${model.budget.diningCost}" aria-label="외식 1회 예상 비용 (원)"></label>
       <button type="submit" data-food-budget-submit>적용</button>
     </form>
-    <p class="summary-food-help">원 단위 · 월 목표는 모든 월에 공통으로 적용됩니다.</p>
+    <p class="summary-food-help">${model.monthlyScoped ? `${escapeHtml(model.month)}에 저장한 목표 · 예산 점검과 함께 적용됩니다. 0이면 미설정입니다.` : "원 단위 · 월별 목표를 따로 저장하지 않은 달에 쓰는 공통 목표입니다."} 예정 비용까지 반영한 여유는 예산 점검에서 확인하세요.</p>
     <div class="summary-food-budget-totals">
       <div><span>현재 식비</span><strong data-food-month-total>${formatWon(model.totals.amount)}</strong></div>
-      <div><span>월 예산 잔액</span><strong class="${model.remaining < 0 ? "food-over" : ""}">${formatWon(model.remaining)}</strong></div>
+      <div><span>기록 기준 잔액</span><strong class="${model.remaining < 0 ? "food-over" : ""}">${model.remaining === null ? "목표 미설정" : formatWon(model.remaining)}</strong></div>
     </div>
     ${model.totals.occasionAmount ? `<p class="summary-food-occasion-note">이 중 상황 태그 식비 <strong>${formatWon(model.totals.occasionAmount)}</strong> · 전체 식비의 ${model.totals.occasionShare}%</p>` : ""}
     <div class="summary-food-dining-result ${model.afterDining < 0 ? "food-over" : ""}"><span>외식 ${formatWon(model.budget.diningCost)} 추가 시</span><strong>${afterText}</strong></div>
-    <p class="summary-food-budget-note">${model.isCurrentMonth
+    <p class="summary-food-budget-note">${model.remaining === null ? "식비 목표를 설정하면 기록 기준 여유를 계산합니다." : model.isCurrentMonth
       ? model.afterDining < 0 ? "추가 외식을 가정하면 월 식비 목표를 넘습니다."
         : `오늘 포함 남은 ${model.remainingDays}일 · 하루 ${formatWon(model.dailyAfterDining)}씩 사용 가능`
       : model.isPastMonth ? "지난달 기록입니다. 추가 외식은 예산 비교용 가정입니다." : "예정 월입니다. 등록된 기록으로 계산한 가정입니다."}</p>
@@ -73,7 +73,7 @@ function renderSummaryFoodInspector(model) {
   const sorted = [...rows].sort((a, b) => `${b.approvalDate || ""} ${b.approvalTime || ""}`.localeCompare(`${a.approvalDate || ""} ${a.approvalTime || ""}`));
   return `<div class="summary-card-heading"><h4>${escapeHtml(title)}</h4><span>식비 ${formatWon(totals.amount)}</span></div>
     <p class="summary-food-inspector-summary">결제 ${totals.count}건${totals.installmentCount ? ` · 할부 배분 ${totals.installmentCount}건` : ""}${rows.some(summaryFoodIsPending) ? " · 쿠팡 분류 확인 포함" : ""}</p>
-    ${date !== "undated" ? `<div class="summary-food-week-budget"><span>${week.index + 1}주 예산 ${formatWon(week.target)}</span><strong class="${week.remaining < 0 ? "food-over" : ""}">주 잔액 ${formatWon(week.remaining)}</strong></div>` : ""}
+    ${date !== "undated" ? `<div class="summary-food-week-budget"><span>${week.index + 1}주 예산 ${week.target === null ? "미설정" : formatWon(week.target)}</span><strong class="${week.remaining < 0 ? "food-over" : ""}">주 잔액 ${week.remaining === null ? "계산 대기" : formatWon(week.remaining)}</strong></div>` : ""}
     ${totals.occasionAmount ? `<p class="summary-food-occasion-note">선택 기간의 상황 태그 식비 <strong>${formatWon(totals.occasionAmount)}</strong> · ${totals.occasionShare}%</p>` : ""}
     ${sorted.length ? `<ol class="summary-food-entry-list">${sorted.map((item) => {
       const group = SUMMARY_FOOD_GROUPS.find((entry) => entry.key === summaryFoodGroup(item));
@@ -96,10 +96,10 @@ function renderSummaryFoodWeeks(model) {
         <th scope="row"><button type="button" data-food-week="${week.index}"><strong>${week.index + 1}주</strong><small>${summaryFoodMonthRangeLabel(model.month, week.startDay, week.endDay)}</small></button></th>
         ${SUMMARY_FOOD_GROUPS.map(({ key }) => `<td><strong>${formatWon(week.groups[key].amount)}</strong><small>${week.groups[key].count}건</small></td>`).join("")}
         <td><strong>${formatWon(week.amount)}</strong><small>${week.count}건</small></td>
-        <td><strong class="${week.remaining < 0 ? "food-over" : ""}">${formatWon(week.remaining)}</strong><small>목표 ${formatWon(week.target)}</small></td>
+        <td><strong class="${week.remaining < 0 ? "food-over" : ""}">${week.remaining === null ? "계산 대기" : formatWon(week.remaining)}</strong><small>목표 ${week.target === null ? "미설정" : formatWon(week.target)}</small></td>
       </tr>`).join("")}
       ${model.undatedRows.length ? `<tr><th scope="row"><button type="button" data-food-date="undated">날짜 미확인</button></th>${SUMMARY_FOOD_GROUPS.map(({ key }) => `<td>${formatWon(model.undatedTotals.groups[key].amount)}</td>`).join("")}<td>${formatWon(model.undatedTotals.amount)}</td><td>주차 배분 전</td></tr>` : ""}
-      </tbody><tfoot><tr><th scope="row">월 합계</th>${SUMMARY_FOOD_GROUPS.map(({ key }) => `<td>${formatWon(model.totals.groups[key].amount)}</td>`).join("")}<td>${formatWon(model.totals.amount)}</td><td>${formatWon(model.remaining)}</td></tr></tfoot>
+      </tbody><tfoot><tr><th scope="row">월 합계</th>${SUMMARY_FOOD_GROUPS.map(({ key }) => `<td>${formatWon(model.totals.groups[key].amount)}</td>`).join("")}<td>${formatWon(model.totals.amount)}</td><td>${model.remaining === null ? "목표 미설정" : formatWon(model.remaining)}</td></tr></tfoot>
     </table></div>
     <p class="summary-food-help">기타 식비: 다른 마트·편의점·간식·카페 등. 주 예산은 월 목표를 일수로 나누며, 월초·월말은 이달에 해당하는 날짜만 포함합니다.</p>
   </section>`;
@@ -230,13 +230,25 @@ async function saveSummaryFoodBudget(event) {
   const diningCost = Number(form.querySelector('[data-food-budget="diningCost"]').value);
   if (!form.checkValidity() || !Number.isFinite(monthlyTarget) || !Number.isFinite(diningCost)) return;
   const previous = appSettings.foodBudget;
+  const previousSpending = appSettings.spendingBudget;
+  const month = form.dataset?.foodBudgetMonth;
+  const monthTarget = previousSpending?.monthlyTargets?.[month];
+  if (monthTarget?.monthlyLimit && monthlyTarget > monthTarget.monthlyLimit) {
+    const status = els.summaryPatternPanel.querySelector("[data-food-budget-status]");
+    if (status) status.textContent = "식비 목표는 이 달의 전체 소비 목표를 넘을 수 없습니다.";
+    return;
+  }
   const submit = form.querySelector("[data-food-budget-submit]");
   submit.disabled = true;
   try {
-    appSettings.foodBudget = normalizeFoodBudgetSettings({ monthlyTarget, diningCost });
+    appSettings.foodBudget = normalizeFoodBudgetSettings({ monthlyTarget: monthTarget ? previous.monthlyTarget : monthlyTarget, diningCost });
+    if (monthTarget) appSettings.spendingBudget = { ...previousSpending,
+      monthlyTargets: { ...previousSpending.monthlyTargets, [month]: { ...monthTarget, foodTarget: monthlyTarget, source: "manual" } }
+    };
     await saveSettings();
   } catch (error) {
     appSettings.foodBudget = previous;
+    appSettings.spendingBudget = previousSpending;
     const status = els.summaryPatternPanel.querySelector("[data-food-budget-status]");
     if (status) status.textContent = "저장하지 못했습니다. 다시 시도해주세요.";
     submit.disabled = false;
