@@ -1,15 +1,15 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-09-16T00:52:10.348Z",
+  "updatedAt": "2026-09-16T09:02:43.361Z",
   "checkedDate": "2026-09-16",
   "coverage": {
-    "kindCount": 163,
-    "dartCount": 177,
-    "dartCheckedCompanies": 185,
+    "kindCount": 164,
+    "dartCount": 178,
+    "dartCheckedCompanies": 186,
     "unresolved": [],
     "refreshStatus": {
       "state": "ok",
-      "attemptedAt": "2026-09-16T00:52:10.348Z",
+      "attemptedAt": "2026-09-16T09:02:43.361Z",
       "sources": {
         "kind": {
           "state": "ok"
@@ -30,7 +30,7 @@
     "to": "2027-09-30",
     "label": "최근 3개월 · 향후 12개월"
   },
-  "itemCount": 39,
+  "itemCount": 40,
   "items": [
     {
       "sourceId": "20260106000356",
@@ -1055,28 +1055,34 @@
     {
       "sourceId": "dart-01867688",
       "company": "와이즈플래닛컴퍼니",
-      "market": "상장시장 확인 필요",
-      "filingDate": "2026-09-03",
-      "bookbuildingStart": "",
-      "bookbuildingEnd": "",
+      "market": "코스닥",
+      "filingDate": "2026-07-29",
+      "bookbuildingStart": "2026-09-04",
+      "bookbuildingEnd": "2026-09-10",
       "subscriptionStart": "2026-09-14",
       "subscriptionEnd": "2026-09-15",
       "paymentDate": "2026-09-17",
       "offerPrice": 0,
       "offeringAmountMillions": 0,
-      "listingDate": "",
+      "listingDate": "2026-09-23",
       "broker": "대신증권",
       "priceStatus": "pending",
       "status": "scheduled",
-      "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260911000214",
-      "sourceUpdatedAt": "2026-09-11T08:32:10.056Z",
+      "sourceName": "KRX KIND + DART",
+      "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260130000220",
+      "sourceUpdatedAt": "2026-09-16T09:02:43.361Z",
       "missingSince": "",
       "corpCode": "01867688",
       "aliases": [
+        "20260130000220",
         "dart-01867688"
       ],
       "sources": [
+        {
+          "name": "KRX KIND",
+          "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260130000220",
+          "checkedDate": "2026-09-16"
+        },
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260911000214",
@@ -1091,9 +1097,34 @@
       "reportedOfferPrice": 10000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "ff21278e4aa1628f1ae3",
-      "changeStatus": "unchanged",
-      "changes": []
+      "fingerprint": "9a9e3d0f94420d617004",
+      "changeStatus": "changed",
+      "changes": [
+        {
+          "field": "market",
+          "label": "시장",
+          "before": "상장시장 확인 필요",
+          "after": "코스닥"
+        },
+        {
+          "field": "bookbuildingStart",
+          "label": "수요예측 시작",
+          "before": "",
+          "after": "2026-09-04"
+        },
+        {
+          "field": "bookbuildingEnd",
+          "label": "수요예측 종료",
+          "before": "",
+          "after": "2026-09-10"
+        },
+        {
+          "field": "listingDate",
+          "label": "상장 예정일",
+          "before": "",
+          "after": "2026-09-23"
+        }
+      ]
     },
     {
       "sourceId": "20251002000228",
@@ -1253,8 +1284,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260916000069",
-      "sourceUpdatedAt": "2026-09-16T00:52:10.348Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260916000240",
+      "sourceUpdatedAt": "2026-09-16T09:02:43.361Z",
       "missingSince": "",
       "corpCode": "01801026",
       "aliases": [
@@ -1263,7 +1294,7 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260916000069",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260916000240",
           "checkedDate": "2026-09-16",
           "reportDate": "20260916"
         }
@@ -1275,7 +1306,7 @@
       "reportedOfferPrice": 16500,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "e58e5946fed1fc68d69d",
+      "fingerprint": "bec2c1b9b5777476e7da",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -1773,6 +1804,47 @@
       "offerPriceHigh": 0,
       "fingerprint": "258ea2756d1fcf8fc45c",
       "changeStatus": "unchanged",
+      "changes": []
+    },
+    {
+      "sourceId": "dart-01649408",
+      "company": "인텔리빅스",
+      "market": "상장시장 확인 필요",
+      "filingDate": "2026-09-16",
+      "bookbuildingStart": "",
+      "bookbuildingEnd": "",
+      "subscriptionStart": "2026-10-21",
+      "subscriptionEnd": "2026-10-22",
+      "paymentDate": "2026-10-26",
+      "offerPrice": 0,
+      "offeringAmountMillions": 0,
+      "listingDate": "",
+      "broker": "미래에셋증권",
+      "priceStatus": "pending",
+      "status": "scheduled",
+      "sourceName": "DART",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260916000544",
+      "sourceUpdatedAt": "2026-09-16T09:02:43.361Z",
+      "missingSince": "",
+      "corpCode": "01649408",
+      "aliases": [
+        "dart-01649408"
+      ],
+      "sources": [
+        {
+          "name": "DART",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260916000544",
+          "checkedDate": "2026-09-16",
+          "reportDate": "20260916"
+        }
+      ],
+      "conflicts": [],
+      "reviewNotes": [],
+      "reportedOfferPrice": 7600,
+      "offerPriceLow": 0,
+      "offerPriceHigh": 0,
+      "fingerprint": "2a8f80115f13744b0414",
+      "changeStatus": "new",
       "changes": []
     },
     {
