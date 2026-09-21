@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-09-21T09:34:21.892Z",
+  "updatedAt": "2026-09-21T16:11:29.816Z",
   "checkedDate": "2026-09-21",
   "coverage": {
     "kindCount": 166,
@@ -9,7 +9,7 @@
     "unresolved": [],
     "refreshStatus": {
       "state": "ok",
-      "attemptedAt": "2026-09-21T09:34:21.892Z",
+      "attemptedAt": "2026-09-21T16:11:29.816Z",
       "sources": {
         "kind": {
           "state": "ok"
@@ -1833,27 +1833,8 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "0a1aa06d3ed2309910a9",
-      "changeStatus": "changed",
-      "changes": [
-        {
-          "field": "subscriptionStart",
-          "label": "청약 시작",
-          "before": "2026-10-12",
-          "after": "2026-10-22"
-        },
-        {
-          "field": "subscriptionEnd",
-          "label": "청약 종료",
-          "before": "2026-10-13",
-          "after": "2026-10-23"
-        },
-        {
-          "field": "paymentDate",
-          "label": "납입일",
-          "before": "2026-10-15",
-          "after": "2026-10-27"
-        }
-      ]
+      "changeStatus": "unchanged",
+      "changes": []
     },
     {
       "sourceId": "dart-00579342",
@@ -1893,7 +1874,7 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "cb42c8860a9d5ad0fc07",
-      "changeStatus": "new",
+      "changeStatus": "unchanged",
       "changes": []
     },
     {
@@ -1934,7 +1915,7 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "67e276676d3b25dbadeb",
-      "changeStatus": "new",
+      "changeStatus": "unchanged",
       "changes": []
     },
     {
@@ -2016,7 +1997,7 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "af46a7dfc9ad0caec1e0",
-      "changeStatus": "new",
+      "changeStatus": "unchanged",
       "changes": []
     },
     {
@@ -2139,7 +2120,7 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "da54d1bf83ec67871a25",
-      "changeStatus": "new",
+      "changeStatus": "unchanged",
       "changes": []
     }
   ]
