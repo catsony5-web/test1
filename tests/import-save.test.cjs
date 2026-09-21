@@ -19,6 +19,7 @@ function setup() {
   const xlsx = { read: () => ({}) };
   const context = vm.createContext({
     window: { XLSX: xlsx }, XLSX: xlsx,
+    loadExcelLibrary: async () => xlsx,
     alert: (message) => alerts.push(message),
     transactions: [{ recordKey: "old", amount: 100 }],
     recurringExpenses: [],
@@ -119,12 +120,13 @@ test("저장 후 스냅샷·화면 갱신 실패를 거래 저장 실패로 안�
   assert.doesNotMatch(message, /기존 기록은 유지됩니다/);
 });
 
-test("엑셀 크기 제한과 파서 미로딩은 기존 기록을 바꾸지 않는다", async () => {
+test("엑셀 크기 제한과 파서 로딩 실패는 기존 기록을 바꾸지 않는다", async () => {
   const { context: c, input, writes } = setup();
   input.files[0].size = 20 * 1024 * 1024 + 1;
   await c.handleFile({ target: input });
   input.files[0].size = 10;
   c.window.XLSX = null;
+  c.loadExcelLibrary = async () => { throw new Error("library unavailable"); };
   await c.handleFile({ target: input });
   assert.equal(writes.length, 0);
   assert.equal(c.transactions.length, 1);

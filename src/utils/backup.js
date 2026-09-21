@@ -208,17 +208,30 @@ function pickReimbursementsForTransactions(rows) {
 }
 
 function normalizeBackupTransactions(payload) {
+  validateBackupTransactionArrays(payload);
   const rows = Array.isArray(payload?.transactions)
     ? payload.transactions
     : Array.isArray(payload?.records)
       ? payload.records
       : [];
   return rows.map((item) => {
+    validateBackupTransaction(item);
     const normalized = normalizeStoredTransaction(item);
     if (!normalized.manualSector || !normalized.manualSubcategory) return normalized;
     const assignment = normalizeCategoryAssignment(normalized.manualSector, normalized.manualSubcategory, normalized.merchant);
     return { ...normalized, manualSector: assignment.sector, manualSubcategory: assignment.subcategory };
   });
+}
+
+function validateBackupTransactionArrays(source) {
+  if (source != null && (typeof source !== "object" || Array.isArray(source))) {
+    throw new Error("백업 거래 항목은 객체 형식이어야 합니다.");
+  }
+  for (const field of ["records", "transactions"]) {
+    if (source && Object.hasOwn(source, field) && !Array.isArray(source[field])) {
+      throw new Error(`백업의 ${field} 항목은 거래 목록이어야 합니다.`);
+    }
+  }
 }
 
 function backupPayloadHasScope(payload, scope) {
@@ -360,8 +373,10 @@ function normalizeBackupPayload(payload) {
 function normalizeBackupSection(scope, raw) {
   if (!raw) return null;
   if (TRANSACTION_DATA_SCOPES.has(scope)) {
+    validateBackupTransactionArrays(raw);
     const rows = Array.isArray(raw.records) ? raw.records : Array.isArray(raw.transactions) ? raw.transactions : [];
     const records = rows.map((item) => {
+      validateBackupTransaction(item);
       const normalized = normalizeStoredTransaction(item);
       if (!normalized.manualSector || !normalized.manualSubcategory) return normalized;
       const assignment = normalizeCategoryAssignment(normalized.manualSector, normalized.manualSubcategory, normalized.merchant);
@@ -476,6 +491,12 @@ function applyClearScopes(scopes) {
 function applyRestorePayload(payload, scopes, options = {}) {
   const bundle = payload?.sections ? payload : normalizeBackupPayload(payload);
   const selected = normalizeScopeList(scopes).filter((scope) => backupBundleHasScope(bundle, scope));
+  for (const scope of selected.filter((value) => TRANSACTION_DATA_SCOPES.has(value))) {
+    const section = bundle.sections[scope];
+    validateBackupTransactionArrays(section);
+    const rows = Array.isArray(section.records) ? section.records : section.transactions || [];
+    rows.forEach(validateBackupTransaction);
+  }
   const mode = options.mode === "merge" ? "merge" : "overwrite";
   if (mode === "merge") {
     const plan = options.mergePlan || buildBackupMergePlan(bundle, selected);
@@ -776,7 +797,24 @@ function confirmDangerousDataAction(message, phrase) {
   return typed === phrase;
 }
 
+let workbookExportInProgress = false;
+
 async function exportWorkbook() {
+  if (workbookExportInProgress) return;
+  workbookExportInProgress = true;
+  els.exportButton.disabled = true;
+  try {
+    await loadExcelLibrary();
+    await writeWorkbookFile();
+  } catch {
+    alert("엑셀을 내보내지 못했습니다. 기록은 그대로 유지됩니다. 잠시 후 다시 시도해주세요.");
+  } finally {
+    workbookExportInProgress = false;
+    els.exportButton.disabled = classified.length === 0;
+  }
+}
+
+async function writeWorkbookFile() {
   const wb = XLSX.utils.book_new();
   const summaryRows = tableToRows(els.monthlyTable);
   const detailRows = buildAllDetailSummaryRows();

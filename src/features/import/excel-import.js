@@ -12,11 +12,6 @@ async function handleFile(event) {
     event.target.value = "";
     return;
   }
-  if (!window.XLSX) {
-    alert("엑셀 파서가 아직 로드되지 않았습니다. 인터넷 연결을 확인한 뒤 다시 열어주세요.");
-    return;
-  }
-
   excelImportInProgress = true;
   const wasDisabled = event.target.disabled;
   event.target.disabled = true;
@@ -26,6 +21,7 @@ async function handleFile(event) {
     let nextImportMeta;
     let recurringOverlapCount = 0;
     try {
+      await loadExcelLibrary();
       const buffer = await file.arrayBuffer();
       const workbook = XLSX.read(buffer, { type: "array", raw: false, cellDates: false });
       found = findImportSheet(workbook);

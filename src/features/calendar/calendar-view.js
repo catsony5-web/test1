@@ -1229,12 +1229,12 @@ async function cleanupCalendarDuplicateGroup(signature) {
 
 async function deleteCalendarTransactions(recordKeys, options = {}) {
   const keys = new Set(recordKeys.filter(Boolean));
-  if (!keys.size) return;
+  if (!keys.size) return false;
   try {
     await createAutoSnapshot(options.snapshotReason || "소비 달력 거래 삭제 전");
   } catch {
     alert("삭제 전 백업을 저장하지 못했습니다. 기록을 유지한 상태에서 다시 시도해주세요.");
-    return;
+    return false;
   }
   const now = new Date().toISOString();
   let removed = 0;
@@ -1264,7 +1264,7 @@ async function deleteCalendarTransactions(recordKeys, options = {}) {
   if (!await safeSaveMany([
     { key: RECORD_STORAGE_KEY, data: nextTransactions.map(normalizeStoredTransaction), protectIncomeRecords: true },
     { key: REIMBURSEMENT_STORAGE_KEY, data: nextReimbursements }
-  ])) return;
+  ])) return false;
   transactions = nextTransactions;
   reimbursements = nextReimbursements;
   calendarEditingRecordKey = "";
@@ -1272,7 +1272,12 @@ async function deleteCalendarTransactions(recordKeys, options = {}) {
     type: "success",
     message: options.feedbackMessage || `거래 ${Number(removed + tombstoned).toLocaleString("ko-KR")}건을 삭제했습니다.`
   };
-  reclassify();
+  try {
+    reclassify();
+  } catch {
+    alert("거래 삭제는 저장됐지만 화면을 갱신하지 못했습니다. 새로고침해서 확인해주세요.");
+  }
+  return true;
 }
 
 async function applyCalendarSuggestion(recordKey, sector, subcategory) {

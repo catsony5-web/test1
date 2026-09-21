@@ -38,6 +38,9 @@
 | 거래 형식·분류명 정규화 | `src/utils/normalize.js` |
 | 날짜·월 공유 선택 | `src/utils/date.js` |
 | HTML 출력 이스케이프 | `src/utils/dom.js` |
+| 엑셀 파서 첫 사용 로딩·실패 후 재시도 | `src/utils/excel-loader.js` |
+| 금액·수량 입력의 표시·검증 | `src/utils/numeric-input.js` |
+| 공통 빠른 입력·정산금 저장 이벤트 | `src/components/quick-add.js` |
 
 개발 도구의 허용 목록은 `scripts/lib/public-assets.mjs`가 서비스워커의 `APP_FILES`를 읽고 경로·파일 형식을 검사해 만듭니다. `scripts/serve.mjs`와 `scripts/build-web.mjs`가 이 목록을 함께 사용하며, `scripts/check.mjs`는 구문·HTML/CSS/manifest 자산 연결을 검사합니다. 파일 확장자를 넓게 허용하거나 폴더 전체를 공개하는 방식으로 새 자산을 추가하지 마세요.
 
@@ -51,7 +54,7 @@ GitHub Pages의 게시 소스는 GitHub Actions입니다. `.github/workflows/dep
 
 현재 순서는 다음 그룹으로 구성됩니다. 정확한 순서는 언제나 `index.html`이 기준입니다.
 
-1. 본문 끝에서 로컬 SheetJS 자산을 먼저 불러옵니다.
+1. 본문 끝에서 가벼운 `excel-loader.js`를 불러옵니다. SheetJS 본체는 초기 화면에서 실행하지 않습니다.
 2. 이어서 `src/data/` 정의와 `goals-core.js`를 불러옵니다.
 3. `app/state.js`가 기본 설정·공유 상태·이미 만들어진 DOM 참조를 준비합니다.
 4. 공통 유틸리티와 일부 계산 전용 코어, 공통 컴포넌트를 불러옵니다.
@@ -59,6 +62,10 @@ GitHub Pages의 게시 소스는 GitHub Actions입니다. `.github/workflows/dep
 6. `navigation.js`, `appearance.js`, `render-all.js` 다음에 `init.js`를 실행합니다.
 
 함수 본문에서 나중 파일의 함수를 참조하는 것은 호출 시점에 모두 로드되어 있으면 동작합니다. 반대로 파일 최상위에서 값을 계산하거나 DOM 이벤트를 즉시 연결하면 선행 정의가 필요합니다. 새 파일은 사용 지점과 호출 시점을 확인해 배치하고 전역 함수·변수 이름 중복을 검색하세요.
+
+엑셀 가져오기와 내보내기는 `loadExcelLibrary()`를 기다린 후 로컬 SheetJS를 사용합니다. 동시 요청은 한 Promise를 공유하고, 오류·30초 초과 뒤에는 재시도할 수 있습니다. `EXCEL_LIBRARY_URL`과 서비스워커의 vendor URL은 정확히 일치해야 합니다. HTML에는 없어도 오프라인 첫 사용을 위해 vendor 파일은 캐시에 남깁니다.
+
+날짜 함수는 `utils/date.js`, 빠른 입력 이벤트는 `components/quick-add.js`에 한 번만 정의합니다. `tests/global-function-names.test.cjs`가 현재 classic-script의 열 0 함수 선언 규칙을 검사합니다. 새 복사본으로 기존 전역 함수를 덮어쓰지 마세요.
 
 ## 시작과 저장 흐름
 
@@ -90,7 +97,8 @@ index.html의 순차 로드
 | `app/` | 공유 상태, 최초 실행, 탐색, 테마, 렌더링 조정 | `state.js`, `init.js`, `render-all.js` |
 | `import/` | 엑셀 시트·필드 인식, 거래 파싱·중복 병합 | `excel-import.js`, `transaction-parser.js` |
 | `classification/` | 기본·사용자 규칙, 재분류, 추천 | `classifier.js`, `rules-manager.js`, `smart-suggestions.js` |
-| `board/` | 대시보드, 섹터 지도, 요약 카드 | `board-view.js`, `board-overview.js`, `board-summary.js`, `board-cards.js` |
+| `board/` | 대시보드 개요·기간 요약, 상세 내역과 공유하는 거래 행·할부 편집 | `board-view.js`, `board-overview.js`, `board-summary.js`, `board-cards.js` |
+| `budget/` | 예산 점검, 주간 사용량, 추천 템플릿·사용자 목표 | `spending-budget-core.js`, `spending-budget-view.js`, `spending-budget-targets.js` |
 | `analysis/` | 월간 분석, 비교 증감, 소비 구조 | `monthly-analysis-core.js`, `monthly-analysis-view.js`, `analysis-core.js`, `spending-structure-view.js` |
 | `summary/` | 섹터별 월간 비교, 리포트, 패턴, 기간·식비 분석 | `summary-view.js`, `comparison-analysis.js`, `sector-analysis.js`, `summary-food-core.js`, `summary-food-view.js` |
 | `monthly/` | 년도 지출정리, 수입 배분·누적 흐름 | `monthly-flow.js`, `monthly-chart.js` |
@@ -105,6 +113,8 @@ index.html의 순차 로드
 | `unknown/` | 미분류 거래 해결 | `unknown-view.js` |
 
 공통 표시 조각은 `src/components/`에, 분류 체계와 기본 규칙은 `src/data/`에 있습니다. `*-core.js`는 계산 로직을 찾는 우선 위치이고 `*-view.js`는 화면을 찾는 우선 위치입니다. 모든 기존 파일이 완전히 분리된 구조는 아니므로 새로운 공통 계층을 만들기 전에 실제 중복과 의존성을 확인하세요.
+
+`board-cards.js`의 `renderLedgerSection()`과 할부 편집은 `details-view.js`에서도 사용합니다. 구 대시보드의 무호출 함수는 v192에서 제거했지만 이 파일 전체를 지우거나 보드 전용으로 지연 로드하면 상세 내역이 깨집니다. `board-summary.js`의 기간 키 헬퍼도 현재 대시보드가 사용합니다.
 
 ## CSS 숫자와 테마
 
@@ -136,6 +146,8 @@ CSS는 `index.html`에 기재된 순서대로 적용됩니다. 같은 우선순�
 웹의 개인 데이터 경로는 `storage.js` → IndexedDB이며, IndexedDB API가 없는 환경에서는 localStorage 경로를 사용합니다. 기존 localStorage와 저장 버전의 호환·복구 처리도 이 파일에 있습니다. 네이티브 환경에서는 `BudgetNative` 저장 어댑터로 연결되므로 브라우저 저장소에 직접 쓰는 코드를 추가하지 않습니다.
 
 저장 키, DB 이름과 버전은 `constants.js`에 있습니다. `safeSaveMany()`와 백업의 범위별 저장 흐름을 사용해 여러 값이 함께 바뀔 때 저장 실패를 처리합니다. 저장소 이름 변경, 초기화, 자동 데이터 이전은 사용자의 금융 기록에 영향을 주므로 별도 마이그레이션과 실패 시 복구를 검증해야 합니다.
+
+`safeSave()`/`safeSaveMany()`의 `false`는 실패입니다. 다음 상태를 별도로 계산하고 성공한 뒤에만 공유 배열·맵을 교체하고 폼을 닫습니다. `reclassify()` 자체가 `renderAll()`을 호출하므로 직후에 전체 렌더를 다시 호출하지 않습니다. 백업 거래는 정규화 전에 문자열 타입·유한 숫자·기존 2~60개월 할부 계약을 검증하며, 잘못된 거래가 있으면 저장 전에 복원을 중단합니다.
 
 전체 JSON 백업은 저장 큐를 기다린 뒤 모든 데이터 범위를 복사합니다. 선택 백업·복원과 초기화는 별도 체크박스를 사용합니다. 병합 복원은 거래 ID 또는 기존 복원 서명으로 대상을 찾아 거래 내용·정산금·월 수입의 차이를 먼저 비교하고 명시적으로 선택한 값을 적용합니다. 비교 이후 원본 상태가 달라지거나 연결 식별자가 모호하면 적용을 중단합니다. 복원 전 스냅샷과 범위별 묶음 저장에 실패하면 메모리 상태도 되돌립니다. 분류 규칙 등 나머지 범위는 기존 병합 정책을 유지합니다. 수기·수입 입력은 관련 저장을 완료한 뒤에만 입력칸을 비우고 성공을 표시합니다.
 

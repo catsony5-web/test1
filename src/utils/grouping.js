@@ -21,7 +21,7 @@ function sumValues(source, keys) {
 }
 
 function hasStructuredInstallment(item) {
-  return Boolean(!isLoanRepaymentTransaction(item) && item?.installmentEnabled && Number(item.installmentMonths || 0) > 1);
+  return Boolean(!isLoanRepaymentTransaction(item) && item?.installmentEnabled && isSupportedInstallmentMonths(item.installmentMonths));
 }
 
 function installmentBaseAmount(item) {

@@ -9,208 +9,6 @@ function buildBoardSectionStat(section, rows) {
   };
 }
 
-function ensureBoardExpandedSectors(month, sectorRows) {
-  if (boardExpandedMonth === month && boardExpandedSectors.size) return;
-  boardExpandedMonth = month;
-  boardExpandedSectors = new Set(sectorRows.slice(0, 3).map((item) => item.sector));
-  if (sectorRows.some((item) => item.sector === "미분류" && item.amount > 0)) boardExpandedSectors.add("미분류");
-  if (!boardExpandedSectors.size) {
-    boardExpandedSectors.add("식비");
-    boardExpandedSectors.add("고정 주거비");
-  }
-}
-
-function syncBoardFilterControls(sectorRows) {
-  if (els.boardFilterSector.options.length) readBoardFilterControls();
-  const sectors = unique([...sectorRows.map((item) => item.sector), ...boardSections.map((section) => section.sector)])
-    .filter(Boolean)
-    .sort((a, b) => a.localeCompare(b, "ko-KR"));
-  els.boardFilterSector.innerHTML = [
-    `<option value="all">전체</option>`,
-    ...sectors.map((sector) => `<option value="${escapeHtml(sector)}">${escapeHtml(sector)}</option>`)
-  ].join("");
-  if (!sectors.includes(els.boardFilterSector.value)) els.boardFilterSector.value = "all";
-  els.boardFilterStatus.textContent = boardFilterStatusText();
-}
-
-function readBoardFilterControls() {
-  // The controls themselves are the source of truth for board filters.
-}
-
-function boardFilterStatusText() {
-  const filters = [];
-  if (els.boardFilterSector.value && els.boardFilterSector.value !== "all") filters.push(els.boardFilterSector.value);
-  if (els.boardFilterSearch.value.trim()) filters.push(`검색: ${els.boardFilterSearch.value.trim()}`);
-  if (els.boardFilterUnknownOnly.checked) filters.push("미분류만");
-  if (els.boardFilterHideZero.checked) filters.push("0원 숨김");
-  return filters.length ? `필터 적용 중 · ${filters.join(" · ")}` : "전체 상세 표시";
-}
-
-function filteredBoardSectionStats(sectionStats) {
-  const sector = els.boardFilterUnknownOnly.checked ? "미분류" : els.boardFilterSector.value;
-  const search = normalizeKeyText(els.boardFilterSearch.value);
-  const hideZero = els.boardFilterHideZero.checked;
-  const sortMode = els.boardFilterSort.value || "amount";
-  return sectionStats
-    .filter((stat) => {
-      if (sector && sector !== "all" && stat.section.sector !== sector) return false;
-      if (hideZero && stat.actualTotal <= 0 && stat.count === 0) return false;
-      if (!search) return true;
-      return normalizeKeyText([stat.section.title, stat.section.sector, stat.section.subcategory].join(" ")).includes(search);
-    })
-    .sort((a, b) => {
-      if (sortMode === "name") return a.section.title.localeCompare(b.section.title, "ko-KR");
-      if (sortMode === "count") return b.count - a.count || b.actualTotal - a.actualTotal;
-      return b.actualTotal - a.actualTotal || b.count - a.count;
-    });
-}
-
-function renderBoardAccordions(sectionStats, selectedMonth) {
-  if (!sectionStats.length) {
-    return `<div class="empty">현재 필터에 맞는 상세 카드가 없습니다.</div>`;
-  }
-  const grouped = groupBy(sectionStats, (stat) => stat.section.sector);
-  return [...grouped.entries()]
-    .map(([sector, stats]) => {
-      const total = stats.reduce((amount, stat) => amount + stat.actualTotal, 0);
-      const count = stats.reduce((amount, stat) => amount + stat.count, 0);
-      const open = boardExpandedSectors.has(sector);
-      return `
-        <details class="board-sector-accordion ${categoryClass(sector)} ${boardHighlightSector === sector ? "spotlight" : ""}" data-board-sector-accordion="${escapeHtml(sector)}" ${open ? "open" : ""}>
-          <summary>
-            <span>${categoryChip(sector)}</span>
-            <strong>${formatWon(total)}</strong>
-            <small>${count.toLocaleString("ko-KR")}건 · ${stats.length.toLocaleString("ko-KR")}개 상세 카드</small>
-          </summary>
-          <div class="category-grid">
-            ${stats.map((stat) => renderLedgerSection(stat.section, stat.rows, selectedMonth)).join("")}
-          </div>
-        </details>
-      `;
-    }).join("");
-}
-
-function buildBoardTreemapLayout(items, width, height) {
-  const cells = Array(items.length).fill(null);
-  const weighted = items
-    .map((item, index) => ({ index, value: Math.max(0, Number(item.value || 0)) }))
-    .filter((item) => item.value > 0);
-
-  const place = (group, rect) => {
-    if (!group.length) return;
-    if (group.length === 1) {
-      cells[group[0].index] = rect;
-      return;
-    }
-
-    const total = group.reduce((sumValue, item) => sumValue + item.value, 0);
-    const target = total / 2;
-    let running = 0;
-    let splitIndex = 1;
-    let closest = Number.POSITIVE_INFINITY;
-    for (let index = 1; index < group.length; index += 1) {
-      running += group[index - 1].value;
-      const distance = Math.abs(target - running);
-      if (distance < closest) {
-        closest = distance;
-        splitIndex = index;
-      }
-    }
-
-    const first = group.slice(0, splitIndex);
-    const second = group.slice(splitIndex);
-    const firstTotal = first.reduce((sumValue, item) => sumValue + item.value, 0);
-    const ratio = total > 0 ? firstTotal / total : 0.5;
-    if (rect.width >= rect.height) {
-      const firstWidth = rect.width * ratio;
-      place(first, { ...rect, width: firstWidth });
-      place(second, { x: rect.x + firstWidth, y: rect.y, width: rect.width - firstWidth, height: rect.height });
-      return;
-    }
-
-    const firstHeight = rect.height * ratio;
-    place(first, { ...rect, height: firstHeight });
-    place(second, { x: rect.x, y: rect.y + firstHeight, width: rect.width, height: rect.height - firstHeight });
-  };
-
-  place(weighted, { x: 0, y: 0, width, height });
-  return cells.map((cell) => cell || { x: 0, y: 0, width: 0, height: 0 });
-}
-
-function buildResponsiveBoardTreemapLayouts(items, heights) {
-  return {
-    wide: buildBoardTreemapLayout(items, 100, heights.wide),
-    medium: buildBoardTreemapLayout(items, 100, heights.medium),
-    mobile: buildBoardTreemapLayout(items, 100, heights.mobile)
-  };
-}
-
-function boardTreemapStyle(layouts, index) {
-  const declarations = [];
-  const addLayout = (prefix, cell, height) => {
-    const toPercent = (value, total) => (value / total * 100).toFixed(4);
-    declarations.push(
-      `--treemap-${prefix}x:${toPercent(cell.x, 100)}%`,
-      `--treemap-${prefix}y:${toPercent(cell.y, height)}%`,
-      `--treemap-${prefix}w:${toPercent(cell.width, 100)}%`,
-      `--treemap-${prefix}h:${toPercent(cell.height, height)}%`
-    );
-  };
-  addLayout("", layouts.wide[index], layouts.wide.reduce((max, cell) => Math.max(max, cell.y + cell.height), 0) || 1);
-  addLayout("medium-", layouts.medium[index], layouts.medium.reduce((max, cell) => Math.max(max, cell.y + cell.height), 0) || 1);
-  addLayout("mobile-", layouts.mobile[index], layouts.mobile.reduce((max, cell) => Math.max(max, cell.y + cell.height), 0) || 1);
-  return declarations.join(";");
-}
-
-function formatBoardTreemapWon(value) {
-  return formatCompactWon(value).replace(/^\+/, "");
-}
-
-function renderBoardTopCategories(sectionStats, selectedMonth) {
-  const visible = sectionStats
-    .filter((stat) => stat.actualTotal > 0)
-    .slice(0, 12);
-  if (!visible.length) {
-    return `<div class="empty">선택한 월의 주요 상세 항목이 없습니다. 상세 내역 탭에서 직접 입력을 추가할 수 있습니다.</div>`;
-  }
-  const layouts = buildResponsiveBoardTreemapLayouts(
-    visible.map((stat) => ({ value: stat.actualTotal })),
-    { wide: 24, medium: 48, mobile: 142 }
-  );
-  return `
-    <section class="board-top-panel">
-      <div class="panel-head">
-        <div>
-          <h3>많이 쓴 세부항목 TOP</h3>
-        </div>
-        <div class="board-treemap-head-actions">
-          <span>실 지출 기준 · TOP ${visible.length.toLocaleString("ko-KR")}</span>
-          <button type="button" data-open-detail-month="${escapeHtml(selectedMonth)}">전체 보기 <i class="ti ti-chevron-right" aria-hidden="true"></i></button>
-        </div>
-      </div>
-      <div class="board-top-grid board-treemap" role="region" aria-label="많이 쓴 세부항목 상위 ${visible.length.toLocaleString("ko-KR")}개">
-        ${visible.map((stat, index) => {
-          const subcategory = stat.section.subcategory || stat.section.title || "미분류";
-          const accessibleLabel = `${stat.section.sector} ${subcategory}, 실 지출 ${formatWon(stat.actualTotal)}, ${stat.count.toLocaleString("ko-KR")}건`;
-          return `
-          <button type="button" class="board-top-item board-treemap-tile ${categoryClass(stat.section.sector)}" style="${boardTreemapStyle(layouts, index)}" data-board-top-sector="${escapeHtml(stat.section.sector)}" data-board-top-subcategory="${escapeHtml(subcategory)}" title="${escapeHtml(accessibleLabel)}" aria-label="${escapeHtml(`${accessibleLabel}, 상세 내역 보기`)}">
-            <span class="board-treemap-content">
-              <span class="board-treemap-sector">${escapeHtml(stat.section.sector)}</span>
-              <span class="board-treemap-heading board-top-heading"><span class="board-treemap-icon" aria-hidden="true"><i class="ti ${subcategoryIconClass(stat.section.sector, subcategory)}"></i></span><strong class="board-treemap-title">${escapeHtml(subcategory)}</strong></span>
-              <b class="board-treemap-amount">
-                <span class="board-treemap-amount-full">${formatWon(stat.actualTotal)}</span>
-                <span class="board-treemap-amount-compact">${formatBoardTreemapWon(stat.actualTotal)}</span>
-              </b>
-              <small class="board-treemap-count">${stat.count.toLocaleString("ko-KR")}건</small>
-            </span>
-          </button>
-        `;
-        }).join("")}
-      </div>
-    </section>
-  `;
-}
-
 function attachBoardTopCategoryHandlers() {
   els.boardSummary.querySelectorAll("[data-open-detail-month]").forEach((button) => {
     button.addEventListener("click", () => openDetailView(boardDetailOptions({ month: button.dataset.openDetailMonth || els.boardMonth.value })));
@@ -224,16 +22,6 @@ function attachBoardTopCategoryHandlers() {
   });
 }
 
-function attachBoardAccordionHandlers() {
-  els.boardGrid.querySelectorAll("[data-board-sector-accordion]").forEach((details) => {
-    details.addEventListener("toggle", () => {
-      const sector = details.dataset.boardSectorAccordion;
-      if (details.open) boardExpandedSectors.add(sector);
-      else boardExpandedSectors.delete(sector);
-    });
-  });
-}
-
 function attachBoardSummaryHandlers() {
   els.boardSectorSummary.querySelectorAll("[data-board-summary-sector]").forEach((node) => {
     node.addEventListener("click", () => {
@@ -244,74 +32,6 @@ function attachBoardSummaryHandlers() {
       }));
     });
   });
-}
-
-function renderBoardSectorSummary(monthRows, selectedMonth) {
-  const total = sumConsumption(monthRows);
-  const sectorRows = buildSectorSpendRows(monthRows).filter((item) => item.amount > 0);
-  if (!sectorRows.length) return `<div class="empty compact-empty">선택 월의 섹터별 요약이 없습니다.</div>`;
-  const previousMonth = previousMonthKey(selectedMonth);
-  const previousRows = reportingExpenseRows(classified, { months: [previousMonth] });
-  const layouts = buildResponsiveBoardTreemapLayouts(
-    sectorRows.map((item) => ({ value: item.amount })),
-    { wide: 30, medium: 54, mobile: 118 }
-  );
-  return `
-    <section class="board-sector-summary-panel">
-      <div class="panel-head">
-        <div>
-          <h3>섹터별 소비 요약</h3>
-        </div>
-        <span class="board-treemap-basis">실 지출 기준</span>
-      </div>
-      <div class="board-sector-card-grid board-treemap" role="region" aria-label="선택 월 섹터별 실 지출 트리맵">
-        ${sectorRows.map((item, index) => {
-          const previousAmount = sumConsumption(previousRows.filter((row) => row.sector === item.sector));
-          const diff = item.amount - previousAmount;
-          const trendClass = diff > 0 ? "negative" : diff < 0 ? "positive" : "neutral";
-          const accessibleLabel = `${item.sector}, 실 지출 ${formatWon(item.amount)}, 전체의 ${formatPercent(item.amount, total)}, ${item.count.toLocaleString("ko-KR")}건, 전월 대비 ${formatSignedWon(diff)}`;
-          return `
-            <button type="button" class="board-sector-card board-treemap-tile ${categoryClass(item.sector)}" style="${boardTreemapStyle(layouts, index)}" data-board-summary-sector="${escapeHtml(item.sector)}" title="${escapeHtml(accessibleLabel)}" aria-label="${escapeHtml(`${accessibleLabel}, 상세 내역 보기`)}">
-              <span class="board-treemap-content">
-                <span class="board-treemap-heading"><span class="board-treemap-icon" aria-hidden="true"><i class="ti ${sectorIconClass(item.sector)}"></i></span><b class="board-treemap-title">${escapeHtml(item.sector)}</b></span>
-                <strong class="board-treemap-amount">
-                  <span class="board-treemap-amount-full">${formatWon(item.amount)}</span>
-                  <span class="board-treemap-amount-compact">${formatBoardTreemapWon(item.amount)}</span>
-                </strong>
-                <small class="board-treemap-share">${formatPercent(item.amount, total)} · ${item.count.toLocaleString("ko-KR")}건</small>
-                <span class="board-treemap-trend ${trendClass}">전월 대비 <b>${formatSignedWon(diff)}</b></span>
-              </span>
-            </button>
-          `;
-        }).join("")}
-      </div>
-    </section>
-  `;
-}
-
-function topSubcategorySummary(rows, limit = 3) {
-  return [...groupBy(rows, (item) => item.subcategory || "미분류").entries()]
-    .map(([subcategory, subRows]) => ({ subcategory, amount: sumConsumption(subRows), count: subRows.length }))
-    .sort((a, b) => b.amount - a.amount)
-    .slice(0, limit);
-}
-
-
-function renderBoardGroup(title, description, total, sections, buckets, selectedMonth) {
-  return `
-    <section class="board-group-card">
-      <div class="board-group-head">
-        <div>
-          <h3>${escapeHtml(title)}</h3>
-          <p>${escapeHtml(description)}</p>
-        </div>
-        <span>${formatWon(total)}</span>
-      </div>
-      <div class="category-grid">
-        ${sections.map((section) => renderLedgerSection(section, buckets[section.key] || [], selectedMonth)).join("")}
-      </div>
-    </section>
-  `;
 }
 
 function renderLedgerSection(section, rows, selectedMonth, sortMode = "date", options = {}) {
@@ -478,34 +198,6 @@ function renderQuickAddForm(section, selectedMonth) {
   `;
 }
 
-function defaultDateForMonth(month) {
-  const today = new Date();
-  const todayText = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-  if (!month) return todayText;
-  return todayText.startsWith(`${month}-`) ? todayText : `${month}-01`;
-}
-
-function currentMonthKey() {
-  const today = new Date();
-  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
-}
-
-function attachReimbursementHandlers(root = els.boardGrid) {
-  root.querySelectorAll(".reimbursement-input").forEach((input) => {
-    input.addEventListener("change", async () => {
-      const key = input.dataset.recordKey;
-      if (!key) return;
-      const record = classified.find((item) => item.recordKey === key);
-      const max = Number(record?.amount || 0);
-      const value = Math.min(max, Math.max(0, toNumber(input.value)));
-      if (value > 0) reimbursements[key] = value;
-      else delete reimbursements[key];
-      await saveReimbursements();
-      renderAll();
-    });
-  });
-}
-
 function attachInstallmentHandlers(root = els.detailGrid) {
   root.querySelectorAll("[data-installment-row]").forEach((row) => {
     const updatePreview = () => {
@@ -521,10 +213,17 @@ function attachInstallmentHandlers(root = els.detailGrid) {
     });
     row.querySelectorAll("[data-installment-save]").forEach((button) => {
       button.addEventListener("click", async () => {
-        if (!NumericInput.validate(row)) return;
-        await saveInstallmentSettings(button.dataset.installmentSave, row);
-        detailInstallmentEditRecordKey = "";
-        renderAll();
+        if (button.disabled || !NumericInput.validate(row)) return;
+        const controls = [...row.querySelectorAll("input, button")];
+        const disabledStates = controls.map((control) => control.disabled);
+        controls.forEach((control) => { control.disabled = true; });
+        try {
+          if (!await saveInstallmentSettings(button.dataset.installmentSave, row)) return;
+          detailInstallmentEditRecordKey = "";
+          reclassify();
+        } finally {
+          controls.forEach((control, index) => { control.disabled = disabledStates[index]; });
+        }
       });
     });
     row.querySelectorAll("[data-detail-installment-cancel]").forEach((button) => {
@@ -537,48 +236,29 @@ function attachInstallmentHandlers(root = els.detailGrid) {
 }
 
 async function saveInstallmentSettings(recordKey, row) {
-  const index = transactions.findIndex((item) => normalizeStoredTransaction(item).recordKey === recordKey);
-  if (index < 0) return;
-  const original = normalizeStoredTransaction(transactions[index]);
-  if (isLoanRepaymentTransaction(original)) return;
-  const enabled = Boolean(row.querySelector('[data-installment-field="enabled"]')?.checked);
-  const months = Math.max(0, Number(row.querySelector('[data-installment-field="months"]')?.value || 0));
-  const startMonth = row.querySelector('[data-installment-field="startMonth"]')?.value || original.month;
-  const validEnabled = enabled && months > 1 && isValidMonthKey(startMonth);
-  const updated = normalizeStoredTransaction({
-    ...original,
-    installmentEnabled: validEnabled,
-    installmentMonths: validEnabled ? months : 0,
-    installmentStartMonth: validEnabled ? startMonth : "",
-    installmentOriginalAmount: validEnabled ? Number(original.amount || 0) : 0,
-    installmentMonthlyAmount: validEnabled ? Math.floor(Number(original.amount || 0) / months) : 0,
-    installmentGroupId: validEnabled ? original.installmentGroupId || original.recordKey : "",
-    updatedAt: new Date().toISOString(),
-    recordKey
-  });
-  transactions[index] = updated;
-  await saveTransactions();
-  reclassify();
-}
-
-function attachBoardQuickAddHandlers(root = els.boardGrid, rerender = renderBoard) {
-  root.querySelectorAll("[data-quick-add-open]").forEach((button) => {
-    button.addEventListener("click", () => {
-      boardQuickAddSectionKey = button.dataset.quickAddOpen;
-      boardQuickAddFeedback = "";
-      rerender();
+  return runManualTransactionSave(async () => {
+    const index = transactions.findIndex((item) => normalizeStoredTransaction(item).recordKey === recordKey);
+    if (index < 0) return false;
+    const original = normalizeStoredTransaction(transactions[index]);
+    if (isLoanRepaymentTransaction(original)) return false;
+    const enabled = Boolean(row.querySelector('[data-installment-field="enabled"]')?.checked);
+    const months = Math.max(0, Number(row.querySelector('[data-installment-field="months"]')?.value || 0));
+    const startMonth = row.querySelector('[data-installment-field="startMonth"]')?.value || original.month;
+    const validEnabled = enabled && months > 1 && isValidMonthKey(startMonth);
+    const updated = normalizeStoredTransaction({
+      ...original,
+      installmentEnabled: validEnabled,
+      installmentMonths: validEnabled ? months : 0,
+      installmentStartMonth: validEnabled ? startMonth : "",
+      installmentOriginalAmount: validEnabled ? Number(original.amount || 0) : 0,
+      installmentMonthlyAmount: validEnabled ? Math.floor(Number(original.amount || 0) / months) : 0,
+      installmentGroupId: validEnabled ? original.installmentGroupId || original.recordKey : "",
+      updatedAt: new Date().toISOString(),
+      recordKey
     });
-  });
-
-  root.querySelectorAll("[data-quick-add-close]").forEach((button) => {
-    button.addEventListener("click", () => {
-      boardQuickAddSectionKey = "";
-      boardQuickAddFeedback = "";
-      rerender();
-    });
-  });
-
-  root.querySelectorAll("[data-quick-add-form]").forEach((form) => {
-    form.addEventListener("submit", handleBoardQuickAdd);
+    const nextTransactions = transactions.map((item, itemIndex) => itemIndex === index ? updated : normalizeStoredTransaction(item));
+    if (!await safeSave(RECORD_STORAGE_KEY, nextTransactions, { protectIncomeRecords: true })) return false;
+    transactions = nextTransactions;
+    return true;
   });
 }

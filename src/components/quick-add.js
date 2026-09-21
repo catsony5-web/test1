@@ -1,15 +1,27 @@
 function attachReimbursementHandlers(root = els.boardGrid) {
-  root.querySelectorAll(".reimbursement-input").forEach((input) => {
+  const inputs = [...root.querySelectorAll(".reimbursement-input")];
+  inputs.forEach((input) => {
     input.addEventListener("change", async () => {
-      const key = input.dataset.recordKey;
-      if (!key) return;
-      const record = classified.find((item) => item.recordKey === key);
-      const max = Number(record?.amount || 0);
-      const value = Math.min(max, Math.max(0, toNumber(input.value)));
-      if (value > 0) reimbursements[key] = value;
-      else delete reimbursements[key];
-      await saveReimbursements();
-      renderAll();
+      if (input.disabled) return;
+      return runManualTransactionSave(async () => {
+        const key = input.dataset.recordKey;
+        const record = classified.find((item) => item.recordKey === key);
+        if (!record) return;
+        const max = Number(record.amount || 0);
+        const value = Math.min(max, Math.max(0, toNumber(input.value)));
+        const nextReimbursements = { ...reimbursements };
+        if (value > 0) nextReimbursements[key] = value;
+        else delete nextReimbursements[key];
+        const disabledStates = inputs.map((control) => control.disabled);
+        inputs.forEach((control) => { control.disabled = true; });
+        try {
+          if (!await safeSave(REIMBURSEMENT_STORAGE_KEY, nextReimbursements)) return;
+          reimbursements = nextReimbursements;
+          renderAll();
+        } finally {
+          inputs.forEach((control, index) => { control.disabled = disabledStates[index]; });
+        }
+      });
     });
   });
 }

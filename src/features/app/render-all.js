@@ -15,7 +15,7 @@ function renderAll() {
   renderUnknown();
   renderRules();
   renderTransactions();
-  els.exportButton.disabled = classified.length === 0 || !window.XLSX;
+  els.exportButton.disabled = classified.length === 0 || workbookExportInProgress;
 }
 
 function renderView(viewName) {

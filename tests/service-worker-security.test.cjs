@@ -189,6 +189,18 @@ test('a new asset query fetches its own version and cannot fall back to an older
   assert.match(await bare.text(), /^precache:https:\/\/budget\.test\/src\/data\/constants\.js\?v=/);
 });
 
+test('the deferred Excel parser is available offline before its first use', async () => {
+  const { ctx, request, install } = worker();
+  await install();
+  let networkRequests = 0;
+  ctx.fetch = async () => { networkRequests += 1; throw new Error('Offline'); };
+  const loader = fs.readFileSync(path.join(__dirname, '../src/utils/excel-loader.js'), 'utf8');
+  const libraryUrl = loader.match(/EXCEL_LIBRARY_URL = "([^"]+)"/)[1];
+  const url = new URL(libraryUrl, 'https://budget.test/index.html').href;
+  assert.equal(await (await request(url)).text(), `precache:${url}`);
+  assert.equal(networkRequests, 0);
+});
+
 test('public insights use the network first and preserve refreshed data offline', async () => {
   const { ctx, request } = worker();
   const first = publicInsights();

@@ -1076,233 +1076,255 @@ function openLoanPaymentDialog(id, month, recordKey = "") {
 }
 
 async function deleteLoanPayment() {
-  const recordKey = els.loanPaymentRecordKey.value;
-  if (!recordKey) return;
-  const existing = transactions
-    .map(normalizeStoredTransaction)
-    .find((record) => record.recordKey === recordKey);
-  if (!existing) {
-    alert("삭제할 대출 상환 내역을 찾지 못했습니다.");
-    return;
-  }
-  const actionLabel = existing.loanLinkedExisting ? "대출 연결을 해제" : "상환 내역을 삭제";
-  if (!confirm(`"${existing.merchant || "대출"}" ${existing.month} ${actionLabel}할까요?\n대출 등록 정보는 유지됩니다.`)) return;
-  if (existing.loanLinkedExisting) {
-    await createAutoSnapshot("기존 출금 대출 연결 해제 전");
-    const updatedAt = new Date().toISOString();
-    transactions = transactions.map((record) => {
-      const normalized = normalizeStoredTransaction(record);
-      if (normalized.recordKey !== recordKey) return record;
-      return normalizeStoredTransaction({
-        ...normalized,
-        recurringId: "",
-        recurringType: "expense",
-        loanType: "",
-        loanPrincipalAmount: 0,
-        loanInterestAmount: 0,
-        loanSupportPrincipalAmount: 0,
-        loanSupportInterestAmount: 0,
-        loanSupportReceivedAmount: 0,
-        loanSupportReceivedDate: "",
-        loanSupportIncomeTransactionId: "",
-        loanLinkedExisting: false,
-        manualSector: normalized.loanLinkedOriginalSector,
-        manualSubcategory: normalized.loanLinkedOriginalSubcategory,
-        memo: normalized.loanLinkedOriginalMemo,
-        loanLinkedOriginalSector: "",
-        loanLinkedOriginalSubcategory: "",
-        loanLinkedOriginalMemo: "",
-        updatedAt,
-        recordKey: normalized.recordKey,
-        transactionId: normalized.transactionId
+  return runManualTransactionSave(async () => {
+    const recordKey = els.loanPaymentRecordKey.value;
+    if (!recordKey) return;
+    const existing = transactions
+      .map(normalizeStoredTransaction)
+      .find((record) => record.recordKey === recordKey);
+    if (!existing) {
+      alert("삭제할 대출 상환 내역을 찾지 못했습니다.");
+      return;
+    }
+    const actionLabel = existing.loanLinkedExisting ? "대출 연결을 해제" : "상환 내역을 삭제";
+    if (!confirm(`"${existing.merchant || "대출"}" ${existing.month} ${actionLabel}할까요?\n대출 등록 정보는 유지됩니다.`)) return;
+    if (existing.loanLinkedExisting) {
+      try {
+        await createAutoSnapshot("기존 출금 대출 연결 해제 전");
+      } catch {
+        alert("연결 해제 전 백업을 저장하지 못했습니다. 기존 기록과 입력 내용을 유지합니다.");
+        return;
+      }
+      const updatedAt = new Date().toISOString();
+      const nextTransactions = transactions.map((record) => {
+        const normalized = normalizeStoredTransaction(record);
+        if (normalized.recordKey !== recordKey) return record;
+        return normalizeStoredTransaction({
+          ...normalized,
+          recurringId: "",
+          recurringType: "expense",
+          loanType: "",
+          loanPrincipalAmount: 0,
+          loanInterestAmount: 0,
+          loanSupportPrincipalAmount: 0,
+          loanSupportInterestAmount: 0,
+          loanSupportReceivedAmount: 0,
+          loanSupportReceivedDate: "",
+          loanSupportIncomeTransactionId: "",
+          loanLinkedExisting: false,
+          manualSector: normalized.loanLinkedOriginalSector,
+          manualSubcategory: normalized.loanLinkedOriginalSubcategory,
+          memo: normalized.loanLinkedOriginalMemo,
+          loanLinkedOriginalSector: "",
+          loanLinkedOriginalSubcategory: "",
+          loanLinkedOriginalMemo: "",
+          updatedAt,
+          recordKey: normalized.recordKey,
+          transactionId: normalized.transactionId
+        });
       });
+      if (!await safeSave(RECORD_STORAGE_KEY, nextTransactions.map(normalizeStoredTransaction), { protectIncomeRecords: true })) return;
+      transactions = nextTransactions;
+      try {
+        reclassify();
+      } catch {
+        alert("대출 연결 해제는 저장됐지만 화면을 갱신하지 못했습니다. 새로고침해서 확인해주세요.");
+      }
+      closeLoanPaymentDialog();
+      return;
+    }
+    const deleted = await deleteCalendarTransactions([recordKey], {
+      snapshotReason: "대출 상환 내역 삭제 전",
+      feedbackMessage: "대출 상환 내역을 삭제했습니다."
     });
-    await saveTransactions();
-    reclassify();
-    closeLoanPaymentDialog();
-    renderAll();
-    return;
-  }
-  await deleteCalendarTransactions([recordKey], {
-    snapshotReason: "대출 상환 내역 삭제 전",
-    feedbackMessage: "대출 상환 내역을 삭제했습니다."
+    if (deleted) closeLoanPaymentDialog();
   });
-  closeLoanPaymentDialog();
-  renderAll();
 }
 
 async function handleLoanPaymentSubmit(event) {
   event.preventDefault();
-  const existingRecordKey = els.loanPaymentRecordKey.value;
-  const existing = existingRecordKey
-    ? transactions.map(normalizeStoredTransaction).find((record) => record.recordKey === existingRecordKey) || null
-    : null;
-  const item = recurringExpenses.find((expense) => expense.id === els.loanPaymentRecurringId.value && expense.recurringType === "loan");
-  const targetMonth = monthKey(els.loanPaymentMonth.value);
-  const principal = Math.max(0, toNumber(els.loanPaymentPrincipal.value));
-  const interest = Math.max(0, toNumber(els.loanPaymentInterest.value));
-  const supportEnabled = Boolean(item?.loanSupportEnabled || existing?.loanSupportPrincipalAmount || existing?.loanSupportInterestAmount);
-  const supportPrincipal = supportEnabled ? Math.max(0, toNumber(els.loanPaymentSupportPrincipal.value)) : 0;
-  const supportInterest = supportEnabled ? Math.max(0, toNumber(els.loanPaymentSupportInterest.value)) : 0;
-  const supportReceived = supportEnabled ? Math.max(0, toNumber(els.loanPaymentSupportReceived.value)) : 0;
-  const supportReceivedDate = supportEnabled ? normalizeInputDate(els.loanPaymentSupportReceivedDate.value) : "";
-  const supportIncomeTransactionId = supportEnabled ? els.loanPaymentSupportIncomeTransactionId.value : "";
-  if ((!item && !existing) || !targetMonth || principal + interest <= 0) {
-    alert("원금과 이자를 확인해주세요.");
-    return;
-  }
-  if (existingRecordKey && !existing) {
-    alert("수정할 대출 상환 내역을 찾지 못했습니다.");
-    return;
-  }
-  if (!existing && (!isRecurringActiveForMonth(item, targetMonth) || getRecurringDateForMonth(targetMonth, item.dayOfMonth) > defaultDateForMonth())) {
-    alert("상환 예정일이 도래한 활성 대출만 반영할 수 있습니다.");
-    return;
-  }
-  const recurringId = item?.id || existing?.recurringId || "";
-  if (findPostedRecurringTransaction(recurringId, targetMonth, { excludeRecordKey: existingRecordKey })) {
-    alert(`이미 ${targetMonth}에 반영된 대출 상환이 있습니다.`);
-    return;
-  }
-  if (supportPrincipal > principal || supportInterest > interest) {
-    alert("가족 부담 원금·이자는 은행의 전체 원금·이자를 초과할 수 없습니다.");
-    return;
-  }
-  if (supportReceived > 0 && !supportReceivedDate) {
-    alert("가족 분담금을 받은 날짜를 입력해주세요.");
-    return;
-  }
-  if (item) {
-    const available = loanAvailablePrincipal(item, { excludeRecordKey: existingRecordKey });
-    if (principal > available) {
-      alert(`원금은 전체 상환 내역을 반영한 남은 원금 ${formatWon(available)}을 초과할 수 없습니다.`);
+  return runManualTransactionSave(async () => {
+    const existingRecordKey = els.loanPaymentRecordKey.value;
+    const existing = existingRecordKey
+      ? transactions.map(normalizeStoredTransaction).find((record) => record.recordKey === existingRecordKey) || null
+      : null;
+    const item = recurringExpenses.find((expense) => expense.id === els.loanPaymentRecurringId.value && expense.recurringType === "loan");
+    const targetMonth = monthKey(els.loanPaymentMonth.value);
+    const principal = Math.max(0, toNumber(els.loanPaymentPrincipal.value));
+    const interest = Math.max(0, toNumber(els.loanPaymentInterest.value));
+    const supportEnabled = Boolean(item?.loanSupportEnabled || existing?.loanSupportPrincipalAmount || existing?.loanSupportInterestAmount);
+    const supportPrincipal = supportEnabled ? Math.max(0, toNumber(els.loanPaymentSupportPrincipal.value)) : 0;
+    const supportInterest = supportEnabled ? Math.max(0, toNumber(els.loanPaymentSupportInterest.value)) : 0;
+    const supportReceived = supportEnabled ? Math.max(0, toNumber(els.loanPaymentSupportReceived.value)) : 0;
+    const supportReceivedDate = supportEnabled ? normalizeInputDate(els.loanPaymentSupportReceivedDate.value) : "";
+    const supportIncomeTransactionId = supportEnabled ? els.loanPaymentSupportIncomeTransactionId.value : "";
+    if ((!item && !existing) || !targetMonth || principal + interest <= 0) {
+      alert("원금과 이자를 확인해주세요.");
       return;
     }
-    const supportAvailable = Math.max(0, Number(item.loanSupportOpeningBalance || 0) - loanPaidSupportPrincipal(item.id, {
-      excludeRecordKey: existingRecordKey
-    }));
-    if (supportPrincipal > supportAvailable) {
-      alert(`가족 부담 원금은 남은 가족 부담 원금 ${formatWon(supportAvailable)}을 초과할 수 없습니다.`);
+    if (existingRecordKey && !existing) {
+      alert("수정할 대출 상환 내역을 찾지 못했습니다.");
       return;
     }
-    const personalAvailable = loanPersonalRemainingPrincipal(item, undefined, { excludeRecordKey: existingRecordKey });
-    if (principal - supportPrincipal > personalAvailable) {
-      alert(`본인 부담 원금은 남은 본인 부담 원금 ${formatWon(personalAvailable)}을 초과할 수 없습니다.`);
+    if (!existing && (!isRecurringActiveForMonth(item, targetMonth) || getRecurringDateForMonth(targetMonth, item.dayOfMonth) > defaultDateForMonth())) {
+      alert("상환 예정일이 도래한 활성 대출만 반영할 수 있습니다.");
       return;
     }
-  }
+    const recurringId = item?.id || existing?.recurringId || "";
+    if (findPostedRecurringTransaction(recurringId, targetMonth, { excludeRecordKey: existingRecordKey })) {
+      alert(`이미 ${targetMonth}에 반영된 대출 상환이 있습니다.`);
+      return;
+    }
+    if (supportPrincipal > principal || supportInterest > interest) {
+      alert("가족 부담 원금·이자는 은행의 전체 원금·이자를 초과할 수 없습니다.");
+      return;
+    }
+    if (supportReceived > 0 && !supportReceivedDate) {
+      alert("가족 분담금을 받은 날짜를 입력해주세요.");
+      return;
+    }
+    if (item) {
+      const available = loanAvailablePrincipal(item, { excludeRecordKey: existingRecordKey });
+      if (principal > available) {
+        alert(`원금은 전체 상환 내역을 반영한 남은 원금 ${formatWon(available)}을 초과할 수 없습니다.`);
+        return;
+      }
+      const supportAvailable = Math.max(0, Number(item.loanSupportOpeningBalance || 0) - loanPaidSupportPrincipal(item.id, {
+        excludeRecordKey: existingRecordKey
+      }));
+      if (supportPrincipal > supportAvailable) {
+        alert(`가족 부담 원금은 남은 가족 부담 원금 ${formatWon(supportAvailable)}을 초과할 수 없습니다.`);
+        return;
+      }
+      const personalAvailable = loanPersonalRemainingPrincipal(item, undefined, { excludeRecordKey: existingRecordKey });
+      if (principal - supportPrincipal > personalAvailable) {
+        alert(`본인 부담 원금은 남은 본인 부담 원금 ${formatWon(personalAvailable)}을 초과할 수 없습니다.`);
+        return;
+      }
+    }
 
-  if (supportIncomeTransactionId) {
-    const income = transactions
-      .map(normalizeStoredTransaction)
-      .find((record) => record.transactionId === supportIncomeTransactionId && record.flow === "income" && !isCanceled(record.cancel));
-    const available = income
-      ? Math.max(0, Number(income.amount || 0) - loanSupportLinkedIncomeAmount(income.transactionId, {
-          excludeLoanRecordKey: existingRecordKey
-        }))
-      : 0;
-    if (!income || supportReceived <= 0 || supportReceived > available) {
-      alert("연결할 수입 기록과 가족 입금액을 확인해주세요.");
-      return;
+    if (supportIncomeTransactionId) {
+      const income = transactions
+        .map(normalizeStoredTransaction)
+        .find((record) => record.transactionId === supportIncomeTransactionId && record.flow === "income" && !isCanceled(record.cancel));
+      const available = income
+        ? Math.max(0, Number(income.amount || 0) - loanSupportLinkedIncomeAmount(income.transactionId, {
+            excludeLoanRecordKey: existingRecordKey
+          }))
+        : 0;
+      if (!income || supportReceived <= 0 || supportReceived > available) {
+        alert("연결할 수입 기록과 가족 입금액을 확인해주세요.");
+        return;
+      }
+      if (supportReceivedDate !== normalizeInputDate(income.approvalDate)) {
+        alert("가족 입금일은 연결한 수입 기록의 날짜와 같아야 합니다.");
+        return;
+      }
     }
-    if (supportReceivedDate !== normalizeInputDate(income.approvalDate)) {
-      alert("가족 입금일은 연결한 수입 기록의 날짜와 같아야 합니다.");
-      return;
-    }
-  }
 
-  const selectedExpenseTransactionId = existing ? "" : els.loanPaymentExpenseTransactionId.value;
-  const linkedExpense = selectedExpenseTransactionId
-    ? transactions.map(normalizeStoredTransaction).find((record) => record.transactionId === selectedExpenseTransactionId) || null
-    : null;
-  if (selectedExpenseTransactionId) {
-    if (!linkedExpense || linkedExpense.flow === "income" || linkedExpense.month !== targetMonth || linkedExpense.recurringId || isCanceled(linkedExpense.cancel)) {
-      alert("연결할 기존 출금 내역을 다시 확인해주세요.");
+    const selectedExpenseTransactionId = existing ? "" : els.loanPaymentExpenseTransactionId.value;
+    const linkedExpense = selectedExpenseTransactionId
+      ? transactions.map(normalizeStoredTransaction).find((record) => record.transactionId === selectedExpenseTransactionId) || null
+      : null;
+    if (selectedExpenseTransactionId) {
+      if (!linkedExpense || linkedExpense.flow === "income" || linkedExpense.month !== targetMonth || linkedExpense.recurringId || isCanceled(linkedExpense.cancel)) {
+        alert("연결할 기존 출금 내역을 다시 확인해주세요.");
+        return;
+      }
+      if (Number(linkedExpense.amount || 0) !== principal + interest) {
+        alert(`기존 출금 ${formatWon(linkedExpense.amount)}과 원금·이자 합계 ${formatWon(principal + interest)}가 같아야 연결할 수 있습니다.`);
+        return;
+      }
+      if (reimbursementFor(linkedExpense) > 0) {
+        alert("정산금이 이미 있는 출금은 대출 상환에 바로 연결할 수 없습니다.");
+        return;
+      }
+    }
+    if (existing?.loanLinkedExisting && Number(existing.amount || 0) !== principal + interest) {
+      alert(`연결된 기존 출금 ${formatWon(existing.amount)}과 원금·이자 합계가 같아야 합니다.`);
       return;
     }
-    if (Number(linkedExpense.amount || 0) !== principal + interest) {
-      alert(`기존 출금 ${formatWon(linkedExpense.amount)}과 원금·이자 합계 ${formatWon(principal + interest)}가 같아야 연결할 수 있습니다.`);
-      return;
-    }
-    if (reimbursementFor(linkedExpense) > 0) {
-      alert("정산금이 이미 있는 출금은 대출 상환에 바로 연결할 수 없습니다.");
-      return;
-    }
-  }
-  if (existing?.loanLinkedExisting && Number(existing.amount || 0) !== principal + interest) {
-    alert(`연결된 기존 출금 ${formatWon(existing.amount)}과 원금·이자 합계가 같아야 합니다.`);
-    return;
-  }
 
-  await createAutoSnapshot(existingRecordKey ? "대출 상환 내역 수정 전" : "대출 상환 반영 전");
-  const paymentFields = {
-    loanPrincipalAmount: principal,
-    loanInterestAmount: interest,
-    loanSupportPrincipalAmount: supportPrincipal,
-    loanSupportInterestAmount: supportInterest,
-    loanSupportReceivedAmount: supportReceived,
-    loanSupportReceivedDate: supportReceivedDate,
-    loanSupportIncomeTransactionId: supportIncomeTransactionId
-  };
-  let nextTransaction;
-  if (existing?.loanLinkedExisting || linkedExpense) {
-    const base = existing?.loanLinkedExisting ? existing : linkedExpense;
-    nextTransaction = normalizeStoredTransaction({
-      ...base,
-      recurringId: item?.id || existing?.recurringId || "",
-      recurringType: "loan",
-      loanType: item?.loanType || existing?.loanType || "",
-      ...paymentFields,
-      loanLinkedExisting: true,
-      loanLinkedOriginalSector: existing?.loanLinkedOriginalSector ?? base.manualSector,
-      loanLinkedOriginalSubcategory: existing?.loanLinkedOriginalSubcategory ?? base.manualSubcategory,
-      loanLinkedOriginalMemo: existing?.loanLinkedOriginalMemo ?? base.memo,
-      manualSector: item?.sector || "고정 주거비",
-      manualSubcategory: item?.subcategory || "대출이자",
-      memo: item?.memo || existing?.memo || "",
-      updatedAt: new Date().toISOString(),
-      recordKey: base.recordKey,
-      transactionId: base.transactionId
-    });
-  } else if (item) {
-    nextTransaction = buildRecurringTransaction(item, targetMonth, paymentFields);
-  } else {
-    nextTransaction = normalizeStoredTransaction({
-      ...existing,
-      amount: principal + interest,
-      ...paymentFields,
-      updatedAt: new Date().toISOString()
-    });
-  }
-  if (existingRecordKey) {
-    const updatedAt = new Date().toISOString();
-    transactions = transactions.map((record) => {
-      const normalized = normalizeStoredTransaction(record);
-      if (normalized.recordKey !== existingRecordKey) return record;
-      return normalizeStoredTransaction({
-        ...nextTransaction,
-        importedAt: normalized.importedAt || nextTransaction.importedAt,
-        createdAt: normalized.createdAt || normalized.importedAt || nextTransaction.importedAt,
-        updatedAt
+    try {
+      await createAutoSnapshot(existingRecordKey ? "대출 상환 내역 수정 전" : "대출 상환 반영 전");
+    } catch {
+      alert("상환 저장 전 백업을 저장하지 못했습니다. 기존 기록과 입력 내용을 유지합니다.");
+      return;
+    }
+    const paymentFields = {
+      loanPrincipalAmount: principal,
+      loanInterestAmount: interest,
+      loanSupportPrincipalAmount: supportPrincipal,
+      loanSupportInterestAmount: supportInterest,
+      loanSupportReceivedAmount: supportReceived,
+      loanSupportReceivedDate: supportReceivedDate,
+      loanSupportIncomeTransactionId: supportIncomeTransactionId
+    };
+    let nextTransaction;
+    if (existing?.loanLinkedExisting || linkedExpense) {
+      const base = existing?.loanLinkedExisting ? existing : linkedExpense;
+      nextTransaction = normalizeStoredTransaction({
+        ...base,
+        recurringId: item?.id || existing?.recurringId || "",
+        recurringType: "loan",
+        loanType: item?.loanType || existing?.loanType || "",
+        ...paymentFields,
+        loanLinkedExisting: true,
+        loanLinkedOriginalSector: existing?.loanLinkedOriginalSector ?? base.manualSector,
+        loanLinkedOriginalSubcategory: existing?.loanLinkedOriginalSubcategory ?? base.manualSubcategory,
+        loanLinkedOriginalMemo: existing?.loanLinkedOriginalMemo ?? base.memo,
+        manualSector: item?.sector || "고정 주거비",
+        manualSubcategory: item?.subcategory || "대출이자",
+        memo: item?.memo || existing?.memo || "",
+        updatedAt: new Date().toISOString(),
+        recordKey: base.recordKey,
+        transactionId: base.transactionId
       });
-    });
-  } else if (linkedExpense) {
-    transactions = transactions.map((record) => {
-      const normalized = normalizeStoredTransaction(record);
-      return normalized.recordKey === linkedExpense.recordKey ? nextTransaction : record;
-    });
-  } else {
-    const mergeResult = mergeTransactions(transactions, [nextTransaction]);
-    if (!mergeResult.added) {
-      alert(`이미 ${targetMonth}에 반영된 대출 상환입니다.`);
-      return;
+    } else if (item) {
+      nextTransaction = buildRecurringTransaction(item, targetMonth, paymentFields);
+    } else {
+      nextTransaction = normalizeStoredTransaction({
+        ...existing,
+        amount: principal + interest,
+        ...paymentFields,
+        updatedAt: new Date().toISOString()
+      });
     }
-    transactions = mergeResult.records;
-  }
-  await saveTransactions();
-  reclassify();
-  closeLoanPaymentDialog();
-  renderAll();
+    let nextTransactions;
+    if (existingRecordKey) {
+      const updatedAt = new Date().toISOString();
+      nextTransactions = transactions.map((record) => {
+        const normalized = normalizeStoredTransaction(record);
+        if (normalized.recordKey !== existingRecordKey) return record;
+        return normalizeStoredTransaction({
+          ...nextTransaction,
+          importedAt: normalized.importedAt || nextTransaction.importedAt,
+          createdAt: normalized.createdAt || normalized.importedAt || nextTransaction.importedAt,
+          updatedAt
+        });
+      });
+    } else if (linkedExpense) {
+      nextTransactions = transactions.map((record) => {
+        const normalized = normalizeStoredTransaction(record);
+        return normalized.recordKey === linkedExpense.recordKey ? nextTransaction : record;
+      });
+    } else {
+      const mergeResult = mergeTransactions(transactions, [nextTransaction]);
+      if (!mergeResult.added) {
+        alert(`이미 ${targetMonth}에 반영된 대출 상환입니다.`);
+        return;
+      }
+      nextTransactions = mergeResult.records;
+    }
+    if (!await safeSave(RECORD_STORAGE_KEY, nextTransactions.map(normalizeStoredTransaction), { protectIncomeRecords: true })) return;
+    transactions = nextTransactions;
+    try {
+      reclassify();
+    } catch {
+      alert("대출 상환은 저장됐지만 화면을 갱신하지 못했습니다. 새로고침해서 확인해주세요.");
+    }
+    closeLoanPaymentDialog();
+  });
 }
 
 async function postRecurringExpense(id, month, options = {}) {
@@ -1350,7 +1372,6 @@ async function postRecurringExpense(id, month, options = {}) {
       return { added: 0, skipped: 0, saveFailed: true };
     }
     reclassify();
-    if (!options.skipRender) renderAll();
   }
   if (!options.silent) {
     alert(mergeResult.added
@@ -1444,7 +1465,6 @@ async function linkRecurringImportedTransaction(recurringId, month, transactionI
   if (!await safeSave(RECORD_STORAGE_KEY, nextTransactions, { protectIncomeRecords: true })) return false;
   transactions = nextTransactions;
   reclassify();
-  renderAll();
   return true;
 }
 

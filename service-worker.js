@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "monthly-card-budget-";
-const CACHE_NAME = `${CACHE_PREFIX}v191-responsive`;
+const CACHE_NAME = `${CACHE_PREFIX}v192-maintenance`;
 importScripts("./src/features/goals/goals-insights.js?v=189-budget-planning");
 const APP_FILES = [
   "./data/hobby-insights.json",
@@ -111,7 +111,7 @@ const APP_FILES = [
   "./assets/tabler/icons/x.svg",
   "./assets/tabler/LICENSE",
   "./data/ipo-calendar.json",
-  "./src/data/constants.js?v=191-budget-templates",
+  "./src/data/constants.js?v=192-maintenance",
   "./src/data/categories.js?v=136-mineral-layers",
   "./src/data/rules.js?v=93",
   "./src/data/board-sections.js?v=151-loan-repayments",
@@ -120,28 +120,27 @@ const APP_FILES = [
   "./src/features/goals/goals-core.js?v=170-goal-planner",
   "./src/features/app/state.js?v=190-budget-check",
   "./src/utils/format.js?v=80",
-  "./src/utils/date.js?v=141-garden-analysis",
+  "./src/utils/date.js?v=192-maintenance",
   "./src/utils/dom.js?v=61",
   "./src/features/recurring/recurring-review-core.js?v=176-recurring-review",
   "./src/utils/food-occasion.js?v=174-food-occasions",
-  "./src/utils/normalize.js?v=190-budget-check",
-  "./src/utils/grouping.js?v=156-loan-sharing",
+  "./src/utils/normalize.js?v=192-maintenance",
+  "./src/utils/grouping.js?v=192-maintenance",
   "./src/utils/storage.js?v=190-budget-check",
-  "./src/utils/backup.js?v=190-budget-check",
+  "./src/utils/backup.js?v=192-maintenance",
   "./src/components/chips.js?v=174-food-occasions",
   "./src/components/tables.js?v=61",
   "./src/components/metrics.js?v=131-yearly",
-  "./src/components/charts.js?v=61",
-  "./src/components/quick-add.js?v=187-backup-restore",
-  "./src/features/import/excel-import.js?v=190-budget-check",
+  "./src/components/quick-add.js?v=192-maintenance",
+  "./src/features/import/excel-import.js?v=192-maintenance",
   "./src/features/import/transaction-parser.js?v=77",
   "./src/features/classification/classifier.js?v=61",
   "./src/features/classification/smart-suggestions.js?v=173-food-calendar-r2",
   "./src/features/classification/rules-manager.js?v=61",
-  "./src/features/board/board-view.js?v=185-theme-refresh",
-  "./src/features/board/board-summary.js?v=156-loan-sharing",
+  "./src/features/board/board-view.js?v=192-maintenance",
+  "./src/features/board/board-summary.js?v=192-maintenance",
   "./src/features/board/board-overview.js?v=185-theme-refresh",
-  "./src/features/board/board-cards.js?v=191-budget-templates",
+  "./src/features/board/board-cards.js?v=192-maintenance",
   "./src/features/details/details-view.js?v=191-budget-templates",
   "./src/features/summary/comparison-analysis.js?v=171-calendar-split-summary",
   "./src/features/summary/summary-priority.js?v=165-summary-insights-r2",
@@ -157,8 +156,8 @@ const APP_FILES = [
   "./src/features/income/income-entry.js?v=191-budget-templates",
   "./src/features/income/income-bulk.js?v=191-budget-templates",
   "./src/features/income/income-list.js?v=191-budget-templates",
-  "./src/features/recurring/recurring-view.js?v=191-budget-templates",
-  "./src/features/calendar/calendar-view.js?v=191-budget-templates",
+  "./src/features/recurring/recurring-view.js?v=192-maintenance",
+  "./src/features/calendar/calendar-view.js?v=192-maintenance",
   "./src/features/analysis/analysis-core.js?v=156-loan-sharing",
   "./src/features/analysis/monthly-analysis-core.js?v=175-monthly-close-r2",
   "./src/features/analysis/monthly-analysis-view.js?v=175-monthly-close-r2",
@@ -170,7 +169,7 @@ const APP_FILES = [
   "./src/features/goals/goals-view.js?v=191-budget-templates",
   "./src/features/app/navigation.js?v=112",
   "./src/features/app/appearance.js?v=141-garden-analysis",
-  "./src/features/app/render-all.js?v=183-storage-release",
+  "./src/features/app/render-all.js?v=192-maintenance",
   "./src/features/app/init.js?v=187-backup-restore",
   "./manifest.webmanifest?v=185-theme-refresh",
   "./app-icon.svg",
@@ -185,7 +184,8 @@ const APP_FILES = [
   "./src/styles/18-numeric-input.css?v=191-budget-templates",
   "./src/utils/numeric-input.js?v=191-budget-templates",
   "./src/styles/19-products.css?v=191-products-quick-entry",
-  "./src/styles/20-responsive-devices.css?v=191-responsive"
+  "./src/styles/20-responsive-devices.css?v=191-responsive",
+  "./src/utils/excel-loader.js?v=192-maintenance"
 ];
 
 const PUBLIC_PATHS = new Set(APP_FILES.map((file) => new URL(file, self.location.href).pathname));

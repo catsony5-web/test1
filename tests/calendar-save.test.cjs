@@ -108,7 +108,7 @@ test("예외가 난 메모 저장도 저장 실패와 재시도 상태를 제공
 test("달력 삭제 저장 실패는 거래·정산금·편집 상태를 유지한다", async () => {
   const { context: c, renders } = setup();
   c.safeSaveMany = async () => false;
-  await c.deleteCalendarTransactions(["old"]);
+  assert.equal(await c.deleteCalendarTransactions(["old"]), false);
   assert.equal(c.transactions.length, 1);
   assert.equal(c.reimbursements.old, 20);
   assert.equal(c.calendarEditingRecordKey, "old");
@@ -118,12 +118,23 @@ test("달력 삭제 저장 실패는 거래·정산금·편집 상태를 유지�
 
 test("달력 삭제는 거래·정산금을 함께 저장한 뒤 성공 상태를 표시한다", async () => {
   const { context: c, writes, renders } = setup();
-  await c.deleteCalendarTransactions(["old"]);
+  assert.equal(await c.deleteCalendarTransactions(["old"]), true);
   assert.deepEqual(writes[0].map((entry) => entry.key), ["records", "reimbursements"]);
   assert.equal(c.transactions.length, 0);
   assert.equal(c.reimbursements.old, undefined);
   assert.equal(c.calendarEditFeedback.type, "success");
   assert.equal(renders(), 1);
+});
+
+test("달력 삭제는 빈 요청에 false, 저장 후 렌더 오류에도 true를 반환한다", async () => {
+  const { context: c, writes, alerts } = setup();
+  assert.equal(await c.deleteCalendarTransactions([]), false);
+  assert.equal(writes.length, 0);
+  c.reclassify = () => { throw new Error("render failed"); };
+  assert.equal(await c.deleteCalendarTransactions(["old"]), true);
+  assert.equal(c.transactions.length, 0);
+  assert.equal(c.reimbursements.old, undefined);
+  assert.match(alerts.at(-1), /삭제는 저장됐지만 화면/);
 });
 
 test("달력 추천 분류는 저장 성공 전 원본을 바꾸지 않는다", async () => {
@@ -143,7 +154,7 @@ test("달력 추천 분류는 저장 성공 전 원본을 바꾸지 않는다", 
 test("달력 삭제·분류 전 백업 실패는 변경을 시작하지 않는다", async () => {
   const { context: c, writes, alerts } = setup();
   c.createAutoSnapshot = async () => { throw new Error("snapshot failed"); };
-  await c.deleteCalendarTransactions(["old"]);
+  assert.equal(await c.deleteCalendarTransactions(["old"]), false);
   await c.applyCalendarSuggestion("old", "식비", "장보기/마트");
   assert.equal(writes.length, 0);
   assert.equal(c.transactions.length, 1);

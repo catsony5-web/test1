@@ -85,6 +85,52 @@ function normalizeStoredTransaction(item) {
   return normalized;
 }
 
+function isSupportedInstallmentMonths(value) {
+  if (!["number", "string"].includes(typeof value)) return false;
+  const months = Number(value);
+  return Number.isInteger(months) && months >= 2 && months <= 60;
+}
+
+function validateBackupTransaction(item) {
+  if (!item || typeof item !== "object" || Array.isArray(item)) {
+    throw new Error("백업 거래는 객체 형식이어야 합니다.");
+  }
+  const textFields = [
+    "sourceType", "flow", "cardNumber", "approvalDate", "month", "approvalTime", "merchant",
+    "installment", "approvalNo", "cancel", "payDate", "manualSector", "manualSubcategory",
+    "classificationScope", "foodOccasion", "sourceFile", "importedAt", "createdAt", "updatedAt",
+    "recurringId", "recurringPostMethod", "recurringType", "loanType", "loanSupportReceivedDate",
+    "loanSupportIncomeTransactionId", "loanSupportIncomeRecordKey", "loanLinkedOriginalSector",
+    "loanLinkedOriginalSubcategory", "loanLinkedOriginalMemo", "installmentStartMonth",
+    "installmentGroupId", "memo", "recordKey", "transactionId"
+  ];
+  const numberFields = [
+    "amount", "loanPrincipalAmount", "loanInterestAmount", "loanSupportPrincipalAmount",
+    "loanSupportInterestAmount", "loanSupportReceivedAmount", "installmentMonths",
+    "installmentOriginalAmount", "installmentMonthlyAmount"
+  ];
+  for (const field of textFields) {
+    if (item[field] != null && typeof item[field] !== "string") {
+      throw new Error(`백업 거래의 ${field} 항목은 문자열이어야 합니다.`);
+    }
+  }
+  for (const field of numberFields) {
+    const value = item[field];
+    if (value != null && (!["number", "string"].includes(typeof value) || !Number.isFinite(Number(value)))) {
+      throw new Error(`백업 거래의 ${field} 항목은 유한한 숫자여야 합니다.`);
+    }
+  }
+  for (const field of ["recurringLinkedExisting", "loanLinkedExisting", "installmentEnabled"]) {
+    if (item[field] != null && typeof item[field] !== "boolean") {
+      throw new Error(`백업 거래의 ${field} 항목은 참 또는 거짓이어야 합니다.`);
+    }
+  }
+  const months = Number(item.installmentMonths || 0);
+  if (!Number.isInteger(months) || months < 0 || months > 60 || (item.installmentEnabled && !isSupportedInstallmentMonths(months))) {
+    throw new Error("백업 거래의 할부 개월 수는 2~60개월의 정수여야 합니다.");
+  }
+}
+
 function createRecordKey(item) {
   const approvalNo = String(item.approvalNo || "").trim();
   if (approvalNo) {

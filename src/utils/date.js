@@ -73,8 +73,8 @@ function daysBetween(startDate, endDate) {
 }
 
 function addDays(date, days) {
-  const base = new Date(`${date}T00:00:00`);
+  const base = new Date(`${date}T00:00:00Z`);
   if (Number.isNaN(base.getTime())) return "";
-  base.setDate(base.getDate() + Number(days || 0));
+  base.setUTCDate(base.getUTCDate() + Number(days || 0));
   return base.toISOString().slice(0, 10);
 }
