@@ -864,10 +864,10 @@ function renderCalendarEditForm(item) {
           <input type="text" name="merchant" value="${escapeHtml(item.merchant)}" required>
         </label>
         <label>총 결제액
-          <input type="text" name="amount" inputmode="numeric" value="${escapeHtml(Math.round(Number(item.amount || 0)).toLocaleString("ko-KR"))}" required>
+          <input step="1" data-number-kind="money" type="text" name="amount" inputmode="numeric" value="${escapeHtml(Math.round(Number(item.amount || 0)).toLocaleString("ko-KR"))}" required>
         </label>
         <label>정산받은 금액
-          <input type="text" name="reimbursement" inputmode="numeric" value="${escapeHtml(Math.round(reimbursement).toLocaleString("ko-KR"))}">
+          <input step="1" data-number-kind="money" type="text" name="reimbursement" inputmode="numeric" value="${escapeHtml(Math.round(reimbursement).toLocaleString("ko-KR"))}">
         </label>
         <label>실 지출액
           <input class="calendar-actual-preview" type="text" value="${escapeHtml(formatWon(actualAmount(item)))}" readonly>
@@ -878,7 +878,7 @@ function renderCalendarEditForm(item) {
             <span>총 인원에 나를 포함해 입력하세요. 적용 전에는 정산금이 바뀌지 않습니다.</span>
           </div>
           <label>총 인원 (나 포함)
-            <input type="number" name="splitPeople" inputmode="numeric" min="2" step="1" placeholder="예: 3" autocomplete="off">
+            <input data-number-kind="quantity" data-number-unit="명" type="text" name="splitPeople" inputmode="numeric" min="2" step="1" placeholder="예: 3" autocomplete="off">
           </label>
           <button type="button" class="calendar-split-apply" data-calendar-split-apply disabled>정산금에 적용</button>
           <output class="calendar-split-result" data-calendar-split-result aria-live="polite">2명 이상 입력하면 내 몫과 정산금을 계산합니다.</output>
@@ -906,7 +906,7 @@ function renderCalendarEditForm(item) {
           </label>
           <label class="calendar-installment-field" ${installmentEnabled ? "" : "hidden"}>
             할부 개월 수
-            <input type="number" name="installmentMonths" min="2" max="60" value="${escapeHtml(installmentMonthCount)}">
+            <input data-number-kind="duration" data-number-unit="개월" type="number" name="installmentMonths" min="2" max="60" value="${escapeHtml(installmentMonthCount)}">
           </label>
           <label class="calendar-installment-field" ${installmentEnabled ? "" : "hidden"}>
             할부 시작 월
@@ -1024,9 +1024,13 @@ function attachCalendarTimelineHandlers(root) {
     form.elements.amount?.addEventListener("input", () => updateCalendarSplitPreview(form));
     splitApplyButton?.addEventListener("click", () => applyCalendarSplitCalculation(form));
     const updateInstallmentPreview = () => {
+      const preview = form.querySelector(".calendar-installment-preview");
+      if ([form.elements.amount, form.elements.installmentMonths].some((input) => input?.validity?.valid === false)) {
+        if (preview) preview.value = "입력 확인";
+        return;
+      }
       const amount = toNumber(form.elements.amount?.value);
       const months = Math.max(1, Number(form.elements.installmentMonths?.value || 1));
-      const preview = form.querySelector(".calendar-installment-preview");
       if (preview) preview.value = formatWon(Math.floor(amount / months));
     };
     const syncInstallmentFields = () => {
@@ -1051,9 +1055,13 @@ function attachCalendarTimelineHandlers(root) {
 }
 
 function updateCalendarActualPreview(form) {
+  const preview = form.querySelector(".calendar-actual-preview");
+  if ([form.elements.amount, form.elements.reimbursement].some((input) => input?.validity?.valid === false)) {
+    if (preview) preview.value = "입력 확인";
+    return;
+  }
   const amount = toNumber(form.elements.amount.value);
   const reimbursement = toNumber(form.elements.reimbursement.value);
-  const preview = form.querySelector(".calendar-actual-preview");
   if (preview) preview.value = formatWon(Math.max(0, amount - reimbursement));
 }
 
@@ -1071,9 +1079,15 @@ function updateCalendarSplitPreview(form, options = {}) {
   const applyButton = form.querySelector("[data-calendar-split-apply]");
   const result = form.querySelector("[data-calendar-split-result]");
   if (!peopleInput || !applyButton || !result) return null;
+  if (form.elements.amount?.validity?.valid === false) {
+    applyButton.disabled = true;
+    result.classList.toggle("applied", false);
+    result.textContent = "총 결제액을 먼저 확인해주세요.";
+    return null;
+  }
 
   const rawPeople = String(peopleInput.value || "").trim();
-  const calculation = calendarSplitCalculation(toNumber(form.elements.amount.value), Number(rawPeople));
+  const calculation = calendarSplitCalculation(toNumber(form.elements.amount.value), NumericInput.read(peopleInput));
   applyButton.disabled = !calculation;
   result.classList.toggle("applied", Boolean(options.applied && calculation));
 
@@ -1092,12 +1106,14 @@ function updateCalendarSplitPreview(form, options = {}) {
 }
 
 function applyCalendarSplitCalculation(form) {
+  if (!NumericInput.validate(form)) return;
   const calculation = updateCalendarSplitPreview(form);
   if (!calculation) {
     form.elements.splitPeople?.focus();
     return;
   }
   form.elements.reimbursement.value = Math.round(calculation.reimbursement).toLocaleString("ko-KR");
+  NumericInput.refresh(form.elements.reimbursement);
   updateCalendarActualPreview(form);
   updateCalendarSplitPreview(form, { applied: true });
 }
@@ -1290,6 +1306,7 @@ async function applyCalendarSuggestion(recordKey, sector, subcategory) {
 }
 
 async function saveCalendarTransactionEdit(recordKey, form) {
+  if (!NumericInput.validate(form)) return;
   const index = calendarTransactionIndex(recordKey);
   if (index < 0) return;
   const date = normalizeInputDate(form.elements.date.value);

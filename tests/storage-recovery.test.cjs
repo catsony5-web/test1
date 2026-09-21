@@ -14,6 +14,7 @@ function setup({ indexed = true, failCommit = false, failPut = false, failRead =
   const primary = new Map();
   const alerts = [];
   const context = vm.createContext({
+    NumericInput: require("../src/utils/numeric-input.js"),
     console: { warn() {}, error() {} }, structuredClone, window: indexed ? { indexedDB: {} } : {},
     localStorage: {
       getItem: (key) => local.get(key) ?? null,

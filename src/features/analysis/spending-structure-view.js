@@ -320,7 +320,7 @@ function renderSpendingTargetDialog(month) {
   els.spendingTargetFields.innerHTML = ANALYSIS_SPENDING_SECTORS.map((sector) => `
     <label class="analysis-target-input-row">
       <span><i class="ti ${escapeHtml(analysisSectorIcon(sector))}" aria-hidden="true"></i>${escapeHtml(sector)}</span>
-      <input type="number" min="0" max="100" step="0.1" inputmode="decimal" value="${escapeHtml(targets[sector] || "")}" data-analysis-target-sector="${escapeHtml(sector)}" aria-label="${escapeHtml(`${sector} 목표 비율`)}">
+      <input data-number-kind="percent" data-number-unit="" type="number" min="0" max="100" step="0.1" inputmode="decimal" value="${escapeHtml(targets[sector] || "")}" data-analysis-target-sector="${escapeHtml(sector)}" aria-label="${escapeHtml(`${sector} 목표 비율`)}">
       <b>%</b>
     </label>
   `).join("");
@@ -371,6 +371,7 @@ function applySpendingTargetSuggestion() {
   els.spendingTargetFields?.querySelectorAll("[data-analysis-target-sector]").forEach((input) => {
     input.value = suggestion.ratios[input.dataset.analysisTargetSector] || "";
   });
+  NumericInput.refresh(els.spendingTargetFields);
   syncSpendingTargetTotal();
   setSpendingTargetFeedback("최근 6개월 중앙값을 불러왔습니다. 저장 전 자유롭게 조정하세요.", "success");
 }

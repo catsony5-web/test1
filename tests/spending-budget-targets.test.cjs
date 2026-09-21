@@ -2,6 +2,8 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
+const vm = require("node:vm");
+const numericInput = require("../src/utils/numeric-input.js");
 const core = require("../src/features/budget/spending-budget-core.js");
 
 const profile = (extra = {}) => ({
@@ -121,4 +123,189 @@ test("budget content is located only in its own sixth summary tab, not the dashb
   assert.match(html, /<option value="budget">예산 점검/);
   assert.doesNotMatch(read("src/features/board/board-view.js"), /renderSpendingBudget\(/);
   assert.match(read("src/features/summary/summary-view.js"), /budget:\s*"budget"/);
+});
+
+function targetHandlers(initialProfile = {}) {
+  const amountNames = ["netIncome", "housingCost", "otherFixed", "ownPrincipal", "savingsGoal", "reserve", "foodTarget"];
+  const records = { income: 2500000, housingCost: 500000, otherFixed: 150000, ownPrincipal: 100000 };
+  const resolved = core.templateDraft(initialProfile, records).profile;
+  const listeners = () => ({ handlers: {}, addEventListener(name, handler) { this.handlers[name] = handler; } });
+  const fields = Object.fromEntries([...amountNames, "retirementAge", "ageGroup", "career", "living", "historyConfirmed"].map((name) => {
+    const isAmount = amountNames.includes(name);
+    const input = {
+      name, _value: "", checked: false,
+      get value() { return this._value; }, set value(value) { this._value = String(value ?? ""); },
+      checkValidity() {
+        if (!isAmount && name !== "retirementAge") return true;
+        return !numericInput.validationMessage(numericInput.parse(this.value), { min: name === "retirementAge" ? "40" : "0", max: name === "retirementAge" ? "90" : "100000000", step: "1" });
+      }
+    };
+    input.value = name === "retirementAge" ? initialProfile.retirementAge ?? 65 : isAmount ? resolved[name] : initialProfile[name] ?? "";
+    return [name, input];
+  }));
+  const form = { ...listeners(), elements: fields, checkValidity: () => Object.values(fields).every((input) => input.checkValidity()) };
+  form.reportValidity = form.checkValidity;
+  const acknowledgment = { checked: false, matches: (selector) => selector === "[data-budget-confirm-assumptions]" };
+  const apply = { disabled: true };
+  const output = {
+    ...listeners(), html: "",
+    get innerHTML() { return this.html; },
+    set innerHTML(html) {
+      this.html = html;
+      apply.disabled = /data-budget-apply-recommendation\s+disabled/.test(html);
+    },
+    querySelector(selector) {
+      if (selector === "[data-budget-confirm-assumptions]") return this.html.includes("data-budget-confirm-assumptions") ? acknowledgment : null;
+      if (selector === "[data-budget-apply-recommendation]") return this.html.includes("data-budget-apply-recommendation") ? apply : null;
+      return null;
+    }
+  };
+  const horizon = { innerHTML: "" };
+  const sourceLabels = Object.fromEntries(amountNames.map((name) => [name, { textContent: "" }]));
+  const details = { ...listeners(), open: false, hidden: true, querySelector: () => ({ focus() {} }) };
+  const reset = listeners();
+  const templateButtons = ["starter-alone", "starter-family", "experienced", "irregular"].map((key) => ({
+    ...listeners(), dataset: { budgetTemplate: key }, setAttribute() {}
+  }));
+  const feedback = { textContent: "" };
+  const host = {
+    querySelector(selector) {
+      if (selector === "[data-budget-profile]") return form;
+      if (selector === "[data-budget-recommendation]") return output;
+      if (selector === "[data-budget-horizon]") return horizon;
+      if (selector === "[data-budget-use-records]") return reset;
+      if (selector === ".spending-budget-settings") return details;
+      if (selector === ".spending-budget-feedback") return feedback;
+      const source = selector.match(/^\[data-budget-source="(.+)"\]$/);
+      return source ? sourceLabels[source[1]] : listeners();
+    },
+    querySelectorAll: (selector) => selector === "[data-budget-template]" ? templateButtons : []
+  };
+  const saves = [];
+  const settings = core.normalizeSettings({ profile: initialProfile, monthlyTargets: {
+    "2026-08": { monthlyLimit: 900000, foodTarget: 200000, savingsTarget: 300000, source: "manual" },
+    "2026-09": { monthlyLimit: 1200000, foodTarget: 250000, savingsTarget: 400000, source: "manual" }
+  } });
+  const context = vm.createContext({
+    SpendingBudgetCore: core, document: { activeElement: null }, appSettings: { spendingBudget: settings },
+    NumericInput: {
+      read: (input) => numericInput.parse(input.value).value,
+      refresh() { amountNames.forEach((name) => { if (fields[name].checkValidity()) fields[name].value = numericInput.format(fields[name].value); }); }
+    },
+    formatWon: (value) => `${Number(value).toLocaleString("ko-KR")}원`, escapeHtml: String,
+    saveSpendingBudgetChange(_host, update) {
+      const next = core.normalizeSettings(update(context.appSettings.spendingBudget));
+      saves.push(structuredClone(next));
+      context.appSettings.spendingBudget = next;
+    }
+  });
+  vm.runInContext(fs.readFileSync(path.join(__dirname, "../src/features/budget/spending-budget-targets.js"), "utf8"), context);
+  context.attachSpendingBudgetTargetHandlers(host, { month: "2026-09", recommendationRecords: records });
+  return {
+    fields, form, output, horizon, apply, saves, context, settings, sourceLabels,
+    change(name, value) {
+      const input = fields[name];
+      context.document.activeElement = input;
+      if (name === "historyConfirmed") input.checked = value;
+      else input.value = value;
+      form.handlers[amountNames.includes(name) || name === "retirementAge" ? "input" : "change"]({ target: input });
+    },
+    acknowledge(checked = true) {
+      acknowledgment.checked = checked;
+      output.handlers.change({ target: acknowledgment });
+    },
+    clickApply() { output.handlers.click({ target: { closest: () => apply } }); },
+    template(key) { context.document.activeElement = null; templateButtons.find((button) => button.dataset.budgetTemplate === key).handlers.click(); },
+    resetRecords() { context.document.activeElement = null; reset.handlers.click(); }
+  };
+}
+
+test("template handlers require acknowledgment and save resolved targets without turning suggestions into manual profile values", () => {
+  const ui = targetHandlers();
+  assert.equal(ui.apply.disabled, true);
+  ui.clickApply();
+  assert.equal(ui.saves.length, 0);
+  ui.acknowledge();
+  assert.equal(ui.apply.disabled, false);
+  ui.clickApply();
+  assert.equal(ui.saves.length, 1);
+  for (const name of ["netIncome", "housingCost", "otherFixed", "ownPrincipal", "savingsGoal", "reserve", "foodTarget", "retirementAge"]) assert.equal(ui.saves[0].profile[name], null, name);
+  assert.equal(ui.saves[0].monthlyTargets["2026-09"].monthlyLimit, 1875000);
+  assert.equal(ui.saves[0].monthlyTargets["2026-09"].savingsTarget, 400000);
+  assert.deepEqual(ui.saves[0].monthlyTargets["2026-08"], ui.settings.monthlyTargets["2026-08"]);
+});
+
+test("editing or selecting a template is preview-only, and a new edit resets acknowledgment while preserving manual values", () => {
+  const ui = targetHandlers();
+  const before = structuredClone(ui.context.appSettings.spendingBudget);
+  ui.acknowledge();
+  ui.change("netIncome", "3,000,000");
+  assert.equal(ui.apply.disabled, true);
+  ui.template("starter-family");
+  assert.deepEqual(ui.context.appSettings.spendingBudget, before);
+  assert.equal(ui.saves.length, 0);
+  assert.equal(numericInput.parse(ui.fields.netIncome.value).value, 3000000);
+  assert.equal(ui.sourceLabels.netIncome.textContent, "직접 수정");
+  ui.clickApply();
+  assert.equal(ui.saves.length, 0);
+  ui.acknowledge();
+  ui.clickApply();
+  assert.equal(ui.saves[0].profile.netIncome, 3000000);
+  assert.equal(ui.saves[0].profile.living, "family");
+  assert.equal(ui.saves[0].profile.savingsGoal, null);
+});
+
+test("invalid handwritten input survives another selection and blocks applying until the user repairs it", () => {
+  const ui = targetHandlers();
+  ui.change("netIncome", "-1");
+  assert.match(ui.output.innerHTML, /입력한 숫자/);
+  ui.change("career", "experienced");
+  assert.equal(ui.fields.netIncome.value, "-1");
+  assert.match(ui.output.innerHTML, /입력한 숫자/);
+  ui.clickApply();
+  assert.equal(ui.saves.length, 0);
+  ui.change("netIncome", "2800000");
+  ui.acknowledge();
+  ui.clickApply();
+  assert.equal(ui.saves[0].profile.netIncome, 2800000);
+});
+
+test("record reset is an explicit replacement of all four overrides, including an invalid one", () => {
+  const ui = targetHandlers({ housingCost: 0, otherFixed: 0, ownPrincipal: 0 });
+  ui.change("netIncome", "-1");
+  ui.resetRecords();
+  assert.equal(numericInput.parse(ui.fields.netIncome.value).value, 2500000);
+  assert.equal(numericInput.parse(ui.fields.housingCost.value).value, 500000);
+  ui.acknowledge();
+  ui.clickApply();
+  for (const name of ["netIncome", "housingCost", "otherFixed", "ownPrincipal"]) assert.equal(ui.saves[0].profile[name], null, name);
+});
+
+test("explicit zero remains manual while clearing an override restores records without saving the proposed value", () => {
+  const ui = targetHandlers();
+  ui.change("housingCost", "0");
+  ui.acknowledge();
+  ui.clickApply();
+  assert.equal(ui.saves[0].profile.housingCost, 0);
+  ui.change("housingCost", "");
+  ui.change("career", "experienced");
+  assert.equal(numericInput.parse(ui.fields.housingCost.value).value, 500000);
+  assert.equal(ui.sourceLabels.housingCost.textContent, "내 기록 기준");
+  ui.acknowledge();
+  ui.clickApply();
+  assert.equal(ui.saves[1].profile.housingCost, null);
+});
+
+test("a stored exact age has priority until the user explicitly selects a new age group", () => {
+  const ui = targetHandlers({ currentAge: 35, ageGroup: "twentiesMid", retirementAge: 65 });
+  assert.match(ui.horizon.innerHTML, /약 30년/);
+  ui.change("retirementAge", "60");
+  assert.match(ui.horizon.innerHTML, /약 25년/);
+  ui.change("ageGroup", "twentiesEarly");
+  assert.match(ui.horizon.innerHTML, /약 37~40년/);
+  ui.acknowledge();
+  ui.clickApply();
+  assert.equal(ui.saves[0].profile.currentAge, null);
+  assert.equal(ui.saves[0].profile.retirementAge, 60);
+  assert.equal(ui.saves[0].profile.ageGroup, "twentiesEarly");
 });

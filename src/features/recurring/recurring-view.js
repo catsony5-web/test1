@@ -59,6 +59,10 @@ function openRecurringManageForCreate() {
 }
 
 function updateLoanScheduledTotal() {
+  if ([els.loanPrincipalAmount, els.loanInterestAmount].some((input) => input?.validity?.valid === false)) {
+    if (els.loanScheduledTotal) els.loanScheduledTotal.textContent = "입력 확인";
+    return null;
+  }
   const total = toNumber(els.loanPrincipalAmount?.value) + toNumber(els.loanInterestAmount?.value);
   if (els.loanScheduledTotal) els.loanScheduledTotal.textContent = formatWon(total);
   return total;
@@ -153,6 +157,7 @@ function clearRecurringBulkInput() {
 }
 
 async function handleRecurringBulkSave() {
+  if (!NumericInput.validate(els.recurringBulkPreview)) return;
   updateRecurringBulkRowsFromPreview();
   const validRows = recurringBulkRows
     .map(validateRecurringBulkRow)
@@ -354,7 +359,7 @@ function renderRecurringBulkPreview(message = "") {
             <td><input data-recurring-bulk-index="${index}" data-recurring-bulk-field="startMonth" type="month" value="${escapeHtml(checked.startMonth)}"></td>
             <td><input data-recurring-bulk-index="${index}" data-recurring-bulk-field="dayOfMonth" type="number" min="1" max="31" value="${escapeHtml(checked.dayOfMonth)}"></td>
             <td><input data-recurring-bulk-index="${index}" data-recurring-bulk-field="description" type="text" value="${escapeHtml(checked.description)}" title="${escapeHtml(checked.original || "")}"></td>
-            <td><input data-recurring-bulk-index="${index}" data-recurring-bulk-field="amount" class="amount-input" type="text" inputmode="numeric" value="${escapeHtml(formatPlainNumber(checked.amount))}"></td>
+            <td><input step="1" data-number-kind="money" data-recurring-bulk-index="${index}" data-recurring-bulk-field="amount" class="amount-input" type="text" inputmode="numeric" value="${escapeHtml(formatPlainNumber(checked.amount))}"></td>
             <td><select data-recurring-bulk-index="${index}" data-recurring-bulk-field="sector">${recurringBulkSectorOptionsHtml(checked.sector)}</select></td>
             <td><select data-recurring-bulk-index="${index}" data-recurring-bulk-field="subcategory">${recurringBulkSubcategoryOptionsHtml(checked.sector, checked.subcategory)}</select></td>
             <td><select data-recurring-bulk-index="${index}" data-recurring-bulk-field="paymentType">${recurringBulkPaymentOptionsHtml(checked.paymentType)}</select></td>
@@ -369,12 +374,16 @@ function renderRecurringBulkPreview(message = "") {
 
   els.recurringBulkPreview.querySelectorAll("[data-recurring-bulk-index]").forEach((input) => {
     input.addEventListener("change", () => {
+      if (!NumericInput.validate(els.recurringBulkPreview)) return;
       updateRecurringBulkRowsFromPreview();
       renderRecurringBulkPreview("미리보기 내용을 다시 검증했습니다.");
     });
   });
   els.recurringBulkPreview.querySelectorAll("[data-delete-recurring-bulk]").forEach((button) => {
     button.addEventListener("click", () => {
+      const invalid = [...els.recurringBulkPreview.querySelectorAll("[data-number-kind]")].find((input) =>
+        input.dataset.recurringBulkIndex !== button.dataset.deleteRecurringBulk && !NumericInput.validate(input));
+      if (invalid) return;
       updateRecurringBulkRowsFromPreview();
       recurringBulkRows.splice(Number(button.dataset.deleteRecurringBulk), 1);
       renderRecurringBulkPreview("선택한 줄을 미리보기에서 삭제했습니다.");
@@ -453,6 +462,7 @@ function resetRecurringForm() {
   fillRecurringCategorySelects();
   els.saveRecurringButton.textContent = "고정 지출 저장";
   els.cancelRecurringEditButton.hidden = true;
+  NumericInput.refresh(els.recurringForm, { resetEditing: true });
 }
 
 function syncRecurringAutoPostFields() {
@@ -475,6 +485,7 @@ function resetLoanForm() {
   syncLoanSupportFields();
   els.saveLoanButton.textContent = "대출 상환 저장";
   els.cancelLoanEditButton.hidden = true;
+  NumericInput.refresh(els.loanForm, { resetEditing: true });
   updateLoanScheduledTotal();
 }
 
@@ -600,6 +611,7 @@ function editLoanRepayment(id, options = {}) {
   els.loanShowOnCalendar.checked = item.showOnCalendar !== false;
   els.saveLoanButton.textContent = "수정 저장";
   els.cancelLoanEditButton.hidden = false;
+  NumericInput.refresh(els.loanForm, { resetEditing: true });
   updateLoanScheduledTotal();
   document.querySelector("#recurringView")?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
@@ -630,6 +642,7 @@ function editRecurringExpense(id, options = {}) {
   syncRecurringAutoPostFields();
   els.saveRecurringButton.textContent = "수정 저장";
   els.cancelRecurringEditButton.hidden = false;
+  NumericInput.refresh(els.recurringForm, { resetEditing: true });
   document.querySelector("#recurringView")?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
@@ -959,10 +972,18 @@ function handleLoanPaymentIncomeSelection() {
     + Math.max(0, toNumber(els.loanPaymentSupportInterest.value));
   els.loanPaymentSupportReceived.value = formatPlainNumber(Math.min(income.availableAmount, supportDue || income.availableAmount));
   els.loanPaymentSupportReceivedDate.value = normalizeInputDate(income.approvalDate);
+  NumericInput.refresh(els.loanPaymentSupportReceived);
   updateLoanPaymentPreview();
 }
 
 function updateLoanPaymentPreview() {
+  const inputs = [els.loanPaymentPrincipal, els.loanPaymentInterest, els.loanPaymentSupportPrincipal, els.loanPaymentSupportInterest, els.loanPaymentSupportReceived];
+  if (inputs.some((input) => input?.validity?.valid === false)) {
+    [els.loanPaymentTotal, els.loanPaymentPersonalTotal, els.loanPaymentSupportDue, els.loanPaymentSupportReceivedPreview,
+      els.loanPaymentRemaining, els.loanPaymentFinalRemaining, els.loanPaymentPersonalRemaining, els.loanPaymentSettlementBalance]
+      .filter(Boolean).forEach((output) => { output.textContent = "입력 확인"; });
+    return;
+  }
   const item = recurringExpenses.find((expense) => expense.id === els.loanPaymentRecurringId.value);
   const principal = Math.max(0, toNumber(els.loanPaymentPrincipal.value));
   const interest = Math.max(0, toNumber(els.loanPaymentInterest.value));
@@ -1006,6 +1027,7 @@ function closeLoanPaymentDialog() {
     els.loanPaymentDialog.removeAttribute("open");
   }
   els.loanPaymentForm.reset();
+  NumericInput.refresh(els.loanPaymentForm, { resetEditing: true });
   els.loanPaymentExpenseTransactionId.disabled = false;
 }
 
@@ -1043,6 +1065,7 @@ function openLoanPaymentDialog(id, month, recordKey = "") {
   els.saveLoanPaymentButton.textContent = existing ? "상환 수정" : "상환 반영";
   els.deleteLoanPaymentButton.hidden = !existing;
   els.deleteLoanPaymentButton.textContent = existing?.loanLinkedExisting ? "기존 출금 연결 해제" : "상환 내역 삭제";
+  NumericInput.refresh(els.loanPaymentForm, { resetEditing: true });
   updateLoanPaymentPreview();
   if (!els.loanPaymentDialog.open && typeof els.loanPaymentDialog.showModal === "function") {
     els.loanPaymentDialog.showModal();

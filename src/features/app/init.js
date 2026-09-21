@@ -269,6 +269,11 @@ async function init() {
   els.manualEntryForm.addEventListener("submit", handleManualEntry);
   els.pasteEntriesButton.addEventListener("click", handlePasteEntries);
   els.productForm.addEventListener("submit", handleProductSubmit);
+  document.getElementById("productCancelEdit").addEventListener("click", resetProductForm);
+  els.productForm.addEventListener("invalid", (event) => {
+    const group = event.target.closest("details");
+    if (group) group.open = true;
+  }, true);
   [els.productFilterCategory, els.productFilterName, els.productFilterStatus, els.productSort, els.productTrendSelect]
     .forEach((control) => control.addEventListener("change", renderProducts));
   [els.productFilterStore, els.productFilterSearch]

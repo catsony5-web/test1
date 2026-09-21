@@ -19,7 +19,7 @@ function loadContext() {
   });
   for (const file of [
     "src/data/categories.js", "src/data/rules.js",
-    "src/utils/format.js", "src/utils/date.js", "src/utils/dom.js",
+    "src/utils/format.js", "src/utils/date.js", "src/utils/dom.js", "src/utils/numeric-input.js",
     "src/utils/food-occasion.js",
     "src/utils/normalize.js", "src/utils/grouping.js", "src/utils/storage.js", "src/components/chips.js",
     "src/features/board/board-view.js", "src/features/classification/smart-suggestions.js",
@@ -256,8 +256,8 @@ test("식비 목표 저장 실패 시 이전 목표를 보존하고 다시 저�
   const submit = { disabled: false };
   const status = { textContent: "" };
   const fields = {
-    '[data-food-budget="monthlyTarget"]': { value: "300000" },
-    '[data-food-budget="diningCost"]': { value: "25000" },
+    '[data-food-budget="monthlyTarget"]': { value: "300,000", dataset: { numberKind: "money" } },
+    '[data-food-budget="diningCost"]': { value: "25,000", dataset: { numberKind: "money" } },
     "[data-food-budget-submit]": submit
   };
   context.els = { summaryPatternPanel: { querySelector: () => status } };
@@ -275,8 +275,8 @@ test("식비 목표 저장 실패 시 이전 목표를 보존하고 다시 저�
 test("식비 목표 저장 중 다른 섹터로 이동해도 저장한 목표를 되돌리지 않는다", async () => {
   const context = loadContext();
   const fields = {
-    '[data-food-budget="monthlyTarget"]': { value: "300000" },
-    '[data-food-budget="diningCost"]': { value: "25000" },
+    '[data-food-budget="monthlyTarget"]': { value: "300,000", dataset: { numberKind: "money" } },
+    '[data-food-budget="diningCost"]': { value: "25,000", dataset: { numberKind: "money" } },
     "[data-food-budget-submit]": { disabled: false }
   };
   context.els = { summaryPatternPanel: { querySelector: () => null } };
@@ -300,8 +300,8 @@ test("월별 식비 목표 수정은 예산 점검과 공유하고 다른 달·�
   } };
   const status = { textContent: "" };
   const fields = {
-    '[data-food-budget="monthlyTarget"]': { value: "300000" },
-    '[data-food-budget="diningCost"]': { value: "25000" },
+    '[data-food-budget="monthlyTarget"]': { value: "300,000", dataset: { numberKind: "money" } },
+    '[data-food-budget="diningCost"]': { value: "25,000", dataset: { numberKind: "money" } },
     "[data-food-budget-submit]": { disabled: false }
   };
   context.els = { summaryPatternPanel: { querySelector: (selector) => selector === "[data-food-budget-status]" ? status : null } };

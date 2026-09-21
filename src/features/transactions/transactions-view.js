@@ -70,6 +70,7 @@ async function handleManualEntry(event) {
     currentFileName = "직접 입력";
     els.manualMerchant.value = "";
     els.manualAmount.value = "";
+    NumericInput.refresh(els.manualAmount, { resetEditing: true });
     reclassify();
   });
 }

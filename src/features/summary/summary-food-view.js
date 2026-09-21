@@ -16,8 +16,8 @@ function renderSummaryFoodBudget(model) {
   return `<section class="summary-food-budget" aria-labelledby="summaryFoodBudgetTitle">
     <div class="summary-card-heading"><h4 id="summaryFoodBudgetTitle">외식 한 번의 여유는?</h4><span>등록한 식비 기준</span></div>
     <form class="summary-food-budget-form" data-food-budget-form data-food-budget-month="${model.monthlyScoped ? model.month : ""}">
-      <label>월 식비 목표<input type="number" min="${model.monthlyScoped ? 0 : 1}" max="100000000" step="1" required data-food-budget="monthlyTarget" value="${model.budget.monthlyTarget}" aria-label="월 식비 목표 (원)"></label>
-      <label>외식 1회 예상<input type="number" min="0" max="100000000" step="1" required data-food-budget="diningCost" value="${model.budget.diningCost}" aria-label="외식 1회 예상 비용 (원)"></label>
+      <label>월 식비 목표<input inputmode="numeric" data-number-kind="money" type="text" min="${model.monthlyScoped ? 0 : 1}" max="100000000" step="1" required data-food-budget="monthlyTarget" value="${model.budget.monthlyTarget}" aria-label="월 식비 목표 (원)"></label>
+      <label>외식 1회 예상<input inputmode="numeric" data-number-kind="money" type="text" min="0" max="100000000" step="1" required data-food-budget="diningCost" value="${model.budget.diningCost}" aria-label="외식 1회 예상 비용 (원)"></label>
       <button type="submit" data-food-budget-submit>적용</button>
     </form>
     <p class="summary-food-help">${model.monthlyScoped ? `${escapeHtml(model.month)}에 저장한 목표 · 예산 점검과 함께 적용됩니다. 0이면 미설정입니다.` : "원 단위 · 월별 목표를 따로 저장하지 않은 달에 쓰는 공통 목표입니다."} 예정 비용까지 반영한 여유는 예산 점검에서 확인하세요.</p>
@@ -41,6 +41,7 @@ function renderSummaryFood(model) {
     <section class="summary-food-calendar" aria-labelledby="summaryFoodCalendarTitle">
       <div class="summary-card-heading"><h4 id="summaryFoodCalendarTitle">${escapeHtml(model.month)} 식비 달력</h4><span>월~일 · 금액 단위 원</span></div>
       <p class="summary-food-help">날짜를 누르면 하루 내역, 주 합계를 누르면 그 주 전체 내역을 봅니다.</p>
+      <div class="summary-food-calendar-scroll" tabindex="0" role="region" aria-label="식비 달력, 좁은 화면에서는 좌우로 스크롤할 수 있습니다">
       <div class="summary-food-weekdays">${SUMMARY_PATTERN_DAYS.map((day) => `<b>${day}</b>`).join("")}<b>주 합계</b></div>
       ${model.weeks.map((week) => `<div class="summary-food-calendar-week">
         ${week.days.map((day) => day ? `<button type="button" class="summary-food-day ${day.isFuture ? "is-future" : ""} ${day.amount ? "has-spending" : ""}" data-food-date="${day.date}" aria-pressed="${summaryFoodSelection.date === day.date}" ${day.outsideCoverage ? "disabled" : ""} aria-label="${day.date} 식비 ${formatWon(day.amount)}, 결제 ${day.count}건${day.pendingCount ? `, 쿠팡 확인 필요 ${day.pendingCount}건` : ""}">
@@ -52,6 +53,7 @@ function renderSummaryFood(model) {
           <span>${week.index + 1}주</span><strong>${formatPlainNumber(week.amount)}</strong><small>${week.count}건</small>
         </button>
       </div>`).join("")}
+      </div>
       ${model.undatedRows.length ? `<button type="button" class="summary-food-undated" data-food-date="undated" aria-pressed="${summaryFoodSelection.date === "undated"}">날짜 확인 필요 ${model.undatedRows.length}건 · 식비 ${formatWon(model.undatedTotals.amount)}</button>` : ""}
       <p class="summary-food-help">정산금을 뺀 내 부담액입니다.${model.hasInstallments ? " 할부는 월 배분액을 포함하며, 2회차 이후는 새 결제 건수에서 제외합니다." : ""}</p>
     </section>
@@ -226,8 +228,9 @@ function attachSummaryFoodHandlers(model) {
 async function saveSummaryFoodBudget(event) {
   event.preventDefault();
   const form = event.currentTarget;
-  const monthlyTarget = Number(form.querySelector('[data-food-budget="monthlyTarget"]').value);
-  const diningCost = Number(form.querySelector('[data-food-budget="diningCost"]').value);
+  if (!NumericInput.validate(form)) return;
+  const monthlyTarget = NumericInput.read(form.querySelector('[data-food-budget="monthlyTarget"]'));
+  const diningCost = NumericInput.read(form.querySelector('[data-food-budget="diningCost"]'));
   if (!form.checkValidity() || !Number.isFinite(monthlyTarget) || !Number.isFinite(diningCost)) return;
   const previous = appSettings.foodBudget;
   const previousSpending = appSettings.spendingBudget;

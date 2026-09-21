@@ -24,6 +24,7 @@ function handleIpoSubmit(event) {
 }
 
 async function saveIpoFromForm() {
+  if (!NumericInput.validate(els.ipoForm)) return;
   const company = els.ipoCompany.value.trim();
   if (!company) {
     alert("공모주 종목명을 입력해주세요.");
@@ -118,6 +119,7 @@ function resetIpoForm() {
   els.saveIpoButton.textContent = "공모주 기록 저장";
   els.cancelIpoEditButton.hidden = true;
   if (els.ipoAllocationResult) els.ipoAllocationResult.value = "";
+  NumericInput.refresh(els.ipoForm, { resetEditing: true });
   clearIpoImageDraft();
   updateIpoComputedPreview();
 }
@@ -220,6 +222,14 @@ function renderIpoAttachedImage(item, className = "") {
 
 function updateIpoComputedPreview() {
   if (!els.ipoComputedProfit || !els.ipoComputedRate) return;
+  const inputs = [els.ipoOfferPrice, els.ipoApplicationFee, els.ipoAllocatedShares, els.ipoSellPrice, els.ipoSellAmount, els.ipoSellFee];
+  if (inputs.some((input) => input?.validity?.valid === false)) {
+    [els.ipoComputedProfit, els.ipoComputedRate, els.ipoComputedSettlementProfit].filter(Boolean).forEach((output) => {
+      output.textContent = "입력 확인";
+      output.className = "";
+    });
+    return;
+  }
   const editingRecord = ipoRecords.find((item) => item.id === els.ipoId?.value);
   const preview = normalizeIpoRecord({
     company: els.ipoCompany?.value || "미리보기",
@@ -1339,6 +1349,7 @@ function editIpoRecord(id) {
   els.ipoHighPrice.value = item.highPrice ? formatPlainNumber(item.highPrice) : "";
   els.ipoClosePrice.value = item.closePrice ? formatPlainNumber(item.closePrice) : "";
   els.ipoMemo.value = item.memo;
+  NumericInput.refresh(els.ipoForm, { resetEditing: true });
   setIpoImageDraft(item.imageData, item.imageName);
   els.saveIpoButton.textContent = "수정 저장";
   els.cancelIpoEditButton.hidden = false;
@@ -1542,9 +1553,9 @@ function renderIpoPastePreview() {
           <td><input aria-label="${escapeHtml(row.company)} 매도 또는 기준일" data-ipo-paste-index="${index}" data-ipo-paste-field="${row.importFormat === "normalized" ? "sellDate" : "subscriptionStart"}" type="date" value="${escapeHtml(row.importFormat === "normalized" ? row.sellDate : row.subscriptionStart)}"></td>
           <td><input aria-label="공모주 종목" data-ipo-paste-index="${index}" data-ipo-paste-field="company" type="text" value="${escapeHtml(row.company)}"><small>${escapeHtml(row.baseCompany && row.baseCompany !== row.company ? `기본 ${row.baseCompany}` : row.sourceRecordId || "")}</small></td>
           <td><input aria-label="증권사" data-ipo-paste-index="${index}" data-ipo-paste-field="broker" type="text" value="${escapeHtml(row.broker)}"></td>
-          <td><input aria-label="공모가" data-ipo-paste-index="${index}" data-ipo-paste-field="offerPrice" type="text" inputmode="numeric" value="${escapeHtml(formatPlainNumber(row.offerPrice))}"></td>
-          <td><input aria-label="배정 수량" data-ipo-paste-index="${index}" data-ipo-paste-field="allocatedShares" type="number" min="0" value="${escapeHtml(row.allocatedShares || "")}"></td>
-          <td><span class="ipo-sell-stack"><input aria-label="1주 매도가" data-ipo-paste-index="${index}" data-ipo-paste-field="sellPrice" type="text" inputmode="numeric" value="${escapeHtml(row.sellPrice ? formatPlainNumber(row.sellPrice) : "")}" placeholder="1주"><input aria-label="총 매도금액" data-ipo-paste-index="${index}" data-ipo-paste-field="sellAmount" type="text" inputmode="numeric" value="${escapeHtml(row.sellAmount ? formatPlainNumber(row.sellAmount) : "")}" placeholder="총액"><small>합계 ${escapeHtml(formatWon(ipoTotalSellAmount(row)))}</small></span></td>
+          <td><input step="1" data-number-kind="money" aria-label="공모가" data-ipo-paste-index="${index}" data-ipo-paste-field="offerPrice" type="text" inputmode="numeric" value="${escapeHtml(formatPlainNumber(row.offerPrice))}"></td>
+          <td><input step="1" inputmode="numeric" data-number-kind="quantity" data-number-unit="주" aria-label="배정 수량" data-ipo-paste-index="${index}" data-ipo-paste-field="allocatedShares" type="text" min="0" value="${escapeHtml(row.allocatedShares || "")}"></td>
+          <td><span class="ipo-sell-stack"><input step="1" data-number-kind="money" aria-label="1주 매도가" data-ipo-paste-index="${index}" data-ipo-paste-field="sellPrice" type="text" inputmode="numeric" value="${escapeHtml(row.sellPrice ? formatPlainNumber(row.sellPrice) : "")}" placeholder="1주"><input step="1" data-number-kind="money" aria-label="총 매도금액" data-ipo-paste-index="${index}" data-ipo-paste-field="sellAmount" type="text" inputmode="numeric" value="${escapeHtml(row.sellAmount ? formatPlainNumber(row.sellAmount) : "")}" placeholder="총액"><small>합계 ${escapeHtml(formatWon(ipoTotalSellAmount(row)))}</small></span></td>
           <td><span class="ipo-profit-stack"><strong>${escapeHtml(formatSignedWon(row.profit))}</strong><small>정산 ${escapeHtml(formatSignedWon(row.settlementProfit))}</small>${row.hasReportedProfit ? `<small>원본 ${escapeHtml(formatSignedWon(row.reportedProfit))}</small>` : ""}</span></td>
           <td><button type="button" data-delete-ipo-paste="${index}">삭제</button></td>
         </tr>
@@ -1552,10 +1563,14 @@ function renderIpoPastePreview() {
     </tbody>
   `;
   els.ipoPastePreview.querySelectorAll("[data-ipo-paste-index]").forEach((input) => {
-    input.addEventListener("input", () => updateIpoPasteRow(input));
+    input.addEventListener("change", () => updateIpoPasteRow(input));
   });
   els.ipoPastePreview.querySelectorAll("[data-delete-ipo-paste]").forEach((button) => {
     button.addEventListener("click", () => {
+      const invalid = [...els.ipoPastePreview.querySelectorAll("[data-number-kind]")].find((input) =>
+        input.dataset.ipoPasteIndex !== button.dataset.deleteIpoPaste && !NumericInput.validate(input));
+      if (invalid) return;
+      updateIpoPasteRowsFromPreview();
       ipoPasteRows.splice(Number(button.dataset.deleteIpoPaste), 1);
       renderIpoPastePreview();
     });
@@ -1600,16 +1615,24 @@ function stripIpoImportReferenceTotal(memo) {
   return String(memo || "").replace(IPO_IMPORT_REFERENCE_PATTERN, "").trim();
 }
 
-function updateIpoPasteRow(input) {
-  const index = Number(input.dataset.ipoPasteIndex);
-  const field = input.dataset.ipoPasteField;
-  const current = ipoPasteRows[index];
-  const next = normalizeIpoRecord({ ...current, [field]: input.value });
-  ipoPasteRows[index] = decorateIpoPasteRow(next, current.original, current.importFormat);
+function updateIpoPasteRowsFromPreview() {
+  const drafts = ipoPasteRows.map((row) => ({ ...row }));
+  els.ipoPastePreview.querySelectorAll("[data-ipo-paste-index]").forEach((input) => {
+    const index = Number(input.dataset.ipoPasteIndex);
+    if (drafts[index]) drafts[index][input.dataset.ipoPasteField] = input.value;
+  });
+  ipoPasteRows = drafts.map((row) => decorateIpoPasteRow(normalizeIpoRecord(row), row.original, row.importFormat));
+}
+
+function updateIpoPasteRow() {
+  if (!NumericInput.validate(els.ipoPastePreview)) return;
+  updateIpoPasteRowsFromPreview();
   renderIpoPastePreview();
 }
 
 async function saveIpoPasteRows() {
+  if (!NumericInput.validate(els.ipoPastePreview)) return;
+  updateIpoPasteRowsFromPreview();
   const rows = ipoPasteRows.filter((row) => row.valid).map((row) => normalizeIpoRecord({
     ...row,
     id: row.sourceRecordId ? ipoImportRecordId(row.sourceRecordId) : `ipo-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,

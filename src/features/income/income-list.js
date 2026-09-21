@@ -122,7 +122,7 @@ function renderIncomeEditForm(item) {
   return `
     <input data-income-edit-field="date" type="date" value="${escapeHtml(normalizeInputDate(item.approvalDate))}" aria-label="수입 날짜 수정">
     <input data-income-edit-field="merchant" type="text" value="${escapeHtml(item.merchant)}" aria-label="수입 내용 수정">
-    <input data-income-edit-field="amount" type="text" inputmode="numeric" value="${escapeHtml(formatPlainNumber(item.amount))}" aria-label="수입 금액 수정">
+    <input step="1" data-number-kind="money" data-income-edit-field="amount" type="text" inputmode="numeric" value="${escapeHtml(formatPlainNumber(item.amount))}" aria-label="수입 금액 수정">
     <div class="income-entry-actions">
       <button type="button" class="primary-action" data-save-income="${escapeHtml(item.recordKey)}">저장</button>
       <button type="button" data-cancel-income-edit>취소</button>
@@ -155,6 +155,7 @@ async function saveIncomeEntryEdit(recordKey) {
   return runManualTransactionSave(async () => {
     const card = els.incomeEntryList.querySelector(`[data-save-income="${cssEscape(recordKey)}"]`)?.closest(".income-entry-item");
     if (!card) return;
+    if (!NumericInput.validate(card)) return;
     const date = normalizeInputDate(card.querySelector('[data-income-edit-field="date"]')?.value);
     const merchant = card.querySelector('[data-income-edit-field="merchant"]')?.value.trim();
     const amount = toNumber(card.querySelector('[data-income-edit-field="amount"]')?.value);

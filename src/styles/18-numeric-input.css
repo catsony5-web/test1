@@ -1,0 +1,47 @@
+.numeric-input-control {
+  display: inline-flex;
+  flex-direction: column;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  vertical-align: middle;
+}
+
+.numeric-input-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.numeric-input-line > input[data-number-kind] {
+  flex: 1 1 0;
+  width: 100%;
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.numeric-input-unit {
+  flex: 0 0 auto;
+  color: var(--text-secondary);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.numeric-input-control > .numeric-input-hint {
+  display: block;
+  margin: 3px 0 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
+.numeric-input-control.has-number-error > .numeric-input-hint {
+  color: var(--accent-negative);
+}
+
+.numeric-input-control [hidden] {
+  display: none;
+}

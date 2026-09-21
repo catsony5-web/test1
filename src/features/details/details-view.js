@@ -498,6 +498,7 @@ function fillDetailBulkListSubcategoryFilter(sourceRows = detailBulkSavedRecords
 }
 
 function handleDetailBulkParse() {
+  if (!NumericInput.validate(els.detailBulkReimbursementDefault)) return;
   const text = els.detailBulkPaste.value.trim();
   if (!text) {
     setDetailBulkFeedback("붙여넣을 거래 내용을 입력해주세요.", "error");
@@ -517,6 +518,7 @@ function clearDetailBulkInput() {
   detailBulkRows = [];
   els.detailBulkPaste.value = "";
   els.detailBulkReimbursementDefault.value = "0";
+  NumericInput.refresh(els.detailBulkReimbursementDefault, { resetEditing: true });
   els.detailBulkAllowDuplicates.checked = false;
   els.detailBulkPreview.innerHTML = "";
   els.saveDetailBulkButton.disabled = true;
@@ -524,6 +526,7 @@ function clearDetailBulkInput() {
 }
 
 async function handleDetailBulkSave() {
+  if (!NumericInput.validate(els.detailBulkPreview)) return;
   return runManualTransactionSave(async () => {
     updateDetailBulkRowsFromPreview();
     markDetailBulkDuplicateRows();
@@ -653,7 +656,7 @@ function lastDetailBulkAmountMatch(text) {
 function parseDetailBulkAmount(value) {
   const cleaned = String(value ?? "")
     .replace(/원/g, "")
-    .replace(/[^\d,-]/g, "")
+    .replace(/[^\d,.\-]/g, "")
     .trim();
   return Math.abs(toNumber(cleaned));
 }
@@ -800,13 +803,13 @@ function renderDetailBulkPreview() {
         <td><input data-detail-bulk-index="${index}" data-detail-bulk-field="date" type="date" value="${escapeHtml(checked.date)}"></td>
         <td><span class="detail-bulk-month">${escapeHtml(checked.month || "-")}</span></td>
         <td><input data-detail-bulk-index="${index}" data-detail-bulk-field="description" type="text" value="${escapeHtml(checked.description)}" title="${escapeHtml(checked.original || "")}"></td>
-        <td><input data-detail-bulk-index="${index}" data-detail-bulk-field="amount" class="amount-input" type="text" inputmode="numeric" value="${escapeHtml(formatPlainNumber(checked.amount))}"></td>
-        <td><input data-detail-bulk-index="${index}" data-detail-bulk-field="reimbursement" class="amount-input" type="text" inputmode="numeric" value="${escapeHtml(formatPlainNumber(checked.reimbursement))}"></td>
+        <td><input step="1" data-number-kind="money" data-detail-bulk-index="${index}" data-detail-bulk-field="amount" class="amount-input" type="text" inputmode="numeric" value="${escapeHtml(formatPlainNumber(checked.amount))}"></td>
+        <td><input step="1" data-number-kind="money" data-detail-bulk-index="${index}" data-detail-bulk-field="reimbursement" class="amount-input" type="text" inputmode="numeric" value="${escapeHtml(formatPlainNumber(checked.reimbursement))}"></td>
         <td class="amount">${formatWon(checked.actualAmount)}</td>
         <td><select data-detail-bulk-index="${index}" data-detail-bulk-field="sector">${detailBulkSectorOptionsHtml(checked.sector)}</select></td>
         <td><select data-detail-bulk-index="${index}" data-detail-bulk-field="subcategory">${detailBulkSubcategoryOptionsHtml(checked.sector, checked.subcategory)}</select></td>
         <td><input data-detail-bulk-index="${index}" data-detail-bulk-field="installmentEnabled" type="checkbox" ${checked.installmentEnabled ? "checked" : ""} aria-label="할부 적용"></td>
-        <td><input data-detail-bulk-index="${index}" data-detail-bulk-field="installmentMonths" class="small-number-input" type="number" min="2" max="60" value="${escapeHtml(checked.installmentMonths || 2)}"></td>
+        <td><input data-number-kind="duration" data-number-unit="개월" data-detail-bulk-index="${index}" data-detail-bulk-field="installmentMonths" class="small-number-input" type="number" min="2" max="60" value="${escapeHtml(checked.installmentMonths || 2)}"></td>
         <td><input data-detail-bulk-index="${index}" data-detail-bulk-field="installmentStartMonth" type="month" value="${escapeHtml(checked.installmentStartMonth || checked.month || "")}"></td>
         <td class="amount">${checked.installmentEnabled && Number(checked.installmentMonths || 0) > 1 ? formatWon(checked.installmentMonthlyAmount) : "-"}</td>
         <td><button type="button" class="income-row-delete" data-delete-detail-bulk="${index}">삭제</button></td>
@@ -817,6 +820,7 @@ function renderDetailBulkPreview() {
 
   els.detailBulkPreview.querySelectorAll("[data-detail-bulk-index]").forEach((input) => {
     input.addEventListener("change", () => {
+      if (!NumericInput.validate(els.detailBulkPreview)) return;
       updateDetailBulkRowsFromPreview();
       renderDetailBulkPreview();
     });
@@ -824,6 +828,10 @@ function renderDetailBulkPreview() {
   els.detailBulkPreview.querySelectorAll("[data-delete-detail-bulk]").forEach((button) => {
     button.addEventListener("click", () => {
       const index = Number(button.dataset.deleteDetailBulk);
+      const invalid = [...els.detailBulkPreview.querySelectorAll("[data-number-kind]")].find((input) =>
+        Number(input.dataset.detailBulkIndex) !== index && !NumericInput.validate(input));
+      if (invalid) return;
+      updateDetailBulkRowsFromPreview();
       detailBulkRows.splice(index, 1);
       markDetailBulkDuplicateRows();
       renderDetailBulkPreview();
@@ -907,13 +915,13 @@ function renderDetailBulkRecordEditForm(item) {
   return `
     <input data-detail-bulk-record-field="date" type="date" value="${escapeHtml(normalizeInputDate(item.approvalDate))}" aria-label="과거 거래 날짜 수정">
     <input data-detail-bulk-record-field="merchant" type="text" value="${escapeHtml(item.merchant)}" aria-label="과거 거래 내용 수정">
-    <input data-detail-bulk-record-field="amount" class="amount-input" type="text" inputmode="numeric" value="${escapeHtml(formatPlainNumber(item.amount))}" aria-label="과거 거래 금액 수정">
+    <input step="1" data-number-kind="money" data-detail-bulk-record-field="amount" class="amount-input" type="text" inputmode="numeric" value="${escapeHtml(formatPlainNumber(item.amount))}" aria-label="과거 거래 금액 수정">
     <select data-detail-bulk-record-field="sourceType" aria-label="과거 거래 결제수단 수정">${detailBulkSourceTypeOptionsHtml(item.sourceType)}</select>
-    <input data-detail-bulk-record-field="reimbursement" class="amount-input" type="text" inputmode="numeric" value="${escapeHtml(formatPlainNumber(reimbursement))}" aria-label="과거 거래 정산 기준값 수정">
+    <input step="1" data-number-kind="money" data-detail-bulk-record-field="reimbursement" class="amount-input" type="text" inputmode="numeric" value="${escapeHtml(formatPlainNumber(reimbursement))}" aria-label="과거 거래 정산 기준값 수정">
     <select data-detail-bulk-record-field="sector" aria-label="과거 거래 섹터 수정">${detailBulkSectorOptionsHtml(item.sector)}</select>
     <select data-detail-bulk-record-field="subcategory" aria-label="과거 거래 세부항목 수정">${detailBulkSubcategoryOptionsHtml(item.sector, item.subcategory)}</select>
     <label class="check-line detail-bulk-installment-check"><input data-detail-bulk-record-field="installmentEnabled" type="checkbox" ${installmentEnabled ? "checked" : ""}> 할부</label>
-    <input data-detail-bulk-record-field="installmentMonths" class="small-number-input" type="number" min="2" max="60" value="${escapeHtml(installmentMonthCount)}" aria-label="할부 개월 수">
+    <input data-number-kind="duration" data-number-unit="개월" data-detail-bulk-record-field="installmentMonths" class="small-number-input" type="number" min="2" max="60" value="${escapeHtml(installmentMonthCount)}" aria-label="할부 개월 수">
     <input data-detail-bulk-record-field="installmentStartMonth" type="month" value="${escapeHtml(installmentStartMonth)}" aria-label="할부 시작 월">
     <div class="income-entry-actions">
       <button type="button" class="primary-action" data-save-detail-bulk-record="${escapeHtml(item.recordKey)}">저장</button>
@@ -957,6 +965,7 @@ async function saveDetailBulkRecordEdit(recordKey) {
   return runManualTransactionSave(async () => {
     const card = els.detailBulkRecordList.querySelector(`[data-save-detail-bulk-record="${cssEscape(recordKey)}"]`)?.closest(".detail-bulk-record-item");
     if (!card) return;
+    if (!NumericInput.validate(card)) return;
     const date = normalizeInputDate(card.querySelector('[data-detail-bulk-record-field="date"]')?.value);
     const merchant = card.querySelector('[data-detail-bulk-record-field="merchant"]')?.value.trim();
     const amount = Math.abs(toNumber(card.querySelector('[data-detail-bulk-record-field="amount"]')?.value));

@@ -3,6 +3,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
+const NumericInput = require("../src/utils/numeric-input.js");
 
 const read = (file) => fs.readFileSync(path.join(__dirname, "..", file), "utf8");
 const copy = (value) => JSON.parse(JSON.stringify(value));
@@ -28,11 +29,12 @@ function setup({ rows = [], income = {}, occurrences = [], settings = {}, reimbu
   const controls = [{ value: "500000", disabled: false }, { value: "10000", disabled: false }, { disabled: false }];
   const host = {
     id: "budgetHost", innerHTML: "",
-    querySelector: (selector) => selector === ".spending-budget-feedback" ? feedback : { addEventListener() {}, textContent: "" },
+    querySelector: (selector) => selector === ".spending-budget-feedback" ? feedback
+      : selector === "[data-budget-profile]" ? null : { addEventListener() {}, textContent: "" },
     querySelectorAll: (selector) => selector === "input, select, button" ? controls : []
   };
   const context = vm.createContext({
-    console, structuredClone, window: {},
+    console, structuredClone, window: {}, NumericInput,
     document: {
       getElementById: (id) => id === host.id ? host : null,
       querySelectorAll: (selector) => selector === ".spending-budget-feedback" ? [feedback] : []
@@ -167,12 +169,39 @@ test("missing income stays unknown while a recorded zero income is known", () =>
   assert.equal(model(setup({ income: { "2026-09": 0 } }).context).incomeSupport, 0);
 });
 
+test("recommendation record sources separate housing, other fixed spending and own principal without counting posted occurrences twice", () => {
+  const { context: c } = setup({ income: { "2026-09": 2500000 }, rows: [
+    expense("rent", 500000, undefined, { sourceType: "recurring", recurringId: "rent", sector: "고정 주거비", subcategory: "월세" }),
+    expense("phone", 50000, undefined, { sector: "고정 주거비", subcategory: "통신비" }),
+    expense("dining", 20000)
+  ], occurrences: [
+    recurring("rent", 500000, { posted: true, subcategory: "월세" }),
+    recurring("food", 10000, { sector: "식비" }),
+    recurring("loan", 130000, { recurringType: "loan", subcategory: "대출이자", loanPrincipalAmount: 100000,
+      loanSupportPrincipalAmount: 40000, loanSupportInterestAmount: 10000 })
+  ] });
+  assert.deepEqual(copy(model(c).recommendationRecords), {
+    income: 2500000, housingCost: 500000, otherFixed: 80000, ownPrincipal: 60000, fixedFood: 10000
+  });
+});
+
+test("empty recommendations distinguish absent records from a known zero income", () => {
+  assert.deepEqual(copy(model(setup().context).recommendationRecords), {
+    income: null, housingCost: null, otherFixed: null, ownPrincipal: null, fixedFood: 0
+  });
+  assert.equal(model(setup({ income: { "2026-09": 0 } }).context).recommendationRecords.income, 0);
+  const housingOnly = model(setup({ rows: [expense("rent-only", 500000, undefined, { sector: "고정 주거비", subcategory: "월세" })] }).context);
+  assert.equal(housingOnly.recommendationRecords.housingCost, 500000);
+  assert.equal(housingOnly.recommendationRecords.otherFixed, null, "housing alone does not establish zero other fixed costs");
+});
+
 test("income support excludes canceled income even when another valid income makes the month known", () => {
   const { context: c } = setup({ rows: [
     expense("income", 50000, undefined, { flow: "income", sector: "수입" }),
     expense("canceled-income", 1000000, undefined, { flow: "income", sector: "수입", status: "취소/제외", cancel: "취소" })
   ] });
   assert.equal(model(c).incomeSupport, 50000);
+  assert.equal(model(c).recommendationRecords.income, 50000);
 });
 
 test("storage normalizes, saves and reloads spending settings without changing transaction data", async () => {

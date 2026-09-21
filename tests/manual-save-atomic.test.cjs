@@ -46,7 +46,7 @@ function setup() {
   });
   // Match browser ordering, including the former later quick-add definition.
   for (const file of [
-    "src/data/constants.js", "src/data/categories.js", "src/utils/date.js", "src/utils/normalize.js", "src/utils/storage.js",
+    "src/data/constants.js", "src/data/categories.js", "src/utils/date.js", "src/utils/normalize.js", "src/utils/storage.js", "src/utils/numeric-input.js",
     "src/components/quick-add.js", "src/features/board/board-cards.js", "src/features/details/details-view.js",
     "src/features/income/income-entry.js", "src/features/income/income-bulk.js", "src/features/income/income-list.js",
     "src/features/transactions/transactions-view.js"

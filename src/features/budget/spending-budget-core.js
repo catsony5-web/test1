@@ -7,6 +7,26 @@
 
   const MAX_MONEY = 1000000000000;
   const MAX_PLANS = 500;
+  const AGE_GROUPS = Object.freeze([
+    { key: "twentiesEarly", label: "20대 초반 (20~23세)", min: 20, max: 23 },
+    { key: "twentiesMid", label: "20대 중반 (24~26세)", min: 24, max: 26 },
+    { key: "twentiesLate", label: "20대 후반 (27~29세)", min: 27, max: 29 },
+    { key: "thirties", label: "30대 (30~39세)", min: 30, max: 39 },
+    { key: "forties", label: "40대 (40~49세)", min: 40, max: 49 },
+    { key: "fifties", label: "50대 (50~59세)", min: 50, max: 59 },
+    { key: "sixties", label: "60대 (60~69세)", min: 60, max: 69 },
+    // Legacy selections do not identify a bounded age range. Never narrow them silently.
+    { key: "under40", label: "40세 미만 (기존 선택)", min: null, max: null },
+    { key: "over60", label: "60세 이상 (기존 선택)", min: null, max: null },
+    { key: "undisclosed", label: "선택하지 않음", min: null, max: null }
+  ].map(Object.freeze));
+  // App examples only: these ratios are neither survey averages nor optimal-budget claims.
+  const TEMPLATE_RULES = Object.freeze({
+    starterFamily: Object.freeze({ key: "starterFamily", label: "사회초년 · 가족과 거주", savingsDebtRatio: 0.25, reserveRatio: 0.05, foodRatio: 0.12 }),
+    starter: Object.freeze({ key: "starter", label: "사회초년 · 독립/공동 거주", savingsDebtRatio: 0.20, reserveRatio: 0.05, foodRatio: 0.15 }),
+    experienced: Object.freeze({ key: "experienced", label: "경력 생활자", savingsDebtRatio: 0.30, reserveRatio: 0.05, foodRatio: 0.15 }),
+    irregular: Object.freeze({ key: "irregular", label: "소득이 불규칙한 생활자", savingsDebtRatio: 0.10, reserveRatio: 0.10, foodRatio: 0.15 })
+  });
   // Public household statistics are context, not an individual's optimal budget.
   const BENCHMARKS = Object.freeze({
     single: { amount: 1689000, housingShare: 0.184, year: 2024,
@@ -46,17 +66,152 @@
     return Number.isFinite(parsed) && parsed >= 0 ? money(parsed) : null;
   }
 
+  function optionalAge(value, minimum, maximum) {
+    if (value === null || value === undefined || !["number", "string"].includes(typeof value)
+      || (typeof value === "string" && !value.trim())) return null;
+    const parsed = Number(value);
+    return Number.isInteger(parsed) && parsed >= minimum && parsed <= maximum ? parsed : null;
+  }
+
   function normalizeProfile(value) {
     const source = value && typeof value === "object" ? value : {};
     const select = (key, allowed, fallback = "") => allowed.includes(source[key]) ? source[key] : fallback;
     return {
-      ageGroup: select("ageGroup", ["under40", "forties", "fifties", "over60", "undisclosed"]),
+      ageGroup: select("ageGroup", AGE_GROUPS.map((group) => group.key)),
       living: select("living", ["alone", "family", "shared"]),
+      career: select("career", ["starter", "experienced", "irregular"]),
+      currentAge: optionalAge(source.currentAge, 0, 120),
+      retirementAge: optionalAge(source.retirementAge, 40, 90),
       incomeStability: select("incomeStability", ["stable", "variable"], "stable"),
       netIncome: optionalMoney(source.netIncome), housingCost: optionalMoney(source.housingCost),
       otherFixed: optionalMoney(source.otherFixed), ownPrincipal: optionalMoney(source.ownPrincipal),
-      savingsGoal: money(source.savingsGoal), reserve: money(source.reserve),
+      savingsGoal: optionalMoney(source.savingsGoal), reserve: optionalMoney(source.reserve),
+      foodTarget: optionalMoney(source.foodTarget),
       historyConfirmed: source.historyConfirmed === true
+    };
+  }
+
+  function earningHorizon(value) {
+    const profile = normalizeProfile(value);
+    const retirementAge = profile.retirementAge === null ? 65 : profile.retirementAge;
+    const group = AGE_GROUPS.find((item) => item.key === profile.ageGroup);
+    const ageMin = profile.currentAge === null ? group?.min ?? null : profile.currentAge;
+    const ageMax = profile.currentAge === null ? group?.max ?? null : profile.currentAge;
+    const available = ageMin !== null && ageMax !== null;
+    const minYears = available ? Math.max(0, retirementAge - ageMax) : null;
+    const maxYears = available ? Math.max(0, retirementAge - ageMin) : null;
+    const warnings = ["현재부터 선택한 은퇴 나이까지 계속 일한다고 가정한 기간이며, 고용·월급의 보장이 아닙니다. 미래 소득은 이번 달 소비 한도에 더하지 않습니다."];
+    if (!available) warnings.push("근로 가능 기간을 보려면 구체적인 연령 구간 또는 현재 나이를 선택하세요.");
+    return {
+      available, ageMin, ageMax, retirementAge, retirementAgeAssumed: profile.retirementAge === null,
+      minYears, maxYears, minMonths: available ? minYears * 12 : null, maxMonths: available ? maxYears * 12 : null,
+      label: !available ? "연령 구간 선택 필요" : minYears === maxYears ? `약 ${minYears}년` : `약 ${minYears}~${maxYears}년`,
+      warnings
+    };
+  }
+
+  function templateDraft(value, context = {}) {
+    const input = normalizeProfile(value);
+    const records = context && typeof context === "object" ? context : {};
+    const profile = { ...input };
+    const fieldSources = {};
+    const assumptions = [];
+    const warnings = [];
+    const formatAmount = (amount) => `${amount.toLocaleString("ko-KR")}원`;
+    profile.living = input.living || "alone";
+    profile.career = input.career || (input.incomeStability === "variable" ? "irregular" : "starter");
+    fieldSources.living = input.living ? "manual" : "template";
+    fieldSources.career = input.career ? "manual" : "template";
+    if (!input.living) assumptions.push("생활 형태 미선택: 혼자 거주하는 예시를 사용했습니다.");
+    if (!input.career) assumptions.push(input.incomeStability === "variable"
+      ? "경력 유형 미선택: 기존 불규칙 소득 설정으로 불규칙 소득 예시를 사용했습니다."
+      : "경력 유형 미선택: 사회초년 예시를 사용했습니다.");
+    const ruleKey = profile.career === "starter" ? profile.living === "family" ? "starterFamily" : "starter" : profile.career;
+    const template = { ...TEMPLATE_RULES[ruleKey], description: "앱 예시 규칙이며 통계 평균이나 최적 예산을 보장하지 않습니다." };
+    function resolveAmount(key, recordKey, fallback, label) {
+      if (input[key] !== null) {
+        fieldSources[key] = "manual";
+        return input[key];
+      }
+      const recorded = optionalMoney(records[recordKey]);
+      if (recorded !== null) {
+        fieldSources[key] = "records";
+        return recorded;
+      }
+      fieldSources[key] = "template";
+      assumptions.push(`${label} 미확인: ${formatAmount(fallback)}을 예시로 가정했습니다.`);
+      return fallback;
+    }
+    profile.netIncome = resolveAmount("netIncome", "income", 2500000, "월 실수령액");
+    profile.housingCost = resolveAmount("housingCost", "housingCost", { alone: 500000, shared: 350000, family: 0 }[profile.living], "주거비");
+    profile.otherFixed = resolveAmount("otherFixed", "otherFixed", 150000, "기타 고정비");
+    profile.ownPrincipal = resolveAmount("ownPrincipal", "ownPrincipal", 0, "본인 부담 대출 원금");
+
+    const fixed = profile.housingCost + profile.otherFixed;
+    const requestedFixedFood = optionalMoney(records.fixedFood) ?? 0;
+    const fixedFood = Math.min(fixed, requestedFixedFood);
+    if (requestedFixedFood > fixed) warnings.push("고정 식비가 전체 고정비보다 큽니다. 고정비 분류를 확인하세요.");
+    const desiredSavings = Math.max(0, Math.round(profile.netIncome * template.savingsDebtRatio) - profile.ownPrincipal);
+    const desiredReserve = Math.round(profile.netIncome * template.reserveRatio);
+    profile.savingsGoal = input.savingsGoal ?? desiredSavings;
+    profile.reserve = input.reserve ?? desiredReserve;
+    fieldSources.savingsGoal = input.savingsGoal === null ? "template" : "manual";
+    fieldSources.reserve = input.reserve === null ? "template" : "manual";
+    if (input.savingsGoal === null) assumptions.push(`저축은 실수령액의 ${Math.round(template.savingsDebtRatio * 100)}%에서 본인 원금을 뺀 앱 예시 규칙을 사용했습니다.`);
+    if (input.reserve === null) assumptions.push(`월 완충 예비비는 실수령액의 ${Math.round(template.reserveRatio * 100)}%인 앱 예시 규칙을 사용했습니다.`);
+
+    // Fixed consumption and principal come first. Only suggested amounts may shrink;
+    // preserve explicit user commitments, including zero, even when unaffordable.
+    const manualCommitments = (input.savingsGoal ?? 0) + (input.reserve ?? 0);
+    const suggestionCapacity = Math.max(0, profile.netIncome - profile.ownPrincipal - fixed - manualCommitments);
+    const suggestedSavings = input.savingsGoal === null ? desiredSavings : 0;
+    const suggestedReserve = input.reserve === null ? desiredReserve : 0;
+    const suggestedTotal = suggestedSavings + suggestedReserve;
+    if (suggestedTotal > suggestionCapacity) {
+      const adjustedSavings = Math.floor(suggestionCapacity * suggestedSavings / suggestedTotal);
+      if (input.savingsGoal === null) profile.savingsGoal = adjustedSavings;
+      if (input.reserve === null) profile.reserve = suggestionCapacity - adjustedSavings;
+      warnings.push("고정비와 본인 원금, 직접 입력한 목표를 우선하여 추천 저축·예비비를 남은 여력 안으로 줄였습니다.");
+    }
+    const capacity = profile.netIncome - profile.savingsGoal - profile.ownPrincipal - profile.reserve;
+    const monthlyLimit = Math.max(0, capacity);
+    const deficit = Math.max(0, fixed - capacity);
+    const foodCapacity = Math.max(0, monthlyLimit - fixed + fixedFood);
+    const history = Array.isArray(records.history) ? records.history.slice(-3) : [];
+    const historyConfirmed = typeof records.historyConfirmed === "boolean" ? records.historyConfirmed : input.historyConfirmed;
+    const historyReady = historyConfirmed && history.length === 3
+      && history.every((row) => row && optionalMoney(row.food) !== null);
+    let foodTarget;
+    if (input.foodTarget !== null) {
+      foodTarget = input.foodTarget;
+      fieldSources.foodTarget = "manual";
+    } else if (historyReady) {
+      foodTarget = history.map((row) => money(row.food)).sort((a, b) => a - b)[1];
+      fieldSources.foodTarget = "history";
+    } else {
+      foodTarget = Math.round(profile.netIncome * template.foodRatio);
+      fieldSources.foodTarget = "template";
+      assumptions.push(`식비는 실수령액의 ${Math.round(template.foodRatio * 100)}%인 앱 예시 규칙을 사용했습니다. 확인한 3개월 식비 기록이 있으면 그 중앙값을 우선합니다.`);
+    }
+    if (fieldSources.foodTarget !== "manual") {
+      const adjustedFood = Math.max(0, Math.min(foodCapacity, Math.max(fixedFood, foodTarget)));
+      if (adjustedFood !== foodTarget) warnings.push("식비 초안을 고정 식비와 이번 달 소비 여력에 맞게 조정했습니다.");
+      foodTarget = adjustedFood;
+    }
+    const foodDeficit = Math.max(0, foodTarget - foodCapacity, fixedFood - foodTarget);
+    if (deficit) warnings.push(`고정비·원금·저축·예비비가 월 실수령액보다 ${formatAmount(deficit)} 많아 적용할 수 없습니다.`);
+    if (foodDeficit) warnings.push("직접 입력한 식비 목표가 고정 식비보다 작거나 식비 가용 한도를 초과합니다. 식비 목표 또는 다른 입력을 조정하세요.");
+    if (!monthlyLimit) warnings.push("이번 달 소비 가능한 금액이 0원이므로 소비 한도를 적용할 수 없습니다.");
+    profile.foodTarget = foodTarget;
+    const confirmationRequired = assumptions.length > 0 && records.assumptionsConfirmed !== true;
+    return {
+      profile, fieldSources, assumptions, warnings, template,
+      rates: { savingsDebtRatio: template.savingsDebtRatio, reserveRatio: template.reserveRatio, foodRatio: template.foodRatio },
+      basis: "app-template", foodBasis: fieldSources.foodTarget,
+      monthlyLimit, foodTarget, savingsTarget: profile.savingsGoal, reserve: profile.reserve,
+      capacity, fixed, fixedFood, foodCapacity, foodDeficit, deficit, confirmationRequired,
+      canApply: monthlyLimit > 0 && deficit === 0 && foodDeficit === 0 && requestedFixedFood <= fixed && !confirmationRequired,
+      horizon: earningHorizon(input)
     };
   }
 
@@ -129,7 +284,7 @@
     const foodTarget = historyRows.length === 3
       ? Math.max(0, Math.min(monthlyLimit - fixed, Math.round(median(historyRows.map((row) => money(row.food)))))) : null;
     return { profile, ready: true, canApply: capacity >= fixed && monthlyLimit > 0, capacity, fixed, monthlyLimit,
-      foodTarget, savingsTarget: profile.savingsGoal, deficit: Math.max(0, fixed - capacity), basis,
+      foodTarget, savingsTarget: money(profile.savingsGoal), deficit: Math.max(0, fixed - capacity), basis,
       ageAverage: BENCHMARKS.age.amounts[profile.ageGroup] || null, singleAverage: profile.living === "alone" ? BENCHMARKS.single.amount : null };
   }
 
@@ -286,5 +441,5 @@
     };
   }
 
-  return { MAX_PLANS, BENCHMARKS, normalizeSettings, normalizeProfile, targetsForMonth, recommend, build };
+  return { MAX_PLANS, AGE_GROUPS, BENCHMARKS, normalizeSettings, normalizeProfile, earningHorizon, templateDraft, targetsForMonth, recommend, build };
 });

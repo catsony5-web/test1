@@ -6,6 +6,7 @@ const vm = require("node:vm");
 
 function loadCalendarView() {
   const context = vm.createContext({ console });
+  vm.runInContext(fs.readFileSync(path.join(__dirname, "../src/utils/numeric-input.js"), "utf8"), context);
   vm.runInContext(fs.readFileSync(path.join(__dirname, "../src/utils/food-occasion.js"), "utf8"), context);
   const source = fs.readFileSync(
     path.join(__dirname, "../src/features/calendar/calendar-view.js"),
@@ -45,7 +46,7 @@ test("N빵 입력만으로 정산금을 바꾸지 않고 적용 버튼 동작만
     elements: {
       amount: { value: "31,900" },
       reimbursement: { value: "5,000" },
-      splitPeople: { value: "3" }
+      splitPeople: { value: "3", dataset: { numberKind: "quantity", numberUnit: "명" } }
     },
     querySelector(selector) {
       return {
@@ -72,6 +73,12 @@ test("N빵 입력만으로 정산금을 바꾸지 않고 적용 버튼 동작만
   assert.equal(actualPreview.value, "10,634원");
   assert.equal(classes.has("applied"), true);
   assert.match(result.textContent, /^적용 완료/);
+
+  form.elements.amount.value = "1,000,000";
+  form.elements.splitPeople.value = "1,000";
+  const groupedPeople = context.updateCalendarSplitPreview(form);
+  assert.equal(groupedPeople.people, 1000);
+  assert.equal(groupedPeople.ownAmount, 1000);
 });
 
 test("같은 거래를 다시 선택하면 편집을 닫고 다른 거래는 전환한다", () => {

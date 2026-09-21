@@ -81,6 +81,7 @@ function setupGoalControls() {
 function handleGoalControlChange(event) {
   const control = event.target;
   if (!(control instanceof HTMLInputElement || control instanceof HTMLSelectElement || control instanceof HTMLTextAreaElement)) return;
+  if (control.dataset.numberKind && (!NumericInput.validate(control) || NumericInput.read(control) === null)) return;
 
   if (control.dataset.goalField) {
     updateGoalPlan((draft) => {
@@ -179,6 +180,7 @@ function handleGoalActionClick(event) {
 
 function goalControlValue(control) {
   if (control.type === "checkbox") return control.checked;
+  if (control.dataset.numberKind) return NumericInput.read(control);
   if (control.type === "number" || control.dataset.goalNumber === "true") return goalNumber(control.value);
   return control.value;
 }
@@ -450,11 +452,11 @@ function renderGoalInputs(plan, baseline) {
           <h4>목표 정의</h4>
           <div class="goal-form-grid">
             <label class="goal-field goal-field-wide"><span>목표 이름</span><input type="text" data-goal-field="targetName" value="${escapeHtml(plan.targetName)}" maxlength="40"></label>
-            <label class="goal-field"><span>목표금액</span><input type="number" data-goal-field="targetAmount" min="1" step="100000" value="${plan.targetAmount}"><small>${formatWon(plan.targetAmount)}</small></label>
-            <label class="goal-field"><span>현재 유동 금융자산</span><input type="number" data-goal-field="currentAssets" min="0" step="100000" value="${plan.currentAssets}"><small>예금·투자자산, 부동산 제외</small></label>
+            <label class="goal-field"><span>목표금액</span><input type="text" inputmode="numeric" data-number-kind="money" data-goal-field="targetAmount" min="1" step="1" value="${plan.targetAmount}"></label>
+            <label class="goal-field"><span>현재 유동 금융자산</span><input type="text" inputmode="numeric" data-number-kind="money" data-goal-field="currentAssets" min="0" step="1" value="${plan.currentAssets}"><small>예금·투자자산, 부동산 제외</small></label>
             <fieldset class="goal-segment goal-field-wide"><legend>목표기한</legend><label><input type="radio" data-goal-field="deadlineMonths" name="goalDeadline" value="48" ${plan.deadlineMonths === 48 ? "checked" : ""}><span>4년 · 48개월</span></label><label><input type="radio" data-goal-field="deadlineMonths" name="goalDeadline" value="60" ${plan.deadlineMonths === 60 ? "checked" : ""}><span>5년 · 60개월</span></label></fieldset>
             <label class="goal-switch goal-field-wide"><input type="checkbox" data-goal-field="inflationEnabled" ${plan.inflationEnabled ? "checked" : ""}><span><strong>현재 구매력 기준 목표</strong><small>물가만큼 목표선을 매년 높입니다</small></span></label>
-            <label class="goal-field ${plan.inflationEnabled ? "" : "is-muted"}"><span>연 물가상승률</span><div class="goal-suffix-input"><input type="number" data-goal-field="annualInflationRate" step="0.1" min="0" max="20" value="${(plan.annualInflationRate * 100).toFixed(1)}" ${plan.inflationEnabled ? "" : "disabled"}><b>%</b></div></label>
+            <label class="goal-field ${plan.inflationEnabled ? "" : "is-muted"}"><span>연 물가상승률</span><div class="goal-suffix-input"><input type="number" data-number-kind="percent" data-number-unit="" data-goal-field="annualInflationRate" step="0.1" min="0" max="20" value="${(plan.annualInflationRate * 100).toFixed(1)}" ${plan.inflationEnabled ? "" : "disabled"}><b>%</b></div></label>
           </div>
         </div>
         <div class="goal-form-card goal-baseline-card">
@@ -471,8 +473,8 @@ function renderGoalInputs(plan, baseline) {
             <label><input type="radio" name="goalBaselineMode" data-goal-field="baselineMode" value="manual" ${plan.baselineMode === "manual" ? "checked" : ""}><span><strong>직접 입력</strong><small>${formatWon(plan.manualMonthlyContribution)}</small></span></label>
           </fieldset>
           <div class="goal-form-grid goal-manual-grid">
-            <label class="goal-field"><span>세후 월수입 보정</span><input type="number" data-goal-field="manualMonthlyIncome" min="0" step="10000" value="${plan.manualMonthlyIncome}"><small>0이면 가계부 평균 사용</small></label>
-            <label class="goal-field"><span>직접 월 납입액</span><input type="number" data-goal-field="manualMonthlyContribution" min="0" step="10000" value="${plan.manualMonthlyContribution}"><small>수동 기준 또는 데이터 없을 때</small></label>
+            <label class="goal-field"><span>세후 월수입 보정</span><input type="text" inputmode="numeric" data-number-kind="money" data-goal-field="manualMonthlyIncome" min="0" step="1" value="${plan.manualMonthlyIncome}"><small>0이면 가계부 평균 사용</small></label>
+            <label class="goal-field"><span>직접 월 납입액</span><input type="text" inputmode="numeric" data-number-kind="money" data-goal-field="manualMonthlyContribution" min="0" step="1" value="${plan.manualMonthlyContribution}"><small>수동 기준 또는 데이터 없을 때</small></label>
           </div>
           ${baseline.rows.length ? `<p class="goal-data-note"><i class="ti ti-database" aria-hidden="true"></i>${escapeHtml(baseline.period)}의 음수 월까지 포함한 평균입니다.</p>` : `<p class="goal-data-note is-warning"><i class="ti ti-alert-circle" aria-hidden="true"></i>정확도를 높이려면 수입과 소비를 입력하거나 직접 월 납입액을 설정하세요. <button type="button" data-goal-action="open-income">수입 입력 열기</button></p>`}
         </div>
@@ -497,7 +499,7 @@ function renderGoalScenarios(plan, calculationPlan, comparisons) {
         ${plan.scenarios.map((scenario) => `
           <label class="goal-rate-card goal-rate-${escapeHtml(scenario.id)}">
             <span>${escapeHtml(scenario.label)}</span>
-            <div><input type="number" data-goal-scenario-rate="${escapeHtml(scenario.id)}" step="0.1" min="-50" max="100" value="${(scenario.annualReturnRate * 100).toFixed(1)}"><b>%</b></div>
+            <div><input type="number" data-number-kind="percent" data-number-unit="" data-goal-scenario-rate="${escapeHtml(scenario.id)}" step="0.1" min="-50" max="100" value="${(scenario.annualReturnRate * 100).toFixed(1)}"><b>%</b></div>
             <small>${scenario.id === "realEstate" ? "리츠·부동산펀드 등 간접투자" : "세후 연수익률 가정"}</small>
           </label>
         `).join("")}
@@ -596,10 +598,10 @@ function renderGoalEvents(plan) {
               <div class="goal-event-head"><div><span>${escapeHtml(reference?.category || (item.id === "income-break" ? "소득" : "사용자"))}</span><h4 id="goal-event-title-${escapeHtml(item.id)}">${escapeHtml(item.label)}</h4></div><label class="goal-toggle"><input type="checkbox" aria-label="${escapeHtml(item.label)} 경로에 반영" data-goal-event-id="${escapeHtml(item.id)}" data-goal-event-field="enabled" ${item.enabled ? "checked" : ""}><span aria-hidden="true"></span><b>${item.enabled ? "반영 중" : "미반영"}</b></label></div>
               <p>${escapeHtml(reference?.summary || (item.id === "income-break" ? "휴직·실직처럼 소득이 줄어드는 기간의 월 부족액을 직접 입력합니다." : "지출은 음수, 추가 수입은 양수로 입력할 수 있습니다."))}</p>
               <div class="goal-event-fields">
-                <label><span>발생 시점</span><div class="goal-suffix-input"><input type="number" aria-label="${escapeHtml(item.label)} 발생 시점" min="1" max="600" data-goal-event-id="${escapeHtml(item.id)}" data-goal-event-field="startMonth" value="${item.startMonth}"><b>개월 후</b></div></label>
-                <label><span>${isCustom ? "일회성 영향" : "일회성 비용"}</span><input type="number" aria-label="${escapeHtml(item.label)} ${isCustom ? "일회성 영향" : "일회성 비용"}" step="10000" data-goal-event-id="${escapeHtml(item.id)}" data-goal-event-field="oneTimeAmount" value="${isCustom ? item.oneTimeAmount : Math.abs(item.oneTimeAmount)}"></label>
-                <label><span>${isCustom ? "월 영향" : item.id === "income-break" ? "월 소득 감소" : "월 추가 비용"}</span><input type="number" aria-label="${escapeHtml(item.label)} ${isCustom ? "월 영향" : item.id === "income-break" ? "월 소득 감소" : "월 추가 비용"}" step="10000" data-goal-event-id="${escapeHtml(item.id)}" data-goal-event-field="monthlyAmount" value="${isCustom ? item.monthlyAmount : Math.abs(item.monthlyAmount)}"></label>
-                <label><span>지속</span><div class="goal-suffix-input"><input type="number" aria-label="${escapeHtml(item.label)} 지속 개월" min="1" max="600" data-goal-event-id="${escapeHtml(item.id)}" data-goal-event-field="duration" value="${item.duration || 1}"><b>개월</b></div></label>
+                <label><span>발생 시점</span><div class="goal-suffix-input"><input type="number" data-number-kind="duration" data-number-unit="" aria-label="${escapeHtml(item.label)} 발생 시점" min="1" max="600" data-goal-event-id="${escapeHtml(item.id)}" data-goal-event-field="startMonth" value="${item.startMonth}"><b>개월 후</b></div></label>
+                <label><span>${isCustom ? "일회성 영향" : "일회성 비용"}</span><input type="text" inputmode="numeric" data-number-kind="money" aria-label="${escapeHtml(item.label)} ${isCustom ? "일회성 영향" : "일회성 비용"}" step="1" data-goal-event-id="${escapeHtml(item.id)}" data-goal-event-field="oneTimeAmount" value="${isCustom ? item.oneTimeAmount : Math.abs(item.oneTimeAmount)}"></label>
+                <label><span>${isCustom ? "월 영향" : item.id === "income-break" ? "월 소득 감소" : "월 추가 비용"}</span><input type="text" inputmode="numeric" data-number-kind="money" aria-label="${escapeHtml(item.label)} ${isCustom ? "월 영향" : item.id === "income-break" ? "월 소득 감소" : "월 추가 비용"}" step="1" data-goal-event-id="${escapeHtml(item.id)}" data-goal-event-field="monthlyAmount" value="${isCustom ? item.monthlyAmount : Math.abs(item.monthlyAmount)}"></label>
+                <label><span>지속</span><div class="goal-suffix-input"><input type="number" data-number-kind="duration" data-number-unit="" aria-label="${escapeHtml(item.label)} 지속 개월" min="1" max="600" data-goal-event-id="${escapeHtml(item.id)}" data-goal-event-field="duration" value="${item.duration || 1}"><b>개월</b></div></label>
               </div>
               ${reference ? `<div class="goal-reference"><span>${reference.manualOnly ? "직접 입력" : `${escapeHtml(reference.basisPeriod || "")} ${escapeHtml(reference.statisticType || "참고값")}`}</span>${reference.referenceValueKRW ? `<strong>${formatWon(reference.referenceValueKRW)}</strong><button type="button" data-goal-action="apply-event-reference" data-goal-event-id="${escapeHtml(item.id)}">참고값 적용</button>` : ""}<a href="${escapeHtml(reference.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(reference.sourceName)} <i class="ti ti-world-www" aria-hidden="true"></i></a></div><small class="goal-event-scope">${escapeHtml(reference.scopeNote)}</small>` : ""}
             </article>
@@ -650,10 +652,10 @@ function renderGoalPolicyCard(card, plan, priority) {
       <div class="goal-policy-confirm">
         <label class="goal-switch"><input type="checkbox" aria-label="${escapeHtml(card.title)} 공식 확인 금액 반영" data-goal-policy-id="${escapeHtml(card.id)}" data-goal-policy-field="enabled" ${selection.enabled ? "checked" : ""}><span><strong>공식 확인 금액 반영</strong><small>확인 전에는 0원</small></span></label>
         <div class="goal-policy-fields">
-          <label><span>확인 금액</span><input type="number" aria-label="${escapeHtml(card.title)} 확인 금액" min="0" step="10000" data-goal-policy-id="${escapeHtml(card.id)}" data-goal-policy-field="amount" value="${selection.amount}"></label>
+          <label><span>확인 금액</span><input type="text" inputmode="numeric" data-number-kind="money" aria-label="${escapeHtml(card.title)} 확인 금액" min="0" step="1" data-goal-policy-id="${escapeHtml(card.id)}" data-goal-policy-field="amount" value="${selection.amount}"></label>
           <label><span>형태</span><select aria-label="${escapeHtml(card.title)} 지급 형태" data-goal-policy-id="${escapeHtml(card.id)}" data-goal-policy-field="frequency"><option value="one-time" ${selection.frequency === "one-time" ? "selected" : ""}>일회성</option><option value="monthly" ${selection.frequency === "monthly" ? "selected" : ""}>매월</option></select></label>
-          <label><span>시작</span><div class="goal-suffix-input"><input type="number" aria-label="${escapeHtml(card.title)} 시작 개월" min="1" max="600" data-goal-policy-id="${escapeHtml(card.id)}" data-goal-policy-field="startMonth" value="${selection.startMonth}"><b>개월</b></div></label>
-          ${selection.frequency === "monthly" ? `<label><span>지속</span><div class="goal-suffix-input"><input type="number" aria-label="${escapeHtml(card.title)} 지속 개월" min="1" max="600" data-goal-policy-id="${escapeHtml(card.id)}" data-goal-policy-field="duration" value="${selection.duration || 12}"><b>개월</b></div></label>` : ""}
+          <label><span>시작</span><div class="goal-suffix-input"><input type="number" data-number-kind="duration" data-number-unit="" aria-label="${escapeHtml(card.title)} 시작 개월" min="1" max="600" data-goal-policy-id="${escapeHtml(card.id)}" data-goal-policy-field="startMonth" value="${selection.startMonth}"><b>개월</b></div></label>
+          ${selection.frequency === "monthly" ? `<label><span>지속</span><div class="goal-suffix-input"><input type="number" data-number-kind="duration" data-number-unit="" aria-label="${escapeHtml(card.title)} 지속 개월" min="1" max="600" data-goal-policy-id="${escapeHtml(card.id)}" data-goal-policy-field="duration" value="${selection.duration || 12}"><b>개월</b></div></label>` : ""}
         </div>
       </div>
     </article>
@@ -690,14 +692,14 @@ function renderGoalSideHustle(plan, baseline, comparisons) {
         <div class="goal-side-numbers">
           <label class="goal-switch"><input type="checkbox" aria-label="검증한 부업 순수익을 목표에 반영" data-goal-side-field="enabled" ${plan.sideHustle.enabled ? "checked" : ""}><span><strong>검증한 순수익을 목표에 반영</strong><small>숫자를 확인한 뒤 켜세요</small></span></label>
           <div class="goal-form-grid">
-            <label class="goal-field"><span>주당 가능 시간</span><div class="goal-suffix-input"><input type="number" min="0" max="168" step="0.5" data-goal-side-field="weeklyHours" value="${plan.sideHustle.weeklyHours}"><b>시간</b></div></label>
-            <label class="goal-field"><span>판매 단가</span><input type="number" min="0" step="1000" data-goal-side-field="unitPrice" value="${plan.sideHustle.unitPrice}"></label>
-            <label class="goal-field"><span>월 판매량</span><input type="number" min="0" step="1" data-goal-side-field="monthlySales" value="${plan.sideHustle.monthlySales}"></label>
-            <label class="goal-field"><span>월 비용·수수료</span><input type="number" min="0" step="1000" data-goal-side-field="monthlyCosts" value="${plan.sideHustle.monthlyCosts}"></label>
-            <label class="goal-field"><span>세금 유보율</span><div class="goal-suffix-input"><input type="number" min="0" max="100" step="1" data-goal-side-field="taxReserveRate" value="${plan.sideHustle.taxReserveRate}"><b>%</b></div></label>
-            <label class="goal-field"><span>목표 투입 비율</span><div class="goal-suffix-input"><input type="number" min="0" max="100" step="5" data-goal-side-field="contributionRate" value="${plan.sideHustle.contributionRate}"><b>%</b></div></label>
-            <label class="goal-field"><span>초기비용</span><input type="number" min="0" step="1000" data-goal-side-field="initialCost" value="${plan.sideHustle.initialCost}"></label>
-            <label class="goal-field"><span>시작 시점</span><div class="goal-suffix-input"><input type="number" min="1" max="600" data-goal-side-field="startMonth" value="${plan.sideHustle.startMonth}"><b>개월 후</b></div></label>
+            <label class="goal-field"><span>주당 가능 시간</span><div class="goal-suffix-input"><input type="text" inputmode="decimal" data-number-kind="decimal" data-number-unit="" min="0" max="168" step="0.5" data-goal-side-field="weeklyHours" value="${plan.sideHustle.weeklyHours}"><b>시간</b></div></label>
+            <label class="goal-field"><span>판매 단가</span><input type="text" inputmode="numeric" data-number-kind="money" min="0" step="1" data-goal-side-field="unitPrice" value="${plan.sideHustle.unitPrice}"></label>
+            <label class="goal-field"><span>월 판매량</span><input type="text" inputmode="numeric" data-number-kind="quantity" data-number-unit="개" min="0" step="1" data-goal-side-field="monthlySales" value="${plan.sideHustle.monthlySales}"></label>
+            <label class="goal-field"><span>월 비용·수수료</span><input type="text" inputmode="numeric" data-number-kind="money" min="0" step="1" data-goal-side-field="monthlyCosts" value="${plan.sideHustle.monthlyCosts}"></label>
+            <label class="goal-field"><span>세금 유보율</span><div class="goal-suffix-input"><input type="number" data-number-kind="percent" data-number-unit="" min="0" max="100" step="1" data-goal-side-field="taxReserveRate" value="${plan.sideHustle.taxReserveRate}"><b>%</b></div></label>
+            <label class="goal-field"><span>목표 투입 비율</span><div class="goal-suffix-input"><input type="number" data-number-kind="percent" data-number-unit="" min="0" max="100" step="5" data-goal-side-field="contributionRate" value="${plan.sideHustle.contributionRate}"><b>%</b></div></label>
+            <label class="goal-field"><span>초기비용</span><input type="text" inputmode="numeric" data-number-kind="money" min="0" step="1" data-goal-side-field="initialCost" value="${plan.sideHustle.initialCost}"></label>
+            <label class="goal-field"><span>시작 시점</span><div class="goal-suffix-input"><input type="number" data-number-kind="duration" data-number-unit="" min="1" max="600" data-goal-side-field="startMonth" value="${plan.sideHustle.startMonth}"><b>개월 후</b></div></label>
           </div>
           <div class="goal-side-metrics">
             ${goalMiniMetric("월매출", sideMath.revenue, "단가×판매량")}

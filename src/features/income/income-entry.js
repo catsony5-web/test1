@@ -34,6 +34,7 @@ async function handleIncomeEntry(event) {
     currentFileName = "수입 직접 입력";
     els.incomeEntryDescription.value = "";
     els.incomeEntryAmount.value = "";
+    NumericInput.refresh(els.incomeEntryAmount, { resetEditing: true });
     reclassify();
   });
 }

@@ -1,0 +1,164 @@
+/* Shared device adaptations load after feature styles. Keep wide data inside
+   its own scroll container; do not shrink chart labels or hide monetary values. */
+body {
+  min-height: 100dvh;
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+.analysis-target-dialog,
+.analysis-target-dialog form {
+  max-height: min(88dvh, 900px);
+}
+
+.loan-payment-dialog {
+  max-height: calc(100dvh - 28px);
+  overflow-y: auto;
+}
+
+#summaryView .summary-food-calendar-scroll {
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+#summaryView .summary-food-calendar-scroll :is(.summary-food-weekdays, .summary-food-calendar-week) {
+  min-width: 630px;
+}
+
+:root[data-theme] #summaryView .summary-food-day > strong {
+  font-size: 13px;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+@media (max-width: 680px) {
+  #summaryView .summary-food-calendar-scroll :is(.summary-food-weekdays, .summary-food-calendar-week) {
+    min-width: 560px;
+  }
+}
+
+/* Mid-width folded/unfolded screens still have the compact navigation rail. */
+@media (max-width: 1100px) {
+  .ipo-calendar-panel > .panel-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .ipo-calendar-toolbar {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .ipo-calendar-controls {
+    margin-left: auto;
+    grid-template-columns: 38px minmax(0, 1fr) 38px;
+    max-width: 100%;
+  }
+
+  .ipo-calendar-body { grid-template-columns: minmax(0, 1fr); }
+  .ipo-calendar-detail {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .ipo-calendar-grid {
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    padding-bottom: 4px;
+  }
+
+  .ipo-calendar-grid :is(.ipo-calendar-weekdays, .ipo-calendar-month-grid) { min-width: 700px; }
+  .ipo-calendar-grid[data-density="full"] :is(.ipo-calendar-weekdays, .ipo-calendar-month-grid) { min-width: 840px; }
+}
+
+@media (max-width: 1023px) {
+  .ipo-cumulative-performance {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .ipo-cumulative-performance dl div:first-child { border-left: 0; padding-left: 0; }
+
+  #summaryView .summary-pattern-top-grid,
+  #summaryView .summary-pattern-bottom-grid,
+  #summaryView .summary-priority-layout,
+  #summaryView .summary-period-layout,
+  #summaryView .summary-feedback-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #summaryView .summary-priority-chart,
+  #summaryView .summary-flow-table,
+  #summaryView .pattern-heatmap-grid {
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+  }
+
+  #summaryView .summary-priority-chart svg { min-width: 690px; min-height: 400px; }
+  #summaryView .summary-priority-inspector { min-height: 0; }
+  #summaryView .summary-period-inspector { order: -1; }
+  #summaryView .summary-flow-head,
+  #summaryView .summary-flow-row > button { min-width: 720px; }
+
+  .budget-equation { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 12px; }
+  .budget-equation > span { display: none; }
+  .budget-equation .budget-answer { padding: 0; }
+}
+
+@media (max-width: 767px) {
+  html { scroll-padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
+
+  /* 16px input text avoids focus zoom; allow the user to zoom the page freely. */
+  .view[id] :is(input, select, textarea):not([type="checkbox"], [type="radio"], [type="file"], [type="range"], [type="hidden"], [type="button"], [type="submit"], [type="reset"]),
+  #boardView #boardMonth,
+  #summaryView #summaryMobileViewSelect,
+  .loan-payment-dialog :is(input, select, textarea):not([type="checkbox"], [type="radio"], [type="file"], [type="range"], [type="hidden"]),
+  #summaryView :is(input, select, textarea):not([type="checkbox"], [type="radio"], [type="file"], [type="range"], [type="hidden"]),
+  #productsView :is(input, select, textarea):not([type="checkbox"], [type="radio"], [type="file"], [type="range"], [type="hidden"]),
+  #adminMenu :is(input, select, textarea):not([type="checkbox"], [type="radio"], [type="file"], [type="range"], [type="hidden"]) {
+    font-size: 16px;
+    min-height: 44px;
+    scroll-margin-block: 80px;
+  }
+
+  .product-form-footer button,
+  .ipo-calendar-controls button,
+  .ipo-calendar-view-modes button,
+  .budget-template-options button,
+  .budget-inner-tabs button { min-height: 44px; }
+
+  .mobile-bottom-nav {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  .mobile-more-sheet {
+    max-height: min(660px, calc(100dvh - 88px - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
+  }
+}
+
+@media (max-width: 540px) {
+  #summaryView .summary-food-budget-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #summaryView .summary-food-budget-form > button { grid-column: 1 / -1; min-height: 44px; }
+  .budget-recommendation dl > div { flex-direction: column; gap: 4px; }
+  .budget-recommendation dd { text-align: left; }
+}
+
+@media (max-width: 430px) {
+  #summaryView .summary-food-budget-form { grid-template-columns: minmax(0, 1fr); }
+  #summaryView .summary-ranking-row { grid-template-columns: 22px minmax(0, 1fr) 16px; gap: 8px; }
+  #summaryView .summary-ranking-index { grid-area: 1 / 1; }
+  #summaryView .summary-ranking-sector { grid-area: 1 / 2; }
+  #summaryView .summary-ranking-row > i { grid-area: 1 / 3; }
+  #summaryView .summary-ranking-row > strong { grid-area: 2 / 2; text-align: left; }
+  #summaryView .summary-ranking-delta { grid-area: 3 / 2; text-align: left; }
+}
+
+/* Landscape phones and on-screen keyboards leave less vertical room. */
+@media (max-height: 500px) {
+  .topbar.compact-topbar { position: static; }
+  .analysis-target-dialog,
+  .analysis-target-dialog form { max-height: calc(100dvh - 16px); }
+}

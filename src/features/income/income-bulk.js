@@ -11,6 +11,7 @@ function clearIncomeBulkInput() {
 }
 
 async function handleIncomeBulkSave() {
+  if (!NumericInput.validate(els.incomeBulkPreview)) return;
   return runManualTransactionSave(async () => {
     updateIncomeBulkRowsFromPreview();
     const validRows = incomeBulkRows.map(validateIncomeBulkRow).filter((row) => row.valid);
@@ -170,7 +171,7 @@ function renderIncomeBulkPreview(message = "") {
           <tr class="${checked.valid ? "" : "income-preview-error"}">
             <td><input data-income-bulk-index="${index}" data-income-bulk-field="date" type="date" value="${escapeHtml(checked.date)}"></td>
             <td><input data-income-bulk-index="${index}" data-income-bulk-field="description" type="text" value="${escapeHtml(checked.description)}" title="${escapeHtml(checked.original || "")}"></td>
-            <td><input data-income-bulk-index="${index}" data-income-bulk-field="amount" class="amount-input" type="text" inputmode="numeric" value="${escapeHtml(formatPlainNumber(checked.amount))}"></td>
+            <td><input step="1" data-number-kind="money" data-income-bulk-index="${index}" data-income-bulk-field="amount" class="amount-input" type="text" inputmode="numeric" value="${escapeHtml(formatPlainNumber(checked.amount))}"></td>
             <td>${checked.valid ? `<span class="income-status ok">정상</span>` : `<span class="income-status error">${escapeHtml(checked.error)}</span>`}</td>
             <td><button type="button" class="income-row-delete" data-delete-income-bulk="${index}">삭제</button></td>
           </tr>
@@ -181,12 +182,16 @@ function renderIncomeBulkPreview(message = "") {
 
   els.incomeBulkPreview.querySelectorAll("[data-income-bulk-index]").forEach((input) => {
     input.addEventListener("change", () => {
+      if (!NumericInput.validate(els.incomeBulkPreview)) return;
       updateIncomeBulkRowsFromPreview();
       renderIncomeBulkPreview("미리보기 내용을 다시 검증했습니다.");
     });
   });
   els.incomeBulkPreview.querySelectorAll("[data-delete-income-bulk]").forEach((button) => {
     button.addEventListener("click", () => {
+      const invalid = [...els.incomeBulkPreview.querySelectorAll("[data-number-kind]")].find((input) =>
+        input.dataset.incomeBulkIndex !== button.dataset.deleteIncomeBulk && !NumericInput.validate(input));
+      if (invalid) return;
       updateIncomeBulkRowsFromPreview();
       incomeBulkRows.splice(Number(button.dataset.deleteIncomeBulk), 1);
       renderIncomeBulkPreview("선택한 줄을 미리보기에서 삭제했습니다.");

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'self'">
   <meta name="referrer" content="no-referrer">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>소비 분석</title>
   <meta name="theme-color" content="#426b98">
   <link rel="icon" href="app-icon.svg" type="image/svg+xml">
@@ -26,7 +26,10 @@
   <link rel="stylesheet" href="src/styles/13-goals.css?v=190-budget-check">
   <link rel="stylesheet" href="src/styles/14-board-overview.css?v=185-theme-refresh">
   <link rel="stylesheet" href="src/styles/16-backup.css?v=187-backup-restore">
-  <link rel="stylesheet" href="src/styles/17-spending-budget.css?v=190-budget-check">
+  <link rel="stylesheet" href="src/styles/17-spending-budget.css?v=191-budget-templates">
+  <link rel="stylesheet" href="src/styles/18-numeric-input.css?v=191-budget-templates">
+  <link rel="stylesheet" href="src/styles/19-products.css?v=191-products-quick-entry">
+  <link rel="stylesheet" href="src/styles/20-responsive-devices.css?v=191-responsive">
 </head>
 <body data-app-name="소비 분석">
   <header class="topbar compact-topbar">
@@ -508,7 +511,7 @@
             <form id="incomeEntryForm" class="income-entry-form">
               <input id="incomeEntryDate" type="date" aria-label="수입 날짜">
               <input id="incomeEntryDescription" type="text" placeholder="내용 예: 급여, 환급금, 프로젝트 정산금">
-              <input id="incomeEntryAmount" type="text" inputmode="numeric" placeholder="금액">
+              <input id="incomeEntryAmount" data-number-kind="money" step="1" type="text" inputmode="numeric" placeholder="금액">
               <button type="submit" class="primary-action">수입 저장</button>
             </form>
           </section>
@@ -653,7 +656,7 @@
             </div>
             <input id="recurringId" type="hidden">
             <label>지출명<input id="recurringName" type="text" placeholder="예: 카드값, 보험료, 월세, 통신비"></label>
-            <label>금액<input id="recurringAmount" type="text" inputmode="numeric" placeholder="예: 95000"></label>
+            <label>금액<input id="recurringAmount" data-number-kind="money" step="1" type="text" inputmode="numeric" placeholder="예: 95000"></label>
             <label>금액 유형<select id="recurringAmountMode"><option value="fixed">정액 (매월 동일)</option><option value="variable">변동액 (예상 금액)</option></select></label>
             <label>매월 지출일<input id="recurringDay" type="number" min="1" max="31" placeholder="예: 20"></label>
             <label>섹터<select id="recurringSector"></select></label>
@@ -718,20 +721,20 @@
               <input id="loanId" type="hidden">
               <label>대출명<input id="loanName" type="text" placeholder="예: 생활비 신용대출" required></label>
               <label>대출 종류<select id="loanType"><option value="신용대출">신용대출</option><option value="학자금대출">학자금대출</option><option value="주택담보대출">주택담보대출</option><option value="기타">기타</option></select></label>
-              <label>추적 시작 시 남은 원금<input id="loanOpeningBalance" type="text" inputmode="numeric" placeholder="예: 12600000" required></label>
-              <label>금리(연 %)<input id="loanInterestRate" type="number" min="0" step="0.01" placeholder="예: 4.8"></label>
+              <label>추적 시작 시 남은 원금<input id="loanOpeningBalance" data-number-kind="money" step="1" type="text" inputmode="numeric" placeholder="예: 12600000" required></label>
+              <label>금리(연 %)<input id="loanInterestRate" data-number-kind="percent" data-number-unit="%" type="number" min="0" step="0.01" placeholder="예: 4.8"></label>
               <label>매월 상환일<input id="loanDay" type="number" min="1" max="31" placeholder="예: 25" required></label>
               <label>결제 방식<select id="loanPaymentType"><option value="이체">이체</option><option value="카드">카드</option><option value="현금">현금</option><option value="기타">기타</option></select></label>
-              <label>월 원금 기본값<input id="loanPrincipalAmount" type="text" inputmode="numeric" placeholder="예: 400000" required></label>
-              <label>월 이자 기본값<input id="loanInterestAmount" type="text" inputmode="numeric" placeholder="예: 50000" required></label>
+              <label>월 원금 기본값<input id="loanPrincipalAmount" data-number-kind="money" step="1" type="text" inputmode="numeric" placeholder="예: 400000" required></label>
+              <label>월 이자 기본값<input id="loanInterestAmount" data-number-kind="money" step="1" type="text" inputmode="numeric" placeholder="예: 50000" required></label>
               <div class="loan-total-preview" aria-live="polite"><span>월 상환 예정액</span><strong id="loanScheduledTotal">0원</strong></div>
               <label class="check-line wide-field"><input id="loanSupportEnabled" type="checkbox"> 가족이 일부 상환하는 대출</label>
               <fieldset id="loanSupportFields" class="loan-support-fields wide-field" hidden>
                 <legend>가족 분담 기본값</legend>
                 <label>부담자 이름<input id="loanSupporterName" type="text" placeholder="예: 가족"></label>
-                <label>추적 시작 시 가족 부담 원금<input id="loanSupportOpeningBalance" type="text" inputmode="numeric" placeholder="예: 20000000"></label>
-                <label>월 가족 부담 원금<input id="loanSupportPrincipalAmount" type="text" inputmode="numeric" placeholder="예: 555000"></label>
-                <label>월 가족 부담 이자<input id="loanSupportInterestAmount" type="text" inputmode="numeric" placeholder="예: 273014"></label>
+                <label>추적 시작 시 가족 부담 원금<input id="loanSupportOpeningBalance" data-number-kind="money" step="1" type="text" inputmode="numeric" placeholder="예: 20000000"></label>
+                <label>월 가족 부담 원금<input id="loanSupportPrincipalAmount" data-number-kind="money" step="1" type="text" inputmode="numeric" placeholder="예: 555000"></label>
+                <label>월 가족 부담 이자<input id="loanSupportInterestAmount" data-number-kind="money" step="1" type="text" inputmode="numeric" placeholder="예: 273014"></label>
                 <small>가족 입금은 일반 수입에서 제외하며, 실제 상환 때 금액과 입금일을 확인합니다.</small>
               </fieldset>
               <label>추적 시작 월<input id="loanStartMonth" type="month" required></label>
@@ -992,19 +995,19 @@
               <label>청약 종료일<input id="ipoSubscriptionEnd" type="date"></label>
               <label>환불/납입일<input id="ipoRefundDate" type="date"></label>
               <label>상장일<input id="ipoListingDate" type="date"></label>
-              <label>공모가<input id="ipoOfferPrice" type="text" inputmode="numeric" placeholder="예: 16800"></label>
-              <label>청약 주수<input id="ipoAppliedShares" type="number" min="0" placeholder="선택 입력"></label>
-              <label>청약 증거금<input id="ipoDepositAmount" type="text" inputmode="numeric" placeholder="선택 입력"></label>
-              <label>청약 수수료<input id="ipoApplicationFee" type="text" inputmode="numeric" placeholder="예: 2000"></label>
-              <label>배정 주수<input id="ipoAllocatedShares" type="number" min="0" placeholder="예: 1"></label>
+              <label>공모가<input id="ipoOfferPrice" data-number-kind="money" step="1" type="text" inputmode="numeric" placeholder="예: 16800"></label>
+              <label>청약 주수<input id="ipoAppliedShares" data-number-kind="quantity" data-number-unit="주" step="1" type="text" inputmode="numeric" min="0" placeholder="선택 입력"></label>
+              <label>청약 증거금<input id="ipoDepositAmount" data-number-kind="money" step="1" type="text" inputmode="numeric" placeholder="선택 입력"></label>
+              <label>청약 수수료<input id="ipoApplicationFee" data-number-kind="money" step="1" type="text" inputmode="numeric" placeholder="예: 2000"></label>
+              <label>배정 주수<input id="ipoAllocatedShares" data-number-kind="quantity" data-number-unit="주" step="1" type="text" inputmode="numeric" min="0" placeholder="예: 1"></label>
               <label>배정 결과<select id="ipoAllocationResult"><option value="">수량으로 자동 판단</option><option value="pending">대기/미확인</option><option value="allocated">배정</option><option value="unallocated">미배정</option></select></label>
               <label>매도일<input id="ipoSellDate" type="date"></label>
-              <label>매도가<input id="ipoSellPrice" type="text" inputmode="numeric" placeholder="1주 매도가"></label>
-              <label>매도 금액<input id="ipoSellAmount" type="text" inputmode="numeric" placeholder="총 매도 금액"></label>
-              <label>매도 수수료<input id="ipoSellFee" type="text" inputmode="numeric" placeholder="선택 입력"></label>
-              <label>시가<input id="ipoOpenPrice" type="text" inputmode="numeric" placeholder="자동/수동 입력"></label>
-              <label>고가<input id="ipoHighPrice" type="text" inputmode="numeric" placeholder="자동/수동 입력"></label>
-              <label>종가<input id="ipoClosePrice" type="text" inputmode="numeric" placeholder="자동/수동 입력"></label>
+              <label>매도가<input id="ipoSellPrice" data-number-kind="money" step="1" type="text" inputmode="numeric" placeholder="1주 매도가"></label>
+              <label>매도 금액<input id="ipoSellAmount" data-number-kind="money" step="1" type="text" inputmode="numeric" placeholder="총 매도 금액"></label>
+              <label>매도 수수료<input id="ipoSellFee" data-number-kind="money" step="1" type="text" inputmode="numeric" placeholder="선택 입력"></label>
+              <label>시가<input id="ipoOpenPrice" data-number-kind="money" step="1" type="text" inputmode="numeric" placeholder="자동/수동 입력"></label>
+              <label>고가<input id="ipoHighPrice" data-number-kind="money" step="1" type="text" inputmode="numeric" placeholder="자동/수동 입력"></label>
+              <label>종가<input id="ipoClosePrice" data-number-kind="money" step="1" type="text" inputmode="numeric" placeholder="자동/수동 입력"></label>
               <label class="wide-field">메모<input id="ipoMemo" type="text" placeholder="상장일 메모, 매도 이유, 참고 링크 등"></label>
               <div class="wide-field ipo-image-field">
                 <div class="ipo-image-field-head">
@@ -1163,7 +1166,7 @@
             <label>섹터<select id="detailBulkSector"></select></label>
             <label>세부항목<select id="detailBulkSubcategory"></select></label>
             <label>결제수단<select id="detailBulkSourceType"><option value="manual" selected>직접 입력</option><option value="card">카드</option><option value="transfer">이체</option><option value="cash">현금</option><option value="other">기타</option></select></label>
-            <label>정산 기본값<input id="detailBulkReimbursementDefault" type="text" inputmode="numeric" value="0"></label>
+            <label>정산 기본값<input id="detailBulkReimbursementDefault" data-number-kind="money" step="1" type="text" inputmode="numeric" value="0"></label>
             <label class="check-line"><input id="detailBulkAutoSuggest" type="checkbox"> 행별 자동 추천 적용</label>
             <label class="check-line"><input id="detailBulkAllowDuplicates" type="checkbox"> 중복 가능 항목 포함 저장</label>
           </div>
@@ -1254,54 +1257,81 @@
       <section id="productsView" class="view">
         <div class="section-head">
           <h2>소모품 사용 기록</h2>
-          <p>화장품과 생활용품의 구매일, 유통기한, 사용 기간, 재구매 시점을 기록합니다.</p>
+          <p>이름만 먼저 남기고, 가격과 사용 기록은 나중에 채워도 괜찮아요.</p>
         </div>
         <form id="productForm" class="product-form">
-          <label>제품명<input id="productName" type="text" placeholder="예: 토너, 선크림, 주방세제"></label>
-          <label>브랜드/상품명<input id="productBrand" type="text" placeholder="예: 브랜드명, 상품명"></label>
-          <label>카테고리<select id="productCategory"><option value="스킨케어">스킨케어</option><option value="클렌징/바디">클렌징/바디</option><option value="세제">세제</option><option value="의약/위생">의약/위생</option><option value="청소용품">청소용품</option><option value="주방용품">주방용품</option><option value="면도/생활">면도/생활</option><option value="기타">기타</option></select></label>
-          <label>구매일<input id="productPurchaseDate" type="date"></label>
-          <label>유통기한<input id="productExpiryDate" type="date"></label>
-          <label>사용 시작일<input id="productStartDate" type="date"></label>
-          <label>사용 종료일<input id="productEndDate" type="date"></label>
-          <label>구매 가격<input id="productPrice" type="text" inputmode="numeric" placeholder="예: 15000"></label>
-          <label>용량<input id="productVolume" type="text" inputmode="decimal" placeholder="예: 500"></label>
-          <label>단위<select id="productUnit"><option value="ml">ml</option><option value="g">g</option><option value="개">개</option><option value="매">매</option><option value="L">L</option><option value="회">회</option><option value="기타">기타</option></select></label>
-          <label>개수<input id="productQuantity" type="text" inputmode="numeric" placeholder="예: 1, 3"></label>
-          <label>구매처<input id="productStore" type="text" placeholder="예: 올리브영, 쿠팡, 다이소"></label>
-          <label>예상 사용일<input id="productExpectedDays" type="text" inputmode="numeric" placeholder="예: 60"></label>
-          <label class="wide-field">제품 링크<input id="productLink" type="text" placeholder="구매 페이지나 제품 정보 링크"></label>
-          <label class="wide-field">이미지<input id="productImage" type="file" accept="image/*"></label>
-          <label class="wide-field">메모<input id="productMemo" type="text" placeholder="색상, 향, 피부 반응, 구성 등"></label>
-          <button type="submit">소모품 기록 추가</button>
+          <div class="product-form-heading">
+            <div><h3 id="productFormTitle">간단히 기록하기</h3><p>필수 입력은 제품명 하나뿐이에요.</p></div>
+            <span class="product-optional-note">나머지는 선택</span>
+          </div>
+          <div class="product-quick-fields">
+            <label>제품명 <span class="product-required">필수</span><input id="productName" type="text" required placeholder="무엇을 쓰고 있나요? 예: 선크림"></label>
+            <label>카테고리 <span>선택</span><select id="productCategory"><option value="">이름으로 자동 분류</option><option value="스킨케어">스킨케어</option><option value="클렌징/바디">클렌징/바디</option><option value="세제">세제</option><option value="의약/위생">의약/위생</option><option value="휴지/위생">휴지/위생</option><option value="청소용품">청소용품</option><option value="주방용품">주방용품</option><option value="면도/생활">면도/생활</option><option value="기타">기타</option></select></label>
+            <label>구매 가격 <span>선택</span><input id="productPrice" data-number-kind="money" min="0" step="1" type="text" inputmode="numeric" placeholder="모르면 비워두세요"></label>
+          </div>
+          <div class="product-optional-groups">
+            <details class="product-input-group">
+              <summary><strong>구매 정보</strong><span>어디서, 언제, 얼마나 샀나요?</span></summary>
+              <div class="product-detail-fields">
+                <label>구매일<input id="productPurchaseDate" type="date"></label>
+                <label>구매처<input id="productStore" type="text" placeholder="예: 쿠팡, 올리브영"></label>
+                <label>한 개 용량<input id="productVolume" data-number-kind="decimal" data-number-unit-source="productUnit" min="0" step="any" type="text" inputmode="decimal" placeholder="예: 500"></label>
+                <label>용량 단위<select id="productUnit"><option value="ml">ml</option><option value="g">g</option><option value="개">개</option><option value="매">매</option><option value="L">L</option><option value="회">회</option><option value="기타">기타</option></select></label>
+                <label>구매 개수<input id="productQuantity" data-number-kind="quantity" data-number-unit="개" min="1" step="1" type="text" inputmode="numeric" placeholder="비워두면 1개"></label>
+              </div>
+              <p class="product-group-help">가격과 용량을 함께 입력하면 단위가격을 비교할 수 있어요.</p>
+            </details>
+            <details class="product-input-group">
+              <summary><strong>사용 관리</strong><span>사용 기간과 유통기한을 챙길 때</span></summary>
+              <div class="product-detail-fields">
+                <label>사용 시작일<input id="productStartDate" type="date"></label>
+                <label>사용 종료일<input id="productEndDate" type="date"></label>
+                <label>유통기한<input id="productExpiryDate" type="date"></label>
+                <label>예상 사용일수<input id="productExpectedDays" data-number-kind="duration" data-number-unit="일" min="1" step="1" type="number" inputmode="numeric" placeholder="예: 60"></label>
+              </div>
+              <p class="product-group-help">아는 날짜만 남기세요. 시작일이나 구매일과 예상 일수가 있으면 다음 구매 시점을 보여드려요.</p>
+            </details>
+            <details class="product-input-group">
+              <summary><strong>추가 기록</strong><span>브랜드, 사진, 링크, 메모</span></summary>
+              <div class="product-detail-fields">
+                <label>브랜드/상품명<input id="productBrand" type="text" placeholder="예: 브랜드명, 상품명"></label>
+                <label>제품 링크<input id="productLink" type="text" inputmode="url" placeholder="https://..."></label>
+                <label>제품 사진<input id="productImage" type="file" accept="image/*"><span id="productImageHelp">선택 사항 · 8MB 이하</span></label>
+                <label>메모<input id="productMemo" type="text" placeholder="색상, 향, 피부 반응 등"></label>
+              </div>
+            </details>
+          </div>
+          <div class="product-form-footer">
+            <p>저장한 기록에서 언제든 수정할 수 있어요.</p>
+            <div><button id="productCancelEdit" type="button" hidden>수정 취소</button><button id="productSaveButton" type="submit">기록 저장</button></div>
+          </div>
+          <p id="productFormFeedback" class="product-feedback" role="status" aria-live="polite" hidden></p>
         </form>
-        <div class="product-dashboard">
-          <div class="product-filter-panel">
-            <div>
-              <h3>소모품 필터</h3>
-              <p>품목, 카테고리, 구매처, 사용 상태로 기록을 빠르게 찾습니다.</p>
-            </div>
+        <div class="product-filter-panel">
+          <div class="product-records-heading"><h3>내 소모품 <span id="productRecordCount"></span></h3><label>기록 검색<input id="productFilterSearch" type="search" placeholder="제품명, 브랜드, 메모 검색"></label></div>
+          <details class="product-filter-details">
+            <summary>상세 필터 · 정렬 <span id="productActiveFilters"></span></summary>
             <div class="product-filter-grid">
               <label>카테고리<select id="productFilterCategory"></select></label>
               <label>제품명<select id="productFilterName"></select></label>
               <label>구매처<input id="productFilterStore" type="text" placeholder="구매처 검색"></label>
-              <label>상태<select id="productFilterStatus"><option value="all">전체</option><option value="using">사용 중</option><option value="done">사용 완료</option></select></label>
-              <label class="wide-field">검색<input id="productFilterSearch" type="text" placeholder="품목명, 제품명, 메모 검색"></label>
+              <label>상태<select id="productFilterStatus"><option value="all">전체</option><option value="unknown">사용일 미입력</option><option value="using">사용 중</option><option value="done">사용 완료</option></select></label>
               <label>정렬<select id="productSort"><option value="recent">최근 구매일</option><option value="price-desc">가격 높은 순</option><option value="unit-asc">단위가격 낮은 순</option><option value="usage-desc">사용기간 긴 순</option></select></label>
             </div>
-          </div>
-          <div class="product-trend-panel">
+          </details>
+        </div>
+        <div id="productList" class="product-list"></div>
+        <details class="product-trend-panel">
+          <summary>가격 변화 살펴보기 <span>기록이 쌓이면 비교할 수 있어요</span></summary>
             <div class="panel-head">
               <div>
                 <h3>가격 추이</h3>
-                <p>같은 품목 기록이 2개 이상이면 구매 가격과 단위가격 변화를 볼 수 있습니다.</p>
+                <p>구매일과 가격을 입력한 같은 품목 기록을 비교합니다.</p>
               </div>
               <label>품목<select id="productTrendSelect"></select></label>
             </div>
             <div id="productTrendChart" class="product-trend-chart"></div>
-          </div>
-        </div>
-        <div id="productList" class="product-list"></div>
+        </details>
       </section>
 
       <section id="unknownView" class="view">
@@ -1358,7 +1388,7 @@
             <input id="manualDate" type="date" aria-label="날짜">
             <input id="manualTime" type="time" aria-label="시간">
             <input id="manualMerchant" type="text" placeholder="가맹점명 또는 내용">
-            <input id="manualAmount" type="text" inputmode="numeric" placeholder="금액">
+            <input id="manualAmount" data-number-kind="money" step="1" type="text" inputmode="numeric" placeholder="금액">
             <select id="manualSector" aria-label="섹터"></select>
             <select id="manualSubcategory" aria-label="세부항목"></select>
             <button type="submit">내역 추가</button>
@@ -1389,13 +1419,13 @@
       <input id="loanPaymentRecordKey" type="hidden">
       <label>반영 월<input id="loanPaymentMonth" type="month" readonly></label>
       <label>기존 출금 연결 선택사항<select id="loanPaymentExpenseTransactionId"><option value="">새 상환 거래 생성</option></select></label>
-      <label>원금<input id="loanPaymentPrincipal" type="text" inputmode="numeric"></label>
-      <label>이자<input id="loanPaymentInterest" type="text" inputmode="numeric"></label>
+      <label>원금<input id="loanPaymentPrincipal" data-number-kind="money" step="1" type="text" inputmode="numeric"></label>
+      <label>이자<input id="loanPaymentInterest" data-number-kind="money" step="1" type="text" inputmode="numeric"></label>
       <fieldset id="loanPaymentSupportFields" class="loan-payment-support-fields" hidden>
         <legend id="loanPaymentSupportLegend">가족 분담 확인</legend>
-        <label>가족 부담 원금<input id="loanPaymentSupportPrincipal" type="text" inputmode="numeric"></label>
-        <label>가족 부담 이자<input id="loanPaymentSupportInterest" type="text" inputmode="numeric"></label>
-        <label>실제 받은 금액<input id="loanPaymentSupportReceived" type="text" inputmode="numeric"></label>
+        <label>가족 부담 원금<input id="loanPaymentSupportPrincipal" data-number-kind="money" step="1" type="text" inputmode="numeric"></label>
+        <label>가족 부담 이자<input id="loanPaymentSupportInterest" data-number-kind="money" step="1" type="text" inputmode="numeric"></label>
+        <label>실제 받은 금액<input id="loanPaymentSupportReceived" data-number-kind="money" step="1" type="text" inputmode="numeric"></label>
         <label>입금일<input id="loanPaymentSupportReceivedDate" type="date"></label>
         <label class="wide-field">기존 수입 기록 연결 선택사항<select id="loanPaymentSupportIncomeTransactionId"><option value="">연결하지 않음</option></select><small>연결 금액만 일반 수입에서 제외합니다.</small></label>
       </fieldset>
@@ -1485,19 +1515,20 @@
   </dialog>
 
   <script src="assets/vendor/xlsx.full.min.js?v=182-maintenance"></script>
-  <script src="src/data/constants.js?v=190-budget-check"></script>
+<script src="src/data/constants.js?v=191-budget-templates"></script>
   <script src="src/data/categories.js?v=136-mineral-layers"></script>
   <script src="src/data/rules.js?v=93"></script>
   <script src="src/data/board-sections.js?v=151-loan-repayments"></script>
   <script src="src/data/field-aliases.js?v=77"></script>
   <script src="src/data/goal-resources.js?v=170-goal-planner-r3"></script>
   <script src="src/features/goals/goals-core.js?v=170-goal-planner"></script>
-  <script src="src/features/budget/spending-budget-core.js?v=190-budget-check"></script>
+  <script src="src/features/budget/spending-budget-core.js?v=191-budget-templates"></script>
 
   <script src="src/features/app/state.js?v=190-budget-check"></script>
 
   <script src="src/utils/format.js?v=80"></script>
   <script src="src/utils/date.js?v=141-garden-analysis"></script>
+  <script src="src/utils/numeric-input.js?v=191-budget-templates"></script>
   <script src="src/utils/dom.js?v=61"></script>
   <script src="src/features/recurring/recurring-review-core.js?v=176-recurring-review"></script>
   <script src="src/utils/food-occasion.js?v=174-food-occasions"></script>
@@ -1521,16 +1552,16 @@
   <script src="src/features/classification/rules-manager.js?v=61"></script>
 
   <script src="src/features/board/board-view.js?v=185-theme-refresh"></script>
-  <script src="src/features/budget/spending-budget-view.js?v=190-budget-check"></script>
-  <script src="src/features/budget/spending-budget-targets.js?v=190-budget-check"></script>
+  <script src="src/features/budget/spending-budget-view.js?v=191-budget-templates"></script>
+  <script src="src/features/budget/spending-budget-targets.js?v=191-budget-templates"></script>
   <script src="src/features/board/board-summary.js?v=156-loan-sharing"></script>
   <script src="src/features/board/board-overview.js?v=185-theme-refresh"></script>
-  <script src="src/features/board/board-cards.js?v=187-backup-restore"></script>
-  <script src="src/features/details/details-view.js?v=187-backup-restore"></script>
+  <script src="src/features/board/board-cards.js?v=191-budget-templates"></script>
+  <script src="src/features/details/details-view.js?v=191-budget-templates"></script>
   <script src="src/features/summary/comparison-analysis.js?v=171-calendar-split-summary"></script>
   <script src="src/features/summary/summary-priority.js?v=165-summary-insights-r2"></script>
   <script src="src/features/summary/summary-food-core.js?v=190-budget-check"></script>
-  <script src="src/features/summary/summary-food-view.js?v=190-budget-check"></script>
+  <script src="src/features/summary/summary-food-view.js?v=191-budget-templates"></script>
   <script src="src/features/summary/summary-pattern.js?v=190-budget-check"></script>
   <script src="src/features/summary/sector-analysis.js?v=165-summary-insights-r2"></script>
   <script src="src/features/summary/summary-period.js?v=165-summary-insights-r2"></script>
@@ -1538,21 +1569,21 @@
   <script src="src/features/summary/summary-chart.js?v=165-summary-insights-r2"></script>
   <script src="src/features/monthly/monthly-flow.js?v=165-summary-insights-r2"></script>
   <script src="src/features/monthly/monthly-chart.js?v=156-loan-sharing"></script>
-  <script src="src/features/income/income-entry.js?v=187-backup-restore"></script>
-  <script src="src/features/income/income-bulk.js?v=187-backup-restore"></script>
-  <script src="src/features/income/income-list.js?v=187-backup-restore"></script>
-  <script src="src/features/recurring/recurring-view.js?v=190-budget-check"></script>
-  <script src="src/features/calendar/calendar-view.js?v=190-budget-check"></script>
+  <script src="src/features/income/income-entry.js?v=191-budget-templates"></script>
+  <script src="src/features/income/income-bulk.js?v=191-budget-templates"></script>
+  <script src="src/features/income/income-list.js?v=191-budget-templates"></script>
+  <script src="src/features/recurring/recurring-view.js?v=191-budget-templates"></script>
+  <script src="src/features/calendar/calendar-view.js?v=191-budget-templates"></script>
   <script src="src/features/analysis/analysis-core.js?v=156-loan-sharing"></script>
   <script src="src/features/analysis/monthly-analysis-core.js?v=175-monthly-close-r2"></script>
   <script src="src/features/analysis/monthly-analysis-view.js?v=175-monthly-close-r2"></script>
-  <script src="src/features/analysis/spending-structure-view.js?v=156-loan-sharing"></script>
-  <script src="src/features/products/products-view.js?v=62"></script>
-  <script src="src/features/ipo/ipo-view.js?v=183-storage-release"></script>
+  <script src="src/features/analysis/spending-structure-view.js?v=191-budget-templates"></script>
+  <script src="src/features/products/products-view.js?v=191-budget-templates"></script>
+  <script src="src/features/ipo/ipo-view.js?v=191-budget-templates"></script>
   <script src="src/features/unknown/unknown-view.js?v=97"></script>
-  <script src="src/features/transactions/transactions-view.js?v=187-backup-restore"></script>
+  <script src="src/features/transactions/transactions-view.js?v=191-budget-templates"></script>
   <script src="src/features/goals/goals-insights.js?v=189-budget-planning"></script>
-  <script src="src/features/goals/goals-view.js?v=190-budget-check"></script>
+  <script src="src/features/goals/goals-view.js?v=191-budget-templates"></script>
 
   <script src="src/features/app/navigation.js?v=112"></script>
   <script src="src/features/app/appearance.js?v=141-garden-analysis"></script>

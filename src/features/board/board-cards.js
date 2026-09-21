@@ -343,7 +343,7 @@ function renderLedgerSection(section, rows, selectedMonth, sortMode = "date", op
       </span>
       <span class="amount payment">${formatWon(item.amount)}</span>
       <span class="amount reimbursement">
-        <input class="reimbursement-input" type="text" inputmode="numeric" data-record-key="${escapeHtml(item.recordKey)}" value="${formatPlainNumber(reimbursementFor(item))}" aria-label="${escapeHtml(item.merchant)} 정산받은 금액" ${reimbursementDisabled ? "disabled" : ""}>
+        <input step="1" data-number-kind="money" class="reimbursement-input" type="text" inputmode="numeric" data-record-key="${escapeHtml(item.recordKey)}" value="${formatPlainNumber(reimbursementFor(item))}" aria-label="${escapeHtml(item.merchant)} 정산받은 금액" ${reimbursementDisabled ? "disabled" : ""}>
       </span>
       <span class="amount actual strong">${formatWon(consumptionAmount(item))}</span>
     </div>
@@ -409,7 +409,7 @@ function renderInstallmentInlineControls(item) {
         할부 적용
       </label>
       <label>개월
-        <input type="number" min="2" max="60" class="installment-months-input" data-installment-field="months" data-record-key="${escapeHtml(item.recordKey)}" value="${escapeHtml(months)}">
+        <input data-number-kind="duration" data-number-unit="개월" type="number" min="2" max="60" class="installment-months-input" data-installment-field="months" data-record-key="${escapeHtml(item.recordKey)}" value="${escapeHtml(months)}">
       </label>
       <label>시작 월
         <input type="month" class="installment-start-input" data-installment-field="startMonth" data-record-key="${escapeHtml(item.recordKey)}" value="${escapeHtml(startMonth)}">
@@ -464,11 +464,11 @@ function renderQuickAddForm(section, selectedMonth) {
       </label>
       <label>
         총 결제액
-        <input name="amount" type="text" inputmode="numeric" placeholder="0" required>
+        <input step="1" data-number-kind="money" name="amount" type="text" inputmode="numeric" placeholder="0" required>
       </label>
       <label>
         정산받은 금액
-        <input name="reimbursement" type="text" inputmode="numeric" placeholder="0">
+        <input step="1" data-number-kind="money" name="reimbursement" type="text" inputmode="numeric" placeholder="0">
       </label>
       <div class="quick-add-actions">
         <button type="button" data-quick-add-close>취소</button>
@@ -521,6 +521,7 @@ function attachInstallmentHandlers(root = els.detailGrid) {
     });
     row.querySelectorAll("[data-installment-save]").forEach((button) => {
       button.addEventListener("click", async () => {
+        if (!NumericInput.validate(row)) return;
         await saveInstallmentSettings(button.dataset.installmentSave, row);
         detailInstallmentEditRecordKey = "";
         renderAll();

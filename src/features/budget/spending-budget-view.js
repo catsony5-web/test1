@@ -17,6 +17,8 @@ function buildSpendingBudgetModel(month, today = defaultDateForMonth("")) {
     && item.status !== "취소/제외" && !isCanceled(item.cancel));
   const hasManualIncome = Object.prototype.hasOwnProperty.call(monthlyIncome, month)
     && monthlyIncome[month] !== null && monthlyIncome[month] !== "" && Number.isFinite(Number(monthlyIncome[month]));
+  const referenceIncome = hasManualIncome || activeIncome.length
+    ? (hasManualIncome ? Number(monthlyIncome[month]) : 0) + activeIncome.reduce((total, item) => total + incomeReportingAmount(item), 0) : null;
   const occurrences = recurringOccurrencesForMonth(month, { showHidden: true }).filter((item) => !item.posted);
   const pendingConsumption = occurrences.filter((item) => !analysisIsSavingsTransaction(item));
   const rowFor = (item, pending = false) => ({
@@ -28,8 +30,7 @@ function buildSpendingBudgetModel(month, today = defaultDateForMonth("")) {
     month, today, settings: appSettings.spendingBudget,
     rows: snapshot.consumptionRows.map((item) => rowFor(item)),
     pending: pendingConsumption.map((item) => rowFor(item, true)),
-    income: hasManualIncome || activeIncome.length
-      ? (hasManualIncome ? Number(monthlyIncome[month]) : 0) + activeIncome.reduce((total, item) => total + incomeReportingAmount(item), 0) : null,
+    income: referenceIncome,
     debtPrincipal: snapshot.debtRepayment + sumDebtPrincipal(occurrences),
     actualSavings: snapshot.actualSavings + sumConsumption(occurrences.filter(analysisIsSavingsTransaction)),
     familyAdjustment: snapshot.loanSettlementDelta,
@@ -43,9 +44,20 @@ function buildSpendingBudgetModel(month, today = defaultDateForMonth("")) {
       || occurrences.some((occurrence) => occurrence.id === item.id))
       && recurringImportCandidates(item, month).length > 0).length;
   model.lastImportedAt = importMeta.lastImportedAt || "";
-  model.referenceIncome = hasManualIncome || activeIncome.length ? snapshot.income : null;
+  model.referenceIncome = referenceIncome;
   model.referencePrincipal = snapshot.debtRepayment + sumDebtPrincipal(occurrences);
   model.referenceFixed = snapshot.fixedCost + sumConsumption(pendingConsumption);
+  const fixedRows = [...snapshot.fixedRows, ...pendingConsumption];
+  const housingRows = fixedRows.filter((item) => ["월세", "관리비"].includes(item.subcategory));
+  const otherFixedRows = fixedRows.filter((item) => !["월세", "관리비"].includes(item.subcategory));
+  const principalKnown = [...snapshot.expenseRows, ...occurrences].some((item) => item.recurringType === "loan" || Number(item.loanPrincipalAmount) > 0);
+  model.recommendationRecords = {
+    income: model.referenceIncome,
+    housingCost: housingRows.length ? Math.max(0, sumConsumption(housingRows)) : null,
+    otherFixed: otherFixedRows.length ? Math.max(0, sumConsumption(otherFixedRows)) : null,
+    ownPrincipal: principalKnown ? model.referencePrincipal : null,
+    fixedFood: Math.max(0, sumConsumption(fixedRows.filter((item) => item.sector === "식비")))
+  };
   model.latestRecordDate = snapshot.consumptionRows.map((row) => normalizeInputDate(row.approvalDate))
     .filter((date) => date && date <= today).sort().at(-1) || "";
   return model;
@@ -97,7 +109,7 @@ function renderSpendingBudget(hostId, month) {
       <aside class="budget-side-panels">
         ${renderSpendingBudgetFood(model)}
         <section class="budget-scenario-panel"><h3>장보기, 더 시켜도 될까?</h3>
-          <form data-budget-scenario class="spending-budget-scenario"><label>추가 식비 (원)<input name="amount" type="number" min="0" max="100000000" step="1" required value="${spendingBudgetScenario}"></label><button type="submit">계산</button>
+          <form data-budget-scenario class="spending-budget-scenario"><label>추가 식비<input name="amount" type="text" inputmode="numeric" data-number-kind="money" min="0" max="100000000" step="1" required value="${spendingBudgetScenario}"></label><button type="submit">계산</button>
           <output><span>추가 후 전체<strong class="${model.scenario.budgetAfter < 0 ? "is-over" : ""}">${spendingBudgetRemaining(model.scenario.budgetAfter)}</strong></span><span>추가 후 식비<strong class="${model.scenario.foodAfter < 0 ? "is-over" : ""}">${spendingBudgetRemaining(model.scenario.foodAfter)}</strong></span></output></form>
           <small>가정 계산 · 실제 기록과 목표는 바뀌지 않아요.</small>
         </section>
@@ -118,6 +130,7 @@ function renderSpendingBudget(hostId, month) {
     <p class="spending-budget-feedback" role="status" aria-live="polite"></p>
   </section>`;
   attachSpendingBudgetHandlers(host, model);
+  NumericInput.enhance(host);
 }
 
 function renderSpendingBudgetTable(model) {
@@ -176,7 +189,7 @@ function renderSpendingBudgetPlans(model) {
     `<option value="${escapeHtml(record.recordKey)}">${escapeHtml(record.approvalDate || "날짜 없음")} · ${escapeHtml(record.merchant)} · ${formatWon(consumptionAmount(record))}</option>`).join("");
   return `<details class="spending-budget-plans"><summary>앞으로의 약속·구매 예약 ${formatWon(model.planAmount)}</summary>
     <p>아직 쓰지 않은 비용만 예약하세요. 실제 내역을 불러온 뒤 연결하면 예약액을 중복 차감하지 않습니다. 고정 지출은 위에서 자동 확보하므로 다시 예약하지 마세요.</p>
-    <form data-budget-plan class="spending-budget-form"><label>약속·구매명<input name="label" maxlength="80" required placeholder="예: 친구 약속, 의류 구매"></label><label>종류<select name="sector" required><option value="">선택해주세요</option><option value="식비">식비 · 장보기/외식/배달</option><option value="기타">그 밖의 소비</option></select></label><label>예정일<input name="date" type="date" required value="${model.period === "current" ? model.today : `${model.month}-01`}" min="${model.month}-01" max="${model.month}-${String(new Date(Number(model.month.slice(0, 4)), Number(model.month.slice(5)), 0).getDate())}"></label><label>예상 금액 (원)<input name="amount" type="number" min="1" max="100000000" step="1" required></label><button type="submit">예약 추가</button></form>
+    <form data-budget-plan class="spending-budget-form"><label>약속·구매명<input name="label" maxlength="80" required placeholder="예: 친구 약속, 의류 구매"></label><label>종류<select name="sector" required><option value="">선택해주세요</option><option value="식비">식비 · 장보기/외식/배달</option><option value="기타">그 밖의 소비</option></select></label><label>예정일<input name="date" type="date" required value="${model.period === "current" ? model.today : `${model.month}-01`}" min="${model.month}-01" max="${model.month}-${String(new Date(Number(model.month.slice(0, 4)), Number(model.month.slice(5)), 0).getDate())}"></label><label>예상 금액<input name="amount" type="text" inputmode="numeric" data-number-kind="money" min="1" max="100000000" step="1" required></label><button type="submit">예약 추가</button></form>
     <ul>${model.plans.map((plan) => `<li><div><strong>${escapeHtml(plan.label)} · ${formatWon(plan.amount)}</strong><small>${escapeHtml(plan.date || plan.month)} · ${plan.linked ? "실제 거래 연결됨 · 추가 차감 없음" : "예정액 확보 중"}</small></div>
       <label>예약 종류<select data-budget-plan-sector="${escapeHtml(plan.id)}"><option value="">미지정 · 전체만 반영</option><option value="식비">식비</option><option value="기타">그 밖의 소비</option></select></label><label>실제 거래 연결<select data-budget-plan-link="${escapeHtml(plan.id)}"><option value="">아직 쓰지 않음</option>${options}</select></label><button type="button" data-budget-plan-remove="${escapeHtml(plan.id)}" aria-label="${escapeHtml(plan.label)} 예약 삭제">삭제</button></li>`).join("") || "<li>등록한 약속·구매 예약이 없습니다.</li>"}</ul>
   </details>`;
@@ -221,9 +234,9 @@ function attachSpendingBudgetHandlers(host, model) {
     event.preventDefault();
     const form = event.currentTarget;
     if (!form.reportValidity()) return;
-    const monthlyLimit = Number(form.elements.monthlyLimit.value);
-    const foodTarget = Number(form.elements.foodTarget.value);
-    const savingsTarget = Number(form.elements.savingsTarget.value);
+    const monthlyLimit = NumericInput.read(form.elements.monthlyLimit);
+    const foodTarget = NumericInput.read(form.elements.foodTarget);
+    const savingsTarget = NumericInput.read(form.elements.savingsTarget);
     if (foodTarget > monthlyLimit) {
       host.querySelector(".spending-budget-feedback").textContent = "식비 목표는 월 전체 소비 목표를 넘을 수 없습니다.";
       return;
@@ -235,7 +248,7 @@ function attachSpendingBudgetHandlers(host, model) {
   host.querySelector("[data-budget-scenario]").addEventListener("submit", (event) => {
     event.preventDefault();
     if (!event.currentTarget.reportValidity()) return;
-    spendingBudgetScenario = Number(event.currentTarget.elements.amount.value);
+    spendingBudgetScenario = NumericInput.read(event.currentTarget.elements.amount);
     renderSpendingBudget(host.id, model.month);
     host.querySelector("[data-budget-scenario] input").focus({ preventScroll: true });
   });
@@ -267,7 +280,7 @@ function attachSpendingBudgetHandlers(host, model) {
       host.querySelector(".spending-budget-feedback").textContent = `예약은 최대 ${SpendingBudgetCore.MAX_PLANS}개까지 보관합니다. 필요 없는 지난 예약을 정리한 뒤 추가해주세요.`;
       return;
     }
-    const plan = { id: crypto.randomUUID(), label: form.elements.label.value.trim(), date: form.elements.date.value, month: model.month, amount: Number(form.elements.amount.value), recordKey: "", sector: form.elements.sector.value };
+    const plan = { id: crypto.randomUUID(), label: form.elements.label.value.trim(), date: form.elements.date.value, month: model.month, amount: NumericInput.read(form.elements.amount), recordKey: "", sector: form.elements.sector.value };
     if (!plan.label || plan.date.slice(0, 7) !== model.month) return;
     saveSpendingBudgetChange(host, (settings) => {
       if (settings.plans.length >= SpendingBudgetCore.MAX_PLANS) throw new Error("예약 보관 한도를 초과했습니다.");
