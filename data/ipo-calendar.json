@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-09-22T01:20:22.553Z",
+  "updatedAt": "2026-09-22T08:59:42.269Z",
   "checkedDate": "2026-09-22",
   "coverage": {
     "kindCount": 166,
@@ -9,7 +9,7 @@
     "unresolved": [],
     "refreshStatus": {
       "state": "ok",
-      "attemptedAt": "2026-09-22T01:20:22.553Z",
+      "attemptedAt": "2026-09-22T08:59:42.269Z",
       "sources": {
         "kind": {
           "state": "ok"
@@ -1266,7 +1266,7 @@
       "status": "scheduled",
       "sourceName": "KRX KIND + DART",
       "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20251128000485",
-      "sourceUpdatedAt": "2026-09-17T09:10:56.426Z",
+      "sourceUpdatedAt": "2026-09-22T08:59:42.269Z",
       "missingSince": "",
       "corpCode": "01801026",
       "aliases": [
@@ -1281,9 +1281,9 @@
         },
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260916000240",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260922000214",
           "checkedDate": "2026-09-22",
-          "reportDate": "20260916"
+          "reportDate": "20260922"
         }
       ],
       "conflicts": [],
@@ -1293,7 +1293,7 @@
       "reportedOfferPrice": 16500,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "c40c0002c576cd7e4894",
+      "fingerprint": "ab09e407a731b8f0341f",
       "changeStatus": "unchanged",
       "changes": []
     },
