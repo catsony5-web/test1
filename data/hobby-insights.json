@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-09-25T00:39:18.376Z",
-  "attemptedAt": "2026-09-25T00:39:18.376Z",
+  "updatedAt": "2026-09-26T00:44:50.903Z",
+  "attemptedAt": "2026-09-26T00:44:50.903Z",
   "refreshStatus": "ok",
   "sources": {
     "youtube": {
@@ -538,13 +538,6 @@
       "title": "Control when B2B orders require review at checkout",
       "url": "https://changelog.shopify.com/posts/control-when-b2b-orders-require-review-at-checkout",
       "publishedAt": "2025-10-01T04:00:00.000Z",
-      "topicId": "product"
-    },
-    {
-      "sourceId": "shopify",
-      "title": "Shopify Email now supports dynamic product sections",
-      "url": "https://changelog.shopify.com/posts/shopify-email-now-supports-dynamic-product-sections",
-      "publishedAt": "2025-09-25T22:15:00.000Z",
       "topicId": "product"
     }
   ]
