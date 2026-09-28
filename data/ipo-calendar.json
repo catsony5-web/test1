@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-09-28T10:30:56.572Z",
+  "updatedAt": "2026-09-28T17:56:51.117Z",
   "checkedDate": "2026-09-28",
   "coverage": {
     "kindCount": 166,
@@ -9,7 +9,7 @@
     "unresolved": [],
     "refreshStatus": {
       "state": "ok",
-      "attemptedAt": "2026-09-28T10:30:56.572Z",
+      "attemptedAt": "2026-09-28T17:56:51.117Z",
       "sources": {
         "kind": {
           "state": "ok"
@@ -2120,7 +2120,7 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "e10a135d9ee41fe4b563",
-      "changeStatus": "new",
+      "changeStatus": "unchanged",
       "changes": []
     },
     {
