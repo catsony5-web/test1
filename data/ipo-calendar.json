@@ -1,15 +1,15 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-09-28T01:15:24.553Z",
+  "updatedAt": "2026-09-28T10:30:56.572Z",
   "checkedDate": "2026-09-28",
   "coverage": {
     "kindCount": 166,
-    "dartCount": 184,
-    "dartCheckedCompanies": 192,
+    "dartCount": 185,
+    "dartCheckedCompanies": 193,
     "unresolved": [],
     "refreshStatus": {
       "state": "ok",
-      "attemptedAt": "2026-09-28T01:15:24.553Z",
+      "attemptedAt": "2026-09-28T10:30:56.572Z",
       "sources": {
         "kind": {
           "state": "ok"
@@ -30,7 +30,7 @@
     "to": "2027-09-30",
     "label": "최근 3개월 · 향후 12개월"
   },
-  "itemCount": 46,
+  "itemCount": 47,
   "items": [
     {
       "sourceId": "20260106000356",
@@ -1357,8 +1357,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260911000530",
-      "sourceUpdatedAt": "2026-09-11T08:32:10.056Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260928000402",
+      "sourceUpdatedAt": "2026-09-28T10:30:56.572Z",
       "missingSince": "",
       "corpCode": "01158632",
       "aliases": [
@@ -1367,9 +1367,9 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260911000530",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260928000402",
           "checkedDate": "2026-09-28",
-          "reportDate": "20260911"
+          "reportDate": "20260928"
         }
       ],
       "conflicts": [],
@@ -1379,7 +1379,7 @@
       "reportedOfferPrice": 19500,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "690ff96fb89c1033af01",
+      "fingerprint": "94e946583470b9cfc53b",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -1635,7 +1635,7 @@
       "sourceId": "dart-01540903",
       "company": "크리에이츠",
       "market": "상장시장 확인 필요",
-      "filingDate": "2026-09-17",
+      "filingDate": "2026-09-28",
       "bookbuildingStart": "",
       "bookbuildingEnd": "",
       "subscriptionStart": "2026-10-20",
@@ -1648,8 +1648,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260917000141",
-      "sourceUpdatedAt": "2026-09-17T09:10:56.426Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260928000196",
+      "sourceUpdatedAt": "2026-09-28T10:30:56.572Z",
       "missingSince": "",
       "corpCode": "01540903",
       "aliases": [
@@ -1658,9 +1658,9 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260917000141",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260928000196",
           "checkedDate": "2026-09-28",
-          "reportDate": "20260917"
+          "reportDate": "20260928"
         }
       ],
       "conflicts": [],
@@ -1668,7 +1668,7 @@
       "reportedOfferPrice": 15000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "57e37120cbe17a5ab569",
+      "fingerprint": "661e78eab1e528fd064d",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -2080,6 +2080,47 @@
       "offerPriceHigh": 0,
       "fingerprint": "286387fe66e91aae6f13",
       "changeStatus": "unchanged",
+      "changes": []
+    },
+    {
+      "sourceId": "dart-01863318",
+      "company": "넥스아이",
+      "market": "상장시장 확인 필요",
+      "filingDate": "2026-09-28",
+      "bookbuildingStart": "",
+      "bookbuildingEnd": "",
+      "subscriptionStart": "2026-11-03",
+      "subscriptionEnd": "2026-11-04",
+      "paymentDate": "2026-11-06",
+      "offerPrice": 0,
+      "offeringAmountMillions": 0,
+      "listingDate": "",
+      "broker": "한국투자증권",
+      "priceStatus": "pending",
+      "status": "scheduled",
+      "sourceName": "DART",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260928000260",
+      "sourceUpdatedAt": "2026-09-28T10:30:56.572Z",
+      "missingSince": "",
+      "corpCode": "01863318",
+      "aliases": [
+        "dart-01863318"
+      ],
+      "sources": [
+        {
+          "name": "DART",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260928000260",
+          "checkedDate": "2026-09-28",
+          "reportDate": "20260928"
+        }
+      ],
+      "conflicts": [],
+      "reviewNotes": [],
+      "reportedOfferPrice": 10500,
+      "offerPriceLow": 0,
+      "offerPriceHigh": 0,
+      "fingerprint": "e10a135d9ee41fe4b563",
+      "changeStatus": "new",
       "changes": []
     },
     {
