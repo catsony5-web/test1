@@ -7,7 +7,7 @@ function loadContext(rows = [], income = {}) {
   const context = vm.createContext({
     console, classified: rows, transactions: rows, reimbursements: {}, monthlyIncome: income,
     appSettings: { cardBilling }, defaultAppSettings: () => ({ cardBilling }),
-    recurringOccurrencesForMonth: () => [],
+    recurringExpenses: [], recurringOccurrencesForMonth: () => [],
     isValidMonthKey: (value) => /^\d{4}-(0[1-9]|1[0-2])$/.test(String(value))
   });
   for (const file of [
@@ -15,7 +15,7 @@ function loadContext(rows = [], income = {}) {
     "src/utils/food-occasion.js", "src/utils/normalize.js", "src/utils/grouping.js", "src/utils/storage.js",
     "src/components/chips.js", "src/features/board/board-view.js", "src/features/board/board-summary.js", "src/features/board/board-cards.js",
     "src/features/monthly/monthly-flow.js", "src/features/analysis/analysis-core.js",
-    "src/features/analysis/monthly-analysis-core.js", "src/features/calendar/calendar-view.js",
+    "src/features/analysis/monthly-analysis-core.js", "src/features/calendar/calendar-cashflow.js", "src/features/calendar/calendar-view.js",
     "src/features/board/board-overview.js"
   ]) vm.runInContext(fs.readFileSync(path.join(__dirname, "../..", file), "utf8"), context, { filename: file });
   return context;

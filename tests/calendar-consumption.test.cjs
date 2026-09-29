@@ -10,6 +10,8 @@ function loadContext(rows = []) {
     console,
     classified: rows,
     transactions: [],
+    recurringExpenses: [],
+    recurringOccurrencesForMonth: () => [],
     reimbursements: {},
     monthlyIncome: { "2026-08": 4000000 },
     appSettings: { cardBilling },
@@ -25,9 +27,11 @@ function loadContext(rows = []) {
     "src/utils/normalize.js",
     "src/utils/grouping.js",
     "src/utils/storage.js",
+    "src/components/chips.js",
     "src/features/board/board-view.js",
     "src/features/monthly/monthly-flow.js",
     "src/features/analysis/analysis-core.js",
+    "src/features/calendar/calendar-cashflow.js",
     "src/features/calendar/calendar-view.js"
   ]) {
     vm.runInContext(fs.readFileSync(path.join(__dirname, "..", file), "utf8"), context, { filename: file });
@@ -58,15 +62,16 @@ function previewRows() {
     expense("card", 1250000, 8, { sourceType: "card" }),
     expense("rent", 600000, 7, { sector: "고정 주거비", subcategory: "월세" }),
     expense("insurance", 100000, 5, { sector: "고정 주거비", subcategory: "보험료" }),
-    expense("loan", 550000, 25, { recurringType: "loan", loanPrincipalAmount: 500000, loanInterestAmount: 50000 }),
+    expense("loan", 550000, 25, { recurringType: "loan", loanType: "신용대출", loanPrincipalAmount: 500000, loanInterestAmount: 50000 }),
     expense("savings", 700000, 27, { sector: "저축", subcategory: "적금/예금" })
   ];
 }
 
-function monthSummary(context, month = "2026-08", scheduled = []) {
+function monthSummary(context, month = "2026-08") {
   const rows = context.reportingExpenseRows(context.classified, { months: [month] });
   const byDate = context.groupBy(rows, (item) => item.approvalDate);
-  return context.renderCalendarMonthSummary(month, rows, byDate, scheduled);
+  const installments = context.buildCalendarInstallmentModel(month);
+  return context.renderCalendarMonthSummary(month, rows, byDate, installments.rows);
 }
 
 function metric(html, key) {
@@ -87,7 +92,8 @@ test("소비·원금·저축을 분리하고 자유 잔액은 월간 분석과 �
   const html = monthSummary(context);
   assert.match(metric(html, "spend"), /소비지출 1,800,000원/);
   assert.match(metric(html, "balance"), /자유 잔액 \+1,000,000원/);
-  assert.match(metric(html, "card-billing"), /카드 결제 예정 1,250,000원/);
+  assert.match(metric(html, "card-billing"), /1,900,000원/);
+  assert.equal(context.buildCalendarCardBillingModel("2026-08").expectedAmount, 1250000);
   assert.equal(context.buildAnalysisMonthSnapshot("2026-08").freeBalance, 1000000);
   assert.equal(JSON.stringify(rows), before, "rendering must not mutate saved transactions");
   assert.equal(context.reimbursements.card, 200000);
@@ -140,6 +146,29 @@ test("N빵 정산금은 소비에서만 빼고 카드 결제 예정액은 보존
   assert.match(monthSummary(context), /정산금 차감 전/);
 });
 
+test("보험과 신용대출은 정산 전 결제액과 정산 후 소비를 구분하고 원금을 별도로 둔다", () => {
+  const rows = [
+    expense("insurance", 100000, 5, { sector: "고정 주거비", subcategory: "보험료" }),
+    expense("credit-loan", 550000, 25, {
+      recurringType: "loan", loanType: "신용대출", loanPrincipalAmount: 500000,
+      loanInterestAmount: 50000, loanSupportInterestAmount: 20000
+    })
+  ];
+  const context = loadContext(rows);
+  context.reimbursements.insurance = 30000;
+  const before = JSON.stringify(rows);
+  const totals = context.calendarExpenseTotals(rows);
+  assert.equal(totals.consumption, 100000);
+  assert.equal(totals.principal, 500000);
+  assert.equal(context.buildCalendarCashOutflowModel("2026-08").expectedAmount, 650000);
+  const html = monthSummary(context);
+  assert.match(metric(html, "spend"), /소비지출 100,000원/);
+  assert.match(metric(html, "card-billing"), /650,000원/);
+  assert.match(context.renderCalendarAssetSummary("2026-08", rows), /대출 원금 상환<\/span><strong>500,000원/);
+  assert.equal(JSON.stringify(rows), before);
+  assert.equal(context.reimbursements.insurance, 30000);
+});
+
 test("할부는 해당 월 회차만 소비와 카드 예정액에 반영한다", () => {
   const item = expense("installment", 31900, 31, {
     sourceType: "card", installmentEnabled: true, installmentMonths: 3,
@@ -158,9 +187,49 @@ test("할부는 해당 월 회차만 소비와 카드 예정액에 반영한다"
     assert.equal(consumption, index === 2 ? 3544 : 3545);
     totalConsumption += consumption;
     totalBilling += context.buildCalendarCardBillingModel(month).expectedAmount;
+    const installments = context.buildCalendarInstallmentModel(month);
+    assert.equal(installments.amount, rows[0].amount);
+    assert.equal(installments.rows.length, 1);
+    assert.equal(installments.rows[0].date, `${month}-25`);
+    assert.equal(context.buildCalendarCashOutflowModel(month).expectedAmount, installments.amount,
+      "할부는 카드 청구에 포함되므로 결제 예정액에 다시 더하지 않는다");
+    assert.match(metric(monthSummary(context, month), "installment"), new RegExp(context.formatWon(installments.amount)));
   }
   assert.equal(totalConsumption, 10634);
   assert.equal(totalBilling, 31900);
+});
+
+test("1원을 3개월로 나눈 할부도 마지막 회차의 원 단위 잔액을 잃지 않는다", () => {
+  const context = loadContext([expense("tiny-installment", 1, 1, {
+    sourceType: "card", installmentEnabled: true, installmentMonths: 3,
+    installmentStartMonth: "2026-08", installmentOriginalAmount: 1
+  })]);
+  const amounts = ["2026-08", "2026-09", "2026-10"].map((month) => {
+    const installments = context.buildCalendarInstallmentModel(month);
+    assert.equal(installments.amount, context.buildCalendarCashOutflowModel(month).expectedAmount);
+    return installments.amount;
+  });
+  assert.deepEqual(amounts, [0, 0, 1]);
+  assert.equal(amounts.reduce((total, amount) => total + amount, 0), 1);
+});
+
+test("월말 주말 결제는 실제 결제월로 이월하고 그 달의 두 청구 회차를 보존한다", () => {
+  const context = loadContext([expense("weekend-installment", 90000, 10, {
+    sourceType: "card", month: "2026-05", approvalDate: "2026-05-10",
+    installmentEnabled: true, installmentMonths: 3,
+    installmentStartMonth: "2026-05", installmentOriginalAmount: 90000
+  })]);
+  context.appSettings.cardBilling = { startDay: 1, endDay: 31, paymentDay: 31, weekendRule: "next-monday" };
+  const may = context.buildCalendarInstallmentModel("2026-05");
+  const june = context.buildCalendarInstallmentModel("2026-06");
+  assert.equal(may.amount, 0);
+  assert.equal(may.rows.length, 0);
+  assert.deepEqual(Array.from(june.rows, (item) => item.date).sort(), ["2026-06-01", "2026-06-30"]);
+  assert.equal(june.amount, 60000);
+  assert.equal(context.buildCalendarCashOutflowModel("2026-06").expectedAmount, 60000);
+  const mayConsumption = context.reportingExpenseRows(context.classified, { months: ["2026-05"] });
+  assert.equal(context.calendarExpenseTotals(mayConsumption).consumption, 30000,
+    "결제일이 이월되어도 사용월의 소비 회차는 옮기지 않는다");
 });
 
 test("원금·저축 전용일은 평균 소비일수와 가장 많이 쓴 날에서 제외한다", () => {
@@ -172,11 +241,12 @@ test("원금·저축 전용일은 평균 소비일수와 가장 많이 쓴 날�
   ];
   const context = loadContext(rows);
   context.reimbursements.refunded = 50000;
-  const html = monthSummary(context, "2026-08", [{ amount: 800000 }]);
+  const html = monthSummary(context, "2026-08");
   assert.match(metric(html, "average"), /40,000원.*소비 발생 1일 기준/);
   assert.match(metric(html, "top-day"), /2026-08-02.*40,000원.*1건/);
   assert.match(metric(html, "spend"), /40,000원/);
-  assert.match(metric(html, "scheduled"), /800,000원/);
+  assert.match(metric(html, "installment"), /0원/);
+  assert.doesNotMatch(html, /data-calendar-metric="scheduled"/);
   context.classified = rows.slice(1, 3);
   const noConsumption = monthSummary(context);
   assert.match(metric(noConsumption, "average"), /0원.*소비지출 없음/);
@@ -231,8 +301,13 @@ test("청구기간 경계·이전 연도·주말 결제일 계산은 바꾸지 �
 });
 
 test("달력 색상·일별 금액은 소비 기준이며 표시 토글은 합계를 바꾸지 않는다", () => {
-  const context = loadContext(previewRows());
+  const context = loadContext([...previewRows(), expense("installment", 12000, 10, {
+    sourceType: "card", installmentEnabled: true, installmentMonths: 3,
+    installmentStartMonth: "2026-08", installmentOriginalAmount: 12000
+  })]);
   context.reimbursements.card = 200000;
+  context.reimbursements.installment = 6000;
+  let timelineInstallments;
   const element = () => ({ value: "", innerHTML: "", querySelectorAll: () => [] });
   Object.assign(context, {
     els: { calendarMonth: element(), calendarMonthSummary: element(), calendarAssetSummary: element(), spendingCalendar: element() },
@@ -250,13 +325,18 @@ test("달력 색상·일별 금액은 소비 기준이며 표시 토글은 합�
     renderCalendarMonthlyMemo: () => {},
     renderCalendarCurrentMonthLabel: () => {},
     attachCalendarSummaryHandlers: () => {},
-    renderDayTimeline: () => {}
+    renderDayTimeline: (date, rows, installments) => { timelineInstallments = installments; }
   });
   context.renderCalendar();
   const cell = (date) => context.els.spendingCalendar.innerHTML.match(new RegExp(`data-calendar-date="${date}"([\\s\\S]*?)</button>`))[1];
   assert.match(cell("2026-08-25"), /data-spend-level="2"/);
   assert.match(cell("2026-08-25"), /<strong>50,000원<\/strong>/);
   assert.match(cell("2026-08-25"), /원금 500,000원/);
+  assert.match(cell("2026-08-25"), /할부[^<]*4,000원/);
+  assert.doesNotMatch(cell("2026-08-10"), /할부[^<]*4,000원/);
+  assert.equal(timelineInstallments.length, 1);
+  assert.equal(timelineInstallments[0].date, "2026-08-25");
+  assert.equal(timelineInstallments[0].amount, 4000);
   assert.match(cell("2026-08-27"), /data-spend-level="0"/);
   assert.match(cell("2026-08-27"), /저축 700,000원/);
   assert.doesNotMatch(cell("2026-08-27"), /<strong>/);
@@ -269,6 +349,9 @@ test("달력 색상·일별 금액은 소비 기준이며 표시 토글은 합�
   assert.doesNotMatch(cell("2026-08-25"), /원금 500,000원/);
   assert.match(cell("2026-08-25"), /<strong>50,000원<\/strong>/);
   assert.doesNotMatch(cell("2026-08-27"), /저축 700,000원/);
+  context.selectedCalendarDate = "2026-08-10";
+  context.renderCalendar();
+  assert.equal(timelineInstallments.length, 0, "승인일에는 결제일의 할부 예정 행을 중복 표시하지 않는다");
 });
 
 test("대출 상세는 총 상환액과 소비에 포함되는 이자를 함께 설명한다", () => {

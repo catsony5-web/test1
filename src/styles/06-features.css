@@ -3727,7 +3727,7 @@ button.calendar-summary-card:focus-visible {
 }
 
 .calendar-cell em,
-.calendar-fixed-schedule-label {
+.calendar-installment-label {
   margin-top: 4px;
   color: #b45309;
   font-size: 12px;
@@ -3735,19 +3735,15 @@ button.calendar-summary-card:focus-visible {
   font-weight: 900;
 }
 
-.calendar-fixed-schedule-label {
+.calendar-installment-label {
   display: inline-flex;
+  gap: 3px;
   width: fit-content;
   max-width: 100%;
   border-radius: 999px;
   padding: 3px 7px;
   background: color-mix(in srgb, var(--accent-warning) 16%, var(--surface));
   line-height: 1.2;
-}
-
-.calendar-fixed-schedule-label.posted {
-  color: var(--status-positive-text);
-  background: color-mix(in srgb, var(--status-positive-bg) 76%, var(--surface));
 }
 
 .calendar-income-label {

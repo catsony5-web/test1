@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "monthly-card-budget-";
-const CACHE_NAME = `${CACHE_PREFIX}v192-maintenance`;
+const CACHE_NAME = `${CACHE_PREFIX}v193-calendar-outflow`;
 importScripts("./src/features/goals/goals-insights.js?v=189-budget-planning");
 const APP_FILES = [
   "./data/hobby-insights.json",
@@ -11,10 +11,10 @@ const APP_FILES = [
   "./src/styles/03-components.css?v=140-long-term-trend",
   "./src/styles/04-forms-tables.css?v=83",
   "./src/styles/05-charts.css?v=176-recurring-review",
-  "./src/styles/06-features.css?v=174-food-occasions",
+  "./src/styles/06-features.css?v=193-calendar-outflow",
   "./src/styles/07-responsive.css?v=176-recurring-review",
   "./src/styles/08-themes.css?v=185-theme-refresh",
-  "./src/styles/09-production-ui.css?v=190-budget-check",
+  "./src/styles/09-production-ui.css?v=193-calendar-outflow",
   "./src/styles/10-analysis.css?v=175-monthly-close-r3",
   "./src/styles/11-summary-insights.css?v=188-pattern-readability",
   "./src/styles/12-rosso-ink.css?v=169-corsa-themes",
@@ -111,7 +111,7 @@ const APP_FILES = [
   "./assets/tabler/icons/x.svg",
   "./assets/tabler/LICENSE",
   "./data/ipo-calendar.json",
-  "./src/data/constants.js?v=192-maintenance",
+  "./src/data/constants.js?v=193-calendar-outflow",
   "./src/data/categories.js?v=136-mineral-layers",
   "./src/data/rules.js?v=93",
   "./src/data/board-sections.js?v=151-loan-repayments",
@@ -157,7 +157,7 @@ const APP_FILES = [
   "./src/features/income/income-bulk.js?v=191-budget-templates",
   "./src/features/income/income-list.js?v=191-budget-templates",
   "./src/features/recurring/recurring-view.js?v=192-maintenance",
-  "./src/features/calendar/calendar-view.js?v=192-maintenance",
+  "./src/features/calendar/calendar-view.js?v=193-calendar-outflow",
   "./src/features/analysis/analysis-core.js?v=156-loan-sharing",
   "./src/features/analysis/monthly-analysis-core.js?v=175-monthly-close-r2",
   "./src/features/analysis/monthly-analysis-view.js?v=175-monthly-close-r2",
@@ -185,7 +185,8 @@ const APP_FILES = [
   "./src/utils/numeric-input.js?v=191-budget-templates",
   "./src/styles/19-products.css?v=191-products-quick-entry",
   "./src/styles/20-responsive-devices.css?v=191-responsive",
-  "./src/utils/excel-loader.js?v=192-maintenance"
+  "./src/utils/excel-loader.js?v=192-maintenance",
+  "./src/features/calendar/calendar-cashflow.js?v=193-calendar-outflow"
 ];
 
 const PUBLIC_PATHS = new Set(APP_FILES.map((file) => new URL(file, self.location.href).pathname));

@@ -1235,7 +1235,17 @@
   }
 
   #calendarView .calendar-summary-row.support {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #calendarView .calendar-summary-row.support > :not([data-calendar-metric="installment"]) {
     display: none;
+  }
+
+  #calendarView [data-calendar-metric="installment"] {
+    min-height: 0;
   }
 
   #calendarView .calendar-summary-card {
@@ -1326,7 +1336,7 @@
   }
 
   #calendarView .calendar-cell em,
-  #calendarView .calendar-fixed-schedule-label,
+  #calendarView .calendar-installment-label,
   #calendarView .calendar-income-label {
     max-width: 100%;
     margin-top: 3px;
@@ -1430,7 +1440,7 @@
   }
 
   #calendarView .calendar-cell em,
-  #calendarView .calendar-fixed-schedule-label,
+  #calendarView .calendar-installment-label,
   #calendarView .calendar-income-label {
     font-size: 7px;
     padding-inline: 2px;
@@ -4669,6 +4679,12 @@ body .snapshot-list {
   border-top: 1px solid var(--border-subtle);
 }
 
+#calendarView .calendar-billing-group h4 {
+  margin: 16px 0 8px;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
 #calendarView .calendar-billing-row {
   display: grid;
   grid-template-columns: 64px minmax(160px, 1fr) minmax(120px, auto) 112px;
@@ -4758,6 +4774,15 @@ body .snapshot-list {
 
   #calendarView .calendar-summary-card.is-core > strong {
     font-size: clamp(15px, 4.5vw, 20px);
+  }
+
+  #calendarView .calendar-cell .calendar-installment-label {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+    overflow: visible;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 
   #calendarView .calendar-asset-summary {
