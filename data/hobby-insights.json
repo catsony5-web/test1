@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-09-30T01:23:33.617Z",
-  "attemptedAt": "2026-09-30T01:23:33.617Z",
+  "updatedAt": "2026-10-01T01:23:43.533Z",
+  "attemptedAt": "2026-10-01T01:23:43.533Z",
   "refreshStatus": "ok",
   "sources": {
     "youtube": {
@@ -531,13 +531,6 @@
       "title": "Flow: New triggers for discounts, disputes, and fulfillment order splits",
       "url": "https://changelog.shopify.com/posts/flow-new-triggers-for-discounts-disputes-and-fulfillment-order-splits",
       "publishedAt": "2025-10-02T16:00:00.000Z",
-      "topicId": "product"
-    },
-    {
-      "sourceId": "shopify",
-      "title": "Control when B2B orders require review at checkout",
-      "url": "https://changelog.shopify.com/posts/control-when-b2b-orders-require-review-at-checkout",
-      "publishedAt": "2025-10-01T04:00:00.000Z",
       "topicId": "product"
     }
   ]
