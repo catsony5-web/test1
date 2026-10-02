@@ -1,11 +1,11 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-10-02T01:51:36.909Z",
+  "updatedAt": "2026-10-02T16:05:02.247Z",
   "checkedDate": "2026-10-02",
   "coverage": {
     "kindCount": 158,
-    "dartCount": 177,
-    "dartCheckedCompanies": 186,
+    "dartCount": 178,
+    "dartCheckedCompanies": 187,
     "unresolved": [
       {
         "company": "쓰리에이로직스",
@@ -13,15 +13,14 @@
       }
     ],
     "refreshStatus": {
-      "state": "stale",
-      "attemptedAt": "2026-10-02T10:17:37.067Z",
+      "state": "ok",
+      "attemptedAt": "2026-10-02T16:05:02.247Z",
       "sources": {
         "kind": {
           "state": "ok"
         },
         "dart": {
-          "state": "failed",
-          "reason": "request-failed"
+          "state": "ok"
         }
       }
     }
@@ -36,7 +35,7 @@
     "to": "2027-10-31",
     "label": "최근 3개월 · 향후 12개월"
   },
-  "itemCount": 43,
+  "itemCount": 44,
   "items": [
     {
       "sourceId": "20250328000374",
@@ -1019,15 +1018,15 @@
       "subscriptionStart": "2026-10-01",
       "subscriptionEnd": "2026-10-02",
       "paymentDate": "2026-10-07",
-      "offerPrice": 0,
-      "offeringAmountMillions": 0,
+      "offerPrice": 12300,
+      "offeringAmountMillions": 30750,
       "listingDate": "2026-10-15",
       "broker": "대신증권",
-      "priceStatus": "pending",
+      "priceStatus": "confirmed",
       "status": "scheduled",
       "sourceName": "KRX KIND + DART",
       "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260130000275",
-      "sourceUpdatedAt": "2026-10-01T10:42:14.042Z",
+      "sourceUpdatedAt": "2026-10-02T16:05:02.247Z",
       "missingSince": "",
       "corpCode": "01028933",
       "aliases": [
@@ -1054,9 +1053,22 @@
       "reportedOfferPrice": 10700,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "7d673de82e47ab0183ba",
-      "changeStatus": "unchanged",
-      "changes": []
+      "fingerprint": "ef853a20ead839f460c7",
+      "changeStatus": "changed",
+      "changes": [
+        {
+          "field": "offerPrice",
+          "label": "확정 공모가",
+          "before": 0,
+          "after": 12300
+        },
+        {
+          "field": "offeringAmountMillions",
+          "label": "공모금액",
+          "before": 0,
+          "after": 30750
+        }
+      ]
     },
     {
       "sourceId": "dart-01158632",
@@ -1970,6 +1982,47 @@
       "offerPriceHigh": 0,
       "fingerprint": "da54d1bf83ec67871a25",
       "changeStatus": "unchanged",
+      "changes": []
+    },
+    {
+      "sourceId": "dart-01880139",
+      "company": "케이엠에프",
+      "market": "상장시장 확인 필요",
+      "filingDate": "2026-10-02",
+      "bookbuildingStart": "",
+      "bookbuildingEnd": "",
+      "subscriptionStart": "2026-11-24",
+      "subscriptionEnd": "2026-11-25",
+      "paymentDate": "2026-11-27",
+      "offerPrice": 0,
+      "offeringAmountMillions": 0,
+      "listingDate": "",
+      "broker": "IBK투자증권",
+      "priceStatus": "pending",
+      "status": "scheduled",
+      "sourceName": "DART",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261002000390",
+      "sourceUpdatedAt": "2026-10-02T16:05:02.247Z",
+      "missingSince": "",
+      "corpCode": "01880139",
+      "aliases": [
+        "dart-01880139"
+      ],
+      "sources": [
+        {
+          "name": "DART",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261002000390",
+          "checkedDate": "2026-10-02",
+          "reportDate": "20261002"
+        }
+      ],
+      "conflicts": [],
+      "reviewNotes": [],
+      "reportedOfferPrice": 15000,
+      "offerPriceLow": 0,
+      "offerPriceHigh": 0,
+      "fingerprint": "e7bb0519e05cc002a9d8",
+      "changeStatus": "new",
       "changes": []
     }
   ]
