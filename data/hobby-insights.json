@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-02T01:44:58.774Z",
-  "attemptedAt": "2026-10-02T01:44:58.774Z",
+  "updatedAt": "2026-10-03T01:16:51.198Z",
+  "attemptedAt": "2026-10-03T01:16:51.198Z",
   "refreshStatus": "ok",
   "sources": {
     "youtube": {
@@ -15,6 +15,13 @@
     }
   },
   "items": [
+    {
+      "sourceId": "shopify",
+      "title": "Schedule and test discounts with Rollouts",
+      "url": "https://changelog.shopify.com/posts/schedule-and-test-discounts-with-rollouts",
+      "publishedAt": "2026-10-02T16:00:00.000Z",
+      "topicId": "product"
+    },
     {
       "sourceId": "wordpress",
       "title": "Meet Purple: A Head Start for Your Ecommerce Store",
@@ -524,13 +531,6 @@
       "title": "Integrate accelerated checkout buttons (Shop Pay and Apple Pay) on your mobile app storefronts",
       "url": "https://changelog.shopify.com/posts/integrate-accelerated-checkout-buttons-shop-pay-and-apple-pay-on-your-mobile-app-storefronts",
       "publishedAt": "2025-10-08T19:00:00.000Z",
-      "topicId": "product"
-    },
-    {
-      "sourceId": "shopify",
-      "title": "Flow: New triggers for discounts, disputes, and fulfillment order splits",
-      "url": "https://changelog.shopify.com/posts/flow-new-triggers-for-discounts-disputes-and-fulfillment-order-splits",
-      "publishedAt": "2025-10-02T16:00:00.000Z",
       "topicId": "product"
     }
   ]
