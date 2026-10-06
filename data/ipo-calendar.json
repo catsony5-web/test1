@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-10-06T02:34:10.305Z",
+  "updatedAt": "2026-10-06T10:59:38.367Z",
   "checkedDate": "2026-10-06",
   "coverage": {
     "kindCount": 158,
@@ -14,7 +14,7 @@
     ],
     "refreshStatus": {
       "state": "ok",
-      "attemptedAt": "2026-10-06T02:34:10.305Z",
+      "attemptedAt": "2026-10-06T10:59:38.367Z",
       "sources": {
         "kind": {
           "state": "ok"
@@ -1117,8 +1117,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260930000007",
-      "sourceUpdatedAt": "2026-09-30T01:42:47.709Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261006000451",
+      "sourceUpdatedAt": "2026-10-06T10:59:38.367Z",
       "missingSince": "",
       "corpCode": "01754737",
       "aliases": [
@@ -1127,9 +1127,9 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260930000007",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261006000451",
           "checkedDate": "2026-10-06",
-          "reportDate": "20260930"
+          "reportDate": "20261006"
         }
       ],
       "conflicts": [],
@@ -1139,7 +1139,7 @@
       "reportedOfferPrice": 70400,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "7a375bd1c1f67b48c3de",
+      "fingerprint": "d384a17a07af39b4683a",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -1442,7 +1442,7 @@
       "sourceId": "dart-01965157",
       "company": "한화플러스제6호기업인수목적",
       "market": "상장시장 확인 필요",
-      "filingDate": "2026-09-17",
+      "filingDate": "2026-10-06",
       "bookbuildingStart": "",
       "bookbuildingEnd": "",
       "subscriptionStart": "2026-10-20",
@@ -1455,8 +1455,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260917000365",
-      "sourceUpdatedAt": "2026-09-17T09:10:56.426Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261006000137",
+      "sourceUpdatedAt": "2026-10-06T10:59:38.367Z",
       "missingSince": "",
       "corpCode": "01965157",
       "aliases": [
@@ -1465,9 +1465,9 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260917000365",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261006000137",
           "checkedDate": "2026-10-06",
-          "reportDate": "20260917"
+          "reportDate": "20261006"
         }
       ],
       "conflicts": [],
@@ -1475,7 +1475,7 @@
       "reportedOfferPrice": 2000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "0e2e87a175654a4fa8e9",
+      "fingerprint": "5e979aebb877b0db8d0e",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -1524,7 +1524,7 @@
       "sourceId": "dart-01956751",
       "company": "래블업",
       "market": "상장시장 확인 필요",
-      "filingDate": "2026-09-21",
+      "filingDate": "2026-10-06",
       "bookbuildingStart": "",
       "bookbuildingEnd": "",
       "subscriptionStart": "2026-10-22",
@@ -1537,8 +1537,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260921000390",
-      "sourceUpdatedAt": "2026-09-21T09:34:21.892Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261006000421",
+      "sourceUpdatedAt": "2026-10-06T10:59:38.367Z",
       "missingSince": "",
       "corpCode": "01956751",
       "aliases": [
@@ -1547,9 +1547,9 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260921000390",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261006000421",
           "checkedDate": "2026-10-06",
-          "reportDate": "20260921"
+          "reportDate": "20261006"
         }
       ],
       "conflicts": [],
@@ -1557,7 +1557,7 @@
       "reportedOfferPrice": 19000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "0a1aa06d3ed2309910a9",
+      "fingerprint": "d81bc36dcae8a40a3aa5",
       "changeStatus": "unchanged",
       "changes": []
     },
