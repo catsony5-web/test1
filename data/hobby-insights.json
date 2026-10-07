@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-06T02:23:00.870Z",
-  "attemptedAt": "2026-10-06T02:23:00.870Z",
+  "updatedAt": "2026-10-07T01:42:16.291Z",
+  "attemptedAt": "2026-10-07T01:42:16.291Z",
   "refreshStatus": "ok",
   "sources": {
     "youtube": {
@@ -118,6 +118,13 @@
       "title": "Checkout now defaults to last used payment method for signed-in customers",
       "url": "https://changelog.shopify.com/posts/checkout-now-defaults-to-last-used-payment-method-for-signed-in-customers",
       "publishedAt": "2026-08-21T16:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Inventory reports now show on-hand quantity",
+      "url": "https://changelog.shopify.com/posts/inventory-reports-now-show-on-hand-quantity",
+      "publishedAt": "2026-08-14T16:00:00.000Z",
       "topicId": "product"
     },
     {
