@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-07T01:42:16.291Z",
-  "attemptedAt": "2026-10-07T01:42:16.291Z",
+  "updatedAt": "2026-10-08T02:09:54.800Z",
+  "attemptedAt": "2026-10-08T02:09:54.800Z",
   "refreshStatus": "ok",
   "sources": {
     "youtube": {
@@ -122,7 +122,7 @@
     },
     {
       "sourceId": "shopify",
-      "title": "Inventory reports now show on-hand quantity",
+      "title": "Inventory reports now show on hand quantity",
       "url": "https://changelog.shopify.com/posts/inventory-reports-now-show-on-hand-quantity",
       "publishedAt": "2026-08-14T16:00:00.000Z",
       "topicId": "product"
