@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-08T02:09:54.800Z",
-  "attemptedAt": "2026-10-08T02:09:54.800Z",
+  "updatedAt": "2026-10-09T02:22:38.558Z",
+  "attemptedAt": "2026-10-09T02:22:38.558Z",
   "refreshStatus": "ok",
   "sources": {
     "youtube": {
@@ -538,13 +538,6 @@
       "title": "We’ve increased the product variant limit to 2048",
       "url": "https://changelog.shopify.com/posts/we-ve-increased-the-product-variant-limit-to-2048",
       "publishedAt": "2025-10-15T13:30:00.000Z",
-      "topicId": "product"
-    },
-    {
-      "sourceId": "shopify",
-      "title": "Integrate accelerated checkout buttons (Shop Pay and Apple Pay) on your mobile app storefronts",
-      "url": "https://changelog.shopify.com/posts/integrate-accelerated-checkout-buttons-shop-pay-and-apple-pay-on-your-mobile-app-storefronts",
-      "publishedAt": "2025-10-08T19:00:00.000Z",
       "topicId": "product"
     }
   ]
