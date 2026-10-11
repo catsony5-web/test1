@@ -18,6 +18,7 @@ function addRule(sector, subcategory, keyword, options = {}) {
     updatedAt: new Date().toISOString()
   };
   rules.push(rule);
+  saveRules();
   reclassify();
   return { added: true, rule, conflict: Boolean(existing) };
 }
@@ -221,6 +222,7 @@ function attachRuleHandlers() {
       editingRuleIndex = -1;
       pendingRuleChange = null;
       ruleFeedback = { type: "success", message: "규칙을 삭제했습니다." };
+      await saveRules();
       reclassify();
     });
   });

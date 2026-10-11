@@ -1,21 +1,8 @@
 function renderAll() {
   renderStatus();
-  renderBoard();
-  renderMonthlyAnalysis();
-  renderSpendingStructureAnalysis();
-  renderGoals();
-  renderMonthlyFlow();
-  renderSummary();
-  renderDetailView();
-  renderDetailBulkView();
-  renderCalendar();
-  renderRecurring();
-  renderProducts();
-  renderIpoView();
-  renderUnknown();
-  renderRules();
-  renderTransactions();
   els.exportButton.disabled = classified.length === 0 || workbookExportInProgress;
+  const viewName = document.querySelector(".view.active")?.id?.replace(/View$/, "");
+  renderView(viewName);
 }
 
 function renderView(viewName) {
@@ -29,7 +16,7 @@ function renderView(viewName) {
     details: renderDetailView,
     detailBulk: renderDetailBulkView,
     calendar: renderCalendar,
-    income: renderIncomeEntries,
+    income: renderIncomeView,
     recurring: renderRecurring,
     products: renderProducts,
     ipo: renderIpoView,
@@ -38,6 +25,11 @@ function renderView(viewName) {
     transactions: renderTransactions
   };
   renderers[viewName]?.();
+}
+
+function renderIncomeView() {
+  renderIncomeEntries();
+  renderIncomeBulkPreview(els.incomeBulkFeedback.textContent);
 }
 
 function renderStatus() {

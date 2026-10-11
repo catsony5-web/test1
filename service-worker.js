@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "monthly-card-budget-";
-const CACHE_NAME = `${CACHE_PREFIX}v193-calendar-outflow`;
+const CACHE_NAME = `${CACHE_PREFIX}v194-import-save-performance`;
 importScripts("./src/features/goals/goals-insights.js?v=189-budget-planning");
 const APP_FILES = [
   "./data/hobby-insights.json",
@@ -111,7 +111,7 @@ const APP_FILES = [
   "./assets/tabler/icons/x.svg",
   "./assets/tabler/LICENSE",
   "./data/ipo-calendar.json",
-  "./src/data/constants.js?v=193-calendar-outflow",
+  "./src/data/constants.js?v=194-import-save-performance",
   "./src/data/categories.js?v=136-mineral-layers",
   "./src/data/rules.js?v=93",
   "./src/data/board-sections.js?v=151-loan-repayments",
@@ -132,11 +132,11 @@ const APP_FILES = [
   "./src/components/tables.js?v=61",
   "./src/components/metrics.js?v=131-yearly",
   "./src/components/quick-add.js?v=192-maintenance",
-  "./src/features/import/excel-import.js?v=192-maintenance",
+  "./src/features/import/excel-import.js?v=194-import-save-performance",
   "./src/features/import/transaction-parser.js?v=77",
-  "./src/features/classification/classifier.js?v=61",
+  "./src/features/classification/classifier.js?v=194-import-save-performance",
   "./src/features/classification/smart-suggestions.js?v=173-food-calendar-r2",
-  "./src/features/classification/rules-manager.js?v=61",
+  "./src/features/classification/rules-manager.js?v=194-import-save-performance",
   "./src/features/board/board-view.js?v=192-maintenance",
   "./src/features/board/board-summary.js?v=192-maintenance",
   "./src/features/board/board-overview.js?v=185-theme-refresh",
@@ -151,7 +151,7 @@ const APP_FILES = [
   "./src/features/summary/summary-view.js?v=190-budget-check",
   "./src/features/summary/sector-analysis.js?v=165-summary-insights-r2",
   "./src/features/summary/summary-chart.js?v=165-summary-insights-r2",
-  "./src/features/monthly/monthly-flow.js?v=165-summary-insights-r2",
+  "./src/features/monthly/monthly-flow.js?v=194-import-save-performance",
   "./src/features/monthly/monthly-chart.js?v=156-loan-sharing",
   "./src/features/income/income-entry.js?v=191-budget-templates",
   "./src/features/income/income-bulk.js?v=191-budget-templates",
@@ -169,7 +169,7 @@ const APP_FILES = [
   "./src/features/goals/goals-view.js?v=191-budget-templates",
   "./src/features/app/navigation.js?v=112",
   "./src/features/app/appearance.js?v=141-garden-analysis",
-  "./src/features/app/render-all.js?v=192-maintenance",
+  "./src/features/app/render-all.js?v=194-import-save-performance",
   "./src/features/app/init.js?v=187-backup-restore",
   "./manifest.webmanifest?v=185-theme-refresh",
   "./app-icon.svg",

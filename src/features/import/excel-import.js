@@ -31,11 +31,7 @@ async function handleFile(event) {
       }
 
       const incoming = parseImportedTransactions(found, file.name);
-      recurringOverlapCount = recurringExpenses.filter((item) => item.recurringType !== "loan")
-        .reduce((count, item) => count + unique(incoming.map((row) => row.month)).filter((month) => {
-          const posted = findPostedRecurringTransaction(item.id, month);
-          return posted?.recurringPostMethod === "auto" && recurringImportCandidates(item, month, incoming).length > 0;
-        }).length, 0);
+      recurringOverlapCount = countRecurringImportOverlaps(incoming);
       await createAutoSnapshot("엑셀 업로드 전");
       mergeResult = mergeTransactions(transactions, incoming);
       nextImportMeta = {
@@ -45,7 +41,7 @@ async function handleFile(event) {
         lastSkippedCount: mergeResult.skipped
       };
       const saved = await safeSaveMany([
-        { key: RECORD_STORAGE_KEY, data: mergeResult.records.map(normalizeStoredTransaction), protectIncomeRecords: true },
+        { key: RECORD_STORAGE_KEY, data: mergeResult.records, protectIncomeRecords: true },
         { key: IMPORT_META_STORAGE_KEY, data: nextImportMeta }
       ]);
       if (!saved) return;
@@ -77,28 +73,67 @@ async function handleFile(event) {
   }
 }
 
+function countRecurringImportOverlaps(incoming) {
+  const expenses = recurringExpenses.filter((item) => item.recurringType !== "loan");
+  if (!expenses.length || !incoming.length) return 0;
+  const months = new Set(incoming.map((row) => row.month));
+  const postedByMonth = new Map();
+  for (const transaction of transactions) {
+    const record = normalizeStoredTransaction(transaction);
+    if (!months.has(record.month) || isCanceled(record.cancel)) continue;
+    if (!postedByMonth.has(record.month)) postedByMonth.set(record.month, new Map());
+    const posted = postedByMonth.get(record.month);
+    if (!posted.has(record.recurringId)) posted.set(record.recurringId, record.recurringPostMethod);
+  }
+
+  const incomingByMonth = new Map();
+  for (const record of incoming) {
+    const month = record.month || monthKey(record.approvalDate);
+    if (!incomingByMonth.has(month)) incomingByMonth.set(month, []);
+    incomingByMonth.get(month).push(record);
+  }
+  const candidatesByMonth = new Map();
+  let count = 0;
+  for (const item of expenses) {
+    const name = normalizeKeyText(item.name);
+    for (const month of months) {
+      if (postedByMonth.get(month)?.get(item.id) !== "auto") continue;
+      if (!candidatesByMonth.has(month)) {
+        const candidates = recurringLinkCandidates(month, incomingByMonth.get(month) || []);
+        candidatesByMonth.set(month, {
+          amounts: new Set(candidates.map((record) => Number(record.amount))),
+          names: new Set(candidates.map((record) => normalizeKeyText(record.merchant)))
+        });
+      }
+      const candidates = candidatesByMonth.get(month);
+      if (candidates.amounts.has(Number(item.amount)) || (name && candidates.names.has(name))) count++;
+    }
+  }
+  return count;
+}
+
 function findImportSheet(workbook) {
   for (const sheetName of workbook.SheetNames) {
-    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {
-      header: 1,
-      raw: false,
-      defval: ""
+    const sheet = workbook.Sheets[sheetName];
+    if (!sheet?.["!ref"]) continue;
+    const range = XLSX.utils.decode_range(sheet["!ref"]);
+    const options = { header: 1, raw: false, defval: "" };
+    const headerRows = XLSX.utils.sheet_to_json(sheet, {
+      ...options,
+      range: { s: range.s, e: { r: Math.min(range.e.r, range.s.r + 11), c: range.e.c } }
     });
-    if (!rows.length) continue;
 
-    const maxHeaderScan = Math.min(rows.length, 12);
-    for (let headerRowIndex = 0; headerRowIndex < maxHeaderScan; headerRowIndex++) {
-      const map = headerMap(rows[headerRowIndex]);
+    for (let headerRowIndex = 0; headerRowIndex < headerRows.length; headerRowIndex++) {
+      const map = headerMap(headerRows[headerRowIndex]);
       const hasDate = map.date !== undefined;
       const hasMerchant = map.merchant !== undefined;
       const hasCardAmount = map.amount !== undefined;
       const hasTransferAmount = map.withdrawal !== undefined || map.deposit !== undefined;
-
-      if (hasDate && hasTransferAmount) {
-        return { kind: "transfer", sheetName, rows, map, headerRowIndex };
-      }
-      if (hasDate && hasMerchant && hasCardAmount) {
-        return { kind: "card", sheetName, rows, map, headerRowIndex };
+      const kind = hasDate && hasTransferAmount ? "transfer"
+        : hasDate && hasMerchant && hasCardAmount ? "card" : "";
+      if (kind) {
+        const rows = XLSX.utils.sheet_to_json(sheet, options);
+        return { kind, sheetName, rows, map, headerRowIndex };
       }
     }
   }

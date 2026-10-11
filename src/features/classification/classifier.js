@@ -1,5 +1,6 @@
 function reclassify() {
   const sortedRules = sortedClassificationRules();
+  const ruleMatches = new Map();
   const firstPass = transactions.map((item) => {
     if (item.manualSector && item.manualSubcategory) {
       const assignment = normalizeCategoryAssignment(item.manualSector, item.manualSubcategory, item.merchant);
@@ -14,7 +15,10 @@ function reclassify() {
       return { ...item, sector: "제외", subcategory: "취소/제외", status: "취소/제외" };
     }
 
-    const match = findRule(item.merchant, sortedRules);
+    if (!ruleMatches.has(item.merchant)) {
+      ruleMatches.set(item.merchant, findRule(item.merchant, sortedRules));
+    }
+    const match = ruleMatches.get(item.merchant);
     if (!match) {
       return { ...item, sector: "미분류", subcategory: "미분류", status: "미분류" };
     }
@@ -49,7 +53,6 @@ function reclassify() {
       suggestion: suggestion && Number(suggestion.confidence || 0) >= SMART_DISPLAY_CONFIDENCE ? suggestion : null
     };
   });
-  saveRules();
   renderAll();
 }
 

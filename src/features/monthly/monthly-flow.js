@@ -42,8 +42,6 @@ function renderMonthlyFlow() {
   const allRows = buildMonthlyFlowRows(reportRows);
   els.monthlyFlowTable.className = "monthly-flow-table";
   updateMonthlyYearOptions(allRows);
-  renderIncomeEntries();
-  renderIncomeBulkPreview(els.incomeBulkFeedback.textContent);
   const rows = filterMonthlyRows(allRows, reportRows);
   if (!allRows.length) {
     monthlyChartRows = [];
