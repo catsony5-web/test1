@@ -1,11 +1,11 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-10-12T01:53:28.739Z",
+  "updatedAt": "2026-10-12T11:38:06.761Z",
   "checkedDate": "2026-10-12",
   "coverage": {
-    "kindCount": 160,
-    "dartCount": 181,
-    "dartCheckedCompanies": 190,
+    "kindCount": 161,
+    "dartCount": 183,
+    "dartCheckedCompanies": 192,
     "unresolved": [
       {
         "company": "쓰리에이로직스",
@@ -14,7 +14,7 @@
     ],
     "refreshStatus": {
       "state": "ok",
-      "attemptedAt": "2026-10-12T01:53:28.739Z",
+      "attemptedAt": "2026-10-12T11:38:06.761Z",
       "sources": {
         "kind": {
           "state": "ok"
@@ -35,7 +35,7 @@
     "to": "2027-10-31",
     "label": "최근 3개월 · 향후 12개월"
   },
-  "itemCount": 47,
+  "itemCount": 49,
   "items": [
     {
       "sourceId": "20250328000374",
@@ -1152,45 +1152,8 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "4000ec810e51beb918d4",
-      "changeStatus": "changed",
-      "changes": [
-        {
-          "field": "market",
-          "label": "시장",
-          "before": "상장시장 확인 필요",
-          "after": "코스닥"
-        },
-        {
-          "field": "bookbuildingStart",
-          "label": "수요예측 시작",
-          "before": "",
-          "after": "2026-09-23"
-        },
-        {
-          "field": "bookbuildingEnd",
-          "label": "수요예측 종료",
-          "before": "",
-          "after": "2026-10-01"
-        },
-        {
-          "field": "offerPrice",
-          "label": "확정 공모가",
-          "before": 0,
-          "after": 90500
-        },
-        {
-          "field": "offeringAmountMillions",
-          "label": "공모금액",
-          "before": 0,
-          "after": 201091
-        },
-        {
-          "field": "listingDate",
-          "label": "상장 예정일",
-          "before": "",
-          "after": "2026-10-20"
-        }
-      ]
+      "changeStatus": "unchanged",
+      "changes": []
     },
     {
       "sourceId": "dart-01749559",
@@ -1238,33 +1201,39 @@
     {
       "sourceId": "dart-00534729",
       "company": "디티에스",
-      "market": "상장시장 확인 필요",
-      "filingDate": "2026-10-01",
-      "bookbuildingStart": "",
-      "bookbuildingEnd": "",
+      "market": "코스닥",
+      "filingDate": "2026-09-11",
+      "bookbuildingStart": "2026-10-01",
+      "bookbuildingEnd": "2026-10-08",
       "subscriptionStart": "2026-10-13",
       "subscriptionEnd": "2026-10-14",
       "paymentDate": "2026-10-16",
-      "offerPrice": 0,
-      "offeringAmountMillions": 0,
-      "listingDate": "",
-      "broker": "대신증권, 유진증권",
-      "priceStatus": "pending",
+      "offerPrice": 18500,
+      "offeringAmountMillions": 41235,
+      "listingDate": "2026-10-23",
+      "broker": "대신증권",
+      "priceStatus": "confirmed",
       "status": "scheduled",
-      "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261008000030",
-      "sourceUpdatedAt": "2026-10-08T02:21:16.942Z",
+      "sourceName": "KRX KIND + DART",
+      "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20250124000277",
+      "sourceUpdatedAt": "2026-10-12T11:38:06.761Z",
       "missingSince": "",
       "corpCode": "00534729",
       "aliases": [
+        "20250124000277",
         "dart-00534729"
       ],
       "sources": [
         {
+          "name": "KRX KIND",
+          "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20250124000277",
+          "checkedDate": "2026-10-12"
+        },
+        {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261008000030",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261012000323",
           "checkedDate": "2026-10-12",
-          "reportDate": "20261008"
+          "reportDate": "20261012"
         }
       ],
       "conflicts": [],
@@ -1274,9 +1243,52 @@
       "reportedOfferPrice": 17000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "c24a9143cb64148078b6",
-      "changeStatus": "unchanged",
-      "changes": []
+      "fingerprint": "62bcc2ad8aa5d3f53a0c",
+      "changeStatus": "changed",
+      "changes": [
+        {
+          "field": "market",
+          "label": "시장",
+          "before": "상장시장 확인 필요",
+          "after": "코스닥"
+        },
+        {
+          "field": "bookbuildingStart",
+          "label": "수요예측 시작",
+          "before": "",
+          "after": "2026-10-01"
+        },
+        {
+          "field": "bookbuildingEnd",
+          "label": "수요예측 종료",
+          "before": "",
+          "after": "2026-10-08"
+        },
+        {
+          "field": "offerPrice",
+          "label": "확정 공모가",
+          "before": 0,
+          "after": 18500
+        },
+        {
+          "field": "offeringAmountMillions",
+          "label": "공모금액",
+          "before": 0,
+          "after": 41235
+        },
+        {
+          "field": "listingDate",
+          "label": "상장 예정일",
+          "before": "",
+          "after": "2026-10-23"
+        },
+        {
+          "field": "broker",
+          "label": "주관사",
+          "before": "대신증권, 유진증권",
+          "after": "대신증권"
+        }
+      ]
     },
     {
       "sourceId": "dart-02032951",
@@ -1695,47 +1707,6 @@
       "changes": []
     },
     {
-      "sourceId": "dart-01797635",
-      "company": "에이엘로봇",
-      "market": "상장시장 확인 필요",
-      "filingDate": "2026-09-21",
-      "bookbuildingStart": "",
-      "bookbuildingEnd": "",
-      "subscriptionStart": "2026-10-26",
-      "subscriptionEnd": "2026-10-27",
-      "paymentDate": "2026-10-29",
-      "offerPrice": 0,
-      "offeringAmountMillions": 0,
-      "listingDate": "",
-      "broker": "대신증권",
-      "priceStatus": "pending",
-      "status": "scheduled",
-      "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260921000209",
-      "sourceUpdatedAt": "2026-09-21T09:34:21.892Z",
-      "missingSince": "",
-      "corpCode": "01797635",
-      "aliases": [
-        "dart-01797635"
-      ],
-      "sources": [
-        {
-          "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260921000209",
-          "checkedDate": "2026-10-12",
-          "reportDate": "20260921"
-        }
-      ],
-      "conflicts": [],
-      "reviewNotes": [],
-      "reportedOfferPrice": 15700,
-      "offerPriceLow": 0,
-      "offerPriceHigh": 0,
-      "fingerprint": "af46a7dfc9ad0caec1e0",
-      "changeStatus": "unchanged",
-      "changes": []
-    },
-    {
       "sourceId": "dart-01705740",
       "company": "엠비디",
       "market": "상장시장 확인 필요",
@@ -2023,6 +1994,107 @@
       "changes": []
     },
     {
+      "sourceId": "dart-02038432",
+      "company": "SimwonAmericaCorp.",
+      "market": "상장시장 확인 필요",
+      "filingDate": "2026-10-12",
+      "bookbuildingStart": "",
+      "bookbuildingEnd": "",
+      "subscriptionStart": "2026-11-05",
+      "subscriptionEnd": "2026-11-05",
+      "paymentDate": "2026-11-09",
+      "offerPrice": 0,
+      "offeringAmountMillions": 0,
+      "listingDate": "",
+      "broker": "",
+      "priceStatus": "pending",
+      "status": "scheduled",
+      "sourceName": "DART",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261012000149",
+      "sourceUpdatedAt": "2026-10-12T11:38:06.761Z",
+      "missingSince": "",
+      "corpCode": "02038432",
+      "aliases": [
+        "dart-02038432"
+      ],
+      "sources": [
+        {
+          "name": "DART",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261012000149",
+          "checkedDate": "2026-10-12",
+          "reportDate": "20261012"
+        }
+      ],
+      "conflicts": [],
+      "reviewNotes": [],
+      "reportedOfferPrice": 26784,
+      "offerPriceLow": 0,
+      "offerPriceHigh": 0,
+      "fingerprint": "34925df99d68cd9508ae",
+      "changeStatus": "new",
+      "changes": []
+    },
+    {
+      "sourceId": "dart-01797635",
+      "company": "에이엘로봇",
+      "market": "상장시장 확인 필요",
+      "filingDate": "2026-10-12",
+      "bookbuildingStart": "",
+      "bookbuildingEnd": "",
+      "subscriptionStart": "2026-11-06",
+      "subscriptionEnd": "2026-11-09",
+      "paymentDate": "2026-11-11",
+      "offerPrice": 0,
+      "offeringAmountMillions": 0,
+      "listingDate": "",
+      "broker": "대신증권",
+      "priceStatus": "pending",
+      "status": "scheduled",
+      "sourceName": "DART",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261012000490",
+      "sourceUpdatedAt": "2026-10-12T11:38:06.761Z",
+      "missingSince": "",
+      "corpCode": "01797635",
+      "aliases": [
+        "dart-01797635"
+      ],
+      "sources": [
+        {
+          "name": "DART",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261012000490",
+          "checkedDate": "2026-10-12",
+          "reportDate": "20261012"
+        }
+      ],
+      "conflicts": [],
+      "reviewNotes": [],
+      "reportedOfferPrice": 15700,
+      "offerPriceLow": 0,
+      "offerPriceHigh": 0,
+      "fingerprint": "1b82e399cccf99d96b3a",
+      "changeStatus": "changed",
+      "changes": [
+        {
+          "field": "subscriptionStart",
+          "label": "청약 시작",
+          "before": "2026-10-26",
+          "after": "2026-11-06"
+        },
+        {
+          "field": "subscriptionEnd",
+          "label": "청약 종료",
+          "before": "2026-10-27",
+          "after": "2026-11-09"
+        },
+        {
+          "field": "paymentDate",
+          "label": "납입일",
+          "before": "2026-10-29",
+          "after": "2026-11-11"
+        }
+      ]
+    },
+    {
       "sourceId": "dart-01706509",
       "company": "다비오",
       "market": "상장시장 확인 필요",
@@ -2143,6 +2215,47 @@
       "offerPriceHigh": 0,
       "fingerprint": "c60a599b8dbf69a654b4",
       "changeStatus": "unchanged",
+      "changes": []
+    },
+    {
+      "sourceId": "dart-01938746",
+      "company": "아델",
+      "market": "상장시장 확인 필요",
+      "filingDate": "2026-10-12",
+      "bookbuildingStart": "",
+      "bookbuildingEnd": "",
+      "subscriptionStart": "2026-11-23",
+      "subscriptionEnd": "2026-11-24",
+      "paymentDate": "2026-11-26",
+      "offerPrice": 0,
+      "offeringAmountMillions": 0,
+      "listingDate": "",
+      "broker": "삼성증권, 미래에셋증권",
+      "priceStatus": "pending",
+      "status": "scheduled",
+      "sourceName": "DART",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261012000445",
+      "sourceUpdatedAt": "2026-10-12T11:38:06.761Z",
+      "missingSince": "",
+      "corpCode": "01938746",
+      "aliases": [
+        "dart-01938746"
+      ],
+      "sources": [
+        {
+          "name": "DART",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261012000445",
+          "checkedDate": "2026-10-12",
+          "reportDate": "20261012"
+        }
+      ],
+      "conflicts": [],
+      "reviewNotes": [],
+      "reportedOfferPrice": 18000,
+      "offerPriceLow": 0,
+      "offerPriceHigh": 0,
+      "fingerprint": "ed7562397f1e4a38a978",
+      "changeStatus": "new",
       "changes": []
     },
     {
