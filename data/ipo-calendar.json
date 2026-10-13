@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-10-13T03:15:17.565Z",
+  "updatedAt": "2026-10-13T11:23:23.961Z",
   "checkedDate": "2026-10-13",
   "coverage": {
     "kindCount": 161,
@@ -14,7 +14,7 @@
     ],
     "refreshStatus": {
       "state": "ok",
-      "attemptedAt": "2026-10-13T03:15:17.565Z",
+      "attemptedAt": "2026-10-13T11:23:23.961Z",
       "sources": {
         "kind": {
           "state": "ok"
@@ -1124,7 +1124,7 @@
       "status": "scheduled",
       "sourceName": "KRX KIND + DART",
       "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260129000215",
-      "sourceUpdatedAt": "2026-10-12T01:53:28.739Z",
+      "sourceUpdatedAt": "2026-10-13T11:23:23.961Z",
       "missingSince": "",
       "corpCode": "01754737",
       "aliases": [
@@ -1139,9 +1139,9 @@
         },
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261006000451",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261013000356",
           "checkedDate": "2026-10-13",
-          "reportDate": "20261006"
+          "reportDate": "20261013"
         }
       ],
       "conflicts": [],
@@ -1151,7 +1151,7 @@
       "reportedOfferPrice": 70400,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "4000ec810e51beb918d4",
+      "fingerprint": "8cefbcd9946445c458b5",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -1585,7 +1585,7 @@
       "sourceId": "dart-01378005",
       "company": "이에스티",
       "market": "상장시장 확인 필요",
-      "filingDate": "2026-09-21",
+      "filingDate": "2026-10-13",
       "bookbuildingStart": "",
       "bookbuildingEnd": "",
       "subscriptionStart": "2026-10-22",
@@ -1598,8 +1598,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260921000211",
-      "sourceUpdatedAt": "2026-09-21T09:34:21.892Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261013000268",
+      "sourceUpdatedAt": "2026-10-13T11:23:23.961Z",
       "missingSince": "",
       "corpCode": "01378005",
       "aliases": [
@@ -1608,9 +1608,9 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260921000211",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261013000268",
           "checkedDate": "2026-10-13",
-          "reportDate": "20260921"
+          "reportDate": "20261013"
         }
       ],
       "conflicts": [],
@@ -1618,7 +1618,7 @@
       "reportedOfferPrice": 10600,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "67e276676d3b25dbadeb",
+      "fingerprint": "71b2cc024872daa688a8",
       "changeStatus": "unchanged",
       "changes": []
     },
