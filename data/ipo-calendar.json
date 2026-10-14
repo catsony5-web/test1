@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-10-14T01:27:38.942Z",
+  "updatedAt": "2026-10-14T09:15:44.815Z",
   "checkedDate": "2026-10-14",
   "coverage": {
     "kindCount": 161,
@@ -14,7 +14,7 @@
     ],
     "refreshStatus": {
       "state": "ok",
-      "attemptedAt": "2026-10-14T01:27:38.942Z",
+      "attemptedAt": "2026-10-14T09:15:44.815Z",
       "sources": {
         "kind": {
           "state": "ok"
@@ -1264,8 +1264,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260917000001",
-      "sourceUpdatedAt": "2026-09-17T00:56:47.019Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261014000202",
+      "sourceUpdatedAt": "2026-10-14T09:15:44.815Z",
       "missingSince": "",
       "corpCode": "02032951",
       "aliases": [
@@ -1274,9 +1274,9 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260917000001",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261014000202",
           "checkedDate": "2026-10-14",
-          "reportDate": "20260917"
+          "reportDate": "20261014"
         }
       ],
       "conflicts": [],
@@ -1286,7 +1286,7 @@
       "reportedOfferPrice": 2000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "662be69973aaa8ad518c",
+      "fingerprint": "84c4ebb98878d2f60e8b",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -1505,7 +1505,7 @@
       "sourceId": "dart-01956751",
       "company": "래블업",
       "market": "상장시장 확인 필요",
-      "filingDate": "2026-10-06",
+      "filingDate": "2026-10-14",
       "bookbuildingStart": "",
       "bookbuildingEnd": "",
       "subscriptionStart": "2026-10-22",
@@ -1518,8 +1518,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261006000421",
-      "sourceUpdatedAt": "2026-10-06T10:59:38.367Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261014000436",
+      "sourceUpdatedAt": "2026-10-14T09:15:44.815Z",
       "missingSince": "",
       "corpCode": "01956751",
       "aliases": [
@@ -1528,9 +1528,9 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261006000421",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261014000436",
           "checkedDate": "2026-10-14",
-          "reportDate": "20261006"
+          "reportDate": "20261014"
         }
       ],
       "conflicts": [],
@@ -1538,7 +1538,7 @@
       "reportedOfferPrice": 19000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "d81bc36dcae8a40a3aa5",
+      "fingerprint": "462aab1991bd415076f3",
       "changeStatus": "unchanged",
       "changes": []
     },
