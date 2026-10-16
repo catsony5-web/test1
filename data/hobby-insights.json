@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-15T00:41:21.870Z",
-  "attemptedAt": "2026-10-15T00:41:21.870Z",
+  "updatedAt": "2026-10-16T00:32:00.979Z",
+  "attemptedAt": "2026-10-16T00:32:00.979Z",
   "refreshStatus": "ok",
   "sources": {
     "youtube": {
@@ -15,6 +15,13 @@
     }
   },
   "items": [
+    {
+      "sourceId": "shopify",
+      "title": "Offer Royal Mail pickup points at checkout",
+      "url": "https://changelog.shopify.com/posts/offer-royal-mail-pickup-points-at-checkout",
+      "publishedAt": "2026-10-15T16:00:00.000Z",
+      "topicId": "product"
+    },
     {
       "sourceId": "shopify",
       "title": "Customize checkout and accounts configurations with Sidekick",
