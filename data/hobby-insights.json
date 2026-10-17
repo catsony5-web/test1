@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-16T00:32:00.979Z",
-  "attemptedAt": "2026-10-16T00:32:00.979Z",
+  "updatedAt": "2026-10-17T00:40:10.365Z",
+  "attemptedAt": "2026-10-17T00:40:10.365Z",
   "refreshStatus": "ok",
   "sources": {
     "youtube": {
@@ -15,6 +15,13 @@
     }
   },
   "items": [
+    {
+      "sourceId": "wordpress",
+      "title": "WordPress.com Changelog: Premium Themes on Paid Plans and an Upgraded Newsletter Hub",
+      "url": "https://wordpress.com/blog/2026/10/16/changelog-premium-themes-newsletters/",
+      "publishedAt": "2026-10-16T21:30:00.000Z",
+      "topicId": "writing"
+    },
     {
       "sourceId": "shopify",
       "title": "Offer Royal Mail pickup points at checkout",
