@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-10-18T00:28:40.236Z",
+  "updatedAt": "2026-10-18T13:45:28.023Z",
   "checkedDate": "2026-10-18",
   "coverage": {
     "kindCount": 163,
@@ -13,15 +13,14 @@
       }
     ],
     "refreshStatus": {
-      "state": "stale",
-      "attemptedAt": "2026-10-18T08:31:19.320Z",
+      "state": "ok",
+      "attemptedAt": "2026-10-18T13:45:28.023Z",
       "sources": {
         "kind": {
           "state": "ok"
         },
         "dart": {
-          "state": "failed",
-          "reason": "request-failed"
+          "state": "ok"
         }
       }
     }
@@ -1299,15 +1298,15 @@
       "subscriptionStart": "2026-10-15",
       "subscriptionEnd": "2026-10-16",
       "paymentDate": "2026-10-20",
-      "offerPrice": 0,
-      "offeringAmountMillions": 0,
+      "offerPrice": 2000,
+      "offeringAmountMillions": 13000,
       "listingDate": "2026-10-27",
       "broker": "SK증권",
-      "priceStatus": "pending",
+      "priceStatus": "confirmed",
       "status": "scheduled",
       "sourceName": "KRX KIND + DART",
       "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260608000185",
-      "sourceUpdatedAt": "2026-10-16T08:43:23.641Z",
+      "sourceUpdatedAt": "2026-10-18T13:45:28.023Z",
       "missingSince": "",
       "corpCode": "02032951",
       "aliases": [
@@ -1334,9 +1333,22 @@
       "reportedOfferPrice": 2000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "b2f672a57a1bb5745faa",
-      "changeStatus": "unchanged",
-      "changes": []
+      "fingerprint": "5e089a1c157fe2be8b17",
+      "changeStatus": "changed",
+      "changes": [
+        {
+          "field": "offerPrice",
+          "label": "확정 공모가",
+          "before": 0,
+          "after": 2000
+        },
+        {
+          "field": "offeringAmountMillions",
+          "label": "공모금액",
+          "before": 0,
+          "after": 13000
+        }
+      ]
     },
     {
       "sourceId": "dart-01705573",
