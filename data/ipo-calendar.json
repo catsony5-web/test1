@@ -13,14 +13,15 @@
       }
     ],
     "refreshStatus": {
-      "state": "ok",
-      "attemptedAt": "2026-10-19T16:46:39.478Z",
+      "state": "stale",
+      "attemptedAt": "2026-10-20T01:20:07.504Z",
       "sources": {
         "kind": {
           "state": "ok"
         },
         "dart": {
-          "state": "ok"
+          "state": "failed",
+          "reason": "request-failed"
         }
       }
     }
