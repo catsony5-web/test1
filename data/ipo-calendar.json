@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-10-21T09:05:41.731Z",
+  "updatedAt": "2026-10-21T14:50:30.535Z",
   "checkedDate": "2026-10-21",
   "coverage": {
     "kindCount": 165,
@@ -14,7 +14,7 @@
     ],
     "refreshStatus": {
       "state": "ok",
-      "attemptedAt": "2026-10-21T09:05:41.731Z",
+      "attemptedAt": "2026-10-21T14:50:30.535Z",
       "sources": {
         "kind": {
           "state": "ok"
@@ -1347,47 +1347,6 @@
       "changes": []
     },
     {
-      "sourceId": "dart-01705573",
-      "company": "유캐스트",
-      "market": "상장시장 확인 필요",
-      "filingDate": "2026-09-09",
-      "bookbuildingStart": "",
-      "bookbuildingEnd": "",
-      "subscriptionStart": "2026-10-19",
-      "subscriptionEnd": "2026-10-20",
-      "paymentDate": "2026-10-22",
-      "offerPrice": 0,
-      "offeringAmountMillions": 0,
-      "listingDate": "",
-      "broker": "유진증권, 신영증권",
-      "priceStatus": "pending",
-      "status": "scheduled",
-      "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260909000378",
-      "sourceUpdatedAt": "2026-09-09T08:35:24.549Z",
-      "missingSince": "",
-      "corpCode": "01705573",
-      "aliases": [
-        "dart-01705573"
-      ],
-      "sources": [
-        {
-          "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260909000378",
-          "checkedDate": "2026-10-21",
-          "reportDate": "20260909"
-        }
-      ],
-      "conflicts": [],
-      "reviewNotes": [],
-      "reportedOfferPrice": 21000,
-      "offerPriceLow": 0,
-      "offerPriceHigh": 0,
-      "fingerprint": "ce8a2e9d20b198a82ff2",
-      "changeStatus": "unchanged",
-      "changes": []
-    },
-    {
       "sourceId": "dart-01540903",
       "company": "크리에이츠",
       "market": "상장시장 확인 필요",
@@ -2355,6 +2314,66 @@
       "changes": []
     },
     {
+      "sourceId": "dart-01705573",
+      "company": "유캐스트",
+      "market": "상장시장 확인 필요",
+      "filingDate": "2026-10-21",
+      "bookbuildingStart": "",
+      "bookbuildingEnd": "",
+      "subscriptionStart": "2026-11-18",
+      "subscriptionEnd": "2026-11-19",
+      "paymentDate": "2026-11-23",
+      "offerPrice": 0,
+      "offeringAmountMillions": 0,
+      "listingDate": "",
+      "broker": "유진증권, 신영증권",
+      "priceStatus": "pending",
+      "status": "scheduled",
+      "sourceName": "DART",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261021000443",
+      "sourceUpdatedAt": "2026-10-21T14:50:30.535Z",
+      "missingSince": "",
+      "corpCode": "01705573",
+      "aliases": [
+        "dart-01705573"
+      ],
+      "sources": [
+        {
+          "name": "DART",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261021000443",
+          "checkedDate": "2026-10-21",
+          "reportDate": "20261021"
+        }
+      ],
+      "conflicts": [],
+      "reviewNotes": [],
+      "reportedOfferPrice": 19000,
+      "offerPriceLow": 0,
+      "offerPriceHigh": 0,
+      "fingerprint": "f72cc051c4eaeb85a37b",
+      "changeStatus": "changed",
+      "changes": [
+        {
+          "field": "subscriptionStart",
+          "label": "청약 시작",
+          "before": "2026-10-19",
+          "after": "2026-11-18"
+        },
+        {
+          "field": "subscriptionEnd",
+          "label": "청약 종료",
+          "before": "2026-10-20",
+          "after": "2026-11-19"
+        },
+        {
+          "field": "paymentDate",
+          "label": "납입일",
+          "before": "2026-10-22",
+          "after": "2026-11-23"
+        }
+      ]
+    },
+    {
       "sourceId": "dart-01938746",
       "company": "아델",
       "market": "상장시장 확인 필요",
@@ -2515,7 +2534,7 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "3b28ff1db84ce2621880",
-      "changeStatus": "new",
+      "changeStatus": "unchanged",
       "changes": []
     },
     {
