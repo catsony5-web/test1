@@ -1,11 +1,11 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-10-21T01:04:45.779Z",
+  "updatedAt": "2026-10-21T09:05:41.731Z",
   "checkedDate": "2026-10-21",
   "coverage": {
     "kindCount": 165,
-    "dartCount": 188,
-    "dartCheckedCompanies": 197,
+    "dartCount": 189,
+    "dartCheckedCompanies": 198,
     "unresolved": [
       {
         "company": "쓰리에이로직스",
@@ -14,7 +14,7 @@
     ],
     "refreshStatus": {
       "state": "ok",
-      "attemptedAt": "2026-10-21T01:04:45.779Z",
+      "attemptedAt": "2026-10-21T09:05:41.731Z",
       "sources": {
         "kind": {
           "state": "ok"
@@ -35,7 +35,7 @@
     "to": "2027-10-31",
     "label": "최근 3개월 · 향후 12개월"
   },
-  "itemCount": 55,
+  "itemCount": 56,
   "items": [
     {
       "sourceId": "20250328000374",
@@ -1576,8 +1576,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261019000009",
-      "sourceUpdatedAt": "2026-10-19T00:34:24.981Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261021000341",
+      "sourceUpdatedAt": "2026-10-21T09:05:41.731Z",
       "missingSince": "",
       "corpCode": "01956751",
       "aliases": [
@@ -1586,9 +1586,9 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261019000009",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261021000341",
           "checkedDate": "2026-10-21",
-          "reportDate": "20261019"
+          "reportDate": "20261021"
         }
       ],
       "conflicts": [],
@@ -1598,7 +1598,7 @@
       "reportedOfferPrice": 19000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "66d8602f424f40d7990e",
+      "fingerprint": "1a8c7c30a6c174a84819",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -1619,8 +1619,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261019000022",
-      "sourceUpdatedAt": "2026-10-19T09:33:57.659Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261021000246",
+      "sourceUpdatedAt": "2026-10-21T09:05:41.731Z",
       "missingSince": "",
       "corpCode": "00579342",
       "aliases": [
@@ -1629,9 +1629,9 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261019000022",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261021000246",
           "checkedDate": "2026-10-21",
-          "reportDate": "20261019"
+          "reportDate": "20261021"
         }
       ],
       "conflicts": [],
@@ -1641,7 +1641,7 @@
       "reportedOfferPrice": 14000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "79c7763e4f961f5ccb8b",
+      "fingerprint": "35f5862f0dfb2490f7f1",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -1662,8 +1662,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261020000144",
-      "sourceUpdatedAt": "2026-10-20T09:05:59.437Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261021000370",
+      "sourceUpdatedAt": "2026-10-21T09:05:41.731Z",
       "missingSince": "",
       "corpCode": "01378005",
       "aliases": [
@@ -1672,17 +1672,19 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261020000144",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261021000370",
           "checkedDate": "2026-10-21",
-          "reportDate": "20261020"
+          "reportDate": "20261021"
         }
       ],
       "conflicts": [],
-      "reviewNotes": [],
+      "reviewNotes": [
+        "최신 공시와 구조화 자료의 접수번호가 다릅니다. 정정 내용을 확인하세요."
+      ],
       "reportedOfferPrice": 10600,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "e00c53e73be4be77b9b3",
+      "fingerprint": "410cad98854a71c49645",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -1944,7 +1946,7 @@
       "sourceId": "dart-01658035",
       "company": "옵토닉스",
       "market": "상장시장 확인 필요",
-      "filingDate": "2026-09-29",
+      "filingDate": "2026-10-21",
       "bookbuildingStart": "",
       "bookbuildingEnd": "",
       "subscriptionStart": "2026-11-05",
@@ -1957,8 +1959,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260929000347",
-      "sourceUpdatedAt": "2026-09-29T10:23:18.699Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261021000210",
+      "sourceUpdatedAt": "2026-10-21T09:05:41.731Z",
       "missingSince": "",
       "corpCode": "01658035",
       "aliases": [
@@ -1967,9 +1969,9 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260929000347",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261021000210",
           "checkedDate": "2026-10-21",
-          "reportDate": "20260929"
+          "reportDate": "20261021"
         }
       ],
       "conflicts": [],
@@ -1977,7 +1979,7 @@
       "reportedOfferPrice": 10000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "e61a27e6a044c5f42bee",
+      "fingerprint": "5cc23a22caabdd49bb28",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -2473,6 +2475,47 @@
       "offerPriceHigh": 0,
       "fingerprint": "f733c129097499c38a0f",
       "changeStatus": "unchanged",
+      "changes": []
+    },
+    {
+      "sourceId": "dart-01783687",
+      "company": "이노보테라퓨틱스",
+      "market": "상장시장 확인 필요",
+      "filingDate": "2026-10-21",
+      "bookbuildingStart": "",
+      "bookbuildingEnd": "",
+      "subscriptionStart": "2026-12-07",
+      "subscriptionEnd": "2026-12-08",
+      "paymentDate": "2026-12-10",
+      "offerPrice": 0,
+      "offeringAmountMillions": 0,
+      "listingDate": "",
+      "broker": "한국투자증권",
+      "priceStatus": "pending",
+      "status": "scheduled",
+      "sourceName": "DART",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261021000153",
+      "sourceUpdatedAt": "2026-10-21T09:05:41.731Z",
+      "missingSince": "",
+      "corpCode": "01783687",
+      "aliases": [
+        "dart-01783687"
+      ],
+      "sources": [
+        {
+          "name": "DART",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261021000153",
+          "checkedDate": "2026-10-21",
+          "reportDate": "20261021"
+        }
+      ],
+      "conflicts": [],
+      "reviewNotes": [],
+      "reportedOfferPrice": 20000,
+      "offerPriceLow": 0,
+      "offerPriceHigh": 0,
+      "fingerprint": "3b28ff1db84ce2621880",
+      "changeStatus": "new",
       "changes": []
     },
     {
