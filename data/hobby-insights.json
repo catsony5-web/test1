@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-21T00:43:55.725Z",
-  "attemptedAt": "2026-10-21T00:43:55.725Z",
+  "updatedAt": "2026-10-22T00:46:49.117Z",
+  "attemptedAt": "2026-10-22T00:46:49.117Z",
   "refreshStatus": "ok",
   "sources": {
     "youtube": {
@@ -545,13 +545,6 @@
       "title": "Control search engine indexing for your shop.app storefront",
       "url": "https://changelog.shopify.com/posts/control-search-engine-indexing-for-your-shop-app-storefront",
       "publishedAt": "2025-10-29T14:30:00.000Z",
-      "topicId": "product"
-    },
-    {
-      "sourceId": "shopify",
-      "title": "New: Unlisted product status",
-      "url": "https://changelog.shopify.com/posts/new-unlisted-product-status-1",
-      "publishedAt": "2025-10-21T16:15:00.000Z",
       "topicId": "product"
     }
   ]
