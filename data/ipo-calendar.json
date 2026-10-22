@@ -1,11 +1,11 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-10-22T01:03:22.932Z",
+  "updatedAt": "2026-10-22T14:51:45.264Z",
   "checkedDate": "2026-10-22",
   "coverage": {
-    "kindCount": 165,
-    "dartCount": 189,
-    "dartCheckedCompanies": 198,
+    "kindCount": 168,
+    "dartCount": 190,
+    "dartCheckedCompanies": 199,
     "unresolved": [
       {
         "company": "쓰리에이로직스",
@@ -13,15 +13,14 @@
       }
     ],
     "refreshStatus": {
-      "state": "stale",
-      "attemptedAt": "2026-10-22T09:08:15.933Z",
+      "state": "ok",
+      "attemptedAt": "2026-10-22T14:51:45.264Z",
       "sources": {
         "kind": {
           "state": "ok"
         },
         "dart": {
-          "state": "failed",
-          "reason": "request-failed"
+          "state": "ok"
         }
       }
     }
@@ -36,7 +35,7 @@
     "to": "2027-10-31",
     "label": "최근 3개월 · 향후 12개월"
   },
-  "itemCount": 56,
+  "itemCount": 57,
   "items": [
     {
       "sourceId": "20250328000374",
@@ -1350,28 +1349,34 @@
     {
       "sourceId": "dart-01540903",
       "company": "크리에이츠",
-      "market": "상장시장 확인 필요",
-      "filingDate": "2026-09-28",
-      "bookbuildingStart": "",
-      "bookbuildingEnd": "",
+      "market": "코스닥",
+      "filingDate": "2026-09-04",
+      "bookbuildingStart": "2026-10-12",
+      "bookbuildingEnd": "2026-10-16",
       "subscriptionStart": "2026-10-20",
       "subscriptionEnd": "2026-10-21",
       "paymentDate": "2026-10-23",
-      "offerPrice": 0,
-      "offeringAmountMillions": 0,
-      "listingDate": "",
+      "offerPrice": 15000,
+      "offeringAmountMillions": 21000,
+      "listingDate": "2026-10-29",
       "broker": "삼성증권",
-      "priceStatus": "pending",
+      "priceStatus": "confirmed",
       "status": "scheduled",
-      "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261019000286",
-      "sourceUpdatedAt": "2026-10-19T09:33:57.659Z",
+      "sourceName": "KRX KIND + DART",
+      "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260205000272",
+      "sourceUpdatedAt": "2026-10-22T14:51:45.264Z",
       "missingSince": "",
       "corpCode": "01540903",
       "aliases": [
+        "20260205000272",
         "dart-01540903"
       ],
       "sources": [
+        {
+          "name": "KRX KIND",
+          "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260205000272",
+          "checkedDate": "2026-10-22"
+        },
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261019000286",
@@ -1386,35 +1391,78 @@
       "reportedOfferPrice": 15000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "3009443df2e177f39b49",
-      "changeStatus": "unchanged",
-      "changes": []
+      "fingerprint": "f051405fbff7634278c3",
+      "changeStatus": "changed",
+      "changes": [
+        {
+          "field": "market",
+          "label": "시장",
+          "before": "상장시장 확인 필요",
+          "after": "코스닥"
+        },
+        {
+          "field": "bookbuildingStart",
+          "label": "수요예측 시작",
+          "before": "",
+          "after": "2026-10-12"
+        },
+        {
+          "field": "bookbuildingEnd",
+          "label": "수요예측 종료",
+          "before": "",
+          "after": "2026-10-16"
+        },
+        {
+          "field": "offerPrice",
+          "label": "확정 공모가",
+          "before": 0,
+          "after": 15000
+        },
+        {
+          "field": "offeringAmountMillions",
+          "label": "공모금액",
+          "before": 0,
+          "after": 21000
+        },
+        {
+          "field": "listingDate",
+          "label": "상장 예정일",
+          "before": "",
+          "after": "2026-10-29"
+        }
+      ]
     },
     {
       "sourceId": "dart-01543043",
       "company": "티앤이코리아",
-      "market": "상장시장 확인 필요",
-      "filingDate": "2026-09-23",
-      "bookbuildingStart": "",
-      "bookbuildingEnd": "",
+      "market": "코스닥",
+      "filingDate": "2026-09-03",
+      "bookbuildingStart": "2026-10-07",
+      "bookbuildingEnd": "2026-10-14",
       "subscriptionStart": "2026-10-20",
       "subscriptionEnd": "2026-10-21",
       "paymentDate": "2026-10-23",
-      "offerPrice": 0,
-      "offeringAmountMillions": 0,
-      "listingDate": "",
+      "offerPrice": 15300,
+      "offeringAmountMillions": 36720,
+      "listingDate": "2026-10-29",
       "broker": "신한투자증권",
-      "priceStatus": "pending",
+      "priceStatus": "confirmed",
       "status": "scheduled",
-      "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261016000162",
-      "sourceUpdatedAt": "2026-10-16T08:43:23.641Z",
+      "sourceName": "KRX KIND + DART",
+      "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260128000383",
+      "sourceUpdatedAt": "2026-10-22T14:51:45.264Z",
       "missingSince": "",
       "corpCode": "01543043",
       "aliases": [
+        "20260128000383",
         "dart-01543043"
       ],
       "sources": [
+        {
+          "name": "KRX KIND",
+          "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260128000383",
+          "checkedDate": "2026-10-22"
+        },
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261016000162",
@@ -1429,35 +1477,78 @@
       "reportedOfferPrice": 12600,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "60bda9267122a1417712",
-      "changeStatus": "unchanged",
-      "changes": []
+      "fingerprint": "b9d537d01157f2b8592c",
+      "changeStatus": "changed",
+      "changes": [
+        {
+          "field": "market",
+          "label": "시장",
+          "before": "상장시장 확인 필요",
+          "after": "코스닥"
+        },
+        {
+          "field": "bookbuildingStart",
+          "label": "수요예측 시작",
+          "before": "",
+          "after": "2026-10-07"
+        },
+        {
+          "field": "bookbuildingEnd",
+          "label": "수요예측 종료",
+          "before": "",
+          "after": "2026-10-14"
+        },
+        {
+          "field": "offerPrice",
+          "label": "확정 공모가",
+          "before": 0,
+          "after": 15300
+        },
+        {
+          "field": "offeringAmountMillions",
+          "label": "공모금액",
+          "before": 0,
+          "after": 36720
+        },
+        {
+          "field": "listingDate",
+          "label": "상장 예정일",
+          "before": "",
+          "after": "2026-10-29"
+        }
+      ]
     },
     {
       "sourceId": "dart-01965157",
-      "company": "한화플러스제6호기업인수목적",
-      "market": "상장시장 확인 필요",
-      "filingDate": "2026-10-07",
-      "bookbuildingStart": "",
-      "bookbuildingEnd": "",
+      "company": "한화플러스제6호스팩",
+      "market": "코스닥",
+      "filingDate": "2026-09-17",
+      "bookbuildingStart": "2026-10-14",
+      "bookbuildingEnd": "2026-10-15",
       "subscriptionStart": "2026-10-20",
       "subscriptionEnd": "2026-10-21",
       "paymentDate": "2026-10-23",
-      "offerPrice": 0,
-      "offeringAmountMillions": 0,
-      "listingDate": "",
+      "offerPrice": 2000,
+      "offeringAmountMillions": 12000,
+      "listingDate": "2026-10-30",
       "broker": "한화투자증권",
-      "priceStatus": "pending",
+      "priceStatus": "confirmed",
       "status": "scheduled",
-      "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261019000187",
-      "sourceUpdatedAt": "2026-10-19T09:33:57.659Z",
+      "sourceName": "KRX KIND + DART",
+      "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260609000114",
+      "sourceUpdatedAt": "2026-10-22T14:51:45.264Z",
       "missingSince": "",
       "corpCode": "01965157",
       "aliases": [
+        "20260609000114",
         "dart-01965157"
       ],
       "sources": [
+        {
+          "name": "KRX KIND",
+          "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260609000114",
+          "checkedDate": "2026-10-22"
+        },
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261019000187",
@@ -1472,9 +1563,52 @@
       "reportedOfferPrice": 2000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "2aece43469374a8a37fe",
-      "changeStatus": "unchanged",
-      "changes": []
+      "fingerprint": "6d2b25e3ac44938dcd73",
+      "changeStatus": "changed",
+      "changes": [
+        {
+          "field": "company",
+          "label": "종목명",
+          "before": "한화플러스제6호기업인수목적",
+          "after": "한화플러스제6호스팩"
+        },
+        {
+          "field": "market",
+          "label": "시장",
+          "before": "상장시장 확인 필요",
+          "after": "코스닥"
+        },
+        {
+          "field": "bookbuildingStart",
+          "label": "수요예측 시작",
+          "before": "",
+          "after": "2026-10-14"
+        },
+        {
+          "field": "bookbuildingEnd",
+          "label": "수요예측 종료",
+          "before": "",
+          "after": "2026-10-15"
+        },
+        {
+          "field": "offerPrice",
+          "label": "확정 공모가",
+          "before": 0,
+          "after": 2000
+        },
+        {
+          "field": "offeringAmountMillions",
+          "label": "공모금액",
+          "before": 0,
+          "after": 12000
+        },
+        {
+          "field": "listingDate",
+          "label": "상장 예정일",
+          "before": "",
+          "after": "2026-10-30"
+        }
+      ]
     },
     {
       "sourceId": "dart-01649408",
@@ -1665,8 +1799,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261015000017",
-      "sourceUpdatedAt": "2026-10-15T01:02:16.016Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261022000376",
+      "sourceUpdatedAt": "2026-10-22T14:51:45.264Z",
       "missingSince": "",
       "corpCode": "02036869",
       "aliases": [
@@ -1675,9 +1809,9 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261015000017",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261022000376",
           "checkedDate": "2026-10-22",
-          "reportDate": "20261015"
+          "reportDate": "20261022"
         }
       ],
       "conflicts": [],
@@ -1687,7 +1821,7 @@
       "reportedOfferPrice": 2000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "a48a57ac2ea674fc626f",
+      "fingerprint": "89ad895d7606ad8e7540",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -2519,6 +2653,47 @@
       "offerPriceHigh": 0,
       "fingerprint": "3b28ff1db84ce2621880",
       "changeStatus": "unchanged",
+      "changes": []
+    },
+    {
+      "sourceId": "dart-01860700",
+      "company": "인터엑스",
+      "market": "상장시장 확인 필요",
+      "filingDate": "2026-10-22",
+      "bookbuildingStart": "",
+      "bookbuildingEnd": "",
+      "subscriptionStart": "2026-12-09",
+      "subscriptionEnd": "2026-12-10",
+      "paymentDate": "2026-12-14",
+      "offerPrice": 0,
+      "offeringAmountMillions": 0,
+      "listingDate": "",
+      "broker": "한국투자증권, BNK투자증권",
+      "priceStatus": "pending",
+      "status": "scheduled",
+      "sourceName": "DART",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261022000478",
+      "sourceUpdatedAt": "2026-10-22T14:51:45.264Z",
+      "missingSince": "",
+      "corpCode": "01860700",
+      "aliases": [
+        "dart-01860700"
+      ],
+      "sources": [
+        {
+          "name": "DART",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261022000478",
+          "checkedDate": "2026-10-22",
+          "reportDate": "20261022"
+        }
+      ],
+      "conflicts": [],
+      "reviewNotes": [],
+      "reportedOfferPrice": 10000,
+      "offerPriceLow": 0,
+      "offerPriceHigh": 0,
+      "fingerprint": "5f5129a2c4a126c2c53a",
+      "changeStatus": "new",
       "changes": []
     },
     {
