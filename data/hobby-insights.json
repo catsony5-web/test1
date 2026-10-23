@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-22T00:46:49.117Z",
-  "attemptedAt": "2026-10-22T00:46:49.117Z",
+  "updatedAt": "2026-10-23T00:47:15.129Z",
+  "attemptedAt": "2026-10-23T00:47:15.129Z",
   "refreshStatus": "ok",
   "sources": {
     "youtube": {
@@ -15,6 +15,13 @@
     }
   },
   "items": [
+    {
+      "sourceId": "shopify",
+      "title": "Refreshed payment method design in checkout",
+      "url": "https://changelog.shopify.com/posts/refreshed-payment-method-design-in-checkout",
+      "publishedAt": "2026-10-22T08:00:00.000Z",
+      "topicId": "product"
+    },
     {
       "sourceId": "wordpress",
       "title": "WordPress.com Changelog: Premium Themes on Paid Plans and an Upgraded Newsletter Hub",
