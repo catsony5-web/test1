@@ -34,6 +34,8 @@ function renderMonthlyAnalysis() {
   const comparison = buildMonthlyAnalysisModel(month, monthlyAnalysisComparisonMode);
   if (!comparison) return;
   const billingModel = analysisBillingModelForMonth(month);
+  const selectedCard = els.monthlyAnalysisBody.querySelector("[data-monthly-settlement-card]")?.value || "all";
+  const settlement = buildMonthlyCardSettlementModel(month, selectedCard);
   const selectionKey = `${month}|${comparison.comparisonMode}|${comparison.cutoffDay}`;
   if (monthlyAnalysisEvidenceSelection.key !== selectionKey
     || !comparison.sectorChanges.some((item) => item.sector === monthlyAnalysisEvidenceSelection.sector)) {
@@ -44,6 +46,7 @@ function renderMonthlyAnalysis() {
     renderMonthlyAnalysisSummary(comparison),
     renderMonthlyAnalysisMetrics(comparison),
     `<p class="monthly-analysis-record-note">월 전체 입력 기록 기준입니다. 남은 돈은 실제 계좌 잔고가 아니며, 카드 결제 예정액을 다시 차감하지 않습니다.</p>`,
+    renderMonthlyCardSettlement(settlement),
     `<div class="monthly-analysis-main">
       <section class="analysis-panel monthly-analysis-changes" aria-labelledby="monthlyAnalysisChangesTitle">
         <div class="analysis-panel-head">
@@ -60,6 +63,55 @@ function renderMonthlyAnalysis() {
     renderMonthlyAnalysisBilling(billingModel, comparison.current)
   ].join("");
   attachMonthlyAnalysisEvidenceHandlers(comparison);
+  attachMonthlyCardSettlementHandler(month);
+}
+
+function renderMonthlyCardSettlement(model) {
+  return `<section class="analysis-panel monthly-card-settlement" aria-labelledby="monthlyCardSettlementTitle">
+    <div class="analysis-panel-head monthly-settlement-heading">
+      <div><h3 id="monthlyCardSettlementTitle">카드 결제와 N빵 정산</h3><p>${escapeHtml(model.month)} 결제에 연결된 정산 · 실제 받은 금액 기준</p></div>
+      <label class="monthly-settlement-card">카드 선택
+        <select data-monthly-settlement-card aria-label="정산 요약 카드 선택">
+          ${model.cards.map((card) => `<option value="${escapeHtml(card.value)}"${model.selectedCard === card.value ? " selected" : ""}>${escapeHtml(card.label)}</option>`).join("")}
+        </select>
+      </label>
+    </div>
+    <div data-monthly-settlement-results>${renderMonthlyCardSettlementResults(model)}</div>
+  </section>`;
+}
+
+function renderMonthlyCardSettlementResults(model) {
+  const ratio = model.reimbursementRate === null ? "" : ` · 이용액의 ${model.reimbursementRate.toFixed(1)}%`;
+  const notices = {
+    "reimbursement-on-canceled": "취소 내역이 연결된 거래에 정산금이 남아 있습니다. 반환 여부를 확인하고 실제 보유한 정산금을 수정해주세요.",
+    "reimbursement-exceeds-net": "정산금이 취소 반영 이용액보다 큽니다. 취소와 정산금 반환 내역을 확인해주세요.",
+    "reimbursement-clamped": "결제액을 넘는 정산금은 결제액까지만 반영했습니다. 입력 금액을 확인해주세요.",
+    "positive-cancellation": "취소 표시가 있지만 금액이 양수인 내역이 있습니다. 원본 금액으로 합산했으니 승인·취소 내역을 확인해주세요.",
+    "conflicting-duplicate": "같은 거래의 저장 내용이 달라 먼저 확인된 내역을 한 번 반영했습니다. 중복 거래를 확인해주세요."
+  };
+  return `<dl class="monthly-settlement-metrics" aria-label="카드 이용액과 정산 후 부담">
+    <div><dt>카드 이용액</dt><dd>${formatWon(model.netAmount)}</dd><small>취소 반영 · 할부 원금 포함</small></div>
+    <div class="monthly-settlement-received"><dt>정산받은 금액</dt><dd>${formatWon(model.reimbursementAmount)}</dd><small>${model.settledRows.length}건${ratio}</small></div>
+    <div><dt>내 부담액</dt><dd>${formatWon(model.ownAmount)}</dd><small>카드 이용액 − 정산받은 금액</small></div>
+  </dl>
+  <p class="monthly-change-help">승인 ${formatWon(model.grossAmount)} − 취소 ${formatWon(model.cancelAmount)} = 카드 이용액 ${formatWon(model.netAmount)}. 결제한 달에 할부 원금을 한 번 반영하며, 정산금도 해당 결제에 연결해 집계합니다. 실제 입금월 기준은 아닙니다.</p>
+  <p class="monthly-change-help monthly-settlement-basis">카드 이용액은 실적 확인용 참고값입니다. 카드사 인정 실적·청구액과 다를 수 있으며, 위 소비지출에 다시 더하거나 빼지 않습니다.</p>
+  ${model.warnings.map((warning) => `<p class="monthly-analysis-notice">${escapeHtml(notices[warning.code] || "카드 거래와 정산 내역을 확인해주세요.")}</p>`).join("")}
+  ${model.settledRows.length ? `<details class="monthly-settlement-details" open>
+    <summary>정산받은 거래 <span>${model.settledRows.length}건 · ${formatWon(model.reimbursementAmount)}</span></summary>
+    <div class="monthly-settlement-list">${model.settledRows.map((row) => `<article class="monthly-settlement-row">
+      <div><strong>${escapeHtml(row.item.merchant || "가맹점 미입력")}</strong><small>${escapeHtml(row.date)} · ${escapeHtml(row.cardLabel)}</small></div>
+      <dl><div><dt>결제액</dt><dd>${formatWon(row.amount)}</dd></div><div><dt>정산금</dt><dd>${formatWon(row.reimbursement)}</dd></div><div><dt>내 몫</dt><dd>${formatWon(row.ownAmount)}</dd></div></dl>
+    </article>`).join("")}</div>
+  </details>` : `<p class="monthly-settlement-empty">${model.rows.length ? "입력된 정산금이 없습니다. 거래 상세나 달력에서 실제 받은 금액을 입력하면 여기에 표시됩니다." : "선택한 월·카드의 이용내역이 없습니다."}</p>`}`;
+}
+
+function attachMonthlyCardSettlementHandler(month) {
+  const select = els.monthlyAnalysisBody.querySelector("[data-monthly-settlement-card]");
+  select?.addEventListener("change", () => {
+    const model = buildMonthlyCardSettlementModel(month, select.value);
+    els.monthlyAnalysisBody.querySelector("[data-monthly-settlement-results]").innerHTML = renderMonthlyCardSettlementResults(model);
+  });
 }
 
 function syncMonthlyAnalysisComparisonControls(comparison) {

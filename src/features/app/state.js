@@ -2,6 +2,7 @@ function defaultAppSettings() {
   return {
     theme: "mineral-blue",
     themeRevision: 1,
+    familySupportKeywords: [],
     backgroundImage: "",
     backgroundOpacity: 0.14,
     backgroundBlur: 0,
@@ -39,6 +40,7 @@ const els = {
   restoreInput: document.querySelector("#restoreInput"),
   clearRecordsButton: document.querySelector("#clearRecordsButton"),
   dataScopeControls: document.querySelectorAll("[data-data-scope]"),
+  clearDataScopeControls: document.querySelectorAll("[data-clear-scope]"),
   restoreModeControls: document.querySelectorAll("[data-restore-mode]"),
   restorePreview: document.querySelector("#restorePreview"),
   selectAllDataScopesButton: document.querySelector("#selectAllDataScopesButton"),
@@ -331,6 +333,7 @@ const els = {
   recurringId: document.querySelector("#recurringId"),
   recurringName: document.querySelector("#recurringName"),
   recurringAmount: document.querySelector("#recurringAmount"),
+  recurringAmountMode: document.querySelector("#recurringAmountMode"),
   recurringDay: document.querySelector("#recurringDay"),
   recurringSector: document.querySelector("#recurringSector"),
   recurringSubcategory: document.querySelector("#recurringSubcategory"),
@@ -467,6 +470,7 @@ let transactions = [];
 let classified = [];
 let importMeta = {};
 let reimbursements = {};
+let familyAdjustments = [];
 let products = [];
 let ipoRecords = [];
 let recurringExpenses = [];

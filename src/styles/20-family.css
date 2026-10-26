@@ -1,0 +1,53 @@
+.family-dashboard-card { margin: 16px 0; padding: 20px; border: 1px solid var(--border); border-radius: var(--radius-card, 14px); background: var(--surface, var(--bg-card)); }
+.family-section-heading { display: flex; align-items: start; justify-content: space-between; flex-wrap: wrap; gap: 14px; margin-bottom: 16px; }
+.family-section-heading h2, .family-section-heading h3 { margin: 0 0 6px; color: var(--text-main); }
+.family-section-heading p, .family-help { margin: 0; color: var(--text-sub); font-size: 12px; line-height: 1.7; }
+.family-help { margin-top: 12px; }
+.family-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.family-actions button { min-height: 36px; }
+.family-status { display: inline-block; padding: 2px 8px; border-radius: 5px; background: color-mix(in srgb, var(--accent-primary, #8052b9) 12%, transparent); color: var(--text-main); font-size: 11px; font-weight: 750; }
+.family-status.is-short { color: var(--red, #c94f59); }
+.family-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; margin: 0; overflow: hidden; border: 1px solid var(--border); border-radius: 10px; background: var(--border); }
+.family-metrics > div { display: grid; align-content: start; min-width: 0; gap: 6px; padding: 16px; background: var(--surface-soft, var(--bg-card)); }
+.family-metrics dt { color: var(--text-sub); font-size: 12px; font-weight: 700; }
+.family-metrics dd { margin: 0; font: 800 23px var(--font-number, inherit); color: var(--text-main); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.family-metrics small { font-size: 11px; line-height: 1.5; color: var(--text-sub); }
+.family-support-dialog { width: min(960px, calc(100vw - 32px)); max-height: calc(100dvh - 40px); padding: 0; border: 1px solid var(--border); border-radius: 16px; background: var(--surface, var(--bg-card)); color: var(--text-main); }
+.family-support-dialog::backdrop { background: rgb(0 0 0 / 45%); }
+.family-dialog-content { padding: 24px; }
+.family-month-control { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; font-size: 13px; font-weight: 700; }
+.family-month-control input { width: 180px; }
+.family-feedback { min-height: 1.4em; color: var(--accent-primary, var(--green)); font-size: 13px; line-height: 1.6; }
+.family-editor, .family-ledger, .family-obligations, .family-adjustments, .family-keywords { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border); }
+.family-editor h3, .family-ledger h3 { margin: 0 0 14px; font-size: 16px; }
+.family-ledger h3 span, .family-support-dialog summary span { margin-left: 6px; color: var(--text-sub); font-size: 12px; font-weight: 500; }
+.family-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
+.family-form-grid label { display: grid; align-content: start; gap: 7px; min-width: 0; color: var(--text-sub); font-size: 12px; font-weight: 700; }
+.family-form-grid :is(input, select, textarea) { width: 100%; min-width: 0; margin: 0; }
+.family-wide { grid-column: 1 / -1; }
+.family-support-dialog summary { cursor: pointer; color: var(--text-main); font-size: 14px; font-weight: 750; line-height: 1.7; }
+.family-support-dialog :is(button, input, select, textarea, summary):focus-visible { outline: 2px solid var(--focus-ring, var(--accent-primary)); outline-offset: 3px; }
+.family-ledger-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 18px; padding: 15px 0; border-top: 1px solid var(--border); }
+.family-ledger-row strong { font-size: 14px; overflow-wrap: anywhere; }
+.family-ledger-row small, .family-ledger-row p { display: block; margin: 5px 0 0; color: var(--text-sub); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.family-ledger-row > b { font-variant-numeric: tabular-nums; }
+.family-ledger-row .family-actions { grid-column: 1 / -1; }
+.family-empty { padding: 14px 0; color: var(--text-sub); font-size: 13px; }
+.recurring-family-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 14px; border: 1px solid var(--border); border-radius: 10px; }
+.recurring-family-fields legend { padding: 0 6px; font-size: 12px; font-weight: 700; }
+.recurring-family-fields .family-help { grid-column: 1 / -1; }
+.calendar-cell em.family-calendar-label { color: #8052b9; background: color-mix(in srgb, #8052b9 10%, transparent); }
+.calendar-cell em.family-calendar-label.is-outflow { color: var(--text-sub); }
+.family-timeline-group { margin-top: 18px; }
+.timeline-item.family-item { grid-template-columns: minmax(0, 1fr) auto auto; border-left: 3px solid #8052b9; }
+.family-label { color: #8052b9; font-size: 12px; font-weight: 700; }
+.monthly-family-row td small { display: block; margin-top: 5px; color: var(--text-sub); line-height: 1.5; }
+@media (max-width: 680px) {
+  .family-dashboard-card, .family-dialog-content { padding: 16px; }
+  .family-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .family-metrics > div { padding: 12px; }
+  .family-metrics dd { font-size: 19px; }
+  .family-form-grid, .recurring-family-fields { grid-template-columns: minmax(0, 1fr); }
+  .family-support-dialog { width: calc(100vw - 20px); max-height: calc(100dvh - 20px); }
+  .family-month-control input { flex: 1; }
+}

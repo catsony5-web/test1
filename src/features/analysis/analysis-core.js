@@ -142,7 +142,6 @@ function analysisMerchantKey(value) {
 }
 
 function buildAnalysisMonthSnapshot(month) {
-  const allExpenseRows = reportingExpenseRows(classified);
   const expenseRows = analysisRowsForMonth(month);
   const savingsRows = expenseRows.filter(analysisIsSavingsTransaction);
   const consumptionRows = expenseRows.filter((item) => !analysisIsSavingsTransaction(item));
@@ -153,7 +152,7 @@ function buildAnalysisMonthSnapshot(month) {
   const actualSavings = sumActual(savingsRows);
   const debtRepayment = sumDebtPrincipal(expenseRows);
   const legalDebtRepayment = sumLegalDebtPrincipal(expenseRows);
-  const loanSettlementDelta = loanSupportSettlementDeltaForMonth(allExpenseRows, month);
+  const loanSettlementDelta = familySupportCashAdjustment(month);
   const freeBalance = income - consumptionSpend - actualSavings - debtRepayment + loanSettlementDelta;
   const assetFormation = actualSavings + debtRepayment + freeBalance - loanSettlementDelta;
   const sectorTotals = analysisTotalsBy(consumptionRows, (item) => item.sector);

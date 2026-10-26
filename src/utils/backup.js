@@ -1,5 +1,5 @@
 async function clearRecords() {
-  const scopes = selectedDataScopes();
+  const scopes = selectedClearDataScopes();
   if (!scopes.length) {
     alert("초기화할 데이터 항목을 하나 이상 선택해주세요.");
     return;
@@ -16,15 +16,16 @@ async function clearRecords() {
   }
   if (!await persistDataScopeChange(scopes, () => applyClearScopes(scopes), "선택 데이터 초기화 전")) return;
   reclassify();
-  renderRestorePreview(null, scopes);
+  renderRestorePreview(null);
 }
 
-async function backupLocalData() {
-  const scopes = selectedDataScopes();
+async function backupLocalData({ selectedOnly = false } = {}) {
+  const scopes = selectedOnly ? selectedDataScopes() : DATA_SCOPE_META.map(({ key }) => key);
   if (!scopes.length) {
     alert("백업할 데이터 항목을 하나 이상 선택해주세요.");
     return;
   }
+  await privateWriteQueue;
   const payload = await buildBackupPayload(scopes);
   if (window.BudgetNative) {
     await window.BudgetNative.exportFile(JSON.stringify(payload, null, 2), "가계부_백업.json");
@@ -34,16 +35,20 @@ async function backupLocalData() {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `월별_카드가계부_선택백업_${new Date().toISOString().slice(0, 10)}.json`;
+  link.download = `월별_카드가계부_${selectedOnly ? "선택" : "전체"}백업_${new Date().toISOString().slice(0, 10)}.json`;
   document.body.appendChild(link);
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
 }
 
+let backupRestoreInProgress = false;
+
 async function restoreLocalData(event) {
   const file = event.target.files?.[0];
-  if (!file) return;
+  if (!file || backupRestoreInProgress) return;
+  backupRestoreInProgress = true;
+  event.target.disabled = true;
 
   try {
     if (file.size > 32 * 1024 * 1024) throw new Error("Backup exceeds 32MB");
@@ -63,14 +68,18 @@ async function restoreLocalData(event) {
     }
     const mode = selectedRestoreMode();
     renderRestorePreview(bundle, scopes);
-    const counts = scopeLabels(scopes).map((label, index) => `${label} ${formatScopeCount(bundle.sectionCounts[scopes[index]])}`).join("\n");
+    await privateWriteQueue;
+    const mergePlan = mode === "merge" ? buildBackupMergePlan(bundle, scopes) : null;
+    const mergeChoices = mergePlan?.conflicts.length ? await reviewBackupDifferences(mergePlan.conflicts) : {};
+    if (mergeChoices === null) return;
+    const counts = scopeLabels(scopes).map((label, index) => `${label} ${formatBackupScopeCount(bundle, scopes[index])}`).join("\n");
     const message = `백업 파일에서 선택한 항목만 ${mode === "overwrite" ? "덮어쓰기 복원" : "병합 복원"}할까요?\n\n${counts}\n\n선택하지 않은 현재 데이터는 유지됩니다.`;
     if (mode === "overwrite") {
       if (!confirmDangerousDataAction(`${message}\n\n덮어쓰기는 선택한 섹션의 현재 데이터를 먼저 지웁니다.`, "복원")) return;
     } else if (!confirm(message)) {
       return;
     }
-    if (!await persistDataScopeChange(scopes, () => applyRestorePayload(bundle, scopes, { mode }), "백업 불러오기 전")) return;
+    if (!await persistDataScopeChange(scopes, () => applyRestorePayload(bundle, scopes, { mode, mergePlan, mergeChoices }), "백업 불러오기 전")) return;
     reclassify();
     renderRestorePreview(bundle, scopes);
     alert(`선택한 백업 데이터를 ${mode === "overwrite" ? "덮어쓰기" : "병합"} 방식으로 불러왔습니다.`);
@@ -78,6 +87,8 @@ async function restoreLocalData(event) {
     console.error("restoreLocalData failed", error);
     alert("백업 복원을 완료하지 못했습니다. 파일 형식과 브라우저 저장소 상태를 확인해주세요.");
   } finally {
+    backupRestoreInProgress = false;
+    event.target.disabled = false;
     event.target.value = "";
   }
 }
@@ -89,6 +100,7 @@ const DATA_SCOPE_META = [
   { key: "incomeInput", label: "수입 입력" },
   { key: "recurringDefinitions", label: "고정 지출 원본" },
   { key: "recurringPostedTransactions", label: "고정 지출 실제 반영" },
+  { key: "familyAdjustments", label: "가족지원 조정" },
   { key: "rulesAndLearning", label: "분류 규칙/추천" },
   { key: "products", label: "소모품 사용" },
   { key: "ipoRecords", label: "공모주 기록" },
@@ -120,6 +132,18 @@ function selectedDataScopes() {
     .filter((input) => input.checked)
     .map((input) => input.dataset.dataScope)
     .filter(Boolean));
+}
+
+function selectedClearDataScopes() {
+  return normalizeScopeList([...(els.clearDataScopeControls || [])]
+    .filter((input) => input.checked)
+    .map((input) => input.dataset.clearScope));
+}
+
+function setClearDataScopeSelection(mode = "imported") {
+  for (const input of els.clearDataScopeControls || []) {
+    input.checked = mode === "all" || input.dataset.clearScope === "importedExcelTransactions";
+  }
 }
 
 function setDataScopeSelection(mode = "imported") {
@@ -157,7 +181,7 @@ function getTransactionDataSection(item) {
   const normalized = normalizeStoredTransaction(item);
   const sourceFile = String(normalized.sourceFile || "").trim();
   const approvalNo = String(normalized.approvalNo || "").trim();
-  if (!normalized.loanLinkedExisting && (normalized.sourceType === "recurring" || normalized.recurringId || sourceFile === "고정 지출" || approvalNo.startsWith("recurring-"))) {
+  if (!normalized.loanLinkedExisting && !normalized.recurringLinkedExisting && (normalized.sourceType === "recurring" || normalized.recurringId || sourceFile === "고정 지출" || approvalNo.startsWith("recurring-"))) {
     return "recurringPostedTransactions";
   }
   if (approvalNo.startsWith("direct-bulk-") || sourceFile === "과거 거래 일괄 입력") return "pastBulkTransactions";
@@ -212,7 +236,7 @@ async function buildBackupPayload(scopes) {
   const sections = {};
   selected.forEach((scope) => {
     const section = buildBackupSection(scope);
-    if (section) sections[scope] = section;
+    if (section) sections[scope] = structuredCloneSafe(section);
   });
   const flattened = flattenTransactionSections(sections);
   const exportedAt = new Date().toISOString();
@@ -242,6 +266,7 @@ async function buildBackupPayload(scopes) {
   if (sections.products) payload.products = sections.products.products || [];
   if (sections.ipoRecords) payload.ipoRecords = sections.ipoRecords.ipoRecords || [];
   if (sections.recurringDefinitions) payload.recurringExpenses = sections.recurringDefinitions.recurringExpenses || [];
+  if (sections.familyAdjustments) payload.familyAdjustments = sections.familyAdjustments.familyAdjustments || [];
   if (sections.calendarMemos) payload.calendarMemos = sections.calendarMemos.calendarMemos || {};
   if (sections.goalPlan) payload.goalPlan = sections.goalPlan.goalPlan || {};
   if (sections.settings) payload.settings = sections.settings.settings || {};
@@ -261,6 +286,7 @@ function buildBackupSection(scope) {
     return section;
   }
   if (scope === "recurringDefinitions") return { recurringExpenses: recurringExpenses.map(normalizeRecurringExpense) };
+  if (scope === "familyAdjustments") return { familyAdjustments: normalizeFamilyAdjustments(familyAdjustments) };
   if (scope === "rulesAndLearning") return { rules };
   if (scope === "products") return { products: products.map(normalizeProduct) };
   if (scope === "ipoRecords") return { ipoRecords: ipoRecords.map(normalizeIpoRecord) };
@@ -301,6 +327,8 @@ function normalizeBackupPayload(payload) {
 
   if (!sections.importedExcelTransactions && payload?.importMeta) {
     sections.importedExcelTransactions = { records: [], reimbursements: {}, importMeta: payload.importMeta };
+  } else if (sections.importedExcelTransactions && payload?.importMeta && !sections.importedExcelTransactions.importMeta) {
+    sections.importedExcelTransactions.importMeta = payload.importMeta;
   }
   if (!sections.incomeInput && payload?.monthlyIncome) {
     sections.incomeInput = { records: [], reimbursements: {}, monthlyIncome: payload.monthlyIncome };
@@ -309,6 +337,7 @@ function normalizeBackupPayload(payload) {
   }
   if (!sections.rulesAndLearning && Array.isArray(payload?.rules)) sections.rulesAndLearning = { rules: payload.rules };
   if (!sections.recurringDefinitions && Array.isArray(payload?.recurringExpenses)) sections.recurringDefinitions = { recurringExpenses: payload.recurringExpenses };
+  if (!sections.familyAdjustments && Object.hasOwn(payload || {}, "familyAdjustments")) sections.familyAdjustments = { familyAdjustments: normalizeFamilyAdjustments(payload.familyAdjustments) };
   if (!sections.products && Array.isArray(payload?.products)) sections.products = { products: payload.products };
   if (!sections.ipoRecords && Array.isArray(payload?.ipoRecords)) sections.ipoRecords = { ipoRecords: payload.ipoRecords };
   if (!sections.calendarMemos && payload?.calendarMemos) sections.calendarMemos = { calendarMemos: payload.calendarMemos };
@@ -351,6 +380,7 @@ function normalizeBackupSection(scope, raw) {
     return section;
   }
   if (scope === "recurringDefinitions") return { recurringExpenses: Array.isArray(raw.recurringExpenses) ? raw.recurringExpenses.map(normalizeRecurringExpense) : [] };
+  if (scope === "familyAdjustments") return { familyAdjustments: normalizeFamilyAdjustments(raw.familyAdjustments) };
   if (scope === "rulesAndLearning") return { rules: Array.isArray(raw.rules) ? raw.rules : [] };
   if (scope === "products") return { products: Array.isArray(raw.products) ? raw.products.map(normalizeProduct) : [] };
   if (scope === "ipoRecords") return { ipoRecords: Array.isArray(raw.ipoRecords) ? raw.ipoRecords.map(normalizeIpoRecord) : [] };
@@ -363,6 +393,7 @@ function normalizeBackupSection(scope, raw) {
 function emptyBackupSection(scope) {
   if (TRANSACTION_DATA_SCOPES.has(scope)) return { records: [], reimbursements: {} };
   if (scope === "recurringDefinitions") return { recurringExpenses: [] };
+  if (scope === "familyAdjustments") return { familyAdjustments: [] };
   if (scope === "rulesAndLearning") return { rules: [] };
   if (scope === "products") return { products: [] };
   if (scope === "ipoRecords") return { ipoRecords: [] };
@@ -383,6 +414,7 @@ function countBackupSections(sections) {
   Object.entries(sections || {}).forEach(([scope, section]) => {
     if (TRANSACTION_DATA_SCOPES.has(scope)) counts[scope] = Array.isArray(section.records) ? section.records.length : 0;
     else if (scope === "recurringDefinitions") counts[scope] = Array.isArray(section.recurringExpenses) ? section.recurringExpenses.length : 0;
+    else if (scope === "familyAdjustments") counts[scope] = Array.isArray(section.familyAdjustments) ? section.familyAdjustments.length : 0;
     else if (scope === "rulesAndLearning") counts[scope] = Array.isArray(section.rules) ? section.rules.length : 0;
     else if (scope === "products") counts[scope] = Array.isArray(section.products) ? section.products.length : 0;
     else if (scope === "ipoRecords") counts[scope] = Array.isArray(section.ipoRecords) ? section.ipoRecords.length : 0;
@@ -397,6 +429,12 @@ function formatScopeCount(count) {
   return `(${Number(count || 0).toLocaleString("ko-KR")}건)`;
 }
 
+function formatBackupScopeCount(bundle, scope) {
+  const count = bundle.sectionCounts[scope];
+  const months = scope === "incomeInput" ? Object.keys(bundle.sections.incomeInput?.monthlyIncome || {}).length : 0;
+  return months ? `(수입 거래 ${Number(count || 0).toLocaleString("ko-KR")}건 · 월별 직접 입력 ${months}개월)` : formatScopeCount(count);
+}
+
 function renderRestorePreview(bundle, selectedScopes = selectedDataScopes()) {
   if (!els.restorePreview) return;
   const selected = normalizeScopeList(selectedScopes);
@@ -406,7 +444,7 @@ function renderRestorePreview(bundle, selectedScopes = selectedDataScopes()) {
   }
   const rows = selected
     .filter((scope) => backupBundleHasScope(bundle, scope))
-    .map((scope) => `<li><strong>${escapeHtml(scopeLabels([scope])[0])}</strong><span>${escapeHtml(formatScopeCount(bundle.sectionCounts[scope]))}</span></li>`)
+    .map((scope) => `<li><strong>${escapeHtml(scopeLabels([scope])[0])}</strong><span>${escapeHtml(formatBackupScopeCount(bundle, scope))}</span></li>`)
     .join("");
   els.restorePreview.innerHTML = rows
     ? `<strong>복원 미리보기</strong><ul>${rows}</ul>`
@@ -431,6 +469,7 @@ function applyClearScopes(scopes) {
   }
   if (selected.includes("incomeInput")) monthlyIncome = {};
   if (selected.includes("recurringDefinitions")) recurringExpenses = [];
+  if (selected.includes("familyAdjustments")) familyAdjustments = [];
   if (selected.includes("rulesAndLearning")) rules = structuredClone(defaultRules);
   if (selected.includes("products")) products = [];
   if (selected.includes("ipoRecords")) ipoRecords = [];
@@ -446,19 +485,34 @@ function applyRestorePayload(payload, scopes, options = {}) {
   const bundle = payload?.sections ? payload : normalizeBackupPayload(payload);
   const selected = normalizeScopeList(scopes).filter((scope) => backupBundleHasScope(bundle, scope));
   const mode = options.mode === "merge" ? "merge" : "overwrite";
-  restoreTransactionSections(bundle, selected, mode);
+  if (mode === "merge") {
+    const plan = options.mergePlan || buildBackupMergePlan(bundle, selected);
+    const merged = resolveBackupMergePlan(plan, options.mergeChoices || {}, bundle, selected);
+    if (selected.some((scope) => TRANSACTION_DATA_SCOPES.has(scope))) {
+      transactions = merged.transactions;
+      reimbursements = merged.reimbursements;
+    }
+    if (selected.includes("incomeInput")) monthlyIncome = merged.monthlyIncome;
+    if (selected.includes("familyAdjustments")) familyAdjustments = merged.familyAdjustments;
+    if (selected.includes("recurringDefinitions")) recurringExpenses = merged.recurringExpenses;
+  } else {
+    restoreTransactionSections(bundle, selected, mode);
+  }
 
-  if (selected.includes("incomeInput")) {
+  if (selected.includes("incomeInput") && mode !== "merge") {
     const incomingIncome = bundle.sections.incomeInput?.monthlyIncome && typeof bundle.sections.incomeInput.monthlyIncome === "object"
       ? bundle.sections.incomeInput.monthlyIncome
       : {};
-    monthlyIncome = mode === "merge" ? { ...incomingIncome, ...monthlyIncome } : incomingIncome;
+    monthlyIncome = incomingIncome;
   }
-  if (selected.includes("recurringDefinitions")) {
+  if (selected.includes("familyAdjustments") && mode !== "merge") {
+    familyAdjustments = normalizeFamilyAdjustments(bundle.sections.familyAdjustments?.familyAdjustments);
+  }
+  if (selected.includes("recurringDefinitions") && mode !== "merge") {
     const incoming = Array.isArray(bundle.sections.recurringDefinitions?.recurringExpenses)
       ? bundle.sections.recurringDefinitions.recurringExpenses.map(normalizeRecurringExpense)
       : [];
-    recurringExpenses = mode === "merge" ? mergeRecurringDefinitions(recurringExpenses, incoming) : incoming;
+    recurringExpenses = incoming;
   }
   if (selected.includes("rulesAndLearning")) {
     const incoming = Array.isArray(bundle.sections.rulesAndLearning?.rules) ? bundle.sections.rulesAndLearning.rules : [];
@@ -499,6 +553,9 @@ function applyRestorePayload(payload, scopes, options = {}) {
 
 async function persistDataScopeChange(scopes, applyChange, snapshotReason) {
   let restoreState;
+  const body = typeof document === "undefined" ? null : document.body;
+  const wasInert = body?.inert;
+  if (body) body.inert = true;
   try {
     await createAutoSnapshot(snapshotReason);
     restoreState = captureDataState();
@@ -507,6 +564,8 @@ async function persistDataScopeChange(scopes, applyChange, snapshotReason) {
   } catch (error) {
     console.error("데이터 변경 저장 실패", error);
     alert("데이터 변경을 완료하지 못했습니다. 백업 파일과 브라우저 저장소 상태를 확인한 후 다시 시도해주세요.");
+  } finally {
+    if (body) body.inert = wasInert;
   }
   if (restoreState) restoreState();
   return false;
@@ -514,10 +573,10 @@ async function persistDataScopeChange(scopes, applyChange, snapshotReason) {
 
 function captureDataState() {
   // 복원/초기화는 배열과 객체를 교체하므로 원본 참조로 정확히 되돌릴 수 있다.
-  const previous = { transactions, reimbursements, importMeta, currentFileName, monthlyIncome,
+  const previous = { transactions, reimbursements, familyAdjustments, importMeta, currentFileName, monthlyIncome,
     recurringExpenses, rules, products, ipoRecords, calendarMemos, goalPlan, appSettings };
   return () => {
-    ({ transactions, reimbursements, importMeta, currentFileName, monthlyIncome,
+    ({ transactions, reimbursements, familyAdjustments, importMeta, currentFileName, monthlyIncome,
       recurringExpenses, rules, products, ipoRecords, calendarMemos, goalPlan, appSettings } = previous);
     applyAppSettings();
   };
@@ -537,6 +596,7 @@ function saveSelectedScopes(scopes, options = {}) {
   if (selected.includes("products")) writes.push({ key: PRODUCT_STORAGE_KEY, data: products.map(normalizeProduct) });
   if (selected.includes("ipoRecords")) writes.push({ key: IPO_STORAGE_KEY, data: ipoRecords.map(normalizeIpoRecord) });
   if (selected.includes("recurringDefinitions")) writes.push({ key: RECURRING_STORAGE_KEY, data: recurringExpenses.map(normalizeRecurringExpense) });
+  if (selected.includes("familyAdjustments")) writes.push({ key: FAMILY_ADJUSTMENTS_STORAGE_KEY, data: normalizeFamilyAdjustments(familyAdjustments) });
   if (selected.includes("calendarMemos")) writes.push({ key: CALENDAR_MEMO_STORAGE_KEY, data: normalizeCalendarMemos(calendarMemos) });
   if (selected.includes("goalPlan")) writes.push({ key: GOAL_PLAN_STORAGE_KEY, data: GoalPlannerCore.normalizePlan(goalPlan) });
   if (selected.includes("settings")) writes.push({ key: SETTINGS_STORAGE_KEY, data: appSettings });
@@ -612,18 +672,6 @@ function transactionRestoreSignature(item) {
     normalized.cardNumber,
     normalized.cancel
   ].join("|");
-}
-
-function mergeRecurringDefinitions(current, incoming) {
-  const result = current.map(normalizeRecurringExpense);
-  const seen = new Set(result.map(recurringDefinitionSignature));
-  incoming.map(normalizeRecurringExpense).forEach((item) => {
-    const signature = recurringDefinitionSignature(item);
-    if (seen.has(signature)) return;
-    seen.add(signature);
-    result.push(item);
-  });
-  return result;
 }
 
 function recurringDefinitionSignature(item) {

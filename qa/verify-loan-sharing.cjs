@@ -5,6 +5,7 @@ const vm = require("node:vm");
 
 const root = path.resolve(__dirname, "..");
 const context = vm.createContext({
+    familyAdjustments: [],
   console,
   structuredClone,
   categories: {
@@ -58,6 +59,7 @@ vm.runInContext(`
   function scheduledPersonalTotalForMonth() { return 0; }
 `, context);
 load("src/utils/grouping.js");
+load("src/features/family/family-core.js");
 load("src/features/monthly/monthly-chart.js");
 load("src/features/monthly/monthly-flow.js");
 load("src/features/analysis/analysis-core.js");

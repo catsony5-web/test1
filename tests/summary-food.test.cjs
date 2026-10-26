@@ -7,6 +7,7 @@ const vm = require("node:vm");
 function loadContext() {
   const foodBudget = { monthlyTarget: 250000, diningCost: 20000 };
   const context = vm.createContext({
+    familyAdjustments: [],
     console, reimbursements: {}, transactions: [], rules: [],
     defaultAppSettings: () => ({ foodBudget }),
     appSettings: { foodBudget },
@@ -21,7 +22,7 @@ function loadContext() {
     "src/data/categories.js", "src/data/rules.js",
     "src/utils/format.js", "src/utils/date.js", "src/utils/dom.js",
     "src/utils/food-occasion.js",
-    "src/utils/normalize.js", "src/utils/grouping.js", "src/utils/storage.js", "src/components/chips.js",
+    "src/utils/normalize.js", "src/utils/grouping.js", "src/features/family/family-core.js", "src/utils/storage.js", "src/components/chips.js",
     "src/features/board/board-view.js", "src/features/classification/smart-suggestions.js",
     "src/features/summary/comparison-analysis.js", "src/features/summary/summary-pattern.js",
     "src/features/summary/summary-food-core.js", "src/features/summary/summary-food-view.js",

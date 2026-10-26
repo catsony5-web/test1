@@ -15,6 +15,7 @@ function renderAll() {
   renderUnknown();
   renderRules();
   renderTransactions();
+  renderFamilySupport();
   els.exportButton.disabled = classified.length === 0 || !window.XLSX;
 }
 

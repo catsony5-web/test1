@@ -197,19 +197,18 @@ function renderBoardPeriodStats(periodRows, periodMonths, preset, selectedMonth,
       </section>
     `;
   }
-  const allExpenseRows = reportingExpenseRows(classified);
   const monthSummaries = periodMonths.map((month) => {
     const rows = periodRows.filter((item) => item.month === month);
     const spend = sumConsumption(rows);
     const debt = sumDebtPrincipal(rows);
     const income = Number(monthlyIncome[month] || 0) + importedIncomeForMonth(month);
-    const settlement = loanSupportSettlementDeltaForMonth(allExpenseRows, month);
+    const settlement = familySupportCashAdjustment(month);
     return { month, amount: spend, income, debt, settlement, net: income - spend - debt + settlement, count: rows.length };
   });
   const total = sumConsumption(periodRows);
   const debtRepayment = sumDebtPrincipal(periodRows);
   const totalIncome = periodMonths.reduce((amount, month) => amount + Number(monthlyIncome[month] || 0) + importedIncomeForMonth(month), 0);
-  const settlementDelta = periodMonths.reduce((amount, month) => amount + loanSupportSettlementDeltaForMonth(allExpenseRows, month), 0);
+  const settlementDelta = periodMonths.reduce((amount, month) => amount + familySupportCashAdjustment(month), 0);
   const periodNet = totalIncome - total - debtRepayment + settlementDelta;
   const average = Math.round(total / Math.max(periodMonths.length, 1));
   const topMonth = [...monthSummaries].sort((a, b) => b.amount - a.amount)[0] || { month: selectedMonth, amount: 0 };

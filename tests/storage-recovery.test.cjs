@@ -297,11 +297,13 @@ test("저장 후 표시 오류는 완료된 저장을 실패로 바꾸지 않는
 function setupBackup(options) {
   const env = setup(options);
   const c = env.context;
+  load(c, "src/utils/date.js");
   load(c, "src/utils/normalize.js");
   load(c, "src/utils/food-occasion.js");
   load(c, "src/utils/backup.js");
+  load(c, "src/utils/backup-merge.js");
   Object.assign(c, {
-    transactions: [], reimbursements: {}, importMeta: {}, currentFileName: "", monthlyIncome: {},
+    transactions: [], familyAdjustments: [], reimbursements: {}, importMeta: {}, currentFileName: "", monthlyIncome: {},
     recurringExpenses: [], rules: [], products: [], ipoRecords: [], calendarMemos: {}, goalPlan: {},
     normalizeProduct: (item) => item, applyAppSettings() {},
     createAutoSnapshot: async () => ({}), confirm: () => true, reclassify() {}, renderRestorePreview() {}
@@ -360,6 +362,7 @@ test("초기화 실패 시 원래 목록을 유지한다", async () => {
   const { context: c } = setupBackup();
   const original = [{ id: "old" }]; c.products = original;
   c.selectedDataScopes = () => ["products"];
+  c.selectedClearDataScopes = () => ["products"];
   c.confirmDangerousDataAction = () => true;
   c.saveSelectedScopes = async () => false;
   await c.clearRecords();

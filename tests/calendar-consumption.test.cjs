@@ -8,8 +8,9 @@ function loadContext(rows = []) {
   const cardBilling = { startDay: 1, endDay: 31, paymentDay: 25, weekendRule: "none" };
   const context = vm.createContext({
     console,
+    familyAdjustments: [],
     classified: rows,
-    transactions: [],
+    transactions: rows,
     reimbursements: {},
     monthlyIncome: { "2026-08": 4000000 },
     appSettings: { cardBilling },
@@ -24,6 +25,7 @@ function loadContext(rows = []) {
     "src/utils/food-occasion.js",
     "src/utils/normalize.js",
     "src/utils/grouping.js",
+    "src/features/family/family-core.js",
     "src/utils/storage.js",
     "src/features/board/board-view.js",
     "src/features/monthly/monthly-flow.js",

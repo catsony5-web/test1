@@ -23,6 +23,8 @@ function mergeTransactions(existing, incoming) {
 }
 
 function normalizeStoredTransaction(item) {
+  const familyBurdenAmount = item.familyBurdenAmount == null || item.familyBurdenAmount === ""
+    ? null : Number(item.familyBurdenAmount);
   const loanPrincipalAmount = Math.max(0, Number(item.loanPrincipalAmount || 0));
   const loanInterestAmount = Math.max(0, Number(item.loanInterestAmount || 0));
   const loanSupportPrincipalAmount = Math.min(
@@ -36,6 +38,12 @@ function normalizeStoredTransaction(item) {
   const normalized = {
     sourceType: item.sourceType || "card",
     flow: item.flow || "expense",
+    incomeKind: item.incomeKind === "familySupport" ? "familySupport" : "normal",
+    incomeKindSource: ["manual", "keyword"].includes(item.incomeKindSource) ? item.incomeKindSource : "",
+    familyTargetMonth: /^\d{4}-(0[1-9]|1[0-2])$/.test(item.familyTargetMonth || "")
+      ? item.familyTargetMonth : monthKey(item.approvalDate) || monthKey(item.month),
+    familySender: String(item.familySender || "").trim(),
+    familyBurdenAmount: Number.isFinite(familyBurdenAmount) && familyBurdenAmount >= 0 ? familyBurdenAmount : null,
     cardNumber: item.cardNumber || "",
     approvalDate: item.approvalDate || "",
     month: item.month || monthKey(item.approvalDate),
@@ -56,6 +64,8 @@ function normalizeStoredTransaction(item) {
     updatedAt: item.updatedAt || item.createdAt || item.importedAt || "",
     recurringId: item.recurringId || "",
     recurringType: item.recurringType === "loan" ? "loan" : "expense",
+    recurringPostMethod: item.recurringPostMethod === "auto" ? "auto" : "manual",
+    recurringLinkedExisting: item.recurringLinkedExisting === true,
     loanType: item.loanType || "",
     loanPrincipalAmount,
     loanInterestAmount,
@@ -81,6 +91,72 @@ function normalizeStoredTransaction(item) {
   normalized.recordKey = normalized.recordKey || createRecordKey(normalized);
   normalized.transactionId = normalized.transactionId || normalized.recordKey;
   return normalized;
+}
+
+function normalizeFamilyBurdenHistory(value) {
+  if (value == null) return [];
+  if (!Array.isArray(value)) throw new Error("가족 부담액 이력 형식이 올바르지 않습니다.");
+  const byMonth = new Map();
+  for (const item of value) {
+    const fromMonth = String(item?.fromMonth || "").trim();
+    const amount = Number(item?.amount);
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(fromMonth) || item?.amount == null || item.amount === "" || !Number.isFinite(amount) || amount < 0) {
+      throw new Error("가족 부담액 이력의 적용 월 또는 금액이 올바르지 않습니다.");
+    }
+    if (byMonth.has(fromMonth) && byMonth.get(fromMonth) !== amount) throw new Error("같은 적용 월에 서로 다른 가족 부담액이 있습니다.");
+    byMonth.set(fromMonth, amount);
+  }
+  return [...byMonth].sort(([a], [b]) => a.localeCompare(b)).map(([fromMonth, amount]) => ({ fromMonth, amount }));
+}
+
+function normalizeLoanSupportHistory(value) {
+  if (value == null) return [];
+  if (!Array.isArray(value)) throw new Error("가족 대출 부담 이력 형식이 올바르지 않습니다.");
+  const byMonth = new Map();
+  for (const item of value) {
+    const fromMonth = String(item?.fromMonth || "").trim();
+    const principal = Number(item?.principal);
+    const interest = Number(item?.interest);
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(fromMonth) || ["principal", "interest"].some((key) => item?.[key] == null || item[key] === "") || !Number.isFinite(principal) || principal < 0 || !Number.isFinite(interest) || interest < 0) {
+      throw new Error("가족 대출 부담 이력의 적용 월 또는 금액이 올바르지 않습니다.");
+    }
+    const row = { fromMonth, principal, interest };
+    if (byMonth.has(fromMonth) && JSON.stringify(byMonth.get(fromMonth)) !== JSON.stringify(row)) throw new Error("같은 적용 월에 서로 다른 가족 대출 부담액이 있습니다.");
+    byMonth.set(fromMonth, row);
+  }
+  return [...byMonth.values()].sort((a, b) => a.fromMonth.localeCompare(b.fromMonth));
+}
+
+function normalizeFamilyAdjustment(item) {
+  const id = String(item?.id || "").trim();
+  const date = normalizeInputDate(item?.date);
+  const parsedDate = new Date(`${date}T00:00:00Z`);
+  const amount = Number(item?.amount);
+  if (!id || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isFinite(parsedDate.getTime()) || parsedDate.toISOString().slice(0, 10) !== date) {
+    throw new Error("가족지원 조정 기록의 ID 또는 날짜가 올바르지 않습니다.");
+  }
+  if (item?.amount == null || item.amount === "" || !Number.isFinite(amount)) throw new Error("가족지원 조정 금액이 올바르지 않습니다.");
+  return {
+    id, date, amount,
+    purpose: ["loan_payment", "return", "other"].includes(item.purpose) ? item.purpose : "other",
+    memo: String(item.memo || "").trim(),
+    linkedLoanTransactionId: String(item.linkedLoanTransactionId || "").trim(),
+    createdAt: String(item.createdAt || ""),
+    updatedAt: String(item.updatedAt || "")
+  };
+}
+
+function normalizeFamilyAdjustments(value) {
+  if (value == null) return [];
+  if (!Array.isArray(value)) throw new Error("가족지원 조정 기록 형식이 올바르지 않습니다.");
+  const byId = new Map();
+  for (const raw of value) {
+    const item = normalizeFamilyAdjustment(raw);
+    const prior = byId.get(item.id);
+    if (prior && JSON.stringify(prior) !== JSON.stringify(item)) throw new Error("같은 ID에 서로 다른 가족지원 조정 기록이 있습니다.");
+    byId.set(item.id, item);
+  }
+  return [...byId.values()];
 }
 
 function createRecordKey(item) {

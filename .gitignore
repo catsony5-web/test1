@@ -53,6 +53,8 @@ exports/
 export/
 local-data/
 private-data/
+.budget-private/
+/output/playwright/
 sample-data/
 test-data/
 

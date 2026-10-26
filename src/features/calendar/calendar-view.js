@@ -42,7 +42,7 @@ function calendarExpenseTotals(rows) {
   };
 }
 
-function calendarCellAriaLabel(dateKey, consumptionTotal, rows, incomeRows, pendingRows, postedRows, excludedTotals = null) {
+function calendarCellAriaLabel(dateKey, consumptionTotal, rows, incomeRows, pendingRows, postedRows, excludedTotals = null, familyReceipts = [], familyObligations = []) {
   const parts = [
     dateKey,
     consumptionTotal > 0 ? `소비지출 ${formatWon(consumptionTotal)}` : "소비지출 없음"
@@ -51,6 +51,8 @@ function calendarCellAriaLabel(dateKey, consumptionTotal, rows, incomeRows, pend
   if (excludedTotals?.principal > 0) parts.push(`대출 원금 ${formatWon(excludedTotals.principal)}, 소비 제외`);
   if (excludedTotals?.savings > 0) parts.push(`저축 ${formatWon(excludedTotals.savings)}, 소비 제외`);
   if (incomeRows.length) parts.push(`수입 ${formatWon(calendarIncomeTotal(incomeRows))}`);
+  if (familyReceipts.length) parts.push(`가족 지원 입금 ${formatWon(sum(familyReceipts, "amount"))}`);
+  if (familyObligations.length) parts.push(`가족 부담 출금 ${formatWon(sum(familyObligations, "amount"))}`);
   if (pendingRows.length) parts.push(`고정 지출 예정 ${formatWon(sum(pendingRows, "amount"))}`);
   if (postedRows.length) parts.push(`고정 지출 반영 ${postedRows.length.toLocaleString("ko-KR")}건`);
   return parts.join(", ");
@@ -117,8 +119,11 @@ function renderCalendar() {
   const dayCount = new Date(year, month, 0).getDate();
   const monthRows = active.filter((item) => item.month === selectedMonth);
   const monthIncomeRows = calendarShowIncome
-    ? classified.filter((item) => item.flow === "income" && item.month === selectedMonth && !isCanceled(item.cancel))
+    ? classified.filter((item) => item.flow === "income" && item.incomeKind !== "familySupport" && incomeReportingAmount(item) > 0 && item.month === selectedMonth && !isCanceled(item.cancel))
     : [];
+  const familyModel = buildFamilySupportModel(selectedMonth);
+  const familyByDate = groupBy(familyModel.cashReceipts, (item) => item.date);
+  const familyDueByDate = groupBy(familyModel.obligations, (item) => item.date);
   const byDate = groupBy(monthRows, (item) => normalizeDateKey(item.approvalDate));
   const incomeByDate = groupBy(monthIncomeRows, (item) => normalizeDateKey(item.approvalDate));
   const scheduledRows = recurringOccurrencesForMonth(selectedMonth);
@@ -131,7 +136,7 @@ function renderCalendar() {
   renderCalendarMonthlyMemo(selectedMonth);
   renderCalendarCurrentMonthLabel(selectedMonth, pendingScheduledRows);
   attachCalendarSummaryHandlers(selectedMonth);
-  const firstSpendDate = [...new Set([...byDate.keys(), ...incomeByDate.keys(), ...scheduledByDate.keys()])].sort()[0]
+  const firstSpendDate = [...new Set([...byDate.keys(), ...incomeByDate.keys(), ...scheduledByDate.keys(), ...familyByDate.keys(), ...familyDueByDate.keys()])].filter((date) => date.startsWith(selectedMonth)).sort()[0]
     || defaultDateForMonth(selectedMonth);
   const activeDate = selectedCalendarDate && selectedCalendarDate.startsWith(selectedMonth) ? selectedCalendarDate : firstSpendDate;
   selectedCalendarDate = activeDate;
@@ -147,6 +152,8 @@ function renderCalendar() {
     const dateKey = `${selectedMonth}-${String(day).padStart(2, "0")}`;
     const rows = byDate.get(dateKey) || [];
     const dayIncomeRows = incomeByDate.get(dateKey) || [];
+    const familyReceipts = familyByDate.get(dateKey) || [];
+    const familyObligations = familyDueByDate.get(dateKey) || [];
     const plannedRows = scheduledByDate.get(dateKey) || [];
     const pendingPlannedRows = plannedRows.filter((item) => !item.posted);
     const postedPlannedRows = plannedRows.filter((item) => item.posted);
@@ -155,7 +162,7 @@ function renderCalendar() {
     const plannedTotal = sum(pendingPlannedRows, "amount");
     const isSelected = activeDate === dateKey;
     const spendLevel = calendarSpendLevel(total);
-    const ariaLabel = calendarCellAriaLabel(dateKey, total, rows, dayIncomeRows, pendingPlannedRows, postedPlannedRows, calendarShowAssetMoves ? totals : null);
+    const ariaLabel = calendarCellAriaLabel(dateKey, total, rows, dayIncomeRows, pendingPlannedRows, postedPlannedRows, calendarShowAssetMoves ? totals : null, familyReceipts, familyObligations);
     cells.push(`
       <button class="calendar-cell ${total > 0 ? "has-spend" : ""} ${pendingPlannedRows.length ? "has-scheduled" : ""} ${plannedRows.some((item) => item.posted) ? "has-posted-scheduled" : ""} ${isSelected ? "selected" : ""}" type="button" data-calendar-date="${escapeHtml(dateKey)}" data-spend-level="${spendLevel}" aria-label="${escapeHtml(ariaLabel)}">
         <span class="calendar-day">${day}</span>
@@ -163,6 +170,8 @@ function renderCalendar() {
         ${calendarShowAssetMoves && totals.principal > 0 ? `<em class="calendar-asset-label principal">원금 ${formatWon(totals.principal)}</em>` : ""}
         ${calendarShowAssetMoves && totals.savings > 0 ? `<em class="calendar-asset-label savings">저축 ${formatWon(totals.savings)}</em>` : ""}
         ${dayIncomeRows.length ? `<em class="calendar-income-label">수입 ${formatWon(calendarIncomeTotal(dayIncomeRows))}</em>` : ""}
+        ${familyReceipts.length ? `<em class="family-calendar-label"><i class="ti ti-users" aria-hidden="true"></i> 가족 지원 ${formatWon(sum(familyReceipts, "amount"))}</em>` : ""}
+        ${familyObligations.length ? `<em class="family-calendar-label is-outflow">가족 부담 ${formatWon(sum(familyObligations, "amount"))}${familyObligations.some((item) => !item.posted) ? " · 예정" : " · 출금"}</em>` : ""}
         ${pendingPlannedRows.length
           ? `<em class="calendar-fixed-schedule-label">고정 예정 ${formatWon(plannedTotal)}</em>`
           : postedPlannedRows.length ? `<em class="calendar-fixed-schedule-label posted">고정 반영 ${postedPlannedRows.length.toLocaleString("ko-KR")}건</em>` : ""}
@@ -184,7 +193,7 @@ function renderCalendar() {
     });
   });
 
-  renderDayTimeline(activeDate, byDate.get(activeDate) || [], scheduledByDate.get(activeDate) || [], incomeByDate.get(activeDate) || []);
+  renderDayTimeline(activeDate, byDate.get(activeDate) || [], scheduledByDate.get(activeDate) || [], incomeByDate.get(activeDate) || [], familyByDate.get(activeDate) || [], familyDueByDate.get(activeDate) || []);
 }
 
 function renderCalendarCurrentMonthLabel(month, scheduledRows = []) {
@@ -539,7 +548,7 @@ function renderCalendarMonthSummary(month, monthRows, byDate, scheduledRows = []
   const totalSpend = totals.consumption;
   const scheduledTotal = sum(scheduledRows, "amount");
   const totalIncome = importedIncomeForMonth(month) + Number(monthlyIncome[month] || 0);
-  const settlementDelta = loanSupportSettlementDeltaForMonth(reportingExpenseRows(classified), month);
+  const settlementDelta = familySupportCashAdjustment(month);
   const balance = totalIncome - totalSpend - totals.principal - totals.savings + settlementDelta;
   const dailyTotals = [...byDate.entries()]
     .map(([date, rows]) => {
@@ -584,7 +593,7 @@ function renderCalendarMonthSummary(month, monthRows, byDate, scheduledRows = []
 
 function renderCalendarAssetSummary(month, monthRows) {
   const totals = calendarExpenseTotals(monthRows);
-  const settlementDelta = loanSupportSettlementDeltaForMonth(reportingExpenseRows(classified), month);
+  const settlementDelta = familySupportCashAdjustment(month);
   return `
     <h3>소비와 따로 보기</h3>
     <div class="calendar-asset-metric" data-calendar-metric="principal">
@@ -657,7 +666,7 @@ function attachCalendarSummaryHandlers(selectedMonth) {
   });
 }
 
-function renderDayTimeline(dateKey, rows, scheduledRows = [], incomeRows = []) {
+function renderDayTimeline(dateKey, rows, scheduledRows = [], incomeRows = [], familyReceipts = [], familyObligations = []) {
   const totals = calendarExpenseTotals(rows);
   const totalText = totals.consumption > 0 ? `소비지출 ${formatWon(totals.consumption)}` : "소비지출 없음";
   const pendingScheduledRows = scheduledRows.filter((item) => !item.posted);
@@ -666,7 +675,7 @@ function renderDayTimeline(dateKey, rows, scheduledRows = [], incomeRows = []) {
   if (pendingScheduledRows.length) titleParts.push(`고정 예정 ${formatWon(sum(pendingScheduledRows, "amount"))}`);
   els.selectedDayTitle.textContent = titleParts.join(" · ");
   const feedbackHtml = renderCalendarEditFeedback();
-  if (!rows.length && !incomeRows.length && !scheduledRows.length) {
+  if (!rows.length && !incomeRows.length && !scheduledRows.length && !familyReceipts.length && !familyObligations.length) {
     els.selectedDayTimeline.innerHTML = `${feedbackHtml}<div class="empty">이 날짜의 소비 내역이 없습니다.</div>`;
     return;
   }
@@ -677,6 +686,17 @@ function renderDayTimeline(dateKey, rows, scheduledRows = [], incomeRows = []) {
   const duplicateMap = calendarDuplicateMetaMap(duplicateGroups);
   const duplicateHtml = renderCalendarDuplicateGroups(duplicateGroups);
   const actualHtml = sortedRows.map((item) => renderCalendarTransactionCard(item, duplicateMap.get(item.recordKey))).join("");
+  const familyHtml = familyReceipts.length || familyObligations.length ? `
+    <div class="family-timeline-group">
+      <h4><i class="ti ti-users" aria-hidden="true"></i> 가족 지원·부담</h4>
+      ${familyReceipts.map((item) => `<article class="timeline-item family-item">
+        <div class="timeline-main"><strong>${escapeHtml(item.name)}</strong><p>가족 지원 · 정산 대상 ${escapeHtml(item.targetMonth)} · 수입 제외</p></div>
+        <b>+${formatWon(item.amount)}</b><button type="button" data-family-open="${escapeHtml(item.targetMonth)}">정산 보기</button>
+      </article>`).join("")}
+      ${familyObligations.map((item) => `<article class="timeline-item family-item">
+        <div class="timeline-main"><strong>${escapeHtml(item.name)}</strong><p>가족 부담 · ${item.posted ? "실제 출금" : "출금 예정"}</p></div><b>−${formatWon(item.amount)}</b>
+      </article>`).join("")}
+    </div>` : "";
   const incomeHtml = incomeRows.length ? `
     <div class="income-timeline-group">
       <h4>수입 내역</h4>
@@ -725,7 +745,7 @@ function renderDayTimeline(dateKey, rows, scheduledRows = [], incomeRows = []) {
       `).join("")}
     </div>
   ` : "";
-  els.selectedDayTimeline.innerHTML = [feedbackHtml, duplicateHtml, actualHtml, incomeHtml, scheduledHtml].filter(Boolean).join("");
+  els.selectedDayTimeline.innerHTML = [feedbackHtml, familyHtml, duplicateHtml, actualHtml, incomeHtml, scheduledHtml].filter(Boolean).join("");
   attachCalendarTimelineHandlers(els.selectedDayTimeline);
   attachRecurringHandlers(els.selectedDayTimeline);
 }
@@ -752,13 +772,14 @@ function renderCalendarTransactionCard(item, duplicateMeta = null) {
           ${item.manualSector ? `<span class="manual-entry-badge">직접 수정</span>` : ""}
           ${installmentText ? `<span class="installment-badge">${escapeHtml(installmentText)}</span>` : ""}
           ${isSavings ? `<span class="calendar-flow-badge saving">저축 · 소비 제외</span>` : ""}
+          ${familyExpenseBurden(item) > 0 ? `<span class="family-label">가족 부담 ${formatWon(familyExpenseBurden(item))}</span>` : ""}
         </div>
         ${!isLoan ? `<p>총 결제 ${formatWon(item.amount)}${reimbursement ? ` · 정산 ${formatWon(reimbursement)}` : ""}</p>` : ""}
         ${isUnknown ? renderCalendarSuggestion(suggestion) : ""}
       </div>
       <div class="timeline-amount-actions">
         ${isLoan || isSavings ? `<span class="calendar-amount-label">${isLoan ? "총 상환" : "저축"}</span>` : ""}
-        <b>${formatWon(isLoan ? item.amount : actualAmount(item))}</b>
+        <b>${formatWon(isLoan ? item.amount : consumptionAmount(item))}</b>
         <div class="timeline-actions">
           ${isUnknown && suggestion ? `<button type="button" class="calendar-suggestion-button" data-calendar-apply-suggestion="${escapeHtml(editRecordKey)}" data-sector="${escapeHtml(suggestion.sector)}" data-subcategory="${escapeHtml(suggestion.subcategory)}">추천 적용</button>` : ""}
           ${isLoan

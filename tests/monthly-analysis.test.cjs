@@ -7,6 +7,7 @@ const vm = require("node:vm");
 function loadContext(rows = [], income = { "2026-07": 4000000, "2026-08": 4060000 }) {
   const cardBilling = { startDay: 1, endDay: 31, paymentDay: 25, weekendRule: "none" };
   const context = vm.createContext({
+    familyAdjustments: [],
     console, classified: rows, transactions: rows, reimbursements: {}, monthlyIncome: income,
     appSettings: { cardBilling }, defaultAppSettings: () => ({ cardBilling }),
     isValidMonthKey: (value) => /^\d{4}-(0[1-9]|1[0-2])$/.test(String(value)),
@@ -16,7 +17,7 @@ function loadContext(rows = [], income = { "2026-07": 4000000, "2026-08": 406000
   });
   for (const file of [
     "src/data/categories.js", "src/utils/format.js", "src/utils/date.js", "src/utils/dom.js",
-    "src/utils/food-occasion.js", "src/utils/normalize.js", "src/utils/grouping.js", "src/utils/storage.js",
+    "src/utils/food-occasion.js", "src/utils/normalize.js", "src/utils/grouping.js", "src/features/family/family-core.js", "src/utils/storage.js",
     "src/components/chips.js", "src/features/board/board-view.js", "src/features/monthly/monthly-flow.js",
     "src/features/analysis/analysis-core.js", "src/features/analysis/monthly-analysis-core.js",
     "src/features/analysis/monthly-analysis-view.js", "src/features/calendar/calendar-view.js"

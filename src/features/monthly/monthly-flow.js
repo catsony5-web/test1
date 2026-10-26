@@ -203,6 +203,14 @@ function renderMonthlyFlow() {
       ${hasScheduledExpenses ? `<td class="amount expected-cell ${row.expectedFreeBalance >= 0 ? "positive" : "negative"}" data-label="예상 자유 잔액">${formatSignedWon(row.expectedFreeBalance)}</td>` : ""}
       <td class="amount asset-cell ${row.cumulativeAssetGrowth >= 0 ? "positive" : "negative"}" data-label="누적 자산 증가">${formatSignedWon(row.cumulativeAssetGrowth)}</td>
     </tr>
+    ${row.familyNeed || row.familyReceived || row.familyBalance ? `
+      <tr class="monthly-family-row">
+        <th scope="row">${escapeHtml(row.month)} 가족 지원</th>
+        <td colspan="${hasScheduledExpenses ? 9 : 7}">
+          <button type="button" data-family-open="${escapeHtml(row.month)}">입금 ${formatWon(row.familyReceived)} · 필요 ${formatWon(row.familyNeed)} · 차액 ${formatSignedWon(row.familyDifference)} · 누적 ${formatSignedWon(row.familyBalance)}</button>
+          <small>정산 대상월 기준 · 수입·저축률에서 제외</small>
+        </td>
+      </tr>` : ""}
   `).join("");
 
   els.monthlyFlowTable.innerHTML = `
@@ -536,6 +544,8 @@ function returnFromIncomeView() {
 function buildMonthlyFlowRows(reportRows = reportingExpenseRows(classified)) {
   const months = unique([
     ...classified.filter((item) => item.status !== "취소/제외").map((item) => item.month).filter(Boolean),
+    ...classified.filter((item) => item.incomeKind === "familySupport").map(familyTargetMonth),
+    ...familyAdjustments.map((item) => monthKey(item.date)),
     ...reportRows.map((item) => item.month).filter(Boolean),
     ...reportRows.map((item) => loanSupportReceivedMonth(item)).filter(Boolean),
     ...Object.keys(monthlyIncome).filter(Boolean),
@@ -557,7 +567,8 @@ function buildMonthlyFlowRow(month, reportRows) {
   const actualSavings = sumActual(savingsExpenses);
   const debtRepayment = sumDebtPrincipal(expenses);
   const legalDebtRepayment = sumLegalDebtPrincipal(expenses);
-  const loanSettlementDelta = loanSupportSettlementDeltaForMonth(reportRows, month);
+  const loanSettlementDelta = familySupportCashAdjustment(month);
+  const family = buildFamilySupportModel(month);
   const freeBalance = income - consumptionSpend - actualSavings - debtRepayment + loanSettlementDelta;
   const assetGrowth = income - consumptionSpend;
   const scheduled = scheduledTotalForMonth(month);
@@ -571,6 +582,11 @@ function buildMonthlyFlowRow(month, reportRows) {
     debtRepayment,
     legalDebtRepayment,
     loanSettlementDelta,
+    familyNeed: family.need,
+    familyReceived: family.received,
+    familyDifference: family.difference,
+    familyBalance: family.settlementBalance,
+    familyCashHeld: family.cashHeld,
     income,
     freeBalance,
     assetGrowth,

@@ -28,6 +28,18 @@ async function importReviewedNotification(notice) {
   reclassify();
 }
 
+let manualTransactionSavePending = false;
+
+async function runManualTransactionSave(operation) {
+  if (manualTransactionSavePending) return;
+  manualTransactionSavePending = true;
+  try {
+    return await operation();
+  } finally {
+    manualTransactionSavePending = false;
+  }
+}
+
 async function handleManualEntry(event) {
   event.preventDefault();
   const item = buildManualTransaction({

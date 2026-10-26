@@ -1,7 +1,7 @@
 function renderIncomeEntries() {
   updateIncomeReturnButton();
   const allIncomeRows = classified
-    .filter((item) => item.flow === "income" && item.status !== "취소/제외")
+    .filter((item) => item.flow === "income" && item.incomeKind !== "familySupport" && item.status !== "취소/제외")
     .sort((a, b) => `${b.approvalDate} ${b.approvalTime}`.localeCompare(`${a.approvalDate} ${a.approvalTime}`, "ko-KR"));
   const monthlyRows = buildMonthlyFlowRows();
   updateIncomeMonthOptions(allIncomeRows, monthlyRows);
@@ -113,6 +113,7 @@ function renderIncomeDisplayRow(item) {
     </div>
     <div class="income-entry-actions">
       <button type="button" data-edit-income="${escapeHtml(item.recordKey)}">수정</button>
+      <button type="button" data-family-convert-income="${escapeHtml(item.recordKey)}">가족 지원으로</button>
       <button type="button" class="income-delete-button" data-delete-income="${escapeHtml(item.recordKey)}">삭제</button>
     </div>
   `;
@@ -131,6 +132,9 @@ function renderIncomeEditForm(item) {
 }
 
 function attachIncomeEntryHandlers() {
+  els.incomeEntryList.querySelectorAll("[data-family-convert-income]").forEach((button) => {
+    button.addEventListener("click", () => convertIncomeToFamilySupport(button.dataset.familyConvertIncome));
+  });
   els.incomeEntryList.querySelectorAll("[data-edit-income]").forEach((button) => {
     button.addEventListener("click", () => {
       editingIncomeKey = button.dataset.editIncome;
@@ -219,4 +223,27 @@ async function deleteIncomeEntry(recordKey) {
   editingIncomeKey = "";
   await saveTransactions({ allowIncomeDrop: true });
   reclassify();
+}
+
+async function convertIncomeToFamilySupport(recordKey) {
+  return runManualTransactionSave(async () => {
+    const original = transactions.find((item) => item.recordKey === recordKey && item.flow === "income");
+    if (!original || original.incomeKind === "familySupport") return;
+    if (!confirm("이 입금을 가족 지원으로 분류할까요? 원래 입금 기록은 유지되고 일반 수입 합계에서 제외됩니다.")) return;
+    const targetMonth = monthKey(original.approvalDate) || original.month;
+    const updated = normalizeStoredTransaction({
+      ...original,
+      incomeKind: "familySupport",
+      incomeKindSource: "manual",
+      familyTargetMonth: targetMonth,
+      familySender: original.merchant || "가족",
+      updatedAt: new Date().toISOString()
+    });
+    const next = transactions.map((item) => item.recordKey === recordKey ? updated : item);
+    await createAutoSnapshot("입금을 가족 지원으로 분류하기 전");
+    if (!await safeSaveMany([{ key: RECORD_STORAGE_KEY, data: next, protectIncomeRecords: true }])) return;
+    transactions = next;
+    reclassify();
+    openFamilySupportDialog(targetMonth, { receiptId: updated.transactionId || updated.recordKey });
+  });
 }
