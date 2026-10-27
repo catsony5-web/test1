@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-10-27T09:34:21.089Z",
+  "updatedAt": "2026-10-27T15:42:35.156Z",
   "checkedDate": "2026-10-27",
   "coverage": {
     "kindCount": 173,
@@ -14,7 +14,7 @@
     ],
     "refreshStatus": {
       "state": "ok",
-      "attemptedAt": "2026-10-27T09:34:21.089Z",
+      "attemptedAt": "2026-10-27T15:42:35.156Z",
       "sources": {
         "kind": {
           "state": "ok"
@@ -2532,27 +2532,8 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "13c93e8c675f7c4db812",
-      "changeStatus": "changed",
-      "changes": [
-        {
-          "field": "subscriptionStart",
-          "label": "청약 시작",
-          "before": "2026-11-12",
-          "after": "2026-12-01"
-        },
-        {
-          "field": "subscriptionEnd",
-          "label": "청약 종료",
-          "before": "2026-11-13",
-          "after": "2026-12-02"
-        },
-        {
-          "field": "paymentDate",
-          "label": "납입일",
-          "before": "2026-11-17",
-          "after": "2026-12-04"
-        }
-      ]
+      "changeStatus": "unchanged",
+      "changes": []
     },
     {
       "sourceId": "dart-02040710",
