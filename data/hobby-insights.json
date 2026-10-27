@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-26T00:31:15.119Z",
-  "attemptedAt": "2026-10-26T00:31:15.119Z",
+  "updatedAt": "2026-10-27T01:33:40.693Z",
+  "attemptedAt": "2026-10-27T01:33:40.693Z",
   "refreshStatus": "ok",
   "sources": {
     "youtube": {
@@ -15,6 +15,20 @@
     }
   },
   "items": [
+    {
+      "sourceId": "shopify",
+      "title": "The checkout footer now shows one \"Terms and policies\" link",
+      "url": "https://changelog.shopify.com/posts/the-checkout-footer-now-shows-one-terms-and-policies-link",
+      "publishedAt": "2026-10-26T22:15:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "New EU Product identifiers supported on Shopify Shipping & Managed Markets labels",
+      "url": "https://changelog.shopify.com/posts/new-eu-product-identifiers-supported-on-shopify-shipping-managed-markets-labels",
+      "publishedAt": "2026-10-24T16:00:00.000Z",
+      "topicId": "product"
+    },
     {
       "sourceId": "shopify",
       "title": "Refreshed payment method design in checkout",
