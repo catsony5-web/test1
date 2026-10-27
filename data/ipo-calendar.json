@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-10-27T01:39:56.862Z",
+  "updatedAt": "2026-10-27T09:34:21.089Z",
   "checkedDate": "2026-10-27",
   "coverage": {
     "kindCount": 173,
@@ -14,7 +14,7 @@
     ],
     "refreshStatus": {
       "state": "ok",
-      "attemptedAt": "2026-10-27T01:39:56.862Z",
+      "attemptedAt": "2026-10-27T09:34:21.089Z",
       "sources": {
         "kind": {
           "state": "ok"
@@ -1560,7 +1560,7 @@
       "status": "scheduled",
       "sourceName": "KRX KIND + DART",
       "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260129000229",
-      "sourceUpdatedAt": "2026-10-26T09:39:41.105Z",
+      "sourceUpdatedAt": "2026-10-27T09:34:21.089Z",
       "missingSince": "",
       "corpCode": "01956751",
       "aliases": [
@@ -1575,9 +1575,9 @@
         },
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261021000341",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027000261",
           "checkedDate": "2026-10-27",
-          "reportDate": "20261021"
+          "reportDate": "20261027"
         }
       ],
       "conflicts": [],
@@ -1587,7 +1587,7 @@
       "reportedOfferPrice": 19000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "af5ca586284d39407fa5",
+      "fingerprint": "e5e91e1f2d21686a206b",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -1609,7 +1609,7 @@
       "status": "scheduled",
       "sourceName": "KRX KIND + DART",
       "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260127000269",
-      "sourceUpdatedAt": "2026-10-26T09:39:41.105Z",
+      "sourceUpdatedAt": "2026-10-27T09:34:21.089Z",
       "missingSince": "",
       "corpCode": "00579342",
       "aliases": [
@@ -1624,9 +1624,9 @@
         },
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261021000246",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027000139",
           "checkedDate": "2026-10-27",
-          "reportDate": "20261021"
+          "reportDate": "20261027"
         }
       ],
       "conflicts": [],
@@ -1636,7 +1636,7 @@
       "reportedOfferPrice": 14000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "6ed9121eed6c78522182",
+      "fingerprint": "ab05ba49abe823d32dad",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -2165,47 +2165,6 @@
       "changes": []
     },
     {
-      "sourceId": "dart-01795859",
-      "company": "엔키화이트햇",
-      "market": "상장시장 확인 필요",
-      "filingDate": "2026-10-08",
-      "bookbuildingStart": "",
-      "bookbuildingEnd": "",
-      "subscriptionStart": "2026-11-12",
-      "subscriptionEnd": "2026-11-13",
-      "paymentDate": "2026-11-17",
-      "offerPrice": 0,
-      "offeringAmountMillions": 0,
-      "listingDate": "",
-      "broker": "신영증권",
-      "priceStatus": "pending",
-      "status": "scheduled",
-      "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261008000660",
-      "sourceUpdatedAt": "2026-10-08T11:07:41.455Z",
-      "missingSince": "",
-      "corpCode": "01795859",
-      "aliases": [
-        "dart-01795859"
-      ],
-      "sources": [
-        {
-          "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261008000660",
-          "checkedDate": "2026-10-27",
-          "reportDate": "20261008"
-        }
-      ],
-      "conflicts": [],
-      "reviewNotes": [],
-      "reportedOfferPrice": 13000,
-      "offerPriceLow": 0,
-      "offerPriceHigh": 0,
-      "fingerprint": "c60a599b8dbf69a654b4",
-      "changeStatus": "unchanged",
-      "changes": []
-    },
-    {
       "sourceId": "dart-01705740",
       "company": "엠비디",
       "market": "상장시장 확인 필요",
@@ -2373,7 +2332,7 @@
       "sourceId": "dart-01938746",
       "company": "아델",
       "market": "상장시장 확인 필요",
-      "filingDate": "2026-10-12",
+      "filingDate": "2026-10-27",
       "bookbuildingStart": "",
       "bookbuildingEnd": "",
       "subscriptionStart": "2026-11-23",
@@ -2386,8 +2345,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261012000445",
-      "sourceUpdatedAt": "2026-10-12T11:38:06.761Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027000312",
+      "sourceUpdatedAt": "2026-10-27T09:34:21.089Z",
       "missingSince": "",
       "corpCode": "01938746",
       "aliases": [
@@ -2396,9 +2355,9 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261012000445",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027000312",
           "checkedDate": "2026-10-27",
-          "reportDate": "20261012"
+          "reportDate": "20261027"
         }
       ],
       "conflicts": [],
@@ -2406,7 +2365,7 @@
       "reportedOfferPrice": 18000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "ed7562397f1e4a38a978",
+      "fingerprint": "c4d9dfe96119e4e3c1cb",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -2457,7 +2416,7 @@
       "sourceId": "dart-01880139",
       "company": "케이엠에프",
       "market": "상장시장 확인 필요",
-      "filingDate": "2026-10-02",
+      "filingDate": "2026-10-27",
       "bookbuildingStart": "",
       "bookbuildingEnd": "",
       "subscriptionStart": "2026-11-24",
@@ -2470,8 +2429,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261002000390",
-      "sourceUpdatedAt": "2026-10-02T16:05:02.247Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027000388",
+      "sourceUpdatedAt": "2026-10-27T09:34:21.089Z",
       "missingSince": "",
       "corpCode": "01880139",
       "aliases": [
@@ -2480,9 +2439,9 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261002000390",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027000388",
           "checkedDate": "2026-10-27",
-          "reportDate": "20261002"
+          "reportDate": "20261027"
         }
       ],
       "conflicts": [],
@@ -2490,7 +2449,7 @@
       "reportedOfferPrice": 15000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "e7bb0519e05cc002a9d8",
+      "fingerprint": "2d5046a5864e23c2947a",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -2534,6 +2493,66 @@
       "fingerprint": "f733c129097499c38a0f",
       "changeStatus": "unchanged",
       "changes": []
+    },
+    {
+      "sourceId": "dart-01795859",
+      "company": "엔키화이트햇",
+      "market": "상장시장 확인 필요",
+      "filingDate": "2026-10-27",
+      "bookbuildingStart": "",
+      "bookbuildingEnd": "",
+      "subscriptionStart": "2026-12-01",
+      "subscriptionEnd": "2026-12-02",
+      "paymentDate": "2026-12-04",
+      "offerPrice": 0,
+      "offeringAmountMillions": 0,
+      "listingDate": "",
+      "broker": "신영증권",
+      "priceStatus": "pending",
+      "status": "scheduled",
+      "sourceName": "DART",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027000363",
+      "sourceUpdatedAt": "2026-10-27T09:34:21.089Z",
+      "missingSince": "",
+      "corpCode": "01795859",
+      "aliases": [
+        "dart-01795859"
+      ],
+      "sources": [
+        {
+          "name": "DART",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027000363",
+          "checkedDate": "2026-10-27",
+          "reportDate": "20261027"
+        }
+      ],
+      "conflicts": [],
+      "reviewNotes": [],
+      "reportedOfferPrice": 13000,
+      "offerPriceLow": 0,
+      "offerPriceHigh": 0,
+      "fingerprint": "13c93e8c675f7c4db812",
+      "changeStatus": "changed",
+      "changes": [
+        {
+          "field": "subscriptionStart",
+          "label": "청약 시작",
+          "before": "2026-11-12",
+          "after": "2026-12-01"
+        },
+        {
+          "field": "subscriptionEnd",
+          "label": "청약 종료",
+          "before": "2026-11-13",
+          "after": "2026-12-02"
+        },
+        {
+          "field": "paymentDate",
+          "label": "납입일",
+          "before": "2026-11-17",
+          "after": "2026-12-04"
+        }
+      ]
     },
     {
       "sourceId": "dart-02040710",
