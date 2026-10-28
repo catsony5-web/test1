@@ -1,11 +1,11 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-10-28T01:52:22.757Z",
+  "updatedAt": "2026-10-28T10:19:32.100Z",
   "checkedDate": "2026-10-28",
   "coverage": {
-    "kindCount": 173,
-    "dartCount": 191,
-    "dartCheckedCompanies": 200,
+    "kindCount": 174,
+    "dartCount": 194,
+    "dartCheckedCompanies": 203,
     "unresolved": [
       {
         "company": "쓰리에이로직스",
@@ -14,7 +14,7 @@
     ],
     "refreshStatus": {
       "state": "ok",
-      "attemptedAt": "2026-10-28T01:52:22.757Z",
+      "attemptedAt": "2026-10-28T10:19:32.100Z",
       "sources": {
         "kind": {
           "state": "ok"
@@ -35,7 +35,7 @@
     "to": "2027-10-31",
     "label": "최근 3개월 · 향후 12개월"
   },
-  "itemCount": 58,
+  "itemCount": 61,
   "items": [
     {
       "sourceId": "20250328000374",
@@ -1691,29 +1691,35 @@
     },
     {
       "sourceId": "dart-02036869",
-      "company": "아이엠기업인수목적1호",
-      "market": "상장시장 확인 필요",
-      "filingDate": "2026-10-08",
-      "bookbuildingStart": "",
-      "bookbuildingEnd": "",
+      "company": "아이엠스팩1호",
+      "market": "코스닥",
+      "filingDate": "2026-09-17",
+      "bookbuildingStart": "2026-10-19",
+      "bookbuildingEnd": "2026-10-20",
       "subscriptionStart": "2026-10-26",
       "subscriptionEnd": "2026-10-27",
       "paymentDate": "2026-10-29",
       "offerPrice": 0,
       "offeringAmountMillions": 0,
-      "listingDate": "",
-      "broker": "아이엠증권",
+      "listingDate": "2026-11-04",
+      "broker": "iM증권",
       "priceStatus": "pending",
       "status": "scheduled",
-      "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261022000376",
-      "sourceUpdatedAt": "2026-10-22T14:51:45.264Z",
+      "sourceName": "KRX KIND + DART",
+      "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260708000144",
+      "sourceUpdatedAt": "2026-10-28T10:19:32.100Z",
       "missingSince": "",
       "corpCode": "02036869",
       "aliases": [
+        "20260708000144",
         "dart-02036869"
       ],
       "sources": [
+        {
+          "name": "KRX KIND",
+          "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260708000144",
+          "checkedDate": "2026-10-28"
+        },
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261022000376",
@@ -1728,9 +1734,46 @@
       "reportedOfferPrice": 2000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "89ad895d7606ad8e7540",
-      "changeStatus": "unchanged",
-      "changes": []
+      "fingerprint": "bda83c62481a04a0c07b",
+      "changeStatus": "changed",
+      "changes": [
+        {
+          "field": "company",
+          "label": "종목명",
+          "before": "아이엠기업인수목적1호",
+          "after": "아이엠스팩1호"
+        },
+        {
+          "field": "market",
+          "label": "시장",
+          "before": "상장시장 확인 필요",
+          "after": "코스닥"
+        },
+        {
+          "field": "bookbuildingStart",
+          "label": "수요예측 시작",
+          "before": "",
+          "after": "2026-10-19"
+        },
+        {
+          "field": "bookbuildingEnd",
+          "label": "수요예측 종료",
+          "before": "",
+          "after": "2026-10-20"
+        },
+        {
+          "field": "listingDate",
+          "label": "상장 예정일",
+          "before": "",
+          "after": "2026-11-04"
+        },
+        {
+          "field": "broker",
+          "label": "주관사",
+          "before": "아이엠증권",
+          "after": "iM증권"
+        }
+      ]
     },
     {
       "sourceId": "dart-00784184",
@@ -2370,6 +2413,47 @@
       "changes": []
     },
     {
+      "sourceId": "dart-02041694",
+      "company": "신영해피투모로우제12호기업인수목적",
+      "market": "상장시장 확인 필요",
+      "filingDate": "2026-10-28",
+      "bookbuildingStart": "",
+      "bookbuildingEnd": "",
+      "subscriptionStart": "2026-11-24",
+      "subscriptionEnd": "2026-11-25",
+      "paymentDate": "2026-11-27",
+      "offerPrice": 0,
+      "offeringAmountMillions": 0,
+      "listingDate": "",
+      "broker": "신영증권",
+      "priceStatus": "pending",
+      "status": "scheduled",
+      "sourceName": "DART",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028000471",
+      "sourceUpdatedAt": "2026-10-28T10:19:32.100Z",
+      "missingSince": "",
+      "corpCode": "02041694",
+      "aliases": [
+        "dart-02041694"
+      ],
+      "sources": [
+        {
+          "name": "DART",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028000471",
+          "checkedDate": "2026-10-28",
+          "reportDate": "20261028"
+        }
+      ],
+      "conflicts": [],
+      "reviewNotes": [],
+      "reportedOfferPrice": 2000,
+      "offerPriceLow": 0,
+      "offerPriceHigh": 0,
+      "fingerprint": "3d8ab85c936db0190492",
+      "changeStatus": "new",
+      "changes": []
+    },
+    {
       "sourceId": "dart-01950720",
       "company": "제논",
       "market": "상장시장 확인 필요",
@@ -2429,8 +2513,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027000388",
-      "sourceUpdatedAt": "2026-10-27T09:34:21.089Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028000157",
+      "sourceUpdatedAt": "2026-10-28T10:19:32.100Z",
       "missingSince": "",
       "corpCode": "01880139",
       "aliases": [
@@ -2439,17 +2523,19 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027000388",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028000157",
           "checkedDate": "2026-10-28",
-          "reportDate": "20261027"
+          "reportDate": "20261028"
         }
       ],
       "conflicts": [],
-      "reviewNotes": [],
+      "reviewNotes": [
+        "최신 공시와 구조화 자료의 접수번호가 다릅니다. 정정 내용을 확인하세요."
+      ],
       "reportedOfferPrice": 15000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "2d5046a5864e23c2947a",
+      "fingerprint": "4d1ff811c13d0546771e",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -2703,6 +2789,88 @@
       "offerPriceHigh": 0,
       "fingerprint": "32ad34051951a58abd2d",
       "changeStatus": "unchanged",
+      "changes": []
+    },
+    {
+      "sourceId": "dart-01135039",
+      "company": "데스틴파워",
+      "market": "상장시장 확인 필요",
+      "filingDate": "2026-10-28",
+      "bookbuildingStart": "",
+      "bookbuildingEnd": "",
+      "subscriptionStart": "2026-12-14",
+      "subscriptionEnd": "2026-12-15",
+      "paymentDate": "2026-12-17",
+      "offerPrice": 0,
+      "offeringAmountMillions": 0,
+      "listingDate": "",
+      "broker": "한국투자증권",
+      "priceStatus": "pending",
+      "status": "scheduled",
+      "sourceName": "DART",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028000434",
+      "sourceUpdatedAt": "2026-10-28T10:19:32.100Z",
+      "missingSince": "",
+      "corpCode": "01135039",
+      "aliases": [
+        "dart-01135039"
+      ],
+      "sources": [
+        {
+          "name": "DART",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028000434",
+          "checkedDate": "2026-10-28",
+          "reportDate": "20261028"
+        }
+      ],
+      "conflicts": [],
+      "reviewNotes": [],
+      "reportedOfferPrice": 8000,
+      "offerPriceLow": 0,
+      "offerPriceHigh": 0,
+      "fingerprint": "5ccda584de4f4a0c317b",
+      "changeStatus": "new",
+      "changes": []
+    },
+    {
+      "sourceId": "dart-00208709",
+      "company": "KTE",
+      "market": "상장시장 확인 필요",
+      "filingDate": "2026-10-28",
+      "bookbuildingStart": "",
+      "bookbuildingEnd": "",
+      "subscriptionStart": "2026-12-14",
+      "subscriptionEnd": "2026-12-15",
+      "paymentDate": "2026-12-17",
+      "offerPrice": 0,
+      "offeringAmountMillions": 0,
+      "listingDate": "",
+      "broker": "NH투자증권",
+      "priceStatus": "pending",
+      "status": "scheduled",
+      "sourceName": "DART",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028000336",
+      "sourceUpdatedAt": "2026-10-28T10:19:32.100Z",
+      "missingSince": "",
+      "corpCode": "00208709",
+      "aliases": [
+        "dart-00208709"
+      ],
+      "sources": [
+        {
+          "name": "DART",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028000336",
+          "checkedDate": "2026-10-28",
+          "reportDate": "20261028"
+        }
+      ],
+      "conflicts": [],
+      "reviewNotes": [],
+      "reportedOfferPrice": 19000,
+      "offerPriceLow": 0,
+      "offerPriceHigh": 0,
+      "fingerprint": "5167d9baa25688b23349",
+      "changeStatus": "new",
       "changes": []
     }
   ]
