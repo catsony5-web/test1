@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-10-29T01:59:28.595Z",
+  "updatedAt": "2026-10-29T10:41:40.830Z",
   "checkedDate": "2026-10-29",
   "coverage": {
     "kindCount": 174,
@@ -14,7 +14,7 @@
     ],
     "refreshStatus": {
       "state": "ok",
-      "attemptedAt": "2026-10-29T01:59:28.595Z",
+      "attemptedAt": "2026-10-29T10:41:40.830Z",
       "sources": {
         "kind": {
           "state": "ok"
@@ -1699,15 +1699,15 @@
       "subscriptionStart": "2026-10-26",
       "subscriptionEnd": "2026-10-27",
       "paymentDate": "2026-10-29",
-      "offerPrice": 0,
-      "offeringAmountMillions": 0,
+      "offerPrice": 2000,
+      "offeringAmountMillions": 10000,
       "listingDate": "2026-11-04",
       "broker": "iM증권",
-      "priceStatus": "pending",
+      "priceStatus": "confirmed",
       "status": "scheduled",
       "sourceName": "KRX KIND + DART",
       "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260708000144",
-      "sourceUpdatedAt": "2026-10-28T10:19:32.100Z",
+      "sourceUpdatedAt": "2026-10-29T10:41:40.830Z",
       "missingSince": "",
       "corpCode": "02036869",
       "aliases": [
@@ -1722,9 +1722,9 @@
         },
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261022000376",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029000155",
           "checkedDate": "2026-10-29",
-          "reportDate": "20261022"
+          "reportDate": "20261029"
         }
       ],
       "conflicts": [],
@@ -1734,9 +1734,22 @@
       "reportedOfferPrice": 2000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "bda83c62481a04a0c07b",
-      "changeStatus": "unchanged",
-      "changes": []
+      "fingerprint": "0e969dfb7fcd8911a190",
+      "changeStatus": "changed",
+      "changes": [
+        {
+          "field": "offerPrice",
+          "label": "확정 공모가",
+          "before": 0,
+          "after": 2000
+        },
+        {
+          "field": "offeringAmountMillions",
+          "label": "공모금액",
+          "before": 0,
+          "after": 10000
+        }
+      ]
     },
     {
       "sourceId": "dart-00784184",
@@ -1937,8 +1950,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261023000210",
-      "sourceUpdatedAt": "2026-10-23T09:04:39.208Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029000524",
+      "sourceUpdatedAt": "2026-10-29T10:41:40.830Z",
       "missingSince": "",
       "corpCode": "01658035",
       "aliases": [
@@ -1947,9 +1960,9 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261023000210",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029000524",
           "checkedDate": "2026-10-29",
-          "reportDate": "20261023"
+          "reportDate": "20261029"
         }
       ],
       "conflicts": [],
@@ -1959,7 +1972,7 @@
       "reportedOfferPrice": 10000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "074ea2ccb21bc0c24fff",
+      "fingerprint": "5c158c94517c3069bc1e",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -2392,8 +2405,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028000471",
-      "sourceUpdatedAt": "2026-10-28T10:19:32.100Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029000239",
+      "sourceUpdatedAt": "2026-10-29T10:41:40.830Z",
       "missingSince": "",
       "corpCode": "02041694",
       "aliases": [
@@ -2402,17 +2415,19 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028000471",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029000239",
           "checkedDate": "2026-10-29",
-          "reportDate": "20261028"
+          "reportDate": "20261029"
         }
       ],
       "conflicts": [],
-      "reviewNotes": [],
+      "reviewNotes": [
+        "최신 공시와 구조화 자료의 접수번호가 다릅니다. 정정 내용을 확인하세요."
+      ],
       "reportedOfferPrice": 2000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "3d8ab85c936db0190492",
+      "fingerprint": "1fedff41999b5d6319c7",
       "changeStatus": "unchanged",
       "changes": []
     },
