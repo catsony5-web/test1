@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-28T01:31:22.474Z",
-  "attemptedAt": "2026-10-28T01:31:22.474Z",
+  "updatedAt": "2026-10-29T01:53:47.144Z",
+  "attemptedAt": "2026-10-29T01:53:47.144Z",
   "refreshStatus": "ok",
   "sources": {
     "youtube": {
@@ -15,6 +15,27 @@
     }
   },
   "items": [
+    {
+      "sourceId": "shopify",
+      "title": "Map product data by sales channel",
+      "url": "https://changelog.shopify.com/posts/map-product-data-by-sales-channel",
+      "publishedAt": "2026-10-28T15:50:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Shopify Flow: Product updated trigger",
+      "url": "https://changelog.shopify.com/posts/shopify-flow-product-updated-trigger",
+      "publishedAt": "2026-10-28T15:50:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "shopify",
+      "title": "Get AI tested storefront suggestions from Sidekick",
+      "url": "https://changelog.shopify.com/posts/get-ai-tested-storefront-recommendations-from-sidekick",
+      "publishedAt": "2026-10-28T15:50:00.000Z",
+      "topicId": "product"
+    },
     {
       "sourceId": "shopify",
       "title": "The checkout footer now shows one \"Terms and policies\" link",
@@ -559,13 +580,6 @@
       "title": "Apple Pay available as a payment method in Shop Pay checkout",
       "url": "https://changelog.shopify.com/posts/apple-pay-available-as-a-payment-method-in-shop-pay-checkout",
       "publishedAt": "2025-11-13T17:00:00.000Z",
-      "topicId": "product"
-    },
-    {
-      "sourceId": "shopify",
-      "title": "Control search engine indexing for your shop.app storefront",
-      "url": "https://changelog.shopify.com/posts/control-search-engine-indexing-for-your-shop-app-storefront",
-      "publishedAt": "2025-10-29T14:30:00.000Z",
       "topicId": "product"
     }
   ]
