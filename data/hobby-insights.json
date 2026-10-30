@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-29T01:53:47.144Z",
-  "attemptedAt": "2026-10-29T01:53:47.144Z",
+  "updatedAt": "2026-10-30T02:04:22.879Z",
+  "attemptedAt": "2026-10-30T02:04:22.879Z",
   "refreshStatus": "ok",
   "sources": {
     "youtube": {
@@ -15,6 +15,13 @@
     }
   },
   "items": [
+    {
+      "sourceId": "shopify",
+      "title": "Variants are now managed on the product page",
+      "url": "https://changelog.shopify.com/posts/variants-are-now-managed-on-the-product-page",
+      "publishedAt": "2026-10-29T21:00:00.000Z",
+      "topicId": "product"
+    },
     {
       "sourceId": "shopify",
       "title": "Map product data by sales channel",
