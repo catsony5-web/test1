@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-31T01:42:57.246Z",
-  "attemptedAt": "2026-10-31T01:42:57.246Z",
+  "updatedAt": "2026-11-01T01:20:10.645Z",
+  "attemptedAt": "2026-11-01T01:20:10.645Z",
   "refreshStatus": "ok",
   "sources": {
     "youtube": {
@@ -15,6 +15,13 @@
     }
   },
   "items": [
+    {
+      "sourceId": "wordpress",
+      "title": "WordPress.com Changelog: Manage Your Site and Build a Store with AI",
+      "url": "https://wordpress.com/blog/2026/10/31/changelog-site-store-ai/",
+      "publishedAt": "2026-10-31T02:00:00.000Z",
+      "topicId": "product"
+    },
     {
       "sourceId": "shopify",
       "title": "Variants are now managed on the product page",
