@@ -31,6 +31,7 @@ async function init() {
   setupMobileNavigation();
   setupAppearanceControls();
   setupFamilySupportControls();
+  setupLedgerAgent();
   setupMonthlyAnalysisControls();
   setupSpendingStructureControls();
   setupGoalControls();

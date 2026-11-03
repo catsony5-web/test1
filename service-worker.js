@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "monthly-card-budget-";
-const CACHE_NAME = "monthly-card-budget-v197-family-support";
+const CACHE_NAME = "monthly-card-budget-v198-ledger-agent";
 const APP_FILES = [
   "./",
   "./index.html",
@@ -109,7 +109,7 @@ const APP_FILES = [
   "./assets/tabler/icons/x.svg",
   "./assets/tabler/LICENSE",
   "./data/ipo-calendar.json",
-  "./src/data/constants.js?v=197-family-support",
+  "./src/data/constants.js?v=198-ledger-agent",
   "./src/data/categories.js?v=136-mineral-layers",
   "./src/data/rules.js?v=93",
   "./src/data/board-sections.js?v=151-loan-repayments",
@@ -124,7 +124,7 @@ const APP_FILES = [
   "./src/utils/food-occasion.js?v=174-food-occasions",
   "./src/utils/normalize.js?v=197-family-support",
   "./src/utils/grouping.js?v=197-family-support",
-  "./src/utils/storage.js?v=197-family-support",
+  "./src/utils/storage.js?v=198-ledger-agent",
   "./src/utils/backup.js?v=197-family-support",
   "./src/components/chips.js?v=174-food-occasions",
   "./src/components/tables.js?v=61",
@@ -133,7 +133,7 @@ const APP_FILES = [
   "./src/components/quick-add.js?v=61",
   "./src/features/import/excel-import.js?v=197-family-support",
   "./src/features/import/transaction-parser.js?v=77",
-  "./src/features/classification/classifier.js?v=197-family-support",
+  "./src/features/classification/classifier.js?v=198-ledger-agent",
   "./src/features/classification/smart-suggestions.js?v=173-food-calendar-r2",
   "./src/features/classification/rules-manager.js?v=61",
   "./src/features/board/board-view.js?v=197-family-support",
@@ -169,7 +169,7 @@ const APP_FILES = [
   "./src/features/app/navigation.js?v=112",
   "./src/features/app/appearance.js?v=141-garden-analysis",
   "./src/features/app/render-all.js?v=197-family-support",
-  "./src/features/app/init.js?v=197-family-support",
+  "./src/features/app/init.js?v=198-ledger-agent",
   "./manifest.webmanifest?v=185-theme-refresh",
   "./app-icon.svg",
   "./src/styles/16-backup.css?v=197-family-support",
@@ -177,7 +177,10 @@ const APP_FILES = [
   "./src/features/family/family-core.js?v=197-family-support",
   "./src/utils/backup-merge.js?v=197-family-support",
   "./src/features/app/backup-review.js?v=197-family-support",
-  "./src/features/family/family-view.js?v=197-family-support"
+  "./src/features/family/family-view.js?v=197-family-support",
+  "./src/styles/21-agent.css?v=198-ledger-agent",
+  "./src/features/agent/ledger-agent-tools.js?v=198-ledger-agent",
+  "./src/features/agent/ledger-agent-view.js?v=198-ledger-agent"
 ];
 
 const PUBLIC_PATHS = new Set(APP_FILES.map((file) => new URL(file, self.location.href).pathname));

@@ -293,8 +293,12 @@ async function safeSaveMany(entries) {
 
 function prepareSafeSaveWrites(entries, previousValues, savedAt, storedSettings) {
   const writes = [];
-  for (const [index, { key, data, protectIncomeRecords, allowIncomeDrop }] of entries.entries()) {
+  for (const [index, { key, data, protectIncomeRecords, allowIncomeDrop, expectedJson }] of entries.entries()) {
     const previous = previousValues[index];
+    // Reviewed changes must still match the value read in this write transaction.
+    if (expectedJson !== undefined && JSON.stringify(previous ?? null) !== expectedJson) {
+      throw new Error("미리보기 이후 기록이 변경되었습니다. 새 미리보기를 확인해 주세요.");
+    }
     if (protectIncomeRecords && !allowIncomeDrop) {
       const previousIncomeCount = countIncomeRecords(previous);
       const nextIncomeCount = countIncomeRecords(data);

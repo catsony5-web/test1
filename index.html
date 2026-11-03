@@ -27,6 +27,7 @@
   <link rel="stylesheet" href="src/styles/14-board-overview.css?v=185-theme-refresh">
   <link rel="stylesheet" href="src/styles/16-backup.css?v=197-family-support">
   <link rel="stylesheet" href="src/styles/20-family.css?v=197-family-support">
+  <link rel="stylesheet" href="src/styles/21-agent.css?v=198-ledger-agent">
 </head>
 <body data-app-name="소비 분석">
   <header class="topbar compact-topbar">
@@ -35,6 +36,7 @@
       <p>카드, 이체, 직접 입력 기록을 바탕으로 지출 흐름과 소비 패턴을 분석합니다.</p>
     </div>
     <div class="header-actions">
+      <button id="ledgerAgentButton" class="ledger-agent-open" type="button" aria-haspopup="dialog" aria-controls="ledgerAgentDialog">가계부 에이전트</button>
       <label class="file-button primary-upload">
         <input id="fileInput" type="file" accept=".xlsx,.xls,.xlsm" aria-label="카드/이체 엑셀 불러오기">
         <i class="ti ti-file-spreadsheet" aria-hidden="true"></i>
@@ -1483,7 +1485,7 @@
   </dialog>
 
   <script src="assets/vendor/xlsx.full.min.js?v=182-maintenance"></script>
-  <script src="src/data/constants.js?v=197-family-support"></script>
+  <script src="src/data/constants.js?v=198-ledger-agent"></script>
   <script src="src/data/categories.js?v=136-mineral-layers"></script>
   <script src="src/data/rules.js?v=93"></script>
   <script src="src/data/board-sections.js?v=151-loan-repayments"></script>
@@ -1501,7 +1503,7 @@
   <script src="src/utils/normalize.js?v=197-family-support"></script>
   <script src="src/utils/grouping.js?v=197-family-support"></script>
   <script src="src/features/family/family-core.js?v=197-family-support"></script>
-  <script src="src/utils/storage.js?v=197-family-support"></script>
+  <script src="src/utils/storage.js?v=198-ledger-agent"></script>
   <script src="src/utils/backup-merge.js?v=197-family-support"></script>
   <script src="src/features/app/backup-review.js?v=197-family-support"></script>
   <script src="src/utils/backup.js?v=197-family-support"></script>
@@ -1514,7 +1516,7 @@
 
   <script src="src/features/import/excel-import.js?v=197-family-support"></script>
   <script src="src/features/import/transaction-parser.js?v=77"></script>
-  <script src="src/features/classification/classifier.js?v=197-family-support"></script>
+  <script src="src/features/classification/classifier.js?v=198-ledger-agent"></script>
   <script src="src/features/classification/smart-suggestions.js?v=173-food-calendar-r2"></script>
   <script src="src/features/classification/rules-manager.js?v=61"></script>
 
@@ -1552,7 +1554,9 @@
   <script src="src/features/app/navigation.js?v=112"></script>
   <script src="src/features/app/appearance.js?v=141-garden-analysis"></script>
   <script src="src/features/family/family-view.js?v=197-family-support"></script>
+  <script src="src/features/agent/ledger-agent-tools.js?v=198-ledger-agent"></script>
+  <script src="src/features/agent/ledger-agent-view.js?v=198-ledger-agent"></script>
   <script src="src/features/app/render-all.js?v=197-family-support"></script>
-  <script src="src/features/app/init.js?v=197-family-support"></script>
+  <script src="src/features/app/init.js?v=198-ledger-agent"></script>
 </body>
 </html>

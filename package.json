@@ -6,6 +6,7 @@
   "engines": { "node": ">=24" },
   "scripts": {
     "dev": "node scripts/serve.mjs",
+    "agent": "node scripts/agent-server.mjs",
     "preview": "node scripts/serve.mjs --dist",
     "check": "node scripts/check.mjs",
     "cache:sync": "node scripts/sync-cache-manifest.mjs",
