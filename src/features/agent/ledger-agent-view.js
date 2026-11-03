@@ -154,6 +154,7 @@
     let busy = false;
     let controller = null;
     let loginAttempt = null;
+    let connectionReady = false;
     let scope = globalThis.BudgetCloud?.generation?.();
     const planButtons = new Set();
     let cardNames = new Map();
@@ -181,8 +182,12 @@
     const close = button("닫기", () => dialog.close());
     heading.append(title, close);
     const intro = el("p", "agent-note", "내 가계부의 숫자를 확인하고 변경 내용을 검토하세요. 기록은 직접 적용하기 전까지 바뀌지 않습니다.");
-    const connection = el("section", "agent-connection");
-    const status = el("p", "agent-status", "연결 상태를 확인해 주세요."); status.setAttribute("role", "status");
+    const connection = el("details", "agent-connection"); connection.open = true;
+    const connectionSummary = el("summary", "agent-connection-summary");
+    const status = el("span", "agent-status", "연결 상태를 확인해 주세요."); status.setAttribute("role", "status");
+    const modelSummary = el("span", "agent-model-summary");
+    connectionSummary.append(el("span", "agent-summary-title", "연결 및 모델"), status, modelSummary);
+    const connectionContent = el("div", "agent-connection-content");
     const subscription = button("Continue with ChatGPT", () => void signInSubscription());
     const subscriptionHelp = el("p", "agent-note", "이 PC의 구독 로그인 연결 상태를 확인하고 있습니다.");
     const profileLabel = el("label", "agent-field", "저장된 ChatGPT 계정");
@@ -214,10 +219,11 @@
     const disconnect = button("API 연결 해제", () => void disconnectSession());
     const refresh = button("연결 상태 새로 확인", () => void refreshConnection());
     const connectionActions = el("div", "agent-actions"); connectionActions.append(modelLabel, disconnect, refresh);
-    connection.append(status, subscription, subscriptionHelp, profileActions, loginActions, usage, privacy, apiDetails, connectionActions);
+    connectionContent.append(subscription, subscriptionHelp, profileActions, loginActions, usage, privacy, apiDetails, connectionActions);
+    connection.append(connectionSummary, connectionContent);
 
-    const local = el("section", "agent-local");
-    local.append(el("h3", "", "바로 확인"), el("p", "agent-note", "아래 조회는 AI 연결 없이 현재 기기의 가계부에서 계산합니다."));
+    const local = el("details", "agent-local");
+    local.append(el("summary", "", "바로 확인 · AI 연결 없이 조회"), el("p", "agent-note", "현재 기기의 가계부에서 계산합니다. 조회할 월을 선택하세요."));
     const today = typeof currentMonthKey === "function" ? currentMonthKey() : new Date().toISOString().slice(0, 7);
     const previous = typeof shiftMonthKey === "function" ? shiftMonthKey(today, -1) : today;
     const month = field("대상월", "month", today);
@@ -235,6 +241,9 @@
     const feedback = el("p", "agent-feedback"); feedback.setAttribute("role", "status");
     const results = el("div", "agent-results");
     const messages = el("div", "agent-messages"); messages.setAttribute("role", "log"); messages.setAttribute("aria-label", "에이전트 대화");
+    const empty = el("div", "agent-empty");
+    empty.append(el("h3", "", "가계부에서 무엇을 확인할까요?"), el("p", "agent-note", "월별 소비 비교, 거래 검색, 가족 정산을 물어보세요."));
+    const conversationPanel = el("section", "agent-conversation"); conversationPanel.setAttribute("aria-label", "가계부 질문과 답변");
     const chat = el("form", "agent-chat");
     const promptLabel = el("label", "agent-field", "가계부에 물어보기");
     const prompt = el("textarea"); prompt.rows = 3; prompt.maxLength = 6000;
@@ -243,8 +252,9 @@
     const stop = button("응답 중지", () => { controller?.abort(); conversation.clear(); }); stop.disabled = true;
     const clear = button("새 대화", () => clearConversation("대화와 미적용 제안을 지웠습니다. 가계부 기록은 유지됩니다."));
     const chatActions = el("div", "agent-actions"); chatActions.append(send, stop, clear);
-    chat.append(promptLabel, chatActions);
-    body.append(heading, intro, connection, local, feedback, results, messages, chat);
+    chat.append(promptLabel, chatActions, feedback);
+    conversationPanel.append(empty, messages, chat);
+    body.append(heading, intro, connection, conversationPanel, local, results);
     dialog.append(body); document.body.append(dialog);
 
     function setFeedback(message, error = false) {
@@ -253,11 +263,12 @@
     function message(kind, text) {
       const node = el("article", `agent-message agent-message-${kind}`);
       node.append(el("strong", "", kind === "user" ? "나" : "가계부 에이전트"), el("p", "", text));
-      messages.append(node);
+      empty.hidden = true; messages.append(node);
     }
     function clearConversation(note = "") {
       controller?.abort(); conversation.clear(); tools.clearSession();
       messages.replaceChildren(); results.replaceChildren();
+      empty.hidden = false;
       for (const control of planButtons) control.disabled = true;
       planButtons.clear(); scope = globalThis.BudgetCloud?.generation?.();
       if (note) setFeedback(note);
@@ -269,8 +280,12 @@
       const connected = backend?.session?.connected === true && (backend.session.mode === "api"
         || (backend.session.mode === "subscription" && backend.session.account?.sharing === true));
       const locked = busy || Boolean(loginAttempt);
+      const ready = connected && Boolean(backend?.session?.model) && !loginAttempt;
+      if (ready !== connectionReady) { connection.open = !ready; connectionReady = ready; }
+      modelSummary.textContent = ready ? backend.session.modelLabels?.[backend.session.model] || backend.session.model : "";
+      modelSummary.hidden = !ready;
       prompt.disabled = locked || !connected || !model.value;
-      send.disabled = prompt.disabled; stop.disabled = !busy; clear.disabled = busy;
+      send.disabled = prompt.disabled; stop.disabled = !controller; stop.hidden = !controller; clear.disabled = busy;
       connect.disabled = locked || backend?.api?.available !== true;
       model.disabled = locked || !connected;
       disconnect.disabled = busy || (!backend?.session?.connected && !loginAttempt);
@@ -337,7 +352,7 @@
       catch (error) {
         if (backend?.session?.connected) clearConversation();
         backend = null; sessionId = ""; model.replaceChildren();
-        status.textContent = error.message; refreshControls();
+        status.textContent = error.message; refreshControls(); connection.open = true;
       }
     }
     async function disconnectSession() {
@@ -470,15 +485,17 @@
       }
       return list;
     }
-    function showResult(name, result) {
+    function showResult(name, result, fromConversation = false) {
       cardNames = new Map((tools.context().cards || []).map((card) => [card.ref, card.label]));
       const titleText = { monthly_metrics: "월별 지표", compare_spending: "월별 소비 비교", family_settlement: "가족 정산", search_transactions: "거래 검색", ledger_context: "가계부 범위" }[name] || "조회 결과";
-      if (name === "propose_changes") { showPlan(result); return; }
-      const details = el("details", "agent-result"); details.open = true;
-      details.append(el("summary", "", titleText), renderData(result)); results.prepend(details);
+      if (name === "propose_changes") { showPlan(result, fromConversation ? messages : results); return; }
+      const details = el("details", "agent-result"); details.open = !fromConversation;
+      details.append(el("summary", "", fromConversation ? `조회 근거 · ${titleText}` : titleText), renderData(result));
+      if (fromConversation) messages.append(details);
+      else results.prepend(details);
       while (results.children.length > 12) results.lastElementChild.remove();
     }
-    function showPlan(result) {
+    function showPlan(result, target = results) {
       cardNames = new Map((tools.context().cards || []).map((card) => [card.ref, card.label]));
       const plan = tools.getPlan(result.planId);
       if (!plan) throw new Error("수정 제안을 찾을 수 없습니다. 다시 요청해 주세요.");
@@ -511,7 +528,10 @@
       }, "primary-action");
       const dismiss = button("적용하지 않기", () => { apply.dataset.applied = "true"; apply.disabled = true; card.remove(); planButtons.delete(apply); });
       const actions = el("div", "agent-actions"); actions.append(apply, dismiss);
-      card.append(state, actions); results.prepend(card); planButtons.add(apply); refreshControls();
+      card.append(state, actions);
+      if (target === messages) messages.append(card);
+      else results.prepend(card);
+      planButtons.add(apply); refreshControls();
     }
     function showEditForm(item) {
       if (busy) return;
@@ -553,7 +573,7 @@
         checkScope();
         return response;
       },
-      onText: (text) => message("assistant", text), onTool: showResult
+      onText: (text) => message("assistant", text), onTool: (name, result) => showResult(name, result, true)
     });
     apiForm.addEventListener("submit", async (event) => {
       event.preventDefault(); if (busy || loginAttempt) return;
@@ -567,10 +587,11 @@
     });
     model.addEventListener("change", async () => {
       if (busy || loginAttempt || !model.value) return;
+      let selectedModel = false;
       busy = true; refreshControls();
-      try { acceptStatus(await request("model", { model: model.value, sessionId })); clearConversation(); }
-      catch (error) { model.value = backend?.session?.model || ""; setFeedback(error.message, true); }
-      finally { busy = false; refreshControls(); }
+      try { acceptStatus(await request("model", { model: model.value, sessionId })); clearConversation(); setFeedback(""); selectedModel = true; }
+      catch (error) { model.value = backend?.session?.model || ""; setFeedback(error.message, true); connection.open = true; }
+      finally { busy = false; refreshControls(); if (selectedModel) prompt.focus(); }
     });
     profile.addEventListener("change", () => { updateProfileAction(); refreshControls(); });
     chat.addEventListener("submit", async (event) => {

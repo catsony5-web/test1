@@ -146,12 +146,12 @@ test("same-category manual override shows classification mode with Korean labels
 });
 
 // Exercise the actual connection controls without a browser or real credentials.
-function connectionHarness(route, { popupBlocked = false } = {}) {
+function connectionHarness(route, { popupBlocked = false, tools = {} } = {}) {
   const nodes = [], calls = [], order = [], timers = new Map(), popups = [];
   let timerId = 0, clears = 0;
   class Node {
     constructor(tag) {
-      this.tag = tag; this.children = []; this.events = {}; this.dataset = {}; this.value = ""; this.hidden = false; this.disabled = false;
+      this.tag = tag; this.children = []; this.events = {}; this.dataset = {}; this.value = ""; this.hidden = false; this.disabled = false; this.open = false;
       this.classList = { toggle() {} }; this._text = ""; nodes.push(this);
     }
     set textContent(value) { this._text = value; this.children = []; }
@@ -165,7 +165,7 @@ function connectionHarness(route, { popupBlocked = false } = {}) {
     addEventListener(name, callback) { (this.events[name] ||= []).push(callback); }
     showModal() { this.open = true; }
     close() { this.open = false; void this.fire("close"); }
-    focus() {}
+    focus() { document.activeElement = this; }
     async fire(name, event = {}) { await Promise.all((this.events[name] || []).map((fn) => fn({ preventDefault() {}, isTrusted: true, ...event }))); }
   }
   const body = new Node("body"), trigger = new Node("button"); trigger.id = "ledgerAgentButton"; body.append(trigger);
@@ -174,7 +174,7 @@ function connectionHarness(route, { popupBlocked = false } = {}) {
     getElementById: (id) => nodes.find((node) => node.id === id) };
   const context = vm.createContext({ console, document, URL, AbortController,
     currentMonthKey: () => "2035-03", shiftMonthKey: () => "2035-02",
-    LedgerAgentTools: { definitions: [], clearSession() { clears++; }, context: () => ({ cards: [] }) },
+    LedgerAgentTools: { definitions: [], clearSession() { clears++; }, context: () => ({ cards: [] }), ...tools },
     setTimeout(fn) { timers.set(++timerId, fn); return timerId; }, clearTimeout(id) { timers.delete(id); },
     async fetch(url, options) {
       const name = url.pathname.split("/agent-api/")[1] + url.search;
@@ -230,7 +230,7 @@ test("local subscription sign-in opens on the user gesture, polls, then enables 
   assert.equal(h.labeled("가계부에 물어보기").disabled, true);
   await h.tick();
   assert.equal(h.timers.size, 0);
-  assert.ok(h.find("p", "합성 계정 a · ChatGPT 구독 사용 중"));
+  assert.ok(h.find("span", "합성 계정 a · ChatGPT 구독 사용 중"));
   assert.equal(h.labeled("사용 모델").children[1].textContent, "합성 모델");
   await h.change(h.labeled("사용 모델"), "synthetic-model");
   assert.equal(h.labeled("가계부에 물어보기").disabled, false);
@@ -268,7 +268,7 @@ test("cancel discards a late completed login and clears its link and polling", a
   finish({ status: "complete", ...connectionStatus({ account: "late" }) }); await h.flush();
   assert.equal(h.labeled("가계부에 물어보기").disabled, true);
   assert.equal(h.find("a", "OpenAI 로그인 창 열기").hidden, true);
-  assert.ok(!h.find("p", "합성 계정 late · ChatGPT 구독 사용 중"));
+  assert.ok(!h.find("span", "합성 계정 late · ChatGPT 구독 사용 중"));
   assert.equal(h.timers.size, 0);
 });
 
@@ -277,7 +277,7 @@ test("adding another account uses a new registration and keeps the current accou
     : name === "subscription-login" ? authStart : { status: "pending" });
   await h.open(); await h.click("다른 ChatGPT 계정 추가");
   assert.deepEqual(h.calls.find((item) => item.name === "subscription-login").data, { sessionId: "synthetic-session-existing" });
-  assert.ok(h.find("p", "합성 계정 existing · ChatGPT 구독 사용 중"));
+  assert.ok(h.find("span", "합성 계정 existing · ChatGPT 구독 사용 중"));
   assert.equal(h.labeled("가계부에 물어보기").disabled, true);
 });
 
@@ -289,7 +289,7 @@ test("saved account selection clears conversation and plans, with separate regis
   await h.change(h.labeled("저장된 ChatGPT 계정"), "b"); await h.click("선택한 계정 사용");
   assert.deepEqual(h.calls.at(-1), { name: "subscription-select", data: { profileId: "b", sessionId: "synthetic-session-a" } });
   assert.ok(h.clears > before);
-  assert.ok(h.find("p", "합성 계정 b · ChatGPT 구독 사용 중"));
+  assert.ok(h.find("span", "합성 계정 b · ChatGPT 구독 사용 중"));
 });
 
 test("identity-only connection cannot use inference and reauthorization keeps the selected profile", async () => {
@@ -374,9 +374,116 @@ test("verified email identifies both the active account and saved registrations 
   status.session.account = status.subscription.profiles[0];
   const h = connectionHarness(() => status);
   await h.open();
-  assert.ok(h.find("p", "ChatGPT 계정 1 · synthetic-one@example.invalid · ChatGPT 구독 사용 중"));
+  assert.ok(h.find("span", "ChatGPT 계정 1 · synthetic-one@example.invalid · ChatGPT 구독 사용 중"));
   assert.deepEqual(h.labeled("저장된 ChatGPT 계정").children.map((item) => item.textContent), [
     "ChatGPT 계정 1 · synthetic-one@example.invalid · 구독 연결됨",
     "synthetic-two@example.invalid · 구독 연결됨"
   ]);
+});
+
+test("connection settings stay accessible until both sharing and a model are ready", async () => {
+  for (const initial of [connectionStatus(), connectionStatus({ account: "a" }), connectionStatus({ account: "a", sharing: false, model: "synthetic-model" })]) {
+    const h = connectionHarness(() => initial);
+    await h.open();
+    const settings = h.nodes.find((node) => node.className === "agent-connection");
+    assert.equal(settings.tag, "details");
+    assert.equal(settings.open, true);
+    assert.equal(h.labeled("가계부에 물어보기").disabled, true);
+    assert.equal(h.find("button", "월 비교").disabled, false);
+  }
+});
+
+test("model readiness folds settings once and preserves a later manual expansion", async () => {
+  let selected = false;
+  const h = connectionHarness((name) => {
+    if (name === "model") selected = true;
+    return connectionStatus({ account: "a", model: selected ? "synthetic-model" : "" });
+  });
+  await h.open();
+  const settings = h.nodes.find((node) => node.className === "agent-connection");
+  assert.equal(settings.open, true);
+  await h.change(h.labeled("사용 모델"), "synthetic-model");
+  assert.equal(settings.open, false);
+  assert.equal(h.context.document.activeElement, h.labeled("가계부에 물어보기"));
+  assert.equal(h.context.document.activeElement.disabled, false);
+  settings.open = true;
+  await h.click("연결 상태 새로 확인");
+  assert.equal(settings.open, true);
+  assert.equal(h.labeled("가계부에 물어보기").disabled, false);
+});
+
+test("connection failure reopens settings while direct local comparisons remain usable", async () => {
+  let unavailable = false;
+  const executed = [];
+  const h = connectionHarness(() => {
+    if (unavailable) throw new Error("합성 연결 실패");
+    return connectionStatus({ account: "a", model: "synthetic-model" });
+  }, { tools: { async execute(name, args) { executed.push({ name, args }); return { difference: 6300 }; } } });
+  await h.open();
+  const settings = h.nodes.find((node) => node.className === "agent-connection");
+  assert.equal(settings.open, false);
+  unavailable = true;
+  await h.click("연결 상태 새로 확인");
+  assert.equal(settings.open, true);
+  assert.ok(h.find("span", "합성 연결 실패"));
+  const local = h.nodes.find((node) => node.className === "agent-local");
+  assert.equal(local.tag, "details");
+  assert.equal(local.open, false);
+  local.open = true;
+  await h.click("월 비교");
+  assert.equal(executed.length, 1);
+  assert.equal(executed[0].name, "compare_spending");
+  const result = h.nodes.find((node) => node.className === "agent-result");
+  assert.equal(result.open, true);
+  assert.equal(result.parent.className, "agent-results");
+});
+
+test("AI lookup evidence stays folded in the conversation beside the answer", async () => {
+  const responses = [call("monthly_metrics", { month: "2035-03" }), answer("합성 월 지표 답변")];
+  const h = connectionHarness((name) => name === "status"
+    ? connectionStatus({ account: "a", model: "synthetic-model" }) : responses.shift(), {
+    tools: { definitions: [{ type: "function", name: "monthly_metrics" }], async execute() { return { consumption: 6300 }; } }
+  });
+  await h.open();
+  h.labeled("가계부에 물어보기").value = "합성 월 지표 질문";
+  await h.nodes.find((node) => node.className === "agent-chat").fire("submit"); await h.flush();
+  const messages = h.nodes.find((node) => node.className === "agent-messages");
+  const result = h.nodes.find((node) => node.className === "agent-result");
+  assert.equal(result.open, false);
+  assert.equal(result.parent, messages);
+  assert.ok(messages.textContent.includes("합성 월 지표 답변"));
+  assert.equal(h.nodes.find((node) => node.className === "agent-results").children.length, 0);
+});
+
+test("AI change previews remain expanded in the conversation and require a trusted apply click", async () => {
+  let applied = 0;
+  const plan = { planId: "synthetic-plan", changes: [{ fields: ["memo"], before: { memo: "합성 이전 메모" }, after: { memo: "합성 변경 메모" } }] };
+  const responses = [call("propose_changes", { changes: [{ ref: "synthetic-ref", memo: "합성 변경 메모" }] }), answer("합성 수정안 준비 완료")];
+  const h = connectionHarness((name) => name === "status"
+    ? connectionStatus({ account: "a", model: "synthetic-model" }) : responses.shift(), {
+    tools: {
+      definitions: [{ type: "function", name: "propose_changes" }],
+      async execute() { return { planId: plan.planId }; },
+      getPlan() { return plan; },
+      async applyPlan() { applied++; return { changedCount: 1 }; }
+    }
+  });
+  await h.open();
+  h.labeled("가계부에 물어보기").value = "합성 메모 수정안";
+  await h.nodes.find((node) => node.className === "agent-chat").fire("submit"); await h.flush();
+  const preview = h.nodes.find((node) => node.className === "agent-plan");
+  assert.equal(preview.tag, "section");
+  assert.equal(preview.parent.className, "agent-messages");
+  for (let ancestor = preview.parent; ancestor; ancestor = ancestor.parent) {
+    assert.ok(ancestor.tag !== "details" || ancestor.open, "approval preview must not be hidden inside folded evidence");
+  }
+  assert.ok(preview.textContent.includes("합성 이전 메모"));
+  assert.ok(preview.textContent.includes("합성 변경 메모"));
+  assert.equal(applied, 0);
+  const apply = h.find("button", "확인한 변경 적용");
+  await apply.fire("click", { isTrusted: false });
+  assert.equal(applied, 0);
+  await h.click("확인한 변경 적용");
+  assert.equal(applied, 1);
+  assert.equal(apply.disabled, true);
 });
