@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="src/styles/00-tokens.css?v=185-theme-refresh">
   <link rel="stylesheet" href="src/styles/01-base.css?v=185-theme-refresh">
   <link rel="stylesheet" href="src/styles/02-layout.css?v=76">
-  <link rel="stylesheet" href="src/styles/03-components.css?v=140-long-term-trend">
+  <link rel="stylesheet" href="src/styles/03-components.css?v=201-dashboard-design">
   <link rel="stylesheet" href="src/styles/04-forms-tables.css?v=83">
   <link rel="stylesheet" href="src/styles/05-charts.css?v=176-recurring-review">
   <link rel="stylesheet" href="src/styles/06-features.css?v=174-food-occasions">
@@ -24,7 +24,7 @@
   <link rel="stylesheet" href="src/styles/11-summary-insights.css?v=174-food-occasions">
   <link rel="stylesheet" href="src/styles/12-rosso-ink.css?v=169-corsa-themes">
   <link rel="stylesheet" href="src/styles/13-goals.css?v=179-goal-tabs">
-  <link rel="stylesheet" href="src/styles/14-board-overview.css?v=185-theme-refresh">
+  <link rel="stylesheet" href="src/styles/14-board-overview.css?v=201-dashboard-design">
   <link rel="stylesheet" href="src/styles/16-backup.css?v=197-family-support">
   <link rel="stylesheet" href="src/styles/20-family.css?v=197-family-support">
   <link rel="stylesheet" href="src/styles/21-agent.css?v=200-agent-dialog-r2">
@@ -325,22 +325,22 @@
             <h2>대시보드</h2>
             <p>얼마나 썼는지, 카드값은 얼마인지, 어디에 많이 썼는지 확인하세요.</p>
           </div>
-          <div class="ledger-controls">
+          <div class="ledger-controls board-head-actions">
             <div class="month-control-group">
               <button id="boardPrevMonth" type="button" class="month-step-button" title="이전 월" aria-label="이전 월"><i class="ti ti-chevron-left" aria-hidden="true"></i></button>
               <label>월<select id="boardMonth"></select></label>
-              <button type="button" data-family-add><i class="ti ti-users" aria-hidden="true"></i> 가족 입금 추가</button>
               <button id="boardNextMonth" type="button" class="month-step-button" title="다음 월" aria-label="다음 월"><i class="ti ti-chevron-right" aria-hidden="true"></i></button>
             </div>
+            <button type="button" data-family-add><i class="ti ti-users" aria-hidden="true"></i> 가족 입금 추가</button>
           </div>
         </div>
         <div id="boardMetrics" class="board-metric-grid"></div>
-        <section id="familyDashboardCard" class="family-dashboard-card" aria-label="이번 달 가족 정산"></section>
         <div id="boardSectorMap" class="sector-map-panel" hidden></div>
         <div class="board-overview-columns">
           <div id="boardSectorSummary" class="board-sector-summary"></div>
           <div id="boardGrid" class="ledger-board"></div>
         </div>
+        <section id="familyDashboardCard" class="family-dashboard-card" aria-label="이번 달 가족 정산"></section>
         <div class="board-filter-legacy-controls" hidden>
           <select id="boardFilterSector"><option value="all">전체</option></select>
           <input id="boardFilterSearch" type="text">
@@ -1485,7 +1485,7 @@
   </dialog>
 
   <script src="assets/vendor/xlsx.full.min.js?v=182-maintenance"></script>
-  <script src="src/data/constants.js?v=200-agent-dialog-r2"></script>
+  <script src="src/data/constants.js?v=201-dashboard-design"></script>
   <script src="src/data/categories.js?v=136-mineral-layers"></script>
   <script src="src/data/rules.js?v=93"></script>
   <script src="src/data/board-sections.js?v=151-loan-repayments"></script>

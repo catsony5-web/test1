@@ -1,12 +1,12 @@
 const CACHE_PREFIX = "monthly-card-budget-";
-const CACHE_NAME = "monthly-card-budget-v200-agent-dialog-r2";
+const CACHE_NAME = "monthly-card-budget-v201-dashboard-design";
 const APP_FILES = [
   "./",
   "./index.html",
   "./src/styles/00-tokens.css?v=185-theme-refresh",
   "./src/styles/01-base.css?v=185-theme-refresh",
   "./src/styles/02-layout.css?v=76",
-  "./src/styles/03-components.css?v=140-long-term-trend",
+  "./src/styles/03-components.css?v=201-dashboard-design",
   "./src/styles/04-forms-tables.css?v=83",
   "./src/styles/05-charts.css?v=176-recurring-review",
   "./src/styles/06-features.css?v=174-food-occasions",
@@ -17,7 +17,7 @@ const APP_FILES = [
   "./src/styles/11-summary-insights.css?v=174-food-occasions",
   "./src/styles/12-rosso-ink.css?v=169-corsa-themes",
   "./src/styles/13-goals.css?v=179-goal-tabs",
-  "./src/styles/14-board-overview.css?v=185-theme-refresh",
+  "./src/styles/14-board-overview.css?v=201-dashboard-design",
   "./assets/vendor/xlsx.full.min.js?v=182-maintenance",
   "./assets/vendor/xlsx.LICENSE",
   "./assets/tabler/tabler-icons.min.css?v=135-subcategory-icons",
@@ -109,7 +109,7 @@ const APP_FILES = [
   "./assets/tabler/icons/x.svg",
   "./assets/tabler/LICENSE",
   "./data/ipo-calendar.json",
-  "./src/data/constants.js?v=200-agent-dialog-r2",
+  "./src/data/constants.js?v=201-dashboard-design",
   "./src/data/categories.js?v=136-mineral-layers",
   "./src/data/rules.js?v=93",
   "./src/data/board-sections.js?v=151-loan-repayments",
