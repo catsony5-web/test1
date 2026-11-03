@@ -68,6 +68,7 @@ GitHub Pages 단독 배포는 Node 게이트웨이를 실행하지 못합니다.
 - 인증키와 대화는 가계부 백업에 포함되지 않습니다. 적용한 거래 변경은 기존 저장·동기화·백업 경로를 사용합니다.
 - ChatGPT 등록 정보와 토큰은 가계부 저장소와 별개인 이 PC의 `%LOCALAPPDATA%\PersonalBudget\ChatGPT\profiles.dpapi`에 보관합니다. Windows에서는 DPAPI로 보호하며 토큰을 브라우저 저장소·소스·로그에 기록하지 않습니다. 호스트 식별자는 계정을 바꿔도 유지하고, 계정별 등록·토큰은 분리합니다.
 - OAuth의 state·PKCE·nonce와 ID 토큰 서명·발급자·대상 클라이언트·만료·계정 동일성을 검증합니다. 구독 요청은 공식 Responses API에 `store:false`, `stream:true`로 보내며 완료 이벤트가 있어야 성공으로 처리합니다.
+- 구독 경로는 [공식 preview 제약](https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations)에 맞춰 함수 도구를 `ledger` namespace로 묶고 `max_output_tokens` 등 미지원 필드를 제외합니다. 일반 API 연결의 요청 형식과는 구분합니다.
 - 서버는 고정된 OpenAI API 주소만 호출하며 사용자별 세션을 분리합니다. HttpOnly/SameSite 쿠키, 운영 Secure 쿠키, origin/Host 검사, 요청 크기·횟수·시간 제한을 사용합니다. 저장이나 임의 명령 실행 권한은 서버에 없습니다.
 - API 모델 목록은 접근 가능한 모델의 후보입니다. 목록 조회만으로 해당 모델의 Responses 도구 호출 지원까지 보장하지 않으며 오류는 사용자에게 표시합니다. 실제 키를 사용한 유료 호출은 자동 테스트에서 하지 않습니다.
 

@@ -61,7 +61,8 @@ function validateInput(input) {
     if (item.type === 'function_call_output') {
       if (typeof item.call_id !== 'string' || typeof item.output !== 'string') fail(400, 'invalid_input', '잘못된 도구 결과입니다.');
     } else if (item.type === 'function_call') {
-      if (!TOOL_NAMES.has(item.name) || typeof item.call_id !== 'string' || typeof item.arguments !== 'string') fail(400, 'invalid_tool', '허용되지 않은 도구입니다.');
+      if (!TOOL_NAMES.has(item.name) || (item.namespace !== undefined && item.namespace !== 'ledger')
+        || typeof item.call_id !== 'string' || typeof item.arguments !== 'string') fail(400, 'invalid_tool', '허용되지 않은 도구입니다.');
     } else if (item.type === 'reasoning') {
       if (typeof item.encrypted_content !== 'string') fail(400, 'invalid_input', '대화를 새로 시작해 주세요.');
     } else {
@@ -334,7 +335,8 @@ export async function createAgentServer({ root = projectRoot, origin = '', baseP
           ? await subscriptionCall(() => subscription.respond(session.account.id, requestBody, { signal: controller.signal }))
           : await upstream('/responses', session.key, { method: 'POST', signal: controller.signal, body: requestBody });
         if (reply.status !== 'completed' || !Array.isArray(reply.output)) fail(502, 'incomplete', '응답이 완료되지 않았습니다. 기록은 변경되지 않았습니다.');
-        if (reply.output.some((item) => item.type === 'function_call' && !TOOL_NAMES.has(item.name))) {
+        if (reply.output.some((item) => item.type === 'function_call'
+          && (!TOOL_NAMES.has(item.name) || (item.namespace !== undefined && item.namespace !== 'ledger')))) {
           fail(502, 'invalid_tool', '지원하지 않는 도구가 요청되었습니다. 기록은 변경되지 않았습니다.');
         }
         const output = reply.output.filter((item) => ['message', 'function_call', 'reasoning'].includes(item.type));

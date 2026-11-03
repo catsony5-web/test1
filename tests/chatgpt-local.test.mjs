@@ -214,6 +214,29 @@ test('model catalog keeps eligible ordering and labels; streaming returns tool c
   assert.equal(call.init.headers.Authorization, 'Bearer synthetic-access');
 });
 
+test('ChatGPT plan requests namespace ledger tools and omit unsupported API fields without changing tool history', async (t) => {
+  const { runtime, state, login } = await setup(t); const account = await login();
+  const tools = [{ type: 'function', name: 'monthly_metrics', description: '가상 지표', strict: false,
+    parameters: { type: 'object', properties: {}, additionalProperties: false } }];
+  const history = [{ role: 'user', content: '가상 지표 요청' },
+    { type: 'function_call', namespace: 'ledger', name: 'monthly_metrics', call_id: 'synthetic-call', arguments: '{}' },
+    { type: 'function_call_output', call_id: 'synthetic-call', output: '{"synthetic":true}' }];
+  const payload = { model: 'synthetic-model-a', input: history, tools, instructions: '가상 안내',
+    include: ['reasoning.encrypted_content'], max_output_tokens: 4096, temperature: 0.1,
+    previous_response_id: 'synthetic-previous-response', store: true, stream: false };
+  const original = clone(payload);
+  await runtime.respond(account.profileId, payload);
+  const call = state.calls.find((item) => item.url.endsWith('/responses'));
+  const sent = JSON.parse(call.init.body);
+  assert.deepEqual(sent.tools, [{ type: 'namespace', name: 'ledger',
+    description: '현재 가계부의 조회, 지표 계산과 사용자 확인을 위한 변경 제안 도구입니다.', tools }]);
+  assert.deepEqual(sent.input, history); assert.deepEqual(payload, original);
+  assert.deepEqual(sent.include, ['reasoning.encrypted_content']);
+  assert.equal(sent.store, false); assert.equal(sent.stream, true);
+  for (const field of ['max_output_tokens', 'temperature', 'previous_response_id']) assert.equal(Object.hasOwn(sent, field), false);
+  await assert.rejects(runtime.respond(account.profileId, { ...payload, input: 'not an array' }), ChatGPTLocalError);
+});
+
 for (const [name, stream, code] of [
   ['interruption', sse({ type: 'response.output_text.delta', delta: 'partial' }), 'invalid_stream'],
   ['incomplete', sse({ type: 'response.incomplete', response: { output: [] } }), 'invalid_stream'],

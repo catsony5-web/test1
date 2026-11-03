@@ -339,10 +339,20 @@ export async function createChatGPTLocal({ store, directory, fetchImpl = fetch, 
     }, signal);
   }
   async function respond(id, payload, { signal } = {}) {
+    if (payload.input !== undefined && !Array.isArray(payload.input)) fail('invalid_response', 400);
+    if (payload.tools !== undefined && (!Array.isArray(payload.tools) || payload.tools.some((tool) => tool?.type !== 'function'))) fail('invalid_response', 400);
+    // The ChatGPT-plan preview uses namespaces and rejects several otherwise
+    // valid Platform API fields, including max_output_tokens. Project only the
+    // supported fields this ledger sends; retain complete tool-call history.
+    const request = { model: payload.model, input: payload.input || [], store: false, stream: true,
+      ...(payload.instructions !== undefined ? { instructions: payload.instructions } : {}),
+      ...(payload.include !== undefined ? { include: payload.include } : {}),
+      ...(payload.tools?.length ? { tools: [{ type: 'namespace', name: 'ledger',
+        description: '현재 가계부의 조회, 지표 계산과 사용자 확인을 위한 변경 제안 도구입니다.', tools: payload.tools }] } : {}) };
     return authenticated(id, async (token, requestSignal) => {
       const response = await fetchRemote(`${RESOURCE}/responses`, { method: 'POST', signal: requestSignal,
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Accept: 'text/event-stream' },
-        body: JSON.stringify({ ...payload, store: false, stream: true }) }, 180000);
+        body: JSON.stringify(request) }, 180000);
       if (!response.ok) throw remoteError(await jsonBody(response), response.status);
       const type = response.headers.get('content-type')?.split(';')[0]?.trim().toLowerCase();
       if (!response.body || (type && type !== 'text/event-stream')) { await response.body?.cancel(); fail('invalid_stream', 502); }

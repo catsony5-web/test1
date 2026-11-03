@@ -333,3 +333,50 @@ test('logout blocks new requests from every browser session using the same accou
   assert.ok([401, 409].includes(result.status), result.text);
   assert.equal(runtime.calls.filter((call) => call.name === 'respond').length, 0);
 });
+
+test('history rejects a foreign namespace even when its function name is allowed', async (t) => {
+  const f = await fixture(t); const c = await f.select();
+  await c.post('model', { model: MODEL });
+  const result = await c.post('respond', {
+    model: MODEL, tools: [TOOL], input: [
+      { role: 'user', content: '합성 질문' },
+      { type: 'function_call', namespace: 'synthetic_foreign', name: 'ledger_context', call_id: 'synthetic-call', arguments: '{}' }
+    ]
+  });
+  assert.equal(result.status, 400);
+  assert.equal(result.json.error.code, 'invalid_tool');
+  assert.equal(f.runtime.calls.filter((call) => call.name === 'respond').length, 0);
+});
+
+test('provider output rejects a foreign namespace even when its function name is allowed', async (t) => {
+  const runtime = mockRuntime({ respond: async () => ({ status: 'completed', output: [
+    { type: 'function_call', namespace: 'synthetic_foreign', name: 'ledger_context', call_id: 'synthetic-call', arguments: '{}' }
+  ] }) });
+  const f = await fixture(t, { runtime }); const c = await f.select();
+  await c.post('model', { model: MODEL });
+  const result = await c.respond();
+  assert.equal(result.status, 502);
+  assert.equal(result.json.error.code, 'invalid_tool');
+  assert.equal(result.json.output, undefined);
+});
+
+test('the ledger namespace is preserved in provider output and the next request history', async (t) => {
+  const toolCall = { type: 'function_call', namespace: 'ledger', name: 'ledger_context', call_id: 'synthetic-namespaced-call', arguments: '{}' };
+  const runtime = mockRuntime();
+  runtime.respond = async (profileId, body) => {
+    runtime.calls.push({ name: 'respond', profileId, body });
+    return runtime.calls.filter((call) => call.name === 'respond').length === 1
+      ? { status: 'completed', output: [toolCall] } : structuredClone(COMPLETED);
+  };
+  const f = await fixture(t, { runtime }); const c = await f.select();
+  await c.post('model', { model: MODEL });
+  const first = await c.respond();
+  assert.equal(first.status, 200);
+  assert.deepEqual(first.json.output, [toolCall]);
+  const input = [{ role: 'user', content: '합성 질문' }, ...first.json.output,
+    { type: 'function_call_output', call_id: toolCall.call_id, output: '{"synthetic":true}' }];
+  const second = await c.post('respond', { model: MODEL, tools: [TOOL], input });
+  assert.equal(second.status, 200);
+  assert.deepEqual(runtime.calls.filter((call) => call.name === 'respond').at(-1).body.input, input);
+  assert.equal(f.apiCalls.length, 0);
+});
