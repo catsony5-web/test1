@@ -365,3 +365,18 @@ test("explicit API connection includes the current session ID and clears the key
   } });
   assert.equal(h.labeled("OpenAI API 키").value, "");
 });
+
+test("verified email identifies both the active account and saved registrations without repeating an email label", async () => {
+  const status = connectionStatus({ account: "a", profiles: [
+    { id: "a", label: "ChatGPT 계정 1", email: "synthetic-one@example.invalid", connected: true, sharing: true },
+    { id: "b", label: "synthetic-two@example.invalid", email: "synthetic-two@example.invalid", connected: true, sharing: true }
+  ] });
+  status.session.account = status.subscription.profiles[0];
+  const h = connectionHarness(() => status);
+  await h.open();
+  assert.ok(h.find("p", "ChatGPT 계정 1 · synthetic-one@example.invalid · ChatGPT 구독 사용 중"));
+  assert.deepEqual(h.labeled("저장된 ChatGPT 계정").children.map((item) => item.textContent), [
+    "ChatGPT 계정 1 · synthetic-one@example.invalid · 구독 연결됨",
+    "synthetic-two@example.invalid · 구독 연결됨"
+  ]);
+});

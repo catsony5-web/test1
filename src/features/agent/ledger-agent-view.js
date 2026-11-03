@@ -72,6 +72,12 @@
     };
   }
 
+  function accountLabel(account, fallback = "ChatGPT 계정") {
+    const label = account?.label || "";
+    const email = account?.email || "";
+    return label && email && label !== email ? `${label} · ${email}` : label || email || fallback;
+  }
+
   function createConversation({ tools, respond, onText = () => {}, onTool = () => {} }) {
     let history = [];
     let running = false;
@@ -309,7 +315,7 @@
       profile.replaceChildren();
       for (const account of next?.subscription?.profiles || []) {
         if (typeof account.id !== "string") continue;
-        const name = account.label || account.email || "저장된 계정";
+        const name = accountLabel(account, "저장된 계정");
         const state = account.connected ? (account.sharing ? "구독 연결됨" : "구독 권한 필요") : "재로그인 필요";
         const option = el("option", "", `${name} · ${state}`); option.value = account.id; profile.append(option);
       }
@@ -321,7 +327,7 @@
         : "현재 주소에서는 PC용 구독 로그인을 사용할 수 없습니다. PC의 로컬 가계부 서버에서 연결해 주세요. 공개 웹서비스의 구독 연동은 별도 접근 승인이 필요합니다.";
       const account = next?.session?.account;
       status.textContent = next?.session?.mode === "subscription"
-        ? `${account?.label || account?.email || "ChatGPT 계정"} · ${account?.sharing ? "ChatGPT 구독 사용 중" : "구독 사용 권한 확인 필요"}`
+        ? `${accountLabel(account)} · ${account?.sharing ? "ChatGPT 구독 사용 중" : "구독 사용 권한 확인 필요"}`
         : next?.session?.connected ? "내 API 연결 · 별도 과금 사용 중"
           : next?.subscription?.available ? "ChatGPT 구독 로그인 가능 · AI 미연결" : "구독 로그인 미연결";
       refreshControls();
