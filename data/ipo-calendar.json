@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-11-03T03:45:45.510Z",
+  "updatedAt": "2026-11-03T11:35:41.369Z",
   "checkedDate": "2026-11-03",
   "coverage": {
     "kindCount": 162,
@@ -18,7 +18,7 @@
     ],
     "refreshStatus": {
       "state": "ok",
-      "attemptedAt": "2026-11-03T03:45:45.510Z",
+      "attemptedAt": "2026-11-03T11:35:41.369Z",
       "sources": {
         "kind": {
           "state": "ok"
@@ -1704,8 +1704,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103000003",
-      "sourceUpdatedAt": "2026-11-03T03:45:45.510Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103000312",
+      "sourceUpdatedAt": "2026-11-03T11:35:41.369Z",
       "missingSince": "",
       "corpCode": "00960234",
       "aliases": [
@@ -1714,7 +1714,7 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103000003",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103000312",
           "checkedDate": "2026-11-03",
           "reportDate": "20261103"
         }
@@ -1726,7 +1726,7 @@
       "reportedOfferPrice": 9400,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "9adfb173c408df888255",
+      "fingerprint": "12eefc862fc3e852287a",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -1910,7 +1910,7 @@
       "sourceId": "dart-00618173",
       "company": "씨앤엠",
       "market": "상장시장 확인 필요",
-      "filingDate": "2026-10-16",
+      "filingDate": "2026-11-03",
       "bookbuildingStart": "",
       "bookbuildingEnd": "",
       "subscriptionStart": "2026-11-12",
@@ -1923,8 +1923,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261016000412",
-      "sourceUpdatedAt": "2026-10-16T08:43:23.641Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103000363",
+      "sourceUpdatedAt": "2026-11-03T11:35:41.369Z",
       "missingSince": "",
       "corpCode": "00618173",
       "aliases": [
@@ -1933,9 +1933,9 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261016000412",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103000363",
           "checkedDate": "2026-11-03",
-          "reportDate": "20261016"
+          "reportDate": "20261103"
         }
       ],
       "conflicts": [],
@@ -1943,7 +1943,7 @@
       "reportedOfferPrice": 10000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "6d65a80a079144328282",
+      "fingerprint": "f392ba19725c4e4a5763",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -2367,7 +2367,7 @@
       "sourceId": "dart-01795859",
       "company": "엔키화이트햇",
       "market": "상장시장 확인 필요",
-      "filingDate": "2026-10-27",
+      "filingDate": "2026-11-03",
       "bookbuildingStart": "",
       "bookbuildingEnd": "",
       "subscriptionStart": "2026-12-01",
@@ -2380,8 +2380,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027000363",
-      "sourceUpdatedAt": "2026-10-27T09:34:21.089Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103000358",
+      "sourceUpdatedAt": "2026-11-03T11:35:41.369Z",
       "missingSince": "",
       "corpCode": "01795859",
       "aliases": [
@@ -2390,9 +2390,9 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027000363",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103000358",
           "checkedDate": "2026-11-03",
-          "reportDate": "20261027"
+          "reportDate": "20261103"
         }
       ],
       "conflicts": [],
@@ -2400,7 +2400,7 @@
       "reportedOfferPrice": 13000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "13c93e8c675f7c4db812",
+      "fingerprint": "5c0f8cd02acee1215ae4",
       "changeStatus": "unchanged",
       "changes": []
     },
