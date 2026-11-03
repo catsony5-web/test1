@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "monthly-card-budget-";
-const CACHE_NAME = "monthly-card-budget-v198-ledger-agent";
+const CACHE_NAME = "monthly-card-budget-v199-local-chatgpt";
 const APP_FILES = [
   "./",
   "./index.html",
@@ -109,7 +109,7 @@ const APP_FILES = [
   "./assets/tabler/icons/x.svg",
   "./assets/tabler/LICENSE",
   "./data/ipo-calendar.json",
-  "./src/data/constants.js?v=198-ledger-agent",
+  "./src/data/constants.js?v=199-local-chatgpt",
   "./src/data/categories.js?v=136-mineral-layers",
   "./src/data/rules.js?v=93",
   "./src/data/board-sections.js?v=151-loan-repayments",
@@ -178,9 +178,9 @@ const APP_FILES = [
   "./src/utils/backup-merge.js?v=197-family-support",
   "./src/features/app/backup-review.js?v=197-family-support",
   "./src/features/family/family-view.js?v=197-family-support",
-  "./src/styles/21-agent.css?v=198-ledger-agent",
+  "./src/styles/21-agent.css?v=199-local-chatgpt",
   "./src/features/agent/ledger-agent-tools.js?v=198-ledger-agent",
-  "./src/features/agent/ledger-agent-view.js?v=198-ledger-agent"
+  "./src/features/agent/ledger-agent-view.js?v=199-local-chatgpt"
 ];
 
 const PUBLIC_PATHS = new Set(APP_FILES.map((file) => new URL(file, self.location.href).pathname));

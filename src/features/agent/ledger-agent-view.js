@@ -147,6 +147,7 @@
     let sessionId = "";
     let busy = false;
     let controller = null;
+    let loginAttempt = null;
     let scope = globalThis.BudgetCloud?.generation?.();
     const planButtons = new Set();
     let cardNames = new Map();
@@ -176,8 +177,20 @@
     const intro = el("p", "agent-note", "내 가계부의 숫자를 확인하고 변경 내용을 검토하세요. 기록은 직접 적용하기 전까지 바뀌지 않습니다.");
     const connection = el("section", "agent-connection");
     const status = el("p", "agent-status", "연결 상태를 확인해 주세요."); status.setAttribute("role", "status");
-    const subscription = button("ChatGPT 구독 로그인 · 승인 대기"); subscription.disabled = true;
-    const subscriptionHelp = el("p", "agent-note", "웹서비스의 구독 연동은 OpenAI 접근 승인 후 제공됩니다. 승인 전에는 구독 로그인을 사용할 수 없습니다.");
+    const subscription = button("Continue with ChatGPT", () => void signInSubscription());
+    const subscriptionHelp = el("p", "agent-note", "이 PC의 구독 로그인 연결 상태를 확인하고 있습니다.");
+    const profileLabel = el("label", "agent-field", "저장된 ChatGPT 계정");
+    const profile = el("select"); profileLabel.append(profile);
+    const selectProfile = button("선택한 계정 사용", () => void useSubscriptionProfile());
+    const addProfile = button("다른 ChatGPT 계정 추가", () => void signInSubscription());
+    const profileActions = el("div", "agent-actions"); profileActions.append(profileLabel, selectProfile, addProfile);
+    const loginActions = el("div", "agent-actions");
+    const loginLink = el("a", "agent-external-link", "OpenAI 로그인 창 열기");
+    loginLink.target = "_blank"; loginLink.rel = "noopener noreferrer"; loginLink.hidden = true;
+    const cancelLogin = button("로그인 취소", () => void cancelSubscriptionLogin()); cancelLogin.hidden = true;
+    loginActions.append(loginLink, cancelLogin);
+    const usage = el("a", "agent-external-link", "ChatGPT 사용량·앱 접근 관리");
+    usage.href = "https://chatgpt.com/settings/usage"; usage.target = "_blank"; usage.rel = "noopener noreferrer"; usage.hidden = true;
     const apiDetails = el("details", "agent-api-options");
     apiDetails.append(el("summary", "", "선택 사항 · 내 API 키로 유료 연결"));
     const apiForm = el("form", "agent-api-form");
@@ -187,14 +200,15 @@
     const consent = el("input"); consent.type = "checkbox";
     consentLabel.append(consent, document.createTextNode("ChatGPT 구독과 별도로 API 사용료가 발생하는 연결을 선택합니다."));
     const connect = el("button", "primary-action", "내 API 키로 연결"); connect.type = "submit";
-    const privacy = el("p", "agent-note", "질문과 답변에 필요한 조회 결과만 AI에 전달합니다. API 키는 연결 서버에 전달되며 가계부 기록·백업이나 브라우저 저장소에 저장하지 않습니다. AI 연결 계정을 바꿔도 현재 열어 둔 가계부는 자동으로 바뀌지 않습니다.");
-    apiForm.append(apiKey.wrapper, consentLabel, privacy, connect); apiDetails.append(apiForm);
+    const apiPrivacy = el("p", "agent-note", "API 키는 연결 서버에 전달되며 가계부 기록·백업이나 브라우저 저장소에 저장하지 않습니다.");
+    apiForm.append(apiKey.wrapper, consentLabel, apiPrivacy, connect); apiDetails.append(apiForm);
+    const privacy = el("p", "agent-note", "질문과 답변에 필요한 조회 결과만 AI에 전달합니다. 구독 인증 정보는 이 PC의 보호된 저장소에서 관리합니다. AI 연결 계정을 바꿔도 현재 열어 둔 가계부는 자동으로 바뀌지 않습니다.");
     const modelLabel = el("label", "agent-field", "사용 모델");
     const model = el("select"); modelLabel.append(model);
     const disconnect = button("API 연결 해제", () => void disconnectSession());
     const refresh = button("연결 상태 새로 확인", () => void refreshConnection());
     const connectionActions = el("div", "agent-actions"); connectionActions.append(modelLabel, disconnect, refresh);
-    connection.append(status, subscription, subscriptionHelp, apiDetails, connectionActions);
+    connection.append(status, subscription, subscriptionHelp, profileActions, loginActions, usage, privacy, apiDetails, connectionActions);
 
     const local = el("section", "agent-local");
     local.append(el("h3", "", "바로 확인"), el("p", "agent-note", "아래 조회는 AI 연결 없이 현재 기기의 가계부에서 계산합니다."));
@@ -246,12 +260,24 @@
       if (scope !== globalThis.BudgetCloud?.generation?.()) clearConversation("가계부가 갱신되어 새 대화로 시작합니다.");
     }
     function refreshControls() {
-      const connected = backend?.session?.connected === true && backend.session.mode === "api";
-      prompt.disabled = busy || !connected || !model.value;
+      const connected = backend?.session?.connected === true && (backend.session.mode === "api"
+        || (backend.session.mode === "subscription" && backend.session.account?.sharing === true));
+      const locked = busy || Boolean(loginAttempt);
+      prompt.disabled = locked || !connected || !model.value;
       send.disabled = prompt.disabled; stop.disabled = !busy; clear.disabled = busy;
-      connect.disabled = busy || backend?.api?.available !== true;
-      model.disabled = busy || !connected; disconnect.disabled = busy || !connected;
-      refresh.disabled = busy;
+      connect.disabled = locked || backend?.api?.available !== true;
+      model.disabled = locked || !connected;
+      disconnect.disabled = busy || (!backend?.session?.connected && !loginAttempt);
+      refresh.disabled = locked;
+      subscription.disabled = locked || backend?.subscription?.available !== true;
+      addProfile.disabled = subscription.disabled;
+      profile.disabled = locked || backend?.subscription?.available !== true;
+      selectProfile.disabled = profile.disabled || !profile.value;
+      cancelLogin.hidden = !loginAttempt;
+      profileActions.hidden = !backend?.subscription?.profiles?.length;
+      subscription.hidden = Boolean(backend?.subscription?.profiles?.length);
+      usage.hidden = backend?.session?.mode !== "subscription";
+      disconnect.textContent = backend?.session?.mode === "subscription" ? "ChatGPT 로그아웃" : "API 연결 해제";
       for (const control of localButtons) control.disabled = busy;
       for (const control of planButtons) control.disabled = busy || control.dataset.applied === "true";
     }
@@ -269,17 +295,35 @@
     }
     function acceptStatus(next) {
       const nextId = next?.session?.id || "";
+      if (loginAttempt && nextId !== sessionId) void cancelSubscriptionLogin(false);
       if (nextId !== sessionId || (backend?.session?.connected && !next?.session?.connected)) clearConversation();
       sessionId = nextId; backend = next;
       const selected = next?.session?.model || "";
       model.replaceChildren(); const empty = el("option", "", "모델 선택"); empty.value = ""; model.append(empty);
       for (const name of next?.session?.models || []) {
         if (typeof name !== "string") continue;
-        const option = el("option", "", name); option.value = name; model.append(option);
+        const option = el("option", "", next.session.modelLabels?.[name] || name); option.value = name; model.append(option);
       }
       model.value = selected;
-      status.textContent = next?.session?.connected
-        ? "내 API 연결 · 별도 과금 사용 중" : "구독 연동 승인 대기 · AI 미연결";
+      const previousProfile = profile.value;
+      profile.replaceChildren();
+      for (const account of next?.subscription?.profiles || []) {
+        if (typeof account.id !== "string") continue;
+        const name = account.label || account.email || "저장된 계정";
+        const state = account.connected ? (account.sharing ? "구독 연결됨" : "구독 권한 필요") : "재로그인 필요";
+        const option = el("option", "", `${name} · ${state}`); option.value = account.id; profile.append(option);
+      }
+      const profiles = next?.subscription?.profiles || [];
+      profile.value = next?.session?.account?.id || (profiles.some((item) => item.id === previousProfile) ? previousProfile : profiles[0]?.id || "");
+      updateProfileAction();
+      subscriptionHelp.textContent = next?.subscription?.available
+        ? "이 PC에서 ChatGPT 계정을 연결합니다. OpenAI 로그인 화면에서 원하는 계정과 구독 사용 권한을 선택하세요. 구독 한도는 ChatGPT와 공유하며 유료 API로 자동 전환하지 않습니다."
+        : "현재 주소에서는 PC용 구독 로그인을 사용할 수 없습니다. PC의 로컬 가계부 서버에서 연결해 주세요. 공개 웹서비스의 구독 연동은 별도 접근 승인이 필요합니다.";
+      const account = next?.session?.account;
+      status.textContent = next?.session?.mode === "subscription"
+        ? `${account?.label || account?.email || "ChatGPT 계정"} · ${account?.sharing ? "ChatGPT 구독 사용 중" : "구독 사용 권한 확인 필요"}`
+        : next?.session?.connected ? "내 API 연결 · 별도 과금 사용 중"
+          : next?.subscription?.available ? "ChatGPT 구독 로그인 가능 · AI 미연결" : "구독 로그인 미연결";
       refreshControls();
     }
     async function refreshConnection() {
@@ -292,8 +336,107 @@
     }
     async function disconnectSession() {
       busy = true; refreshControls();
-      try { await request("logout", { sessionId }); clearConversation(); await refreshConnection(); }
+      try {
+        await cancelSubscriptionLogin(false);
+        const result = await request("logout", { sessionId });
+        clearConversation(); acceptStatus(result);
+        setFeedback(result.warning || "연결을 해제했습니다.", Boolean(result.warning));
+      }
       catch (error) { setFeedback(error.message, true); }
+      finally { busy = false; refreshControls(); }
+    }
+    function updateProfileAction() {
+      const selected = backend?.subscription?.profiles?.find((item) => item.id === profile.value);
+      selectProfile.textContent = selected?.connected && selected.sharing ? "선택한 계정 사용" : "선택한 계정 다시 로그인";
+    }
+    function finishSubscriptionAttempt(attempt) {
+      if (loginAttempt !== attempt) return;
+      clearTimeout(attempt.timer); attempt.controller.abort();
+      loginAttempt = null; loginLink.hidden = true; loginLink.removeAttribute("href");
+      refreshControls();
+    }
+    async function cancelSubscriptionLogin(notify = true) {
+      const attempt = loginAttempt;
+      if (!attempt) return;
+      const wasBusy = busy; busy = true;
+      finishSubscriptionAttempt(attempt);
+      try { attempt.popup?.close(); } catch { /* The authorization tab may already be closed. */ }
+      clearConversation();
+      try {
+        if (attempt.id) acceptStatus(await request("subscription-cancel", { attemptId: attempt.id }));
+        if (notify) setFeedback("로그인을 취소했습니다. 기존 연결은 유지됩니다.");
+      } catch (error) {
+        await refreshConnection();
+        if (notify) setFeedback(error.message, true);
+      } finally { busy = wasBusy; refreshControls(); }
+    }
+    async function pollSubscriptionLogin(attempt) {
+      if (loginAttempt !== attempt) return;
+      try {
+        const result = await request(`subscription-login-status?attemptId=${encodeURIComponent(attempt.id)}`, undefined, attempt.controller.signal);
+        if (loginAttempt !== attempt) return;
+        if (result.status === "pending") {
+          attempt.timer = setTimeout(() => void pollSubscriptionLogin(attempt), 1000);
+          return;
+        }
+        if (result.status !== "complete") {
+          finishSubscriptionAttempt(attempt);
+          await refreshConnection();
+          setFeedback(result.message || "구독 로그인을 완료하지 못했습니다. 다시 시도해 주세요.", true);
+          return;
+        }
+        finishSubscriptionAttempt(attempt);
+        clearConversation(); acceptStatus(result);
+        setFeedback(result.session?.account?.sharing
+          ? "ChatGPT 구독을 연결했습니다. 사용할 모델을 선택해 주세요."
+          : "계정은 확인했지만 구독 사용 권한이 없습니다. 선택한 계정으로 다시 로그인해 권한을 확인해 주세요.", !result.session?.account?.sharing);
+      } catch (error) {
+        if (loginAttempt !== attempt) return;
+        await cancelSubscriptionLogin(false);
+        setFeedback(error.message || "로그인 상태를 확인하지 못했습니다.", true);
+      }
+    }
+    async function signInSubscription(profileId = "") {
+      if (busy || loginAttempt || backend?.subscription?.available !== true) return;
+      // Open during the user gesture so browser popup protection does not discard the sign-in tab.
+      const popup = window.open("about:blank", "_blank");
+      if (popup) popup.opener = null;
+      const attempt = { id: "", popup, controller: new AbortController(), timer: null };
+      loginAttempt = attempt; clearConversation(); refreshControls();
+      setFeedback("OpenAI 로그인 화면을 준비하고 있습니다.");
+      try {
+        const result = await request("subscription-login", { sessionId, ...(profileId ? { profileId } : {}) });
+        attempt.id = result.attemptId;
+        if (loginAttempt !== attempt) {
+          if (attempt.id) acceptStatus(await request("subscription-cancel", { attemptId: attempt.id }));
+          return;
+        }
+        const url = new URL(result.authorizationUrl);
+        if (typeof attempt.id !== "string" || !attempt.id || url.origin !== "https://auth.openai.com"
+          || url.pathname !== "/api/accounts/authorize" || url.username || url.password || url.hash) {
+          throw new Error("OpenAI 로그인 주소를 확인할 수 없습니다.");
+        }
+        loginLink.href = url.href;
+        loginLink.hidden = false;
+        try { if (popup && !popup.closed) popup.location.replace(url.href); } catch { /* The user can use the verified link. */ }
+        setFeedback("OpenAI 화면에서 로그인과 구독 사용 권한을 확인해 주세요. 창이 열리지 않으면 로그인 창 열기를 누르세요.");
+        void pollSubscriptionLogin(attempt);
+      } catch (error) {
+        if (loginAttempt !== attempt) return;
+        await cancelSubscriptionLogin(false);
+        await refreshConnection();
+        setFeedback(error.message || "구독 로그인을 시작하지 못했습니다.", true);
+      }
+    }
+    async function useSubscriptionProfile() {
+      if (busy || loginAttempt || !profile.value) return;
+      const selected = backend?.subscription?.profiles?.find((item) => item.id === profile.value);
+      if (!selected?.connected || !selected.sharing) { await signInSubscription(profile.value); return; }
+      busy = true; clearConversation(); refreshControls();
+      try {
+        acceptStatus(await request("subscription-select", { profileId: profile.value, sessionId }));
+        setFeedback("ChatGPT 계정을 전환했습니다. 사용할 모델을 선택해 주세요.");
+      } catch (error) { setFeedback(error.message, true); }
       finally { busy = false; refreshControls(); }
     }
     function renderData(value, key = "", depth = 0) {
@@ -407,22 +550,23 @@
       onText: (text) => message("assistant", text), onTool: showResult
     });
     apiForm.addEventListener("submit", async (event) => {
-      event.preventDefault(); if (busy) return;
+      event.preventDefault(); if (busy || loginAttempt) return;
       if (!consent.checked) { setFeedback("별도 API 과금 연결을 선택한 경우에만 체크해 주세요.", true); return; }
       const secret = apiKey.input.value.trim(); apiKey.input.value = "";
       if (!secret) { setFeedback("사용할 API 키를 입력해 주세요.", true); return; }
       busy = true; refreshControls();
-      try { acceptStatus(await request("api-session", { apiKey: secret, billingConsent: true })); clearConversation(); setFeedback("API 연결을 확인했습니다. 사용할 모델을 선택해 주세요."); }
+      try { acceptStatus(await request("api-session", { apiKey: secret, billingConsent: true, sessionId })); clearConversation(); setFeedback("API 연결을 확인했습니다. 사용할 모델을 선택해 주세요."); }
       catch (error) { setFeedback(error.message, true); }
       finally { busy = false; refreshControls(); }
     });
     model.addEventListener("change", async () => {
-      if (busy || !model.value) return;
+      if (busy || loginAttempt || !model.value) return;
       busy = true; refreshControls();
       try { acceptStatus(await request("model", { model: model.value, sessionId })); clearConversation(); }
       catch (error) { model.value = backend?.session?.model || ""; setFeedback(error.message, true); }
       finally { busy = false; refreshControls(); }
     });
+    profile.addEventListener("change", () => { updateProfileAction(); refreshControls(); });
     chat.addEventListener("submit", async (event) => {
       event.preventDefault(); if (busy || send.disabled || !prompt.value.trim()) return;
       const text = prompt.value.trim(); busy = true; controller = new AbortController(); refreshControls();
@@ -436,8 +580,8 @@
       finally { busy = false; controller = null; refreshControls(); }
     });
     trigger.addEventListener("click", () => { dialog.showModal(); void refreshConnection(); });
-    dialog.addEventListener("close", () => { apiKey.input.value = ""; controller?.abort(); trigger.focus(); });
-    window.addEventListener("pagehide", () => { apiKey.input.value = ""; controller?.abort(); conversation.clear(); tools.clearSession(); });
+    dialog.addEventListener("close", () => { apiKey.input.value = ""; controller?.abort(); void cancelSubscriptionLogin(false); trigger.focus(); });
+    window.addEventListener("pagehide", () => { apiKey.input.value = ""; controller?.abort(); void cancelSubscriptionLogin(false); conversation.clear(); tools.clearSession(); });
     refreshControls();
   }
 

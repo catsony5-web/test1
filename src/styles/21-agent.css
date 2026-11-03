@@ -22,6 +22,8 @@
 .agent-check { display: flex; align-items: start; gap: 8px; font-size: 13px; line-height: 1.6; }
 .agent-check input { width: 18px; height: 18px; flex: 0 0 auto; margin: 2px 0 0; }
 .agent-actions .agent-field { min-width: 180px; flex: 1; }
+.agent-external-link { display: inline-block; color: var(--accent-primary); font-size: 13px; line-height: 1.7; padding: 8px 0; overflow-wrap: anywhere; }
+.ledger-agent-dialog [hidden] { display: none !important; }
 .agent-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 14px 0; }
 .agent-fields > :last-child:nth-child(odd) { grid-column: 1 / -1; }
 .agent-feedback { min-height: 1.6em; color: var(--accent-positive); font-size: 13px; line-height: 1.6; }

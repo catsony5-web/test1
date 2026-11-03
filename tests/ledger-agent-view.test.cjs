@@ -144,3 +144,224 @@ test("same-category manual override shows classification mode with Korean labels
   assert.equal(context.LedgerAgentPresentation.valueText("automatic", "classificationMode"), "자동");
   assert.equal(context.LedgerAgentPresentation.valueText("manual", "classificationMode"), "직접 지정");
 });
+
+// Exercise the actual connection controls without a browser or real credentials.
+function connectionHarness(route, { popupBlocked = false } = {}) {
+  const nodes = [], calls = [], order = [], timers = new Map(), popups = [];
+  let timerId = 0, clears = 0;
+  class Node {
+    constructor(tag) {
+      this.tag = tag; this.children = []; this.events = {}; this.dataset = {}; this.value = ""; this.hidden = false; this.disabled = false;
+      this.classList = { toggle() {} }; this._text = ""; nodes.push(this);
+    }
+    set textContent(value) { this._text = value; this.children = []; }
+    get textContent() { return this._text + this.children.map((child) => child.textContent).join(""); }
+    append(...children) { for (const child of children) { child.parent = this; this.children.push(child); } }
+    prepend(child) { child.parent = this; this.children.unshift(child); }
+    replaceChildren(...children) { this._text = ""; this.children = []; this.append(...children); }
+    remove() { this.parent.children = this.parent.children.filter((child) => child !== this); }
+    setAttribute(name, value) { this[name] = value; }
+    removeAttribute(name) { delete this[name]; }
+    addEventListener(name, callback) { (this.events[name] ||= []).push(callback); }
+    showModal() { this.open = true; }
+    close() { this.open = false; void this.fire("close"); }
+    focus() {}
+    async fire(name, event = {}) { await Promise.all((this.events[name] || []).map((fn) => fn({ preventDefault() {}, isTrusted: true, ...event }))); }
+  }
+  const body = new Node("body"), trigger = new Node("button"); trigger.id = "ledgerAgentButton"; body.append(trigger);
+  const document = { body, baseURI: "http://127.0.0.1:4185/", createElement: (tag) => new Node(tag),
+    createTextNode: (value) => { const text = new Node("text"); text.textContent = value; return text; },
+    getElementById: (id) => nodes.find((node) => node.id === id) };
+  const context = vm.createContext({ console, document, URL, AbortController,
+    currentMonthKey: () => "2035-03", shiftMonthKey: () => "2035-02",
+    LedgerAgentTools: { definitions: [], clearSession() { clears++; }, context: () => ({ cards: [] }) },
+    setTimeout(fn) { timers.set(++timerId, fn); return timerId; }, clearTimeout(id) { timers.delete(id); },
+    async fetch(url, options) {
+      const name = url.pathname.split("/agent-api/")[1] + url.search;
+      const data = options.body ? JSON.parse(options.body) : undefined;
+      calls.push({ name, data }); order.push(name);
+      const result = await route(name, data, options);
+      return { ok: result?.error === undefined, status: result?.error ? 400 : 200,
+        headers: { get: () => "application/json" }, json: async () => clone(result) };
+    },
+    open() {
+      order.push("popup");
+      if (popupBlocked) return null;
+      const popup = { closed: false, opener: "initial", locations: [], location: { replace(value) { popup.locations.push(value); } }, close() { this.closed = true; } };
+      popups.push(popup); return popup;
+    }, addEventListener() {}
+  });
+  context.window = context;
+  Object.defineProperty(context, "localStorage", { get() { throw new Error("Authentication must not touch browser storage"); } });
+  vm.runInContext(source, context); context.setupLedgerAgent();
+  const flush = async () => { for (let i = 0; i < 4; i++) await new Promise(setImmediate); };
+  const find = (tag, text) => nodes.find((node) => node.tag === tag && node.textContent === text);
+  const labeled = (text) => nodes.find((node) => node.tag === "label" && node._text === text)?.children[0];
+  return { context, calls, order, popups, timers, nodes, find, labeled, get clears() { return clears; },
+    async open() { await trigger.fire("click"); await flush(); },
+    async click(text) { const node = find("button", text); assert.ok(node, `button ${text}`); assert.equal(node.disabled, false); await node.fire("click"); await flush(); },
+    async change(node, value) { node.value = value; await node.fire("change"); await flush(); },
+    async tick() { const [id, fn] = timers.entries().next().value; timers.delete(id); fn(); await flush(); }, flush
+  };
+}
+
+function connectionStatus({ account, sharing = true, model = "", available = true, profiles = [] } = {}) {
+  const current = account ? { id: account, label: `합성 계정 ${account}`, connected: true, sharing } : undefined;
+  return { subscription: { available, profiles: current && !profiles.length ? [current] : profiles }, api: { available: true },
+    session: { connected: Boolean(current), id: current ? `synthetic-session-${account}` : "", mode: current ? "subscription" : null,
+      account: current, model, models: current ? ["synthetic-model"] : [], modelLabels: { "synthetic-model": "합성 모델" } } };
+}
+const authStart = { attemptId: "synthetic-attempt", authorizationUrl: "https://auth.openai.com/api/accounts/authorize?state=synthetic-state" };
+
+test("local subscription sign-in opens on the user gesture, polls, then enables the selected account model", async () => {
+  let polls = 0;
+  const h = connectionHarness((name) => {
+    if (name === "status") return connectionStatus();
+    if (name === "subscription-login") return authStart;
+    if (name.startsWith("subscription-login-status?")) return ++polls === 1 ? { status: "pending" } : { status: "complete", ...connectionStatus({ account: "a" }) };
+    if (name === "model") return connectionStatus({ account: "a", model: "synthetic-model" });
+    throw new Error(name);
+  });
+  await h.open(); await h.click("Continue with ChatGPT");
+  assert.ok(h.order.indexOf("popup") < h.order.indexOf("subscription-login"));
+  assert.equal(h.popups[0].opener, null);
+  assert.deepEqual(h.popups[0].locations, [authStart.authorizationUrl]);
+  assert.equal(h.timers.size, 1);
+  assert.equal(h.labeled("가계부에 물어보기").disabled, true);
+  await h.tick();
+  assert.equal(h.timers.size, 0);
+  assert.ok(h.find("p", "합성 계정 a · ChatGPT 구독 사용 중"));
+  assert.equal(h.labeled("사용 모델").children[1].textContent, "합성 모델");
+  await h.change(h.labeled("사용 모델"), "synthetic-model");
+  assert.equal(h.labeled("가계부에 물어보기").disabled, false);
+  assert.equal(h.find("a", "ChatGPT 사용량·앱 접근 관리").href, "https://chatgpt.com/settings/usage");
+  assert.equal(h.find("a", "OpenAI 로그인 창 열기").href, undefined);
+});
+
+test("foreign authorization URL is never opened and its pending attempt is canceled", async () => {
+  const h = connectionHarness((name) => name === "status" ? connectionStatus()
+    : name === "subscription-login" ? { ...authStart, authorizationUrl: "https://invalid.example/api/accounts/authorize" } : {});
+  await h.open(); await h.click("Continue with ChatGPT");
+  assert.deepEqual(h.popups[0].locations, []);
+  assert.equal(h.popups[0].closed, true);
+  assert.ok(h.calls.some((item) => item.name === "subscription-cancel" && item.data.attemptId === authStart.attemptId));
+  assert.ok(h.find("p", "OpenAI 로그인 주소를 확인할 수 없습니다."));
+  assert.equal(h.timers.size, 0);
+});
+
+test("blocked popup offers a verified OpenAI link and never changes to API billing", async () => {
+  const h = connectionHarness((name) => name === "status" ? connectionStatus()
+    : name === "subscription-login" ? authStart : { status: "pending" }, { popupBlocked: true });
+  await h.open(); await h.click("Continue with ChatGPT");
+  const link = h.find("a", "OpenAI 로그인 창 열기");
+  assert.equal(link.hidden, false); assert.equal(link.href, authStart.authorizationUrl);
+  assert.equal(link.rel, "noopener noreferrer");
+  assert.ok(!h.calls.some((item) => item.name === "api-session"));
+});
+
+test("cancel discards a late completed login and clears its link and polling", async () => {
+  let finish;
+  const h = connectionHarness((name) => name === "status" ? connectionStatus()
+    : name === "subscription-login" ? authStart
+      : name.startsWith("subscription-login-status?") ? new Promise((resolve) => { finish = resolve; }) : {});
+  await h.open(); await h.click("Continue with ChatGPT"); await h.click("로그인 취소");
+  finish({ status: "complete", ...connectionStatus({ account: "late" }) }); await h.flush();
+  assert.equal(h.labeled("가계부에 물어보기").disabled, true);
+  assert.equal(h.find("a", "OpenAI 로그인 창 열기").hidden, true);
+  assert.ok(!h.find("p", "합성 계정 late · ChatGPT 구독 사용 중"));
+  assert.equal(h.timers.size, 0);
+});
+
+test("adding another account uses a new registration and keeps the current account until validation", async () => {
+  const h = connectionHarness((name) => name === "status" ? connectionStatus({ account: "existing" })
+    : name === "subscription-login" ? authStart : { status: "pending" });
+  await h.open(); await h.click("다른 ChatGPT 계정 추가");
+  assert.deepEqual(h.calls.find((item) => item.name === "subscription-login").data, { sessionId: "synthetic-session-existing" });
+  assert.ok(h.find("p", "합성 계정 existing · ChatGPT 구독 사용 중"));
+  assert.equal(h.labeled("가계부에 물어보기").disabled, true);
+});
+
+test("saved account selection clears conversation and plans, with separate registrations even for equal labels", async () => {
+  const profiles = ["a", "b"].map((id) => ({ id, label: `합성 계정 ${id}`, email: "synthetic@example.invalid", connected: true, sharing: true }));
+  const h = connectionHarness((name) => name === "status" ? connectionStatus({ account: "a", profiles }) : connectionStatus({ account: "b", profiles }));
+  await h.open();
+  const before = h.clears;
+  await h.change(h.labeled("저장된 ChatGPT 계정"), "b"); await h.click("선택한 계정 사용");
+  assert.deepEqual(h.calls.at(-1), { name: "subscription-select", data: { profileId: "b", sessionId: "synthetic-session-a" } });
+  assert.ok(h.clears > before);
+  assert.ok(h.find("p", "합성 계정 b · ChatGPT 구독 사용 중"));
+});
+
+test("identity-only connection cannot use inference and reauthorization keeps the selected profile", async () => {
+  const h = connectionHarness((name) => name === "status" ? connectionStatus({ account: "identity", sharing: false, model: "synthetic-model" })
+    : name === "subscription-login" ? authStart : { status: "pending" });
+  await h.open();
+  assert.equal(h.labeled("가계부에 물어보기").disabled, true);
+  await h.click("선택한 계정 다시 로그인");
+  assert.deepEqual(h.calls.find((item) => item.name === "subscription-login").data, { sessionId: "synthetic-session-identity", profileId: "identity" });
+});
+
+test("closing while login creation is pending cancels the returned attempt without opening authorization", async () => {
+  let finish;
+  const h = connectionHarness((name) => name === "status" ? connectionStatus()
+    : name === "subscription-login" ? new Promise((resolve) => { finish = resolve; }) : {});
+  await h.open(); await h.click("Continue with ChatGPT");
+  h.context.document.getElementById("ledgerAgentDialog").close(); await h.flush();
+  finish(authStart); await h.flush();
+  assert.deepEqual(h.popups[0].locations, []);
+  assert.equal(h.popups[0].closed, true);
+  assert.equal(h.calls.at(-1).name, "subscription-cancel");
+});
+
+test("provider denial is visible and hosted endpoints cannot start the local subscription flow", async () => {
+  const h = connectionHarness((name) => name === "status" ? connectionStatus()
+    : name === "subscription-login" ? authStart : { status: "error", message: "합성 로그인 거절" });
+  await h.open(); await h.click("Continue with ChatGPT");
+  assert.ok(h.find("p", "합성 로그인 거절"));
+  assert.equal(h.labeled("가계부에 물어보기").disabled, true);
+  assert.equal(h.timers.size, 0);
+  const remote = connectionHarness(() => connectionStatus({ available: false }));
+  await remote.open();
+  assert.equal(remote.find("button", "Continue with ChatGPT").disabled, true);
+});
+
+test("cancel accepts a preauthentication session so the next login uses its current ID", async () => {
+  const pendingStatus = connectionStatus(); pendingStatus.session.id = "synthetic-preauth";
+  const h = connectionHarness((name) => name === "status" ? connectionStatus()
+    : name === "subscription-login" ? authStart
+      : name === "subscription-cancel" ? pendingStatus : { status: "pending" });
+  await h.open(); await h.click("Continue with ChatGPT"); await h.click("로그인 취소");
+  await h.click("Continue with ChatGPT");
+  assert.equal(h.calls.filter((item) => item.name === "subscription-login").at(-1).data.sessionId, "synthetic-preauth");
+});
+
+test("login creation failure refreshes the cookie session before retry", async () => {
+  let statuses = 0;
+  const pendingStatus = connectionStatus(); pendingStatus.session.id = "synthetic-retry-session";
+  const h = connectionHarness((name) => name === "status" ? (++statuses === 1 ? connectionStatus() : pendingStatus)
+    : { error: { message: "합성 로그인 시작 실패" } });
+  await h.open(); await h.click("Continue with ChatGPT");
+  assert.ok(h.find("p", "합성 로그인 시작 실패"));
+  await h.click("Continue with ChatGPT");
+  assert.equal(h.calls.filter((item) => item.name === "subscription-login").at(-1).data.sessionId, "synthetic-retry-session");
+});
+
+test("logout shows an unconfirmed remote revocation warning while disabling inference", async () => {
+  const h = connectionHarness((name) => name === "status" ? connectionStatus({ account: "a", model: "synthetic-model" })
+    : { ...connectionStatus(), warning: "합성 원격 해제 확인 필요" });
+  await h.open(); await h.click("ChatGPT 로그아웃");
+  assert.ok(h.find("p", "합성 원격 해제 확인 필요"));
+  assert.equal(h.labeled("가계부에 물어보기").disabled, true);
+});
+
+test("explicit API connection includes the current session ID and clears the key input", async () => {
+  const h = connectionHarness((name) => name === "status" ? connectionStatus({ account: "a" }) : connectionStatus());
+  await h.open();
+  h.labeled("OpenAI API 키").value = "synthetic-key-only-for-test";
+  h.nodes.find((node) => node.tag === "input" && node.type === "checkbox").checked = true;
+  await h.nodes.find((node) => node.className === "agent-api-form").fire("submit"); await h.flush();
+  assert.deepEqual(h.calls.at(-1), { name: "api-session", data: {
+    apiKey: "synthetic-key-only-for-test", billingConsent: true, sessionId: "synthetic-session-a"
+  } });
+  assert.equal(h.labeled("OpenAI API 키").value, "");
+});
