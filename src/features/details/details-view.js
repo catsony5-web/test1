@@ -93,6 +93,7 @@ function applyDetailNavigationFilters(options, sourceView = "board") {
   detailFilters.month = has("month") ? options.month || "all" : fallbackMonth || "all";
   if (detailFilters.month !== "all") setSharedSelectedMonth(detailFilters.month, { syncControls: false });
   detailFilters.sector = sector;
+  detailFilters.sectorOverview = sourceView === "board" && Boolean(options.showSectorOverview);
   detailFilters.subcategory = sector === "all" ? "all" : has("subcategory") ? options.subcategory || "all" : "all";
   detailFilters.search = search || "";
   detailFilters.sort = options.sort || "amount-desc";
@@ -506,27 +507,33 @@ function handleDetailBulkParse() {
   }
   const defaults = readDetailBulkDefaults();
   detailBulkRows = parseDetailBulkText(text, defaults);
+  detailBulkParsedText = text;
+  selectedDetailBulkRowId = detailBulkRows[0]?.id || "";
+  els.detailBulkSource.open = false;
   markDetailBulkDuplicateRows();
   renderDetailBulkPreview();
-  const validCount = detailBulkRows.filter((row) => row.valid).length;
-  const errorCount = detailBulkRows.filter((row) => !row.valid).length;
-  const duplicateCount = detailBulkRows.filter((row) => row.valid && row.duplicate).length;
-  setDetailBulkFeedback(`파싱 완료: 정상 ${validCount.toLocaleString("ko-KR")}건 · 중복 가능 ${duplicateCount.toLocaleString("ko-KR")}건 · 오류 ${errorCount.toLocaleString("ko-KR")}건`, errorCount ? "warning" : "success");
+  setDetailBulkFeedback("입력 내용을 확인했습니다. 거래별로 수정한 뒤 저장하세요.", "success");
 }
 
 function clearDetailBulkInput() {
   detailBulkRows = [];
+  selectedDetailBulkRowId = "";
+  detailBulkParsedText = "";
+  els.detailBulkSource.open = true;
   els.detailBulkPaste.value = "";
   els.detailBulkReimbursementDefault.value = "0";
   NumericInput.refresh(els.detailBulkReimbursementDefault, { resetEditing: true });
   els.detailBulkAllowDuplicates.checked = false;
-  els.detailBulkPreview.innerHTML = "";
-  els.saveDetailBulkButton.disabled = true;
+  renderDetailBulkPreview();
   setDetailBulkFeedback("일괄 입력 내용을 초기화했습니다.", "success");
 }
 
 async function handleDetailBulkSave() {
-  if (!NumericInput.validate(els.detailBulkPreview)) return;
+  if (isDetailBulkSourceChanged()) {
+    setDetailBulkFeedback("원문이 바뀌었습니다. ‘입력 내용 확인’을 눌러 목록을 다시 확인해주세요.", "warning");
+    return;
+  }
+  if (!NumericInput.validate(els.detailBulkEditor)) return;
   return runManualTransactionSave(async () => {
     updateDetailBulkRowsFromPreview();
     markDetailBulkDuplicateRows();
@@ -545,9 +552,10 @@ async function handleDetailBulkSave() {
       .map((row) => ({ row, transaction: buildDetailBulkTransaction(row, now) }))
       .filter((entry) => entry.transaction);
     const mergeResult = mergeTransactions(transactions, entries.map((entry) => entry.transaction));
+    const mergedKeys = new Set(mergeResult.records.map((item) => item.recordKey));
+    const savedEntries = entries.filter(({ transaction }) => !beforeKeys.has(transaction.recordKey) && mergedKeys.has(transaction.recordKey));
     const nextReimbursements = { ...reimbursements };
-    entries.forEach(({ row, transaction }) => {
-      if (beforeKeys.has(transaction.recordKey)) return;
+    savedEntries.forEach(({ row, transaction }) => {
       if (Number(row.reimbursement || 0) > 0) nextReimbursements[transaction.recordKey] = Math.min(Number(transaction.amount || 0), Number(row.reimbursement || 0));
     });
     const skippedDuplicates = detailBulkRows.filter((row) => row.valid && row.duplicate && !allowDuplicates).length;
@@ -568,15 +576,26 @@ async function handleDetailBulkSave() {
     importMeta = nextImportMeta;
     currentFileName = "과거 거래 일괄 입력";
 
-    detailBulkRows = [];
-    els.detailBulkPaste.value = "";
-    els.detailBulkPreview.innerHTML = "";
-    els.saveDetailBulkButton.disabled = true;
+    const savedRowIds = new Set(savedEntries.map(({ row }) => row.id));
+    detailBulkRows = detailBulkRows.filter((row) => !savedRowIds.has(row.id));
+    if (!detailBulkRows.some((row) => row.id === selectedDetailBulkRowId)) selectedDetailBulkRowId = detailBulkRows[0]?.id || "";
+    // 원문에도 남은 거래만 두어 다시 확인해도 이미 저장한 거래가 되살아나지 않게 한다.
+    detailBulkParsedText = detailBulkRows.map((row) => [row.date || "날짜 확인", row.description, formatPlainNumber(row.amount)].join("\t")).join("\n");
+    els.detailBulkPaste.value = detailBulkParsedText;
+    els.detailBulkSource.open = detailBulkRows.length === 0;
+    if (!detailBulkRows.length) {
+      els.detailBulkPreview.innerHTML = "";
+      els.saveDetailBulkButton.disabled = true;
+    }
     if (els.detailBulkListMonth) els.detailBulkListMonth.value = "all";
     if (els.detailBulkListSector) els.detailBulkListSector.value = "all";
     if (els.detailBulkListSubcategory) els.detailBulkListSubcategory.value = "all";
-    setDetailBulkFeedback(`${mergeResult.added.toLocaleString("ko-KR")}건의 직접 입력 거래를 저장했습니다. 중복 ${Number(mergeResult.skipped + skippedDuplicates).toLocaleString("ko-KR")}건은 건너뛰었습니다.`, "success");
-    selectedDetailBulkSubtab = "records";
+    const remainingCount = detailBulkRows.length;
+    const result = `${mergeResult.added.toLocaleString("ko-KR")}건의 직접 입력 거래를 저장했습니다.`;
+    setDetailBulkFeedback(remainingCount
+      ? `${result} 미저장 ${remainingCount.toLocaleString("ko-KR")}건은 목록에 남겼습니다. 오류 또는 중복 상태를 확인해주세요.`
+      : result, remainingCount ? "warning" : "success");
+    selectedDetailBulkSubtab = remainingCount ? "input" : "records";
     reclassify();
   });
 }
@@ -667,11 +686,11 @@ function validateDetailBulkRow(row) {
   const reimbursement = Math.max(0, parseDetailBulkAmount(row.reimbursement));
   const description = String(row.description || "").trim();
   const assignment = normalizeCategoryAssignment(row.sector, row.subcategory, description);
-  let error = row.error || "";
+  let error = "";
   if (!date) error = "날짜 오류";
   else if (!description) error = "빈 내용";
   else if (!amount) error = "금액 오류";
-  else if (reimbursement > amount) error = "정산 금액 확인";
+  else if (reimbursement > amount) error = "돌려받은 돈이 총 결제액보다 큽니다.";
   else if (row.installmentEnabled && Number(row.installmentMonths || 0) < 2) error = "할부 개월 확인";
   return {
     ...row,
@@ -768,76 +787,181 @@ function buildDetailBulkTransaction(row, now) {
 }
 
 function updateDetailBulkRowsFromPreview() {
-  if (!els.detailBulkPreview) return;
-  els.detailBulkPreview.querySelectorAll("[data-detail-bulk-index]").forEach((input) => {
-    const index = Number(input.dataset.detailBulkIndex);
-    const field = input.dataset.detailBulkField;
-    if (!Number.isInteger(index) || !detailBulkRows[index] || !field) return;
-    detailBulkRows[index][field] = input.type === "checkbox" ? input.checked : input.value;
-    if (field === "sector") {
-      const first = (categories[input.value] || [])[0] || "미분류";
-      if (!categories[input.value]?.includes(detailBulkRows[index].subcategory)) {
-        detailBulkRows[index].subcategory = first;
-      }
-    }
+  const row = detailBulkRows.find((item) => item.id === selectedDetailBulkRowId);
+  if (!row || !els.detailBulkEditor) return;
+  els.detailBulkEditor.querySelectorAll("[data-detail-bulk-field]").forEach((input) => {
+    row[input.dataset.detailBulkField] = input.type === "checkbox" ? input.checked : input.value;
   });
+  if (!categories[row.sector]?.includes(row.subcategory)) {
+    row.subcategory = (categories[row.sector] || [])[0] || "미분류";
+  }
   markDetailBulkDuplicateRows();
 }
 
-function renderDetailBulkPreview() {
+function selectDetailBulkRow(rowId, { focus = false } = {}) {
+  if (!detailBulkRows.some((row) => row.id === rowId)) return;
+  if (!NumericInput.validate(els.detailBulkEditor)) return;
+  updateDetailBulkRowsFromPreview();
+  selectedDetailBulkRowId = rowId;
+  renderDetailBulkPreview();
+  if (focus) els.detailBulkEditor.focus({ preventScroll: true });
+}
+
+function deleteDetailBulkRow(rowId) {
+  const index = detailBulkRows.findIndex((row) => row.id === rowId);
+  if (index < 0) return;
+  detailBulkRows.splice(index, 1);
+  selectedDetailBulkRowId = detailBulkRows[Math.min(index, detailBulkRows.length - 1)]?.id || "";
+  markDetailBulkDuplicateRows();
+  renderDetailBulkPreview();
+  setDetailBulkFeedback("선택한 거래를 저장 전 목록에서 삭제했습니다.", "success");
+}
+
+function renderDetailBulkPreview({ renderEditor = true } = {}) {
   if (!els.detailBulkPreview) return;
+  if (!detailBulkRows.some((row) => row.id === selectedDetailBulkRowId)) {
+    selectedDetailBulkRowId = detailBulkRows[0]?.id || "";
+  }
   updateDetailBulkSaveButton();
-  if (!detailBulkRows.length) {
-    els.detailBulkPreview.innerHTML = `<tbody><tr><td class="empty">파싱 결과가 여기에 표시됩니다.</td></tr></tbody>`;
+  syncDetailBulkWorkspace();
+  const existingRows = [...els.detailBulkPreview.querySelectorAll("[data-detail-bulk-row]")];
+  if (!renderEditor && existingRows.length === detailBulkRows.length && existingRows.every((node, index) => node.dataset.detailBulkRow === detailBulkRows[index].id)) {
+    existingRows.forEach((node, index) => {
+      const row = detailBulkRows[index];
+      node.classList.toggle("detail-bulk-error", !row.valid);
+      node.classList.toggle("detail-bulk-warning", row.valid && row.duplicate);
+      node.cells[0].textContent = row.date || "날짜 확인";
+      node.querySelector(".detail-bulk-row-select").textContent = row.description || "내용 입력";
+      node.cells[2].textContent = formatWon(row.amount);
+      node.cells[3].innerHTML = renderDetailBulkStatus(row);
+    });
     return;
   }
-  const header = ["상태", "날짜", "월", "내용", "총 결제액", "정산받은 금액", "분석 반영액", "섹터", "세부항목", "할부", "개월", "시작 월", "월 반영액", "삭제"]
-    .map((label) => `<th>${escapeHtml(label)}</th>`)
-    .join("");
-  const body = detailBulkRows.map((row, index) => {
-    const checked = validateDetailBulkRow(row);
-    const rowClass = !checked.valid ? "detail-bulk-error" : checked.duplicate ? "detail-bulk-warning" : "";
-    return `
-      <tr class="${rowClass}">
-        <td>${renderDetailBulkStatus(checked)}</td>
-        <td><input data-detail-bulk-index="${index}" data-detail-bulk-field="date" type="date" value="${escapeHtml(checked.date)}"></td>
-        <td><span class="detail-bulk-month">${escapeHtml(checked.month || "-")}</span></td>
-        <td><input data-detail-bulk-index="${index}" data-detail-bulk-field="description" type="text" value="${escapeHtml(checked.description)}" title="${escapeHtml(checked.original || "")}"></td>
-        <td><input step="1" data-number-kind="money" data-detail-bulk-index="${index}" data-detail-bulk-field="amount" class="amount-input" type="text" inputmode="numeric" value="${escapeHtml(formatPlainNumber(checked.amount))}"></td>
-        <td><input step="1" data-number-kind="money" data-detail-bulk-index="${index}" data-detail-bulk-field="reimbursement" class="amount-input" type="text" inputmode="numeric" value="${escapeHtml(formatPlainNumber(checked.reimbursement))}"></td>
-        <td class="amount">${formatWon(checked.actualAmount)}</td>
-        <td><select data-detail-bulk-index="${index}" data-detail-bulk-field="sector">${detailBulkSectorOptionsHtml(checked.sector)}</select></td>
-        <td><select data-detail-bulk-index="${index}" data-detail-bulk-field="subcategory">${detailBulkSubcategoryOptionsHtml(checked.sector, checked.subcategory)}</select></td>
-        <td><input data-detail-bulk-index="${index}" data-detail-bulk-field="installmentEnabled" type="checkbox" ${checked.installmentEnabled ? "checked" : ""} aria-label="할부 적용"></td>
-        <td><input data-number-kind="duration" data-number-unit="개월" data-detail-bulk-index="${index}" data-detail-bulk-field="installmentMonths" class="small-number-input" type="number" min="2" max="60" value="${escapeHtml(checked.installmentMonths || 2)}"></td>
-        <td><input data-detail-bulk-index="${index}" data-detail-bulk-field="installmentStartMonth" type="month" value="${escapeHtml(checked.installmentStartMonth || checked.month || "")}"></td>
-        <td class="amount">${checked.installmentEnabled && Number(checked.installmentMonths || 0) > 1 ? formatWon(checked.installmentMonthlyAmount) : "-"}</td>
-        <td><button type="button" class="income-row-delete" data-delete-detail-bulk="${index}">삭제</button></td>
-      </tr>
-    `;
+  const header = '<thead><tr><th scope="col">날짜</th><th scope="col">내용</th><th scope="col">금액</th><th scope="col">상태</th></tr></thead>';
+  const body = detailBulkRows.map((row) => {
+    const selected = row.id === selectedDetailBulkRowId;
+    const rowClass = [selected ? "is-selected" : "", !row.valid ? "detail-bulk-error" : row.duplicate ? "detail-bulk-warning" : ""].filter(Boolean).join(" ");
+    return `<tr class="${rowClass}" data-detail-bulk-row="${escapeHtml(row.id)}">
+      <td>${escapeHtml(row.date || "날짜 확인")}</td>
+      <td><button type="button" class="detail-bulk-row-select" aria-pressed="${selected}" aria-controls="detailBulkEditor">${escapeHtml(row.description || "내용 입력")}</button></td>
+      <td class="amount">${formatWon(row.amount)}</td>
+      <td>${renderDetailBulkStatus(row)}</td>
+    </tr>`;
   }).join("");
-  els.detailBulkPreview.innerHTML = `<thead><tr>${header}</tr></thead><tbody>${body}</tbody>`;
+  els.detailBulkPreview.innerHTML = header + '<tbody>' + (body || '<tr><td colspan="4" class="detail-bulk-empty">기록을 붙여넣고 ‘입력 내용 확인’을 눌러주세요.</td></tr>') + '</tbody>';
+  els.detailBulkPreview.querySelectorAll("[data-detail-bulk-row]").forEach((row) => {
+    row.addEventListener("click", () => selectDetailBulkRow(row.dataset.detailBulkRow, { focus: true }));
+  });
+  if (renderEditor) renderDetailBulkEditor();
+}
 
-  els.detailBulkPreview.querySelectorAll("[data-detail-bulk-index]").forEach((input) => {
-    input.addEventListener("change", () => {
-      if (!NumericInput.validate(els.detailBulkPreview)) return;
-      updateDetailBulkRowsFromPreview();
-      renderDetailBulkPreview();
-    });
+function detailBulkEditorPositionText(row, index) {
+  const date = /^(\d{4})-(\d{2})-(\d{2})$/.exec(row.date || "");
+  const label = date ? `${Number(date[2])}월 ${Number(date[3])}일` : "날짜 확인";
+  return `${label} · ${detailBulkRows.length}건 중 ${index + 1}번째`;
+}
+
+function renderDetailBulkEditor() {
+  if (!els.detailBulkEditor) return;
+  const index = detailBulkRows.findIndex((row) => row.id === selectedDetailBulkRowId);
+  const row = detailBulkRows[index];
+  if (!row) {
+    els.detailBulkEditor.innerHTML = '<h3>선택한 거래 수정</h3><p class="detail-bulk-empty">목록에서 거래를 선택하면 날짜, 금액, 분류를 수정할 수 있어요.</p>';
+    return;
+  }
+  els.detailBulkEditor.innerHTML = `
+    <div class="detail-bulk-editor-head"><div><h3 data-detail-bulk-title>${escapeHtml(row.description || "선택한 거래")} 수정</h3><span class="detail-bulk-eyebrow" data-detail-bulk-position>${detailBulkEditorPositionText(row, index)}</span></div><div class="detail-bulk-editor-actions"><span>${escapeHtml(sourceTypeLabel(row.sourceType))}</span><button type="button" data-delete-detail-bulk aria-label="선택한 거래를 목록에서 삭제" title="목록에서 삭제"><i class="ti ti-trash" aria-hidden="true"></i></button></div></div>
+    <div class="detail-bulk-editor-fields">
+      <label>날짜<input data-detail-bulk-field="date" type="date" value="${escapeHtml(row.date)}"></label>
+      <label>내용<input data-detail-bulk-field="description" type="text" value="${escapeHtml(row.description)}"></label>
+      <div class="detail-bulk-payment-fields">
+        <label>총 결제액<input data-detail-bulk-field="amount" data-number-kind="money" step="1" class="amount-input" type="text" inputmode="numeric" value="${escapeHtml(formatPlainNumber(row.amount))}"></label>
+        <label>돌려받은 돈<input data-detail-bulk-field="reimbursement" data-number-kind="money" step="1" class="amount-input" type="text" inputmode="numeric" value="${escapeHtml(formatPlainNumber(row.reimbursement))}"></label>
+        <div class="detail-bulk-consumption" data-detail-bulk-calculation ${row.valid ? '' : 'hidden'}><span class="detail-bulk-calculation"><span data-detail-bulk-payment>${formatWon(row.amount)}</span> − <span data-detail-bulk-refund>${formatWon(row.reimbursement)}</span> =</span><span class="detail-bulk-consumption-result">내 소비 <strong data-detail-bulk-actual>${formatWon(row.actualAmount)}</strong></span></div>
+      </div>
+      <div class="detail-bulk-category-fields">
+        <label>분류<select data-detail-bulk-field="sector">${detailBulkSectorOptionsHtml(row.sector)}</select></label>
+        <label>세부항목<select data-detail-bulk-field="subcategory">${detailBulkSubcategoryOptionsHtml(row.sector, row.subcategory)}</select></label>
+      </div>
+    </div>
+    <p data-detail-bulk-error class="bulk-feedback error" role="status" ${row.valid ? 'hidden' : ''}>${escapeHtml(row.error || "")}</p>
+    <details class="detail-bulk-installments" ${row.installmentEnabled ? 'open' : ''}>
+      <summary><i class="ti ti-chevron-right detail-bulk-chevron" aria-hidden="true"></i>할부 설정</summary>
+      <label class="check-line"><input data-detail-bulk-field="installmentEnabled" type="checkbox" ${row.installmentEnabled ? 'checked' : ''}> 할부 적용</label>
+      <div class="detail-bulk-installment-fields">
+        <label>개월 수<input data-detail-bulk-field="installmentMonths" data-number-kind="duration" data-number-unit="개월" type="number" min="2" max="60" value="${escapeHtml(row.installmentMonths || 2)}" ${row.installmentEnabled ? '' : 'disabled'}></label>
+        <label>시작 월<input data-detail-bulk-field="installmentStartMonth" type="month" value="${escapeHtml(row.installmentStartMonth || row.month)}" ${row.installmentEnabled ? '' : 'disabled'}></label>
+        <p>월 반영액 <strong data-detail-bulk-monthly>${row.installmentEnabled ? formatWon(row.installmentMonthlyAmount) : "-"}</strong></p>
+      </div>
+    </details>`;
+  els.detailBulkEditor.querySelectorAll("[data-detail-bulk-field]").forEach((input) => {
+    input.addEventListener("change", handleDetailBulkEditorChange);
+    if (input.dataset.numberKind) input.addEventListener("input", updateDetailBulkSaveButton);
   });
-  els.detailBulkPreview.querySelectorAll("[data-delete-detail-bulk]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const index = Number(button.dataset.deleteDetailBulk);
-      const invalid = [...els.detailBulkPreview.querySelectorAll("[data-number-kind]")].find((input) =>
-        Number(input.dataset.detailBulkIndex) !== index && !NumericInput.validate(input));
-      if (invalid) return;
-      updateDetailBulkRowsFromPreview();
-      detailBulkRows.splice(index, 1);
-      markDetailBulkDuplicateRows();
-      renderDetailBulkPreview();
-      setDetailBulkFeedback("선택한 행을 미리보기에서 삭제했습니다.", "success");
-    });
+  els.detailBulkEditor.querySelector("[data-delete-detail-bulk]").addEventListener("click", () => deleteDetailBulkRow(row.id));
+  NumericInput.refresh(els.detailBulkEditor);
+}
+
+function handleDetailBulkEditorChange(event) {
+  if (event.target.dataset.detailBulkField === "installmentEnabled") {
+    for (const field of ["installmentMonths", "installmentStartMonth"]) {
+      els.detailBulkEditor.querySelector('[data-detail-bulk-field="' + field + '"]').disabled = !event.target.checked;
+    }
+  }
+  if (!NumericInput.validate(els.detailBulkEditor)) return;
+  updateDetailBulkRowsFromPreview();
+  const row = detailBulkRows.find((item) => item.id === selectedDetailBulkRowId);
+  if (!row) return;
+  if (event.target.dataset.detailBulkField === "sector") {
+    els.detailBulkEditor.querySelector('[data-detail-bulk-field="subcategory"]').innerHTML = detailBulkSubcategoryOptionsHtml(row.sector, row.subcategory);
+  }
+  renderDetailBulkPreview({ renderEditor: false });
+  updateDetailBulkEditorPreview();
+}
+
+function updateDetailBulkEditorPreview() {
+  const index = detailBulkRows.findIndex((item) => item.id === selectedDetailBulkRowId);
+  const row = detailBulkRows[index];
+  if (!row || !els.detailBulkEditor) return;
+  els.detailBulkEditor.querySelector('[data-detail-bulk-title]').textContent = `${row.description || "선택한 거래"} 수정`;
+  els.detailBulkEditor.querySelector('[data-detail-bulk-position]').textContent = detailBulkEditorPositionText(row, index);
+  els.detailBulkEditor.querySelector('[data-detail-bulk-calculation]').hidden = !row.valid;
+  els.detailBulkEditor.querySelector('[data-detail-bulk-payment]').textContent = formatWon(row.amount);
+  els.detailBulkEditor.querySelector('[data-detail-bulk-refund]').textContent = formatWon(row.reimbursement);
+  els.detailBulkEditor.querySelector('[data-detail-bulk-actual]').textContent = formatWon(row.actualAmount);
+  els.detailBulkEditor.querySelector('[data-detail-bulk-monthly]').textContent = row.installmentEnabled ? formatWon(row.installmentMonthlyAmount) : "-";
+  const error = els.detailBulkEditor.querySelector('[data-detail-bulk-error]');
+  error.textContent = row.error || "";
+  error.hidden = row.valid;
+  for (const field of ["installmentMonths", "installmentStartMonth"]) {
+    els.detailBulkEditor.querySelector(`[data-detail-bulk-field="${field}"]`).disabled = !row.installmentEnabled;
+  }
+}
+
+function syncDetailBulkWorkspace() {
+  const hasRows = detailBulkRows.length > 0;
+  const workspace = els.detailBulkSource?.closest(".detail-bulk-workbench");
+  if (workspace) {
+    workspace.querySelector(".detail-bulk-review").hidden = !hasRows;
+    workspace.querySelector(".detail-bulk-footer").hidden = !hasRows;
+    workspace.querySelector(".detail-bulk-start-hint").hidden = hasRows;
+  }
+  if (els.detailBulkSourceSummary) els.detailBulkSourceSummary.textContent = hasRows ? `붙여넣은 기록 ${detailBulkRows.length.toLocaleString("ko-KR")}건` : "지난 거래를 한 번에 입력";
+  if (els.detailBulkDefaultsSummary) els.detailBulkDefaultsSummary.textContent = [els.detailBulkMonth.value, sourceTypeLabel(els.detailBulkSourceType.value), els.detailBulkSector.value].filter(Boolean).join(" · ");
+  if (els.detailBulkBackButton) els.detailBulkBackButton.hidden = !hasRows;
+  if (els.detailBulkSource && !hasRows) els.detailBulkSource.open = true;
+  const step = hasRows && !els.detailBulkSource?.open ? "review" : "paste";
+  els.detailBulkSteps?.forEach((item) => {
+    const current = item.dataset.detailBulkStep === step;
+    item.classList.toggle("is-current", current);
+    item.classList.toggle("is-complete", item.dataset.detailBulkStep === "paste" && step === "review");
+    if (current) item.setAttribute("aria-current", "step");
+    else item.removeAttribute("aria-current");
   });
+}
+
+function isDetailBulkSourceChanged() {
+  return detailBulkRows.length > 0 && els.detailBulkPaste.value.trim() !== detailBulkParsedText;
 }
 
 function renderDetailBulkSavedRecords() {
@@ -913,21 +1037,58 @@ function renderDetailBulkRecordEditForm(item) {
   const installmentMonthCount = installmentEnabled ? Number(item.installmentMonths || 0) : installmentMonths(item.installment) || 2;
   const installmentStartMonth = item.installmentStartMonth || item.month || monthKey(item.approvalDate) || currentMonthKey();
   return `
-    <input data-detail-bulk-record-field="date" type="date" value="${escapeHtml(normalizeInputDate(item.approvalDate))}" aria-label="과거 거래 날짜 수정">
-    <input data-detail-bulk-record-field="merchant" type="text" value="${escapeHtml(item.merchant)}" aria-label="과거 거래 내용 수정">
-    <input step="1" data-number-kind="money" data-detail-bulk-record-field="amount" class="amount-input" type="text" inputmode="numeric" value="${escapeHtml(formatPlainNumber(item.amount))}" aria-label="과거 거래 금액 수정">
-    <select data-detail-bulk-record-field="sourceType" aria-label="과거 거래 결제수단 수정">${detailBulkSourceTypeOptionsHtml(item.sourceType)}</select>
-    <input step="1" data-number-kind="money" data-detail-bulk-record-field="reimbursement" class="amount-input" type="text" inputmode="numeric" value="${escapeHtml(formatPlainNumber(reimbursement))}" aria-label="과거 거래 정산 기준값 수정">
-    <select data-detail-bulk-record-field="sector" aria-label="과거 거래 섹터 수정">${detailBulkSectorOptionsHtml(item.sector)}</select>
-    <select data-detail-bulk-record-field="subcategory" aria-label="과거 거래 세부항목 수정">${detailBulkSubcategoryOptionsHtml(item.sector, item.subcategory)}</select>
-    <label class="check-line detail-bulk-installment-check"><input data-detail-bulk-record-field="installmentEnabled" type="checkbox" ${installmentEnabled ? "checked" : ""}> 할부</label>
-    <input data-number-kind="duration" data-number-unit="개월" data-detail-bulk-record-field="installmentMonths" class="small-number-input" type="number" min="2" max="60" value="${escapeHtml(installmentMonthCount)}" aria-label="할부 개월 수">
-    <input data-detail-bulk-record-field="installmentStartMonth" type="month" value="${escapeHtml(installmentStartMonth)}" aria-label="할부 시작 월">
-    <div class="income-entry-actions">
-      <button type="button" class="primary-action" data-save-detail-bulk-record="${escapeHtml(item.recordKey)}">저장</button>
-      <button type="button" data-cancel-detail-bulk-record>취소</button>
-    </div>
-  `;
+    <div class="detail-bulk-saved-editor">
+      <div class="detail-bulk-editor-head"><div><h3 data-detail-bulk-record-title>${escapeHtml(item.merchant || "선택한 거래")} 수정</h3><span class="detail-bulk-eyebrow" data-detail-bulk-record-position>${escapeHtml(normalizeInputDate(item.approvalDate))} · 저장된 거래</span></div></div>
+      <div class="detail-bulk-editor-fields">
+        <label>날짜<input data-detail-bulk-record-field="date" type="date" value="${escapeHtml(normalizeInputDate(item.approvalDate))}"></label>
+        <label>내용<input data-detail-bulk-record-field="merchant" type="text" value="${escapeHtml(item.merchant)}"></label>
+        <div class="detail-bulk-payment-fields">
+          <label>총 결제액<input step="1" data-number-kind="money" data-detail-bulk-record-field="amount" class="amount-input" type="text" inputmode="numeric" value="${escapeHtml(formatPlainNumber(item.amount))}"></label>
+          <label>돌려받은 돈<input step="1" data-number-kind="money" data-detail-bulk-record-field="reimbursement" class="amount-input" type="text" inputmode="numeric" value="${escapeHtml(formatPlainNumber(reimbursement))}"></label>
+          <div class="detail-bulk-consumption" data-detail-bulk-record-calculation ${reimbursement > item.amount ? 'hidden' : ''}><span class="detail-bulk-calculation"><span data-detail-bulk-record-payment>${formatWon(item.amount)}</span> − <span data-detail-bulk-record-refund>${formatWon(reimbursement)}</span> =</span><span class="detail-bulk-consumption-result">내 소비 <strong data-detail-bulk-record-actual>${formatWon(Math.max(0, item.amount - reimbursement))}</strong></span></div>
+        </div>
+        <div class="detail-bulk-category-fields">
+          <label>분류<select data-detail-bulk-record-field="sector">${detailBulkSectorOptionsHtml(item.sector)}</select></label>
+          <label>세부항목<select data-detail-bulk-record-field="subcategory">${detailBulkSubcategoryOptionsHtml(item.sector, item.subcategory)}</select></label>
+        </div>
+        <label>결제수단<select data-detail-bulk-record-field="sourceType">${detailBulkSourceTypeOptionsHtml(item.sourceType)}</select></label>
+      </div>
+      <p data-detail-bulk-record-error class="bulk-feedback error" role="status" hidden></p>
+      <details class="detail-bulk-installments" ${installmentEnabled ? 'open' : ''}>
+        <summary><i class="ti ti-chevron-right detail-bulk-chevron" aria-hidden="true"></i>할부 설정</summary>
+        <label class="check-line"><input data-detail-bulk-record-field="installmentEnabled" type="checkbox" ${installmentEnabled ? "checked" : ""}> 할부 적용</label>
+        <div class="detail-bulk-installment-fields">
+          <label>개월 수<input data-number-kind="duration" data-number-unit="개월" data-detail-bulk-record-field="installmentMonths" type="number" min="2" max="60" value="${escapeHtml(installmentMonthCount)}" ${installmentEnabled ? '' : 'disabled'}></label>
+          <label>시작 월<input data-detail-bulk-record-field="installmentStartMonth" type="month" value="${escapeHtml(installmentStartMonth)}" ${installmentEnabled ? '' : 'disabled'}></label>
+          <p>월 반영액 <strong data-detail-bulk-record-monthly>${installmentEnabled ? formatWon(Math.floor(Number(item.amount || 0) / installmentMonthCount)) : "-"}</strong></p>
+        </div>
+      </details>
+      <div class="detail-bulk-record-edit-actions"><button type="button" class="primary-action" data-save-detail-bulk-record="${escapeHtml(item.recordKey)}">저장</button><button type="button" data-cancel-detail-bulk-record>취소</button></div>
+    </div>`;
+}
+
+function updateDetailBulkRecordEditPreview(form) {
+  const field = (name) => form.querySelector('[data-detail-bulk-record-field="' + name + '"]');
+  const amount = NumericInput.read(field("amount"));
+  const reimbursement = NumericInput.read(field("reimbursement"));
+  const validAmounts = Number.isInteger(amount) && amount > 0 && Number.isInteger(reimbursement) && reimbursement >= 0 && reimbursement <= amount;
+  form.querySelector('[data-detail-bulk-record-title]').textContent = `${field("merchant").value.trim() || "선택한 거래"} 수정`;
+  form.querySelector('[data-detail-bulk-record-position]').textContent = `${normalizeInputDate(field("date").value) || "날짜 확인"} · 저장된 거래`;
+  form.querySelector('[data-detail-bulk-record-calculation]').hidden = !validAmounts;
+  if (validAmounts) {
+    form.querySelector('[data-detail-bulk-record-payment]').textContent = formatWon(amount);
+    form.querySelector('[data-detail-bulk-record-refund]').textContent = formatWon(reimbursement);
+    form.querySelector('[data-detail-bulk-record-actual]').textContent = formatWon(amount - reimbursement);
+  }
+  const error = form.querySelector('[data-detail-bulk-record-error]');
+  error.hidden = !(reimbursement > amount);
+  error.textContent = reimbursement > amount ? "돌려받은 돈이 총 결제액보다 큽니다." : "";
+  const enabled = field("installmentEnabled").checked;
+  field("installmentMonths").disabled = !enabled;
+  field("installmentStartMonth").disabled = !enabled;
+  const months = NumericInput.read(field("installmentMonths"));
+  form.querySelector('[data-detail-bulk-record-monthly]').textContent = enabled && Number.isInteger(amount) && amount > 0 && Number.isInteger(months) && months >= 2
+    ? formatWon(Math.floor(amount / months)) : "-";
 }
 
 function attachDetailBulkRecordHandlers() {
@@ -949,9 +1110,16 @@ function attachDetailBulkRecordHandlers() {
   els.detailBulkRecordList.querySelectorAll("[data-save-detail-bulk-record]").forEach((button) => {
     button.addEventListener("click", () => saveDetailBulkRecordEdit(button.dataset.saveDetailBulkRecord));
   });
-  els.detailBulkRecordList.querySelectorAll('[data-detail-bulk-record-field="sector"]').forEach((select) => {
-    select.addEventListener("change", () => updateDetailBulkRecordEditSubcategory(select));
+  els.detailBulkRecordList.querySelectorAll('[data-detail-bulk-record-field]').forEach((input) => {
+    const form = input.closest(".detail-bulk-record-item");
+    input.addEventListener("change", () => {
+      if (input.dataset.detailBulkRecordField === "sector") updateDetailBulkRecordEditSubcategory(input);
+      updateDetailBulkRecordEditPreview(form);
+      NumericInput.refresh(form);
+    });
+    input.addEventListener("input", () => updateDetailBulkRecordEditPreview(form));
   });
+  NumericInput.refresh(els.detailBulkRecordList);
 }
 
 function updateDetailBulkRecordEditSubcategory(sectorSelect) {
@@ -982,7 +1150,7 @@ async function saveDetailBulkRecordEdit(recordKey) {
       return;
     }
     if (reimbursement > amount) {
-      alert("정산 기준값은 총 결제액보다 클 수 없습니다.");
+      alert("돌려받은 돈이 총 결제액보다 큽니다.");
       return;
     }
     if (installmentEnabled && (installmentMonthCount < 2 || !isValidMonthKey(installmentStartMonth))) {
@@ -1063,8 +1231,27 @@ async function deleteDetailBulkRecord(recordKey) {
 
 function updateDetailBulkSaveButton() {
   const allowDuplicates = Boolean(els.detailBulkAllowDuplicates?.checked);
-  const count = detailBulkRows.filter((row) => row.valid && (allowDuplicates || !row.duplicate)).length;
-  if (els.saveDetailBulkButton) els.saveDetailBulkButton.disabled = count === 0;
+  const invalidEditorId = els.detailBulkEditor?.querySelector('input[aria-invalid="true"]') ? selectedDetailBulkRowId : "";
+  const validRows = detailBulkRows.filter((row) => row.valid && row.id !== invalidEditorId);
+  const duplicateCount = validRows.filter((row) => row.duplicate).length;
+  const rows = validRows.filter((row) => allowDuplicates || !row.duplicate);
+  const count = rows.length;
+  const sourceChanged = isDetailBulkSourceChanged();
+  if (els.saveDetailBulkButton) {
+    els.saveDetailBulkButton.disabled = count === 0 || sourceChanged || Boolean(invalidEditorId);
+    els.saveDetailBulkButton.textContent = count ? `${count.toLocaleString("ko-KR")}건 저장` : "일괄 저장";
+  }
+  if (els.detailBulkSaveSummary) els.detailBulkSaveSummary.textContent = detailBulkRows.length
+    ? `${count.toLocaleString("ko-KR")}건 · 내 소비 합계 ${formatWon(rows.reduce((sum, row) => sum + row.actualAmount, 0))}`
+    : "저장할 기록이 없습니다.";
+  if (els.detailBulkReviewStatus) {
+    const errorCount = detailBulkRows.length - validRows.length;
+    els.detailBulkReviewStatus.hidden = detailBulkRows.length === 0;
+    els.detailBulkReviewStatus.textContent = sourceChanged
+      ? "원문이 바뀌었습니다. ‘입력 내용 확인’을 눌러 저장할 목록을 다시 확인해주세요."
+      : `저장 가능 ${count.toLocaleString("ko-KR")}건 · 확인 필요 ${errorCount.toLocaleString("ko-KR")}건 · 중복 ${allowDuplicates ? "포함" : "제외"} ${duplicateCount.toLocaleString("ko-KR")}건${invalidEditorId ? " · 숫자 입력을 고친 뒤 저장하세요." : ""}`;
+    els.detailBulkReviewStatus.className = `bulk-feedback ${errorCount || sourceChanged ? "warning" : "success"}`;
+  }
 }
 
 function renderDetailBulkStatus(row) {
@@ -1165,6 +1352,7 @@ function syncDetailFilterControls(activeRows, months) {
 function readDetailFilterControls() {
   detailFocusRecordKey = "";
   detailExpandedSectionKey = "";
+  if (detailFilters.sectorOverview) detailSelectedSectionKey = "";
   detailFilters.month = els.detailMonth.value || "all";
   detailFilters.sector = els.detailSector.value || "all";
   detailFilters.subcategory = els.detailSubcategory.value || "all";
@@ -1279,10 +1467,10 @@ function renderDetailGrid(rows, selectedMonth) {
   }
   detailInstallmentEditRecordKey = "";
 
-  const selectedStat = resolveDetailSelectedStat(sectionStats);
+  const selectedStat = resolveDetailSelectedStat(sectionStats, rows);
   const sectorGroups = buildDetailSectorGroups(sectionStats);
   const filteredActualTotal = sumConsumption(rows);
-  const limit = detailFocusRecordKey ? 0 : 8;
+  const limit = detailFocusRecordKey || selectedStat.isSectorOverview ? 0 : 8;
   return `
     <section class="detail-results-panel">
       <div class="panel-head">
@@ -1298,13 +1486,16 @@ function renderDetailGrid(rows, selectedMonth) {
         <div class="detail-master-pane" aria-live="polite">
           ${renderLedgerSection(selectedStat.section, selectedStat.rows, selectedMonth, detailFilters.sort, {
           limit,
-          fullViewButton: true,
+          fullViewButton: !selectedStat.isSectorOverview,
+          hideQuickAdd: Boolean(selectedStat.isSectorOverview),
           calendarLinks: true,
           masterDetail: true,
           contextLabel: selectedStat.section.sector,
           reimbursementHint: reimbursementEditMode
             ? "정산받은 금액을 입력하면 변경 내용이 바로 저장됩니다."
-            : "정산받은 금액은 전체 보기에서 정산금 수정 버튼을 켠 뒤 수정할 수 있습니다."
+            : selectedStat.isSectorOverview
+              ? "거래를 누르면 소비 달력에서 수정할 수 있습니다. 정산금은 세부항목의 전체 보기에서 수정하세요."
+              : "정산받은 금액은 전체 보기에서 정산금 수정 버튼을 켠 뒤 수정할 수 있습니다."
           })}
         </div>
       </div>
@@ -1312,13 +1503,32 @@ function renderDetailGrid(rows, selectedMonth) {
   `;
 }
 
-function resolveDetailSelectedStat(sectionStats) {
+function detailSectorOverviewKey(sector) {
+  return `sector-overview:${sector}`;
+}
+
+function resolveDetailSelectedStat(sectionStats, rows) {
   const focusedStat = detailFocusRecordKey
     ? sectionStats.find((stat) => stat.rows.some((row) => row.recordKey === detailFocusRecordKey))
     : null;
-  const selected = focusedStat
-    || sectionStats.find((stat) => stat.section.key === detailSelectedSectionKey)
-    || sectionStats[0];
+  let selected = focusedStat || sectionStats.find((stat) => stat.section.key === detailSelectedSectionKey);
+  if (!selected && detailFilters.sectorOverview && detailFilters.subcategory === "all") {
+    const sector = detailFilters.sector !== "all"
+      ? detailFilters.sector
+      : sectionStats.find((stat) => detailSectorOverviewKey(stat.section.sector) === detailSelectedSectionKey)?.section.sector;
+    if (sector) {
+      selected = {
+        ...buildBoardSectionStat({
+          key: detailSectorOverviewKey(sector),
+          title: `${sector} 전체`,
+          sector,
+          subcategory: ""
+        }, rows.filter((row) => row.sector === sector)),
+        isSectorOverview: true
+      };
+    }
+  }
+  selected ||= sectionStats[0];
   detailSelectedSectionKey = selected?.section.key || "";
   return selected;
 }
@@ -1355,7 +1565,9 @@ function buildDetailSectorGroups(sectionStats) {
 function renderDetailSectorGroup(group, selectedStat, filteredActualTotal) {
   const isExpanded = group.sector === selectedStat.section.sector;
   const firstSectionKey = group.stats[0]?.section.key || "";
-  const sectorSelectionKey = isExpanded ? selectedStat.section.key : firstSectionKey;
+  const sectorSelectionKey = detailFilters.sectorOverview && detailFilters.subcategory === "all"
+    ? detailSectorOverviewKey(group.sector)
+    : isExpanded ? selectedStat.section.key : firstSectionKey;
   const sectorClass = categoryClass(group.sector);
   return `
     <section class="detail-sector-group ${sectorClass} ${isExpanded ? "is-expanded" : ""}">

@@ -28,7 +28,8 @@ function attachBoardSummaryHandlers() {
       openDetailView(boardDetailOptions({
         month: els.boardMonth.value,
         sector: node.dataset.boardSummarySector,
-        subcategory: "all"
+        subcategory: "all",
+        showSectorOverview: true
       }));
     });
   });
@@ -86,7 +87,7 @@ function renderLedgerSection(section, rows, selectedMonth, sortMode = "date", op
           <strong>${formatWon(actualTotal)}</strong>
           ${canOpenFullView ? `<button type="button" class="detail-card-expand" data-detail-expand-section="${escapeHtml(section.key)}">전체 보기</button>` : ""}
           ${options.fullMode ? `<button type="button" class="detail-reimbursement-toggle ${reimbursementEditMode ? "primary-action" : ""}" data-detail-reimbursement-toggle aria-pressed="${reimbursementEditMode ? "true" : "false"}">${reimbursementEditMode ? "정산금 수정 완료" : "정산금 수정"}</button>` : ""}
-          <button type="button" class="quick-add-toggle" data-quick-add-open="${escapeHtml(section.key)}">+ 내역 추가</button>
+          ${!options.hideQuickAdd ? `<button type="button" class="quick-add-toggle" data-quick-add-open="${escapeHtml(section.key)}">+ 내역 추가</button>` : ""}
         </div>
       </div>
       ${boardQuickAddFeedback === section.key ? `<div class="quick-add-feedback">직접 입력 내역을 추가했습니다.</div>` : ""}
@@ -95,7 +96,7 @@ function renderLedgerSection(section, rows, selectedMonth, sortMode = "date", op
         <span>실 지출 ${formatWon(actualTotal)}</span>
       </div>
       ${options.reimbursementHint ? `<p class="category-edit-hint">${escapeHtml(options.reimbursementHint)}</p>` : ""}
-      ${boardQuickAddSectionKey === section.key ? renderQuickAddForm(section, selectedMonth) : ""}
+      ${!options.hideQuickAdd && boardQuickAddSectionKey === section.key ? renderQuickAddForm(section, selectedMonth) : ""}
       <div class="transaction-list">
         <div class="transaction-head">
           <span>날짜</span>

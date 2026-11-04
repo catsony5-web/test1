@@ -379,7 +379,20 @@ async function init() {
   els.parseDetailBulkButton.addEventListener("click", handleDetailBulkParse);
   els.clearDetailBulkButton.addEventListener("click", clearDetailBulkInput);
   els.saveDetailBulkButton.addEventListener("click", handleDetailBulkSave);
-  els.detailBulkAllowDuplicates.addEventListener("change", renderDetailBulkPreview);
+  els.detailBulkAllowDuplicates.addEventListener("change", () => {
+    if (!NumericInput.validate(els.detailBulkEditor)) return;
+    updateDetailBulkRowsFromPreview();
+    renderDetailBulkPreview({ renderEditor: false });
+  });
+  els.detailBulkPaste.addEventListener("input", () => {
+    updateDetailBulkSaveButton();
+  });
+  els.detailBulkDefaults.addEventListener("change", syncDetailBulkWorkspace);
+  els.detailBulkSource.addEventListener("toggle", syncDetailBulkWorkspace);
+  els.detailBulkBackButton.addEventListener("click", () => {
+    els.detailBulkSource.open = true;
+    els.detailBulkPaste.focus();
+  });
   els.detailBulkListMonth.addEventListener("change", renderDetailBulkSavedRecords);
   els.detailBulkListSector.addEventListener("change", () => {
     fillDetailBulkListSubcategoryFilter();

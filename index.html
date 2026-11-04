@@ -19,7 +19,7 @@
   <link rel="stylesheet" href="src/styles/07-responsive.css?v=176-recurring-review">
   <link rel="stylesheet" href="src/styles/08-themes.css?v=185-theme-refresh">
   <link rel="stylesheet" href="assets/tabler/tabler-icons.min.css?v=135-subcategory-icons">
-  <link rel="stylesheet" href="src/styles/09-production-ui.css?v=193-calendar-outflow">
+  <link rel="stylesheet" href="src/styles/09-production-ui.css?v=202-personal-agent">
   <link rel="stylesheet" href="src/styles/10-analysis.css?v=202-personal-agent">
   <link rel="stylesheet" href="src/styles/11-summary-insights.css?v=188-pattern-readability">
   <link rel="stylesheet" href="src/styles/12-rosso-ink.css?v=169-corsa-themes">
@@ -297,7 +297,7 @@
   <main>
     <section class="privacy-note">
       <strong>개인 저장 방식</strong>
-      <span>카드 내역, 이체 내역, 분류 규칙, 월별 수입과 자산 목표는 서버로 보내지지 않고 이 브라우저 저장소에만 남습니다.</span>
+      <span>가계부 기록은 이 브라우저에 저장됩니다. AI 대화를 사용하면 질문과 필요한 조회 결과가 선택한 AI 연결을 통해 OpenAI로 전달됩니다.</span>
     </section>
 
     <section class="workspace app-shell">
@@ -1151,7 +1151,7 @@
         <div class="section-head">
           <div>
             <h2>과거 거래 입력</h2>
-            <p>카드 내역 엑셀이 없는 과거 소비 기록을 붙여넣고, 선택한 분류로 한 번에 저장합니다.</p>
+            <p>지난 기록을 확인하고 내 소비에 반영하세요.</p>
           </div>
         </div>
         <div class="detail-bulk-tabs" role="tablist" aria-label="과거 거래 입력 화면">
@@ -1162,33 +1162,72 @@
             <i class="ti ti-history" aria-hidden="true"></i><span>전체 기록</span><strong id="detailBulkTabRecordCount">0건</strong>
           </button>
         </div>
-        <section id="detailBulkInputPanel" class="detail-bulk-panel detail-bulk-workspace" role="tabpanel" aria-labelledby="detailBulkInputTab" data-detail-bulk-panel="input">
-          <div class="detail-bulk-head">
-            <div>
-              <h3>과거 거래 일괄 입력</h3>
-              <p>카드 내역이 없는 과거 소비 기록을 날짜 / 내용 / 금액 형식으로 붙여넣어 등록합니다. 월은 날짜에서 자동 추출됩니다.</p>
+        <p id="detailBulkFeedback" class="bulk-feedback" aria-live="polite"></p>
+        <section id="detailBulkInputPanel" class="detail-bulk-panel detail-bulk-workbench" role="tabpanel" aria-labelledby="detailBulkInputTab" data-detail-bulk-panel="input">
+          <p id="detailBulkReviewStatus" class="bulk-feedback" aria-live="polite" hidden></p>
+          <ol class="detail-bulk-steps" aria-label="거래 입력 순서">
+            <li data-detail-bulk-step="paste" class="is-current" aria-current="step"><span>1</span> 붙여넣기</li>
+            <li data-detail-bulk-step="review"><span>2</span> 확인 및 수정</li>
+            <li data-detail-bulk-step="save"><span>3</span> 저장</li>
+          </ol>
+          <details id="detailBulkSource" class="detail-bulk-disclosure" open>
+            <summary><i class="ti ti-chevron-right detail-bulk-chevron" aria-hidden="true"></i><span id="detailBulkSourceSummary">지난 거래를 한 번에 입력</span><span class="detail-bulk-summary-action">원문 보기</span></summary>
+            <div class="detail-bulk-source-body">
+              <div class="detail-bulk-input-example">
+                <p><strong>작성 예시</strong> · 내 기록에 저장되지 않아요</p>
+                <table aria-label="거래 작성 예시">
+                  <thead><tr><th scope="col">날짜</th><th scope="col">내용</th><th scope="col">금액</th></tr></thead>
+                  <tbody>
+                    <tr><td>2026.10.17</td><td>점심 식사</td><td>12,000</td></tr>
+                    <tr><td>2026.10.18</td><td>저녁 식사</td><td>18,000</td></tr>
+                    <tr><td>2026.10.20</td><td>간단한 식사</td><td>6,000</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <label for="detailBulkPaste">내 거래 입력</label>
+              <textarea id="detailBulkPaste" rows="4" placeholder="예시처럼 한 줄에 거래 하나씩 적거나 붙여넣으세요." aria-describedby="detailBulkPasteHelp detailBulkSourceResetHelp"></textarea>
+              <div class="detail-bulk-source-guide">
+                <p id="detailBulkPasteHelp">다음 화면에서 금액과 분류를 고칠 수 있어요. 아직 저장되지 않습니다.</p>
+                <div class="paste-actions">
+                  <button id="parseDetailBulkButton" class="primary-action" type="button">입력 내용 확인 <i class="ti ti-chevron-right" aria-hidden="true"></i></button>
+                  <button id="clearDetailBulkButton" type="button">초기화</button>
+                </div>
+                <p id="detailBulkSourceResetHelp">다시 확인하면 수정 중인 목록을 입력한 원문으로 새로 만듭니다.</p>
+              </div>
             </div>
+          </details>
+          <details id="detailBulkDefaults" class="detail-bulk-disclosure">
+            <summary><i class="ti ti-chevron-right detail-bulk-chevron" aria-hidden="true"></i><span id="detailBulkDefaultsSummary">붙여넣을 기록의 기본값</span><span class="detail-bulk-summary-action">공통 설정</span></summary>
+            <div class="detail-bulk-controls">
+              <label>기준 월<select id="detailBulkMonth"></select></label>
+              <label>분류<select id="detailBulkSector"></select></label>
+              <label>세부항목<select id="detailBulkSubcategory"></select></label>
+              <label>결제수단<select id="detailBulkSourceType"><option value="manual" selected>직접 입력</option><option value="card">카드</option><option value="transfer">이체</option><option value="cash">현금</option><option value="other">기타</option></select></label>
+              <label>정산 기본값<input id="detailBulkReimbursementDefault" data-number-kind="money" step="1" type="text" inputmode="numeric" value="0"></label>
+              <label class="check-line"><input id="detailBulkAutoSuggest" type="checkbox"> 행별 자동 추천 적용</label>
+            </div>
+            <p class="detail-bulk-defaults-help">공통 설정은 ‘입력 내용 확인’을 누를 때 적용됩니다. 확인 중인 거래는 오른쪽에서 수정하세요.</p>
+          </details>
+          <p class="detail-bulk-start-hint">내용을 확인하면 거래별로 날짜, 금액, 분류를 수정할 수 있어요. 저장하기 전까지는 가계부에 반영되지 않습니다.</p>
+          <div class="detail-bulk-review" hidden>
+            <section class="detail-bulk-ledger" aria-labelledby="detailBulkLedgerTitle">
+              <header class="detail-bulk-ledger-head">
+                <div><span class="detail-bulk-eyebrow">저장 전 검토</span><h3 id="detailBulkLedgerTitle">거래 목록</h3></div>
+                <p id="detailBulkListHelp">거래를 선택해 수정하세요.</p>
+              </header>
+              <div class="table-wrap detail-bulk-preview-wrap">
+                <table id="detailBulkPreview" aria-label="저장 전 거래 목록" aria-describedby="detailBulkListHelp"></table>
+              </div>
+              <label class="check-line detail-bulk-duplicate-option"><input id="detailBulkAllowDuplicates" type="checkbox"> 중복 가능 항목 포함 저장</label>
+            </section>
+            <aside id="detailBulkEditor" class="detail-bulk-editor" aria-label="선택한 거래 수정" tabindex="-1"></aside>
           </div>
-          <div class="detail-bulk-controls">
-            <label>기준 월<select id="detailBulkMonth"></select></label>
-            <label>섹터<select id="detailBulkSector"></select></label>
-            <label>세부항목<select id="detailBulkSubcategory"></select></label>
-            <label>결제수단<select id="detailBulkSourceType"><option value="manual" selected>직접 입력</option><option value="card">카드</option><option value="transfer">이체</option><option value="cash">현금</option><option value="other">기타</option></select></label>
-            <label>정산 기본값<input id="detailBulkReimbursementDefault" data-number-kind="money" step="1" type="text" inputmode="numeric" value="0"></label>
-            <label class="check-line"><input id="detailBulkAutoSuggest" type="checkbox"> 행별 자동 추천 적용</label>
-            <label class="check-line"><input id="detailBulkAllowDuplicates" type="checkbox"> 중복 가능 항목 포함 저장</label>
-          </div>
-          <div class="paste-entry detail-bulk-paste">
-            <textarea id="detailBulkPaste" rows="5" placeholder="YYYY.MM.DD&#9;내용&#9;금액&#10;YYYY.MM.DD&#9;내용&#9;금액"></textarea>
-            <div class="paste-actions">
-              <button id="parseDetailBulkButton" type="button">붙여넣기 파싱</button>
-              <button id="clearDetailBulkButton" type="button">초기화</button>
+          <div class="detail-bulk-footer" hidden>
+            <button id="detailBulkBackButton" type="button" hidden><i class="ti ti-chevron-left" aria-hidden="true"></i> 이전 단계</button>
+            <div class="detail-bulk-save-actions">
+              <div class="detail-bulk-save-summary"><span>가계부에 반영할 내역</span><strong id="detailBulkSaveSummary" aria-live="polite">저장할 기록이 없습니다.</strong></div>
               <button id="saveDetailBulkButton" class="primary-action" type="button" disabled>일괄 저장</button>
             </div>
-          </div>
-          <p id="detailBulkFeedback" class="bulk-feedback" aria-live="polite"></p>
-          <div class="table-wrap detail-bulk-preview-wrap">
-            <table id="detailBulkPreview"></table>
           </div>
         </section>
         <section id="detailBulkRecordsPanel" class="detail-bulk-records-panel" role="tabpanel" aria-labelledby="detailBulkRecordsTab" data-detail-bulk-panel="records" hidden>
@@ -1564,9 +1603,9 @@
   <script src="src/features/budget/spending-budget-view.js?v=202-personal-agent"></script>
   <script src="src/features/budget/spending-budget-targets.js?v=191-budget-templates"></script>
   <script src="src/features/board/board-summary.js?v=192-maintenance"></script>
-  <script src="src/features/board/board-overview.js?v=185-theme-refresh"></script>
-  <script src="src/features/board/board-cards.js?v=192-maintenance"></script>
-  <script src="src/features/details/details-view.js?v=191-budget-templates"></script>
+  <script src="src/features/board/board-overview.js?v=202-personal-agent"></script>
+  <script src="src/features/board/board-cards.js?v=202-personal-agent"></script>
+  <script src="src/features/details/details-view.js?v=202-personal-agent"></script>
   <script src="src/features/summary/comparison-analysis.js?v=171-calendar-split-summary"></script>
   <script src="src/features/summary/summary-priority.js?v=165-summary-insights-r2"></script>
   <script src="src/features/summary/summary-food-core.js?v=190-budget-check"></script>
