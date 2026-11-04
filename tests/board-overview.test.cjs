@@ -204,6 +204,8 @@ test("결제 패널은 기존 청구 금액과 날짜 및 미분류·고정지�
   const model = c.buildBoardOverviewModel("2026-09", "2026-09-05");
   const html = c.renderBoardOverviewBilling(model);
   assert.match(html, /90,000원/);
+  assert.match(html, /카드 청구액만 · 별도 보험료·대출 제외/);
+  assert.match(html, /이번 달 출금 내역 보기/);
   for (const date of [model.billing.periodStart, model.billing.periodEnd, model.billing.paymentDate]) {
     const [month, day] = date.slice(5).split("-").map(Number);
     assert.ok(html.includes(date) || html.includes(date.slice(5)) || html.includes(`${month}/${day}`) || html.includes(`${month}.${day}`), `결제 날짜 ${date}가 표시되어야 한다`);
@@ -330,8 +332,10 @@ test("하단으로 옮긴 TOP 5와 섹터 항목에서 선택 월의 상세 내�
   assert.equal(opened.month, "2026-08");
   assert.equal(opened.sector, "식비");
   assert.equal(opened.subcategory, "장보기/마트");
+  assert.equal(opened.showSectorOverview, undefined);
   sector.click();
   assert.equal(opened.month, "2026-08");
   assert.equal(opened.sector, "교통비");
   assert.equal(opened.subcategory, "all");
+  assert.equal(opened.showSectorOverview, true);
 });

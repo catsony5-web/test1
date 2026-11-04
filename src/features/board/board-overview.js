@@ -31,32 +31,39 @@ function boardOverviewComparison(analysis) {
 function renderBoardOverviewMetrics(model) {
   const { month, snapshot, analysis } = model;
   const incomeKnown = analysis.currentIncomeKnown;
+  const trend = renderBoardOverviewTrend(model);
   const comparisonTone = analysis.canCompareConsumption && analysis.consumptionDelta !== 0
     ? (analysis.consumptionDelta > 0 ? "is-increase" : "is-decrease") : "";
   const periodHint = analysis.isCurrentMonth ? "진행 중 · 선택 월에 등록된 전체 내역" : analysis.isFutureMonth ? "미래 월에 등록된 내역" : "선택 월 전체 내역";
   return `
-    <article class="board-overview-hero" aria-labelledby="boardConsumptionTitle">
-      <div class="board-overview-hero-copy">
-      <span class="board-overview-eyebrow">${escapeHtml(month)} · ${periodHint}</span>
-      <h3 id="boardConsumptionTitle">${analysis.isCurrentMonth ? "이번 달" : "선택 월"} 소비지출</h3>
-      <strong class="board-overview-total">${formatWon(snapshot.consumptionSpend)}</strong>
-      <p class="board-overview-comparison ${comparisonTone}">${escapeHtml(boardOverviewComparison(analysis))}</p>
-      ${analysis.cutoffDay ? `<small>비교 금액 ${formatWon(analysis.currentPeriod.amount)} / 전월 ${formatWon(analysis.previousPeriod.amount)}${analysis.currentPeriod.undatedCount + analysis.previousPeriod.undatedCount > 0 ? " · 날짜 미확인 거래는 비교에서 제외" : ""}</small>` : ""}
+    <section class="board-overview-summary" aria-label="선택 월 수입과 소비 요약">
+      <header class="board-overview-summary-head"><span>${escapeHtml(month)} · ${periodHint}</span><span>기록한 내역 기준</span></header>
+      <div class="board-overview-summary-grid">
+        <article class="board-overview-hero" aria-labelledby="boardConsumptionTitle">
+          <h3 id="boardConsumptionTitle">${analysis.isCurrentMonth ? "이번 달" : "선택 월"} 소비지출</h3>
+          <strong class="board-overview-total">${formatWon(snapshot.consumptionSpend)}</strong>
+          <p class="board-overview-comparison ${comparisonTone}">${escapeHtml(boardOverviewComparison(analysis))}</p>
+          <div class="board-overview-hero-footer"><span>정산금 차감 후 · 적금/예금·대출 원금 제외</span><button type="button" data-board-route="calendar">소비 달력 보기 <span aria-hidden="true">→</span></button></div>
+        </article>
+        <button type="button" class="board-overview-money-row" data-open-income-month="${escapeHtml(month)}">
+          <b>수입 <span aria-hidden="true">↗</span></b>
+          <strong class="${incomeKnown ? "board-overview-positive" : "board-overview-missing"}">${incomeKnown ? formatWon(snapshot.income) : "수입 입력 필요"}</strong>
+          <small>${incomeKnown ? "선택 월에 기록한 수입" : "수입을 입력하면 남은 돈도 확인할 수 있어요"}</small>
+          <span class="board-overview-income-link">${incomeKnown ? "수입 내역 보기" : "수입 입력하기"} <span aria-hidden="true">→</span></span>
+        </button>
+        <article class="board-overview-money-row">
+          <b>기록 기준 남은 돈</b>
+          <strong class="${!incomeKnown ? "board-overview-missing" : snapshot.freeBalance < 0 ? "board-overview-negative" : "board-overview-positive"}">${incomeKnown ? formatSignedWon(snapshot.freeBalance) : "계산 대기"}</strong>
+          <small>소비·저축·내 원금 부담과 가족 정산 반영</small>
+          <p class="board-overview-balance-note">통장 잔액이나 앞으로 써도 되는 예산은 아닙니다. 미반영 예정 지출은 아직 차감하지 않았습니다.</p>
+        </article>
       </div>
-      ${renderBoardOverviewTrend(model)}
-      <div class="board-overview-hero-footer"><span>정산금 차감 후 · 적금/예금·대출 원금 제외</span><button type="button" data-board-route="calendar">소비 달력 보기 <span aria-hidden="true">→</span></button></div>
-    </article>
-    <div class="board-overview-money">
-      <button type="button" class="board-overview-money-row" data-open-income-month="${escapeHtml(month)}">
-        <span><b>수입</b><small>${incomeKnown ? "선택 월에 기록한 수입" : "수입을 입력하면 남은 돈도 확인할 수 있어요"}</small></span>
-        <strong class="${incomeKnown ? "board-overview-positive" : "board-overview-missing"}">${incomeKnown ? formatWon(snapshot.income) : "수입 입력 필요"} <span aria-hidden="true">›</span></strong>
-      </button>
-      <article class="board-overview-money-row">
-        <span><b>기록 기준 남은 돈</b><small>소비·저축·내 원금 부담과 가족 정산 반영</small></span>
-        <strong class="${!incomeKnown ? "board-overview-missing" : snapshot.freeBalance < 0 ? "board-overview-negative" : "board-overview-positive"}">${incomeKnown ? formatSignedWon(snapshot.freeBalance) : "계산 대기"}</strong>
-      </article>
-      <p class="board-overview-balance-note">통장 잔액이나 앞으로 써도 되는 예산은 아닙니다. 미반영 예정 지출은 아직 차감하지 않았습니다.</p>
-    </div>`;
+    </section>
+    ${trend ? `<section class="board-overview-trend-panel" aria-label="전월과 소비 비교">
+      <div class="board-overview-trend-copy"><h3>전월과 소비 비교</h3><p>${escapeHtml(boardOverviewComparison(analysis))}</p>
+      ${analysis.cutoffDay ? `<small>비교 금액 ${formatWon(analysis.currentPeriod.amount)} / 전월 ${formatWon(analysis.previousPeriod.amount)}${analysis.currentPeriod.undatedCount + analysis.previousPeriod.undatedCount > 0 ? " · 날짜 미확인 거래는 비교에서 제외" : ""}</small>` : ""}</div>
+      ${trend}
+    </section>` : ""}`;
 }
 
 function buildBoardDailySeries(rows, month, dayCount) {
@@ -77,7 +84,7 @@ function buildBoardDailySeries(rows, month, dayCount) {
 
 function renderBoardOverviewTrend(model) {
   const { analysis } = model;
-  if (!analysis.canCompareConsumption) return `<div class="board-overview-trend board-overview-trend-empty"><i class="ti ti-chart-line" aria-hidden="true"></i><p>${escapeHtml(boardOverviewComparison(analysis))}</p></div>`;
+  if (!analysis.canCompareConsumption) return "";
   const days = analysis.cutoffDay || 31;
   const current = buildBoardDailySeries(analysis.currentPeriod.rows, model.month, days);
   const previous = buildBoardDailySeries(analysis.previousPeriod.rows, analysis.comparisonMonth, days);
@@ -118,7 +125,7 @@ function renderBoardOverviewSectors(model) {
     return segment;
   }).join("") : "";
   return `<section class="board-overview-panel board-overview-sector-panel" aria-labelledby="boardSectorTitle">
-    <header class="board-overview-panel-head"><div><h3 id="boardSectorTitle">소비의 모양</h3><p>어디에 썼나요? · 선택 월 전체 소비</p></div><span>${sectors.length}개 섹터</span></header>
+    <header class="board-overview-panel-head"><div><h3 id="boardSectorTitle">어디에 썼나요?</h3><p>분류별 소비 금액 · 정산 후 기준</p></div><span>${sectors.length}개 분류</span></header>
     <div class="${canShowDonut ? "board-overview-sector-layout" : "board-overview-sector-fallback"}">
     ${canShowDonut ? `<div class="board-overview-donut-wrap"><svg class="board-overview-donut" viewBox="0 0 320 320" role="img" aria-label="섹터별 소비 비중. 가장 많이 쓴 섹터 ${escapeHtml(leading.sector)}, ${leading.share.toFixed(1)}%">${segments}</svg><div class="board-overview-donut-label"><b>${escapeHtml(leading.sector)}</b><strong>${leading.share.toFixed(1)}%</strong><small>${formatWon(leading.amount)}</small></div></div>` : ""}
     <div class="board-overview-sector-list">
@@ -131,7 +138,7 @@ function renderBoardOverviewSectors(model) {
       }).join("") : `<div class="board-overview-empty">이 달에 기록된 소비지출이 없습니다.<br>거래를 입력하면 섹터별 금액을 볼 수 있습니다.</div>`}
     </div>
     </div>
-    <p class="board-overview-panel-foot">${sectors.length && !canShowDonut ? "순소비가 0원 이하이거나 환급이 있어 비중 대신 금액을 표시합니다. " : ""}섹터를 선택해 거래 자세히 보기 <span aria-hidden="true">→</span></p>
+    <p class="board-overview-panel-foot">${sectors.length && !canShowDonut ? "순소비가 0원 이하이거나 환급이 있어 비중 대신 금액을 표시합니다. " : ""}분류를 선택하면 거래 내역을 볼 수 있어요 <span aria-hidden="true">→</span></p>
   </section>`;
 }
 
@@ -151,8 +158,8 @@ function renderBoardOverviewBilling(model) {
         <div class="board-overview-timeline-track" aria-hidden="true"><span style="width:${progress}%"></span></div>
         <div class="board-overview-timeline-labels"><span>${escapeHtml(timelineLabel)}</span><span>결제일 ${dueLabel}</span></div>
       </div>
-      <button type="button" data-board-route="billing">청구 상세 보기 <i class="ti ti-chevron-right" aria-hidden="true"></i></button>
-      <p class="board-overview-billing-note">이용 기간 ${escapeHtml(billing.periodStart.slice(5))}~${escapeHtml(billing.periodEnd.slice(5))} · 등록 내역 기준 예상액<br>카드사 확정 청구액과 다를 수 있으며, 소비지출에 다시 더하지 않습니다.</p>
+      <button type="button" data-board-route="billing">이번 달 출금 내역 보기 <i class="ti ti-chevron-right" aria-hidden="true"></i></button>
+      <p class="board-overview-billing-note">카드 청구액만 · 별도 보험료·대출 제외<br>이용 기간 ${escapeHtml(billing.periodStart.slice(5))}~${escapeHtml(billing.periodEnd.slice(5))} · 등록 내역 기준 예상액<br>카드사 확정 청구액과 다를 수 있으며, 소비지출에 다시 더하지 않습니다.</p>
     </article>
     <button type="button" class="board-overview-check" data-board-unknown><i class="ti ti-alert-circle" aria-hidden="true"></i><span><b>${model.unknownCount ? `미분류 ${model.unknownCount}건 정리하기` : "미분류 내역 없음"}</b><small>${model.unknownCount ? `${formatWon(model.unknownAmount)} · 소비 구성을 더 정확하게` : "분류가 필요한 내역이 없습니다"}</small></span><i class="ti ti-chevron-right" aria-hidden="true"></i></button>
     <button type="button" class="board-overview-check" data-board-route="recurring"><i class="ti ti-repeat" aria-hidden="true"></i><span><b>고정 지출 확인</b><small>미반영 예정 ${model.pendingCount}건 · ${formatWon(model.pendingAmount)}</small></span><i class="ti ti-chevron-right" aria-hidden="true"></i></button>

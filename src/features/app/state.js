@@ -211,7 +211,16 @@ const els = {
   clearDetailBulkButton: document.querySelector("#clearDetailBulkButton"),
   saveDetailBulkButton: document.querySelector("#saveDetailBulkButton"),
   detailBulkFeedback: document.querySelector("#detailBulkFeedback"),
+  detailBulkReviewStatus: document.querySelector("#detailBulkReviewStatus"),
   detailBulkPreview: document.querySelector("#detailBulkPreview"),
+  detailBulkEditor: document.querySelector("#detailBulkEditor"),
+  detailBulkSource: document.querySelector("#detailBulkSource"),
+  detailBulkSourceSummary: document.querySelector("#detailBulkSourceSummary"),
+  detailBulkDefaults: document.querySelector("#detailBulkDefaults"),
+  detailBulkDefaultsSummary: document.querySelector("#detailBulkDefaultsSummary"),
+  detailBulkBackButton: document.querySelector("#detailBulkBackButton"),
+  detailBulkSaveSummary: document.querySelector("#detailBulkSaveSummary"),
+  detailBulkSteps: document.querySelectorAll("[data-detail-bulk-step]"),
   detailBulkListMonth: document.querySelector("#detailBulkListMonth"),
   detailBulkListSector: document.querySelector("#detailBulkListSector"),
   detailBulkListSubcategory: document.querySelector("#detailBulkListSubcategory"),
@@ -508,6 +517,8 @@ let selectedRecurringReviewId = "";
 let recurringReviewFeedback = "";
 let editingLoanId = "";
 let detailBulkRows = [];
+let selectedDetailBulkRowId = "";
+let detailBulkParsedText = "";
 let ipoPasteRows = [];
 let ipoCalendarCandidates = [];
 let ipoCalendarPayload = null;

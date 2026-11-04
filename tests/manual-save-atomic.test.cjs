@@ -27,7 +27,8 @@ function setup() {
     alert: (message) => alerts.push(message), confirm: () => true,
     FormData: class { constructor(form) { this.values = form.values; } get(key) { return this.values[key]; } },
     appSettings: {}, transactions: [], classified: [], reimbursements: {}, importMeta: { lastFileName: "이전 기록" },
-    currentFileName: "이전 기록", incomeBulkRows: [], detailBulkRows: [], editingIncomeKey: "income-old",
+    currentFileName: "이전 기록", incomeBulkRows: [], detailBulkRows: [], selectedDetailBulkRowId: "",
+    detailBulkParsedText: "2026-09-15 합성 과거거래 3000", editingIncomeKey: "income-old",
     editingDetailBulkRecordKey: "expense-old", selectedDetailBulkSubtab: "input", boardQuickAddSectionKey: "food", boardQuickAddFeedback: "",
     boardSections: [{ key: "food", sector: "식비", subcategory: "식사" }],
     normalizeFoodOccasion: (value) => value || "", cssEscape: String,
@@ -40,8 +41,8 @@ function setup() {
       manualSourceType: field("card"), manualFlow: field("expense"), manualDate: field("2026-09-15"),
       manualTime: field("12:00"), manualMerchant: field("합성 직접입력"), manualAmount: field("3000"),
       manualSector: field("식비"), manualSubcategory: field("식사"), pasteEntries: field("2026-09-15\t합성붙여넣기\t3000"),
-      detailBulkPaste: field("2026-09-15 합성 과거거래 3000"), detailBulkPreview: field(), detailBulkFeedback: field(),
-      detailBulkAllowDuplicates: field(), saveDetailBulkButton: field()
+      detailBulkPaste: field("2026-09-15 합성 과거거래 3000"), detailBulkPreview: field(), detailBulkEditor: field(), detailBulkFeedback: field(),
+      detailBulkAllowDuplicates: field(), saveDetailBulkButton: field(), detailBulkSource: field()
     }
   });
   // Match browser ordering, including the former later quick-add definition.

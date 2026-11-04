@@ -1,48 +1,49 @@
-/* Shared columns align the spending hero, billing, and completed-month history. */
+/* Shared columns align spending categories, billing, and completed-month history. */
 #boardView { --board-columns: minmax(0, 2fr) minmax(0, 1.05fr); --board-gap: 20px; }
 :root:is([data-theme="mineral-blue"], [data-theme="offwhite-olive"], [data-theme="graphite-studio"]) #boardView { --board-card-radius: 16px; }
-#boardView #boardMetrics:not(.is-empty-workspace),
 #boardView .board-overview-columns,
 #boardView .board-overview-history { display: grid; grid-template-columns: var(--board-columns); gap: var(--board-gap); }
-#boardView #boardMetrics:not(.is-empty-workspace) { align-items: stretch; padding: 0; margin-bottom: 24px; overflow: visible; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
-#boardView .board-overview-hero { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 16px 20px; align-items: center; min-width: 0; padding: 28px 28px 20px; border: 1px solid color-mix(in srgb, var(--board-hero-muted, var(--border-subtle)) 24%, transparent); border-radius: var(--board-card-radius, var(--radius-card, 14px)); background: var(--board-hero-bg, var(--bg-card)); color: var(--board-hero-text, var(--text-primary)); }
-#boardView .board-overview-hero-copy { min-width: 0; }
-#boardView .board-overview-eyebrow { color: var(--board-hero-muted, var(--text-secondary)); font-size: 11px; font-weight: 500; line-height: 1.6; }
-#boardView .board-overview-hero h3 { margin: 15px 0 9px; color: inherit; font-size: 18px; font-weight: 700; letter-spacing: -.45px; }
-#boardView .board-overview-total { display: block; color: inherit; font-size: clamp(34px, 4.35vw, 68px); font-weight: 800; letter-spacing: -2.5px; line-height: 1.15; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-#boardView .board-overview-comparison { margin: 18px 0 7px; color: var(--board-hero-muted, var(--text-secondary)); font-size: 16px; font-weight: 700; line-height: 1.65; word-break: keep-all; }
-#boardView .board-overview-comparison.is-decrease { color: var(--board-hero-positive, var(--accent-positive)); }
-#boardView .board-overview-comparison.is-increase { color: var(--board-hero-negative, var(--accent-negative)); }
-#boardView .board-overview-hero-copy > small { color: var(--board-hero-muted, var(--text-secondary)); font-size: 12px; line-height: 1.65; }
-#boardView .board-overview-hero-footer { grid-column: 1 / -1; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; padding-top: 10px; }
-#boardView .board-overview-hero-footer > span { color: var(--board-hero-muted, var(--text-secondary)); font-size: 10px; line-height: 1.6; }
-#boardView .board-overview-hero-footer button { padding: 7px 9px; border: 1px solid color-mix(in srgb, var(--board-hero-muted, var(--border-subtle)) 40%, transparent); border-radius: var(--radius-control, 8px); background: transparent; color: var(--board-hero-text, var(--text-primary)); font-size: 11px; }
-#boardView .board-overview-hero-footer button:hover { background: color-mix(in srgb, var(--board-hero-text, var(--text-primary)) 9%, transparent); }
-#boardView .board-overview-trend { width: 100%; min-width: 0; margin: 0; align-self: center; color: var(--board-hero-muted, var(--text-secondary)); }
+#boardView #boardMetrics:not(.is-empty-workspace) { display: block; padding: 0; margin-bottom: 28px; overflow: visible; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+#boardView .board-overview-summary { overflow: hidden; border: 1px solid var(--border-subtle); border-radius: var(--board-card-radius, var(--radius-card, 14px)); background: var(--bg-card); }
+#boardView .board-overview-summary-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 20px; padding: 14px 24px; border-bottom: 1px solid var(--border-subtle); color: var(--text-secondary); font-size: 12px; line-height: 1.6; }
+#boardView .board-overview-summary-grid { display: grid; grid-template-columns: minmax(0, 1.3fr) repeat(2, minmax(0, 1fr)); }
+#boardView .board-overview-hero { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; min-width: 0; padding: 26px; background: color-mix(in srgb, var(--accent-primary) 9%, var(--bg-card)); color: var(--text-primary); }
+#boardView .board-overview-hero h3 { margin: 0; color: inherit; font-size: 16px; font-weight: 700; letter-spacing: -.4px; line-height: 1.5; }
+#boardView .board-overview-total { display: block; color: var(--accent-primary); font-size: clamp(30px, 3.15vw, 50px); font-weight: 800; letter-spacing: -1.8px; line-height: 1.2; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+#boardView .board-overview-comparison { margin: 0; color: var(--text-secondary); font-size: 13px; font-weight: 500; line-height: 1.65; word-break: keep-all; }
+#boardView .board-overview-comparison.is-decrease { color: var(--accent-positive); }
+#boardView .board-overview-comparison.is-increase { color: var(--accent-negative); }
+#boardView .board-overview-hero-footer { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin-top: auto; }
+#boardView .board-overview-hero-footer > span { color: var(--text-secondary); font-size: 12px; line-height: 1.6; }
+#boardView .board-overview-hero-footer button { min-height: 36px; padding: 5px 0; border: 0; border-radius: 0; background: transparent; color: var(--accent-primary); font-size: 13px; font-weight: 700; }
+#boardView .board-overview-hero-footer button:hover { text-decoration: underline; text-underline-offset: 4px; }
+#boardView .board-overview-trend-panel { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 360px); align-items: center; gap: 24px; margin-top: 16px; padding: 20px 26px; border: 1px solid var(--border-subtle); border-radius: var(--board-card-radius, var(--radius-card, 14px)); background: var(--bg-card); }
+#boardView .board-overview-trend-copy h3 { margin: 0 0 10px; font-size: 16px; }
+#boardView .board-overview-trend-copy p { margin: 0 0 8px; color: var(--text-primary); font-size: 14px; line-height: 1.65; }
+#boardView .board-overview-trend-copy small { color: var(--text-secondary); font-size: 12px; line-height: 1.6; }
+#boardView .board-overview-trend { width: 100%; min-width: 0; margin: 0; align-self: center; color: var(--text-secondary); }
 #boardView .board-overview-chart-legend { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.5; }
 #boardView .board-overview-chart-legend span { display: inline-flex; align-items: center; gap: 7px; }
-#boardView .board-overview-chart-legend span::before { content: ""; width: 22px; border-top: 2px solid var(--board-hero-chart, var(--accent-primary)); }
-#boardView .board-overview-chart-legend .is-previous::before { border-top: 1.5px dashed var(--board-hero-previous, var(--text-secondary)); }
+#boardView .board-overview-chart-legend span::before { content: ""; width: 22px; border-top: 2px solid var(--accent-primary); }
+#boardView .board-overview-chart-legend .is-previous::before { border-top: 1.5px dashed var(--text-secondary); }
 #boardView .board-overview-line-chart { display: block; width: 100%; height: auto; overflow: visible; }
-#boardView .board-overview-line-baseline { stroke: var(--board-hero-previous, var(--border-subtle)); stroke-opacity: .4; stroke-width: 1; }
-#boardView .board-overview-line-current { stroke: var(--board-hero-chart, var(--accent-primary)); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
-#boardView .board-overview-line-previous { stroke: var(--board-hero-previous, var(--text-secondary)); stroke-width: 1.6; stroke-dasharray: 4 5; stroke-linecap: round; stroke-linejoin: round; }
+#boardView .board-overview-line-baseline { stroke: var(--border-subtle); stroke-opacity: .4; stroke-width: 1; }
+#boardView .board-overview-line-current { stroke: var(--accent-primary); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+#boardView .board-overview-line-previous { stroke: var(--text-secondary); stroke-width: 1.6; stroke-dasharray: 4 5; stroke-linecap: round; stroke-linejoin: round; }
 #boardView .board-overview-chart-range { display: flex; justify-content: space-between; gap: 8px; margin-top: 6px; font-size: 10px; }
 #boardView .board-overview-trend > small { display: block; margin-top: 7px; font-size: 10px; line-height: 1.5; }
-#boardView .board-overview-trend-empty { display: grid; align-content: center; justify-items: center; gap: 10px; min-height: 140px; padding: 18px; border: 1px dashed color-mix(in srgb, var(--board-hero-muted, var(--border-subtle)) 40%, transparent); border-radius: var(--radius-control, 8px); text-align: center; }
+#boardView .board-overview-trend-empty { display: grid; align-content: center; justify-items: center; gap: 10px; min-height: 140px; padding: 18px; border: 1px dashed color-mix(in srgb, var(--border-subtle) 40%, transparent); border-radius: var(--radius-control, 8px); text-align: center; }
 #boardView .board-overview-trend-empty i { font-size: 24px; }
 #boardView .board-overview-trend-empty p { margin: 0; font-size: 12px; line-height: 1.8; }
-#boardView .board-overview-money { display: flex; flex-direction: column; min-width: 0; padding: 3px 6px 0; }
-#boardView .board-overview-money-row { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-width: 0; width: 100%; padding: 17px 0; border: 0; border-bottom: 1px solid var(--border-subtle); border-radius: 0; background: transparent; box-shadow: none; text-align: left; }
-#boardView .board-overview-money-row > span { display: grid; gap: 4px; min-width: 0; }
-#boardView .board-overview-money-row b { color: var(--text-primary); font-size: 16px; font-weight: 700; }
-#boardView .board-overview-money-row small { color: var(--text-secondary); font-size: 11px; line-height: 1.6; font-weight: 400; }
-#boardView .board-overview-money-row strong { color: var(--text-primary); font-size: clamp(25px, 2.55vw, 40px); font-weight: 800; letter-spacing: -1.3px; line-height: 1.2; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-#boardView .board-overview-money-row strong > span { padding-left: 3px; font-size: 22px; color: var(--text-secondary); }
-#boardView .board-overview-money-row .board-overview-missing { color: var(--text-secondary); font-size: 18px; font-weight: 600; letter-spacing: -.4px; }
+#boardView .board-overview-money-row { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; min-width: 0; width: 100%; margin: 0; padding: 26px; border: 0; border-left: 1px solid var(--border-subtle); border-radius: 0; background: transparent; box-shadow: none; text-align: left; }
+#boardView .board-overview-money-row > b { display: flex; justify-content: space-between; gap: 12px; width: 100%; color: var(--text-primary); font-size: 16px; font-weight: 700; line-height: 1.5; }
+#boardView .board-overview-money-row > b > span { color: var(--text-secondary); }
+#boardView .board-overview-money-row > small { color: var(--text-secondary); font-size: 12px; line-height: 1.65; font-weight: 400; word-break: keep-all; }
+#boardView .board-overview-money-row > strong { display: flex; align-items: center; min-height: 60px; color: var(--text-primary); font-size: clamp(25px, 2.35vw, 38px); font-weight: 700; letter-spacing: -1.2px; line-height: 1.2; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+#boardView .board-overview-money-row .board-overview-missing { font-size: 20px; font-weight: 600; letter-spacing: -.4px; }
 #boardView .board-overview-money-row .board-overview-negative { color: var(--accent-negative); }
-#boardView .board-overview-money-row + .board-overview-money-row { border-bottom: 0; padding-bottom: 10px; }
-#boardView .board-overview-balance-note { margin: 0; color: var(--text-secondary); font-size: 12px; line-height: 1.7; }
+#boardView .board-overview-income-link { margin-top: auto; padding-block: 5px; color: var(--accent-primary); font-size: 13px; font-weight: 650; line-height: 26px; }
+#boardView .board-overview-balance-note { margin: auto 0 0; color: var(--text-secondary); font-size: 12px; line-height: 1.7; word-break: keep-all; }
 #boardView .board-overview-columns { align-items: start; margin-bottom: 26px; }
 #boardView #boardSectorSummary,
 #boardView #boardGrid { display: block; min-width: 0; padding: 0; margin: 0; border: 0; background: none; box-shadow: none; }
@@ -52,8 +53,8 @@
 #boardView .board-overview-panel-head p { margin: 6px 0 0; color: var(--text-secondary); font-size: 12px; line-height: 1.5; }
 #boardView .board-overview-panel-head > span { color: var(--text-secondary); font-size: 11px; white-space: nowrap; }
 #boardView .board-overview-panel-head button { padding: 6px 8px; font-size: 11px; white-space: nowrap; background: transparent; }
-#boardView .board-overview-sector-panel { padding: 3px 0 0; border: 0; border-radius: 0; background: transparent; }
-#boardView .board-overview-sector-panel .board-overview-panel-head h3 { font-size: 26px; letter-spacing: -.8px; }
+#boardView .board-overview-sector-panel { padding: 24px; }
+#boardView .board-overview-sector-panel .board-overview-panel-head h3 { font-size: 22px; letter-spacing: -.6px; }
 #boardView .board-overview-sector-layout { display: grid; grid-template-columns: minmax(0, .96fr) minmax(0, 1.04fr); align-items: center; gap: 20px; }
 #boardView .board-overview-donut-wrap { position: relative; width: 100%; max-width: 320px; margin-inline: auto; }
 #boardView .board-overview-donut { display: block; width: 100%; height: auto; }
@@ -70,7 +71,7 @@
 #boardView .board-overview-sector-amount { color: var(--text-primary); font-size: 16px; font-weight: 750; font-variant-numeric: tabular-nums; white-space: nowrap; }
 #boardView .board-overview-sector-share { min-width: 38px; color: var(--text-secondary); font-size: 14px; font-weight: 500; text-align: right; font-variant-numeric: tabular-nums; }
 #boardView .board-overview-panel-foot { margin: 15px 0 0; padding-top: 10px; border-top: 1px solid var(--border-subtle); color: var(--text-secondary); font-size: 11px; line-height: 1.7; }
-#boardView .board-overview-sector-panel .board-overview-panel-foot { margin-top: 10px; padding-top: 0; border: 0; color: var(--accent-primary); font-size: 13px; font-weight: 650; text-align: right; }
+#boardView .board-overview-sector-panel .board-overview-panel-foot { margin-top: 10px; padding-top: 0; border: 0; color: var(--text-secondary); font-size: 12px; font-weight: 400; text-align: right; }
 #boardView .board-overview-next { display: grid; min-width: 0; gap: 10px; }
 #boardView .board-overview-billing { min-width: 0; padding: 23px 24px 18px; border: 1px solid var(--border-subtle); border-radius: var(--board-card-radius, var(--radius-card, 14px)); background: var(--board-billing-bg, var(--bg-muted)); }
 #boardView .board-overview-billing header { display: flex; align-items: center; gap: 10px; color: var(--text-primary); }
@@ -127,13 +128,13 @@
 #boardView :is(button.board-overview-money-row, .board-overview-sector, .board-overview-top-list button, .board-overview-check, .board-overview-history-month):hover { background: var(--control-hover-bg); }
 #boardView button:focus-visible,
 #boardView summary:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 3px; }
-#boardView .board-overview-hero button:focus-visible { outline-color: var(--board-hero-chart, var(--accent-primary)); }
 
 @media (max-width: 1250px) {
+  #boardView .board-overview-hero,
+  #boardView .board-overview-money-row { padding: 22px; }
+  #boardView .board-overview-money-row > strong { min-height: 48px; font-size: clamp(23px, 2.4vw, 32px); }
+  #boardView .board-overview-sector-panel { padding: 20px; }
   #boardView { --board-gap: 16px; }
-  #boardView .board-overview-hero { grid-template-columns: minmax(0, 1fr); gap: 18px; padding: 23px; }
-  #boardView .board-overview-total { font-size: clamp(36px, 4.9vw, 58px); }
-  #boardView .board-overview-trend { width: min(100%, 320px); justify-self: end; }
   #boardView .board-overview-line-chart { max-height: 135px; }
   #boardView .board-overview-chart-legend { margin-bottom: 5px; }
   #boardView .board-overview-sector-layout { gap: 12px; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); }
@@ -149,13 +150,14 @@
   #boardView .board-overview-history-bars { width: 100%; max-width: 155px; height: 34px; }
 }
 @media (max-width: 900px) {
+  #boardView .board-overview-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #boardView .board-overview-hero { grid-column: 1 / -1; }
+  #boardView .board-overview-hero-footer { flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; width: 100%; }
+  #boardView .board-overview-money-row { border-top: 1px solid var(--border-subtle); }
+  #boardView button.board-overview-money-row { border-left: 0; }
+  #boardView .board-overview-total { font-size: 46px; }
+  #boardView .board-overview-money-row > strong { min-height: 0; font-size: clamp(23px, 3.8vw, 34px); }
   #boardView { --board-columns: minmax(0, 1fr); }
-  #boardView .board-overview-hero { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); }
-  #boardView .board-overview-total { font-size: clamp(36px, 5.8vw, 58px); }
-  #boardView .board-overview-money { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 20px; padding: 0; }
-  #boardView .board-overview-money-row { padding: 12px 0; border-bottom: 0; }
-  #boardView .board-overview-money-row strong { font-size: clamp(23px, 3.8vw, 34px); }
-  #boardView .board-overview-balance-note { grid-column: 1 / -1; }
   #boardView .board-overview-sector-layout { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 20px; }
   #boardView .board-overview-sector-name,
   #boardView .board-overview-sector-amount { font-size: 14px; }
@@ -172,18 +174,19 @@
   #boardView .board-overview-extras dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 540px) {
-  #boardView .board-overview-hero { grid-template-columns: minmax(0, 1fr); padding: 22px 18px 16px; gap: 18px; }
-  #boardView .board-overview-hero h3 { margin-top: 12px; font-size: 17px; }
-  #boardView .board-overview-total { font-size: clamp(35px, 10.6vw, 48px); letter-spacing: -1.8px; }
-  #boardView .board-overview-comparison { margin-top: 13px; font-size: 13px; }
+  #boardView .board-overview-summary-head { padding: 12px 18px; }
+  #boardView .board-overview-summary-head > span:last-child { display: none; }
+  #boardView .board-overview-summary-grid { grid-template-columns: minmax(0, 1fr); }
+  #boardView .board-overview-hero,
+  #boardView .board-overview-money-row { padding: 22px 18px; gap: 12px; }
+  #boardView .board-overview-money-row { border-left: 0; }
+  #boardView .board-overview-total { font-size: clamp(32px, 10vw, 46px); }
+  #boardView .board-overview-money-row > strong { font-size: 30px; }
+  #boardView .board-overview-trend-panel { grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 20px 18px; }
+  #boardView .board-overview-sector-panel { padding: 20px 18px; }
   #boardView .board-overview-trend { width: 100%; }
   #boardView .board-overview-line-chart { max-height: 148px; }
-  #boardView .board-overview-hero-footer { padding-top: 0; }
-  #boardView .board-overview-money { grid-template-columns: minmax(0, 1fr); gap: 0; }
-  #boardView .board-overview-money-row { gap: 8px; padding: 15px 0; border-bottom: 1px solid var(--border-subtle); }
-  #boardView .board-overview-money-row strong { font-size: 32px; }
-  #boardView .board-overview-money-row + .board-overview-money-row { padding-bottom: 12px; }
-  #boardView .board-overview-sector-panel .board-overview-panel-head h3 { font-size: 24px; }
+  #boardView .board-overview-sector-panel .board-overview-panel-head h3 { font-size: 21px; }
   #boardView .board-overview-sector-layout { grid-template-columns: minmax(0, 1fr); gap: 8px; }
   #boardView .board-overview-donut-wrap { max-width: 280px; }
   #boardView .board-overview-sector { padding: 14px 10px; column-gap: 10px; }
