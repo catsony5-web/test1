@@ -256,6 +256,88 @@ test('stream parser handles UTF-8 and CRLF split across chunk boundaries', async
   assert.deepEqual(await runtime.respond(account.profileId, { model: 'synthetic-model-a' }), completeResponse);
 });
 
+test('empty terminal output recovers ordered completed items and preserves response metadata', async (t) => {
+  const { runtime, state, login } = await setup(t); const account = await login();
+  const reasoning = { type: 'reasoning', id: 'synthetic-reasoning', summary: [], encrypted_content: 'synthetic-encrypted-content' };
+  const message = { ...completeResponse.output[0], id: 'synthetic-message', status: 'completed' };
+  const terminal = { id: 'synthetic-response', status: 'completed', output: [], usage: { output_tokens: 17 } };
+  const bytes = Buffer.from(sse({ type: 'response.output_text.delta', delta: 'partial text must not be repeated' })
+    + sse({ type: 'response.output_item.done', output_index: 1, item: message })
+    + sse({ type: 'response.output_item.done', output_index: 0, item: reasoning })
+    + sse({ type: 'response.completed', response: terminal }));
+  state.response = () => new Response(new ReadableStream({ start(controller) {
+    for (const byte of bytes) controller.enqueue(Uint8Array.of(byte)); controller.close();
+  } }), { headers: { 'content-type': 'text/event-stream' } });
+  assert.deepEqual(await runtime.respond(account.profileId, { model: 'synthetic-model-a' }), { ...terminal, output: [reasoning, message] });
+});
+
+test('repeated completed tool items produce one intact call and do not duplicate populated terminal output', async (t) => {
+  const { runtime, state, login } = await setup(t); const account = await login();
+  const call = { type: 'function_call', id: 'synthetic-item', status: 'completed', namespace: 'ledger',
+    name: 'monthly_metrics', call_id: 'synthetic-call', arguments: '{"synthetic":true}' };
+  const done = { type: 'response.output_item.done', output_index: 0, item: call };
+  for (const output of [[], [call]]) {
+    state.response = sse(done) + sse({ ...done, item: Object.fromEntries(Object.entries(call).reverse()) })
+      + sse({ type: 'response.completed', response: { status: 'completed', output } });
+    const result = await runtime.respond(account.profileId, { model: 'synthetic-model-a' });
+    assert.deepEqual(result.output, [call]);
+  }
+  state.response = sse(done) + sse({ type: 'response.completed', response: completeResponse });
+  assert.deepEqual(await runtime.respond(account.profileId, { model: 'synthetic-model-a' }), completeResponse);
+});
+
+test('completed item recovery rejects invalid indexes, conflicting duplicates and repeated call identities', async (t) => {
+  const { runtime, state, login } = await setup(t); const account = await login();
+  const item = { ...completeResponse.output[0], id: 'synthetic-item', status: 'completed' };
+  const done = (output_index, value = item) => ({ type: 'response.output_item.done', output_index, item: value });
+  const call = { type: 'function_call', id: 'synthetic-call-item', namespace: 'ledger', name: 'monthly_metrics', call_id: 'synthetic-call', arguments: '{}' };
+  const cases = [
+    ['negative index', [done(-1)]], ['fractional index', [done(0.5)]], ['string index', [done('0')]],
+    ['unsafe index', [done(Number.MAX_SAFE_INTEGER + 1)]], ['missing zero', [done(1)]],
+    ['index gap', [done(0), done(2, { ...item, id: 'synthetic-other-item' })]],
+    ['conflicting duplicate', [done(0), done(0, { ...item, content: [] })]],
+    ['same item at different indexes', [done(0), done(1)]],
+    ['same call at different indexes', [done(0, call), done(1, { ...call, id: 'synthetic-other-call-item' })]],
+    ['missing call identity', [done(0, { ...call, call_id: undefined })]],
+    ['malformed item', [done(0, null)]], ['unfinished item', [done(0, { ...item, status: 'in_progress' })]]
+  ];
+  for (const [name, events] of cases) {
+    state.response = events.map(sse).join('') + sse({ type: 'response.completed', response: { status: 'completed', output: [] } });
+    await assert.rejects(runtime.respond(account.profileId, { model: 'synthetic-model-a' }), (error) => error.code === 'invalid_stream', name);
+  }
+});
+
+test('completed items are not returned after a failed, incomplete, interrupted or empty stream', async (t) => {
+  const { runtime, state, login } = await setup(t); const account = await login();
+  const done = sse({ type: 'response.output_item.done', output_index: 0, item: completeResponse.output[0] });
+  const empty = sse({ type: 'response.completed', response: { status: 'completed', output: [] } });
+  for (const [name, stream, code] of [
+    ['empty completion', empty, 'invalid_stream'],
+    ['delta without completed item', sse({ type: 'response.output_text.delta', delta: 'partial' }) + empty, 'invalid_stream'],
+    ['end without completion', done, 'invalid_stream'],
+    ['incomplete after item', done + sse({ type: 'response.incomplete', response: { output: [] } }), 'invalid_stream'],
+    ['failed after item', done + sse({ type: 'response.failed', response: { error: { code: 'subscription_sharing_usage_limit_exceeded' } } }), 'subscription_sharing_usage_limit_exceeded'],
+    ['error after item', done + sse({ type: 'error', error: { code: 'subscription_sharing_usage_limit_exceeded' } }), 'subscription_sharing_usage_limit_exceeded']
+  ]) {
+    state.response = stream;
+    await assert.rejects(runtime.respond(account.profileId, { model: 'synthetic-model-a' }), (error) => error.code === code, name);
+  }
+});
+
+test('cancellation after a completed item rejects without returning the collected output', async (t) => {
+  const { runtime, state, login } = await setup(t); const account = await login();
+  const caller = new AbortController();
+  let waiting; const waitingForCompletion = new Promise((resolve) => { waiting = resolve; });
+  const done = new TextEncoder().encode(sse({ type: 'response.output_item.done', output_index: 0, item: completeResponse.output[0] }));
+  state.response = (init) => new Response(new ReadableStream({ start(controller) {
+    controller.enqueue(done);
+    init.signal.addEventListener('abort', () => controller.error(new Error('synthetic-private-abort')), { once: true });
+  }, pull() { waiting(); } }), { headers: { 'content-type': 'text/event-stream' } });
+  const reply = runtime.respond(account.profileId, { model: 'synthetic-model-a' }, { signal: caller.signal });
+  const rejection = assert.rejects(reply, (error) => error.code === 'cancelled' && !error.message.includes('synthetic-private'));
+  await waitingForCompletion; caller.abort(); await rejection;
+});
+
 test('concurrent requests serialize rotating refresh and save replacement credentials together', async (t) => {
   const { runtime, state, login } = await setup(t); const account = await login(); state.tick += 90000;
   await Promise.all([runtime.listModels(account.profileId), runtime.listModels(account.profileId)]);

@@ -1,6 +1,7 @@
 import { createHash, createPublicKey, randomBytes, randomUUID, timingSafeEqual, verify } from 'node:crypto';
 import { createServer } from 'node:http';
 import { setTimeout as delay } from 'node:timers/promises';
+import { isDeepStrictEqual } from 'node:util';
 import { createProtectedAuthStore } from './chatgpt-auth-store.mjs';
 
 const ISSUER = 'https://auth.openai.com';
@@ -357,6 +358,7 @@ export async function createChatGPTLocal({ store, directory, fetchImpl = fetch, 
       const type = response.headers.get('content-type')?.split(';')[0]?.trim().toLowerCase();
       if (!response.body || (type && type !== 'text/event-stream')) { await response.body?.cancel(); fail('invalid_stream', 502); }
       let buffered = '', size = 0, completed;
+      const doneItems = new Map();
       const decoder = new TextDecoder();
       const event = (block) => {
         const raw = block.split('\n').filter((line) => line.startsWith('data:')).map((line) => line.slice(5).trimStart()).join('\n');
@@ -364,9 +366,30 @@ export async function createChatGPTLocal({ store, directory, fetchImpl = fetch, 
         let data; try { data = JSON.parse(raw); } catch { fail('invalid_stream', 502); }
         if (data.type === 'response.failed' || data.type === 'error') throw remoteError(data.response || data, 200);
         if (data.type === 'response.incomplete') fail('invalid_stream', 502);
+        if (data.type === 'response.output_item.done') {
+          if (!Number.isSafeInteger(data.output_index) || data.output_index < 0 || !isObject(data.item)
+            || typeof data.item.type !== 'string' || !data.item.type
+            || (data.item.status !== undefined && data.item.status !== 'completed')) fail('invalid_stream', 502);
+          if (doneItems.has(data.output_index) && !isDeepStrictEqual(doneItems.get(data.output_index), data.item)) fail('invalid_stream', 502);
+          doneItems.set(data.output_index, data.item);
+        }
         if (data.type === 'response.completed') {
           if (data.response?.status !== 'completed' || !Array.isArray(data.response.output)) fail('invalid_stream', 502);
           completed = data.response;
+          // Plan streams may deliver finished items only in output_item.done.
+          // Never append them to an already populated terminal output.
+          if (!completed.output.length) {
+            if (!doneItems.size) fail('invalid_stream', 502);
+            const entries = [...doneItems].sort(([left], [right]) => left - right);
+            const itemIds = new Set(), callIds = new Set();
+            for (const [index, [outputIndex, item]] of entries.entries()) {
+              if (outputIndex !== index || (item.id && itemIds.has(item.id))
+                || (item.type === 'function_call' && (typeof item.call_id !== 'string' || !item.call_id || callIds.has(item.call_id)))) fail('invalid_stream', 502);
+              if (item.id) itemIds.add(item.id);
+              if (item.type === 'function_call') callIds.add(item.call_id);
+            }
+            completed = { ...completed, output: entries.map(([, item]) => item) };
+          }
         }
       };
       try {
@@ -386,7 +409,11 @@ export async function createChatGPTLocal({ store, directory, fetchImpl = fetch, 
         if (requestSignal.aborted) fail('cancelled', 499);
         if (!completed) fail('invalid_stream', 502);
         return completed;
-      } catch (error) { if (error instanceof ChatGPTLocalError) throw error; fail('invalid_stream', 502); }
+      } catch (error) {
+        if (requestSignal.aborted) fail('cancelled', 499);
+        if (error instanceof ChatGPTLocalError) throw error;
+        fail('invalid_stream', 502);
+      }
     }, signal);
   }
   async function signOut(id) {
