@@ -2,6 +2,7 @@ function defaultAppSettings() {
   return {
     theme: "mineral-blue",
     themeRevision: 1,
+    familySupportKeywords: [],
     backgroundImage: "",
     backgroundOpacity: 0.14,
     backgroundBlur: 0,
@@ -474,6 +475,7 @@ let transactions = [];
 let classified = [];
 let importMeta = {};
 let reimbursements = {};
+let familyAdjustments = [];
 let products = [];
 let ipoRecords = [];
 let recurringExpenses = [];

@@ -30,6 +30,8 @@ async function init() {
   setupAdminMenu();
   setupMobileNavigation();
   setupAppearanceControls();
+  setupFamilySupportControls();
+  setupLedgerAgent();
   setupMonthlyAnalysisControls();
   setupSpendingStructureControls();
   setupGoalControls();

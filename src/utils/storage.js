@@ -14,6 +14,7 @@ async function hydrateStoredData() {
   transactions = await loadTransactions();
   importMeta = await loadImportMeta();
   reimbursements = await loadReimbursements();
+  familyAdjustments = await loadFamilyAdjustments();
   products = await loadProducts();
   ipoRecords = await loadIpoRecords();
   recurringExpenses = await loadRecurringExpenses();
@@ -87,6 +88,8 @@ function normalizeAppSettings(value) {
   settings.foodBudget = normalizeFoodBudgetSettings(settings.foodBudget);
   settings.spendingBudget = SpendingBudgetCore.normalizeSettings(settings.spendingBudget);
   settings.ipoPerformance = normalizeIpoPerformanceSettings(settings.ipoPerformance);
+  settings.familySupportKeywords = [...new Set((Array.isArray(settings.familySupportKeywords) ? settings.familySupportKeywords : [])
+    .filter((keyword) => typeof keyword === "string").map((keyword) => keyword.trim()).filter(Boolean))];
   return settings;
 }
 
@@ -291,8 +294,12 @@ async function safeSaveMany(entries) {
 
 function prepareSafeSaveWrites(entries, previousValues, savedAt, storedSettings) {
   const writes = [];
-  for (const [index, { key, data, protectIncomeRecords, allowIncomeDrop }] of entries.entries()) {
+  for (const [index, { key, data, protectIncomeRecords, allowIncomeDrop, expectedJson }] of entries.entries()) {
     const previous = previousValues[index];
+    // Reviewed changes must still match the value read in this write transaction.
+    if (expectedJson !== undefined && JSON.stringify(previous ?? null) !== expectedJson) {
+      throw new Error("미리보기 이후 기록이 변경되었습니다. 새 미리보기를 확인해 주세요.");
+    }
     if (protectIncomeRecords && !allowIncomeDrop) {
       const previousIncomeCount = countIncomeRecords(previous);
       const nextIncomeCount = countIncomeRecords(data);
@@ -404,6 +411,7 @@ function collectSnapshotData() {
     records: transactions.map(normalizeStoredTransaction),
     monthlyIncome,
     recurringExpenses: recurringExpenses.map(normalizeRecurringExpense),
+    familyAdjustments: normalizeFamilyAdjustments(familyAdjustments),
     rules,
     products: products.map(normalizeProduct),
     ipoRecords: ipoRecords.map(normalizeIpoRecord),
@@ -421,7 +429,7 @@ async function loadAutoSnapshots() {
 }
 
 async function ensureDailyAutoSnapshot() {
-  const hasData = transactions.length || Object.keys(monthlyIncome || {}).length || recurringExpenses.length || products.length || ipoRecords.length || Object.keys(calendarMemos || {}).length || rules.length;
+  const hasData = transactions.length || Object.keys(monthlyIncome || {}).length || recurringExpenses.length || familyAdjustments.length || products.length || ipoRecords.length || Object.keys(calendarMemos || {}).length || rules.length;
   const today = new Date().toISOString().slice(0, 10);
   if (!hasData || appSettings.lastDailySnapshotDate === today) return;
   return createAutoSnapshot("하루 1회 자동 스냅샷");
@@ -469,7 +477,7 @@ async function restoreFromSnapshot(snapshotId) {
   if (!snapshot) return;
   const scopes = typeof selectedDataScopes === "function"
     ? selectedDataScopes()
-    : ["importedExcelTransactions", "pastBulkTransactions", "directManualTransactions", "incomeInput", "recurringDefinitions", "recurringPostedTransactions", "rulesAndLearning", "products", "ipoRecords", "calendarMemos", "goalPlan", "settings", "legacyUnknown"];
+    : ["importedExcelTransactions", "pastBulkTransactions", "directManualTransactions", "incomeInput", "recurringDefinitions", "recurringPostedTransactions", "familyAdjustments", "rulesAndLearning", "products", "ipoRecords", "calendarMemos", "goalPlan", "settings", "legacyUnknown"];
   if (!scopes.length) {
     alert("복구할 데이터 항목을 하나 이상 선택해주세요.");
     return;
@@ -664,6 +672,14 @@ async function loadReimbursements() {
 
 function saveReimbursements() {
   return safeSave(REIMBURSEMENT_STORAGE_KEY, reimbursements);
+}
+
+async function loadFamilyAdjustments() {
+  return normalizeFamilyAdjustments(await safeLoad(FAMILY_ADJUSTMENTS_STORAGE_KEY, []));
+}
+
+function saveFamilyAdjustments() {
+  return safeSave(FAMILY_ADJUSTMENTS_STORAGE_KEY, normalizeFamilyAdjustments(familyAdjustments));
 }
 
 async function loadProducts() {
@@ -864,6 +880,8 @@ function normalizeRecurringExpense(item) {
     nextReviewDate: recurringType === "loan" ? "" : normalizeInputDate(item?.nextReviewDate),
     showOnCalendar: item?.showOnCalendar !== false,
     amountMode: item?.amountMode === "variable" ? "variable" : "fixed",
+    familyBurdenHistory: normalizeFamilyBurdenHistory(item?.familyBurdenHistory),
+    loanSupportHistory: normalizeLoanSupportHistory(item?.loanSupportHistory),
     autoPost: recurringType === "loan" || item?.amountMode === "variable" ? false : item?.autoPost === true,
     autoPostStartDate: normalizeInputDate(item?.autoPostStartDate),
     paused: item?.paused === true,

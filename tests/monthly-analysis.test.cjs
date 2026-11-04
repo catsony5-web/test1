@@ -7,6 +7,7 @@ const vm = require("node:vm");
 function loadContext(rows = [], income = { "2026-07": 4000000, "2026-08": 4060000 }) {
   const cardBilling = { startDay: 1, endDay: 31, paymentDay: 25, weekendRule: "none" };
   const context = vm.createContext({
+    familyAdjustments: [],
     console, classified: rows, transactions: rows, reimbursements: {}, monthlyIncome: income,
     appSettings: { cardBilling }, defaultAppSettings: () => ({ cardBilling }),
     isValidMonthKey: (value) => /^\d{4}-(0[1-9]|1[0-2])$/.test(String(value)),
@@ -16,7 +17,7 @@ function loadContext(rows = [], income = { "2026-07": 4000000, "2026-08": 406000
   });
   for (const file of [
     "src/data/categories.js", "src/utils/format.js", "src/utils/date.js", "src/utils/dom.js",
-    "src/utils/food-occasion.js", "src/utils/normalize.js", "src/utils/grouping.js", "src/utils/storage.js",
+    "src/utils/food-occasion.js", "src/utils/normalize.js", "src/utils/grouping.js", "src/features/family/family-core.js", "src/utils/storage.js",
     "src/components/chips.js", "src/features/board/board-view.js", "src/features/monthly/monthly-flow.js",
     "src/features/analysis/analysis-core.js", "src/features/analysis/monthly-analysis-core.js",
     "src/features/analysis/monthly-analysis-view.js", "src/features/calendar/calendar-view.js"
@@ -296,7 +297,7 @@ test("월이나 비교 기준을 바꾸면 이전 근거 선택을 초기화한�
   context.canViewDriveSharedMonth = () => false;
   context.analysisBillingModelForMonth = () => null;
   context.els.monthlyAnalysisMonth = { value: "2026-08" };
-  context.els.monthlyAnalysisBody = { innerHTML: "", querySelectorAll: () => [] };
+  context.els.monthlyAnalysisBody = { innerHTML: "", querySelectorAll: () => [], querySelector: () => null };
   context.monthlyAnalysisEvidenceSelection = { key: "2026-08|previous|0", sector: "식비" };
   context.renderMonthlyAnalysis();
   assert.equal(context.monthlyAnalysisEvidenceSelection.sector, "식비");
@@ -307,4 +308,52 @@ test("월이나 비교 기준을 바꾸면 이전 근거 선택을 초기화한�
   context.els.monthlyAnalysisMonth.value = "2026-07";
   context.renderMonthlyAnalysis();
   assert.equal(context.monthlyAnalysisEvidenceSelection.sector, "");
+});
+
+test("카드 정산 요약은 받은 금액과 내 부담을 표시하고 가맹점 문구를 이스케이프한다", () => {
+  const context = loadContext([
+    expense("split", 60000, "2026-09-12", { cardNumber: "1111222233332468", merchant: "<img src=x onerror=alert(1)>" }),
+    expense("other", 10000, "2026-09-14", { cardNumber: "1111222233338642" })
+  ]);
+  context.reimbursements.split = 40000;
+  const model = context.buildMonthlyCardSettlementModel("2026-09", "card:1111222233332468");
+  const markup = context.renderMonthlyCardSettlement(model);
+  assert.match(markup, /카드 결제와 N빵 정산/);
+  assert.match(markup, /정산받은 금액/);
+  assert.match(markup, /60,000원/);
+  assert.match(markup, /40,000원/);
+  assert.match(markup, /20,000원/);
+  assert.match(markup, /66\.7%/);
+  assert.match(markup, /&lt;img/);
+  assert.doesNotMatch(markup, /<img/);
+  assert.match(markup, /카드사 인정 실적·청구액과 다를 수/);
+  assert.match(markup, /실제 입금월 기준은 아닙니다/);
+});
+
+test("카드 선택은 정산 영역만 갱신하고 월·거래 원본을 바꾸지 않는다", () => {
+  const context = loadContext([
+    expense("first", 60000, "2026-09-12", { cardNumber: "1111222233332468" }),
+    expense("second", 90000, "2026-09-13", { cardNumber: "1111222233338642" })
+  ]);
+  context.reimbursements.first = 40000;
+  context.reimbursements.second = 30000;
+  const before = JSON.stringify(context.classified);
+  const output = { innerHTML: "" };
+  const select = { value: "card:1111222233338642", addEventListener(name, handler) { this[name] = handler; } };
+  context.els.monthlyAnalysisBody = { querySelector: (selector) => selector === "[data-monthly-settlement-card]" ? select : output };
+  context.attachMonthlyCardSettlementHandler("2026-09");
+  select.change();
+  assert.match(output.innerHTML, /90,000원/);
+  assert.match(output.innerHTML, /30,000원/);
+  assert.doesNotMatch(output.innerHTML, /검증 first/);
+  assert.equal(select.value, "card:1111222233338642");
+  assert.equal(JSON.stringify(context.classified), before);
+});
+
+test("기록 없는 월과 정산금 미입력 상태를 구분해서 안내한다", () => {
+  const context = loadContext([expense("card", 30000, "2026-09-12", { cardNumber: "1111222233332468" })]);
+  assert.match(context.renderMonthlyCardSettlement(context.buildMonthlyCardSettlementModel("2026-09")), /입력된 정산금이 없습니다/);
+  assert.match(context.renderMonthlyCardSettlement(context.buildMonthlyCardSettlementModel("2026-10")), /선택한 월·카드의 이용내역이 없습니다/);
+  context.reimbursements.card = 10000;
+  assert.match(context.renderMonthlyCardSettlement(context.buildMonthlyCardSettlementModel("2026-09")), /정산받은 거래/);
 });

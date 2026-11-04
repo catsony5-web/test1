@@ -30,7 +30,7 @@ async function handleFile(event) {
         return;
       }
 
-      const incoming = parseImportedTransactions(found, file.name);
+      const incoming = parseImportedTransactions(found, file.name).map(classifyFamilySupportImport);
       recurringOverlapCount = countRecurringImportOverlaps(incoming);
       await createAutoSnapshot("엑셀 업로드 전");
       mergeResult = mergeTransactions(transactions, incoming);
@@ -112,6 +112,20 @@ function countRecurringImportOverlaps(incoming) {
   return count;
 }
 
+function classifyFamilySupportImport(item) {
+  if (item.flow !== "income" || item.sourceType !== "transfer" || item.incomeKindSource === "manual") return item;
+  const sender = String(item.merchant || "");
+  const keywords = appSettings.familySupportKeywords || [];
+  if (!keywords.some((keyword) => String(keyword).trim() && sender.toLocaleLowerCase("ko-KR").includes(String(keyword).trim().toLocaleLowerCase("ko-KR")))) return item;
+  return {
+    ...item,
+    incomeKind: "familySupport",
+    incomeKindSource: "keyword",
+    familyTargetMonth: monthKey(item.approvalDate) || item.month,
+    familySender: sender
+  };
+}
+
 function findImportSheet(workbook) {
   for (const sheetName of workbook.SheetNames) {
     const sheet = workbook.Sheets[sheetName];
@@ -144,11 +158,12 @@ function headerMap(row) {
   const map = {};
   const aliases = Object.entries(FIELD_ALIASES).flatMap(([field, labels]) =>
     labels.map((label) => [normalizeHeader(label), field])
-  );
+  ).sort(([left], [right]) => right.length - left.length);
   row.forEach((value, index) => {
     const normalized = normalizeHeader(value);
     if (!normalized) return;
-    const match = aliases.find(([alias]) => normalized === alias || normalized.includes(alias) || alias.includes(normalized));
+    const match = aliases.find(([alias]) => normalized === alias)
+      || aliases.find(([alias]) => normalized.includes(alias) || alias.includes(normalized));
     if (match && map[match[1]] === undefined) map[match[1]] = index;
   });
   return map;

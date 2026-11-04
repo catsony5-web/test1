@@ -1,7 +1,10 @@
-function reclassify() {
+function classifyTransactions(records) {
   const sortedRules = sortedClassificationRules();
   const ruleMatches = new Map();
-  const firstPass = transactions.map((item) => {
+  const firstPass = records.map((item) => {
+    if (item.flow === "income" && item.incomeKind === "familySupport") {
+      return { ...item, sector: "가족 지원", subcategory: "가족 입금", status: isCanceled(item.cancel) ? "취소/제외" : "가족 지원" };
+    }
     if (item.manualSector && item.manualSubcategory) {
       const assignment = normalizeCategoryAssignment(item.manualSector, item.manualSubcategory, item.merchant);
       return { ...item, sector: assignment.sector, subcategory: assignment.subcategory, status: "직접입력" };
@@ -28,7 +31,7 @@ function reclassify() {
   });
   const smartModel = buildSmartSuggestionModel(firstPass);
   const suggestionCache = new Map();
-  classified = firstPass.map((item) => {
+  return firstPass.map((item) => {
     if (item.status !== "미분류") return item;
     const cacheKey = normalizeKeyText(item.merchant);
     const suggestion = suggestionCache.has(cacheKey)
@@ -53,6 +56,10 @@ function reclassify() {
       suggestion: suggestion && Number(suggestion.confidence || 0) >= SMART_DISPLAY_CONFIDENCE ? suggestion : null
     };
   });
+}
+
+function reclassify() {
+  classified = classifyTransactions(transactions);
   renderAll();
 }
 

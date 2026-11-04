@@ -27,7 +27,7 @@ function setup() {
     formatWon: (value) => `${value}원`,
     els: { recurringMonthFilter: { value: "2026-09" } }
   });
-  for (const filename of ["src/utils/date.js", "src/utils/normalize.js", "src/features/recurring/recurring-view.js"]) {
+  for (const filename of ["src/utils/date.js", "src/utils/normalize.js", "src/features/family/family-core.js", "src/features/recurring/recurring-view.js"]) {
     vm.runInContext(fs.readFileSync(path.join(__dirname, "..", filename), "utf8"), context, { filename });
   }
   return { c: context, alerts, writes, setToday: (value) => { today = value; } };

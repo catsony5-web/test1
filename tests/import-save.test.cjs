@@ -23,6 +23,7 @@ function setup() {
     alert: (message) => alerts.push(message),
     transactions: [{ recordKey: "old", amount: 100 }],
     recurringExpenses: [],
+    appSettings: { familySupportKeywords: [] },
     importMeta: { lastFileName: "previous.xlsx" }, currentFileName: "previous.xlsx",
     RECORD_STORAGE_KEY: "records", IMPORT_META_STORAGE_KEY: "importMeta",
     normalizeStoredTransaction: (value) => ({ ...value }),

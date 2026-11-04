@@ -22,7 +22,7 @@ function setup() {
     window: { BudgetNative: { exportFile: async (json, name) => downloads.push({ payload: JSON.parse(json), name }) } },
     alert: (message) => alerts.push(message), confirm: () => true,
     els: { dataScopeControls: controls("data-data-scope", "dataScope"), clearDataScopeControls: controls("data-clear-scope", "clearScope"), restoreModeControls: [{ checked: true, value: "merge" }] },
-    defaultRules: [], transactions: [], reimbursements: {}, monthlyIncome: {}, importMeta: {}, currentFileName: "",
+    defaultRules: [], transactions: [], familyAdjustments: [], reimbursements: {}, monthlyIncome: {}, importMeta: {}, currentFileName: "",
     recurringExpenses: [], rules: [], products: [], ipoRecords: [], calendarMemos: {}, goalPlan: {}, appSettings: {}
   });
   // Load the production defaults without instantiating the complete browser UI state.
@@ -71,7 +71,7 @@ function seed(context) {
 }
 
 function empty(context) {
-  Object.assign(context, { transactions: [], reimbursements: {}, monthlyIncome: {}, importMeta: {}, currentFileName: "",
+  Object.assign(context, { transactions: [], familyAdjustments: [], reimbursements: {}, monthlyIncome: {}, importMeta: {}, currentFileName: "",
     recurringExpenses: [], rules: [], products: [], ipoRecords: [], calendarMemos: {}, goalPlan: {}, appSettings: {} });
 }
 

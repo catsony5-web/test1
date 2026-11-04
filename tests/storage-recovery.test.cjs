@@ -298,12 +298,13 @@ test("저장 후 표시 오류는 완료된 저장을 실패로 바꾸지 않는
 function setupBackup(options) {
   const env = setup(options);
   const c = env.context;
+  load(c, "src/utils/date.js");
   load(c, "src/utils/normalize.js");
   load(c, "src/utils/food-occasion.js");
   load(c, "src/utils/backup-merge.js");
   load(c, "src/utils/backup.js");
   Object.assign(c, {
-    transactions: [], reimbursements: {}, importMeta: {}, currentFileName: "", monthlyIncome: {},
+    transactions: [], familyAdjustments: [], reimbursements: {}, importMeta: {}, currentFileName: "", monthlyIncome: {},
     recurringExpenses: [], rules: [], products: [], ipoRecords: [], calendarMemos: {}, goalPlan: {},
     normalizeProduct: (item) => item, applyAppSettings() {},
     createAutoSnapshot: async () => ({}), confirm: () => true, reclassify() {}, renderRestorePreview() {}

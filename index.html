@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="src/styles/00-tokens.css?v=185-theme-refresh">
   <link rel="stylesheet" href="src/styles/01-base.css?v=185-theme-refresh">
   <link rel="stylesheet" href="src/styles/02-layout.css?v=76">
-  <link rel="stylesheet" href="src/styles/03-components.css?v=140-long-term-trend">
+  <link rel="stylesheet" href="src/styles/03-components.css?v=202-personal-agent">
   <link rel="stylesheet" href="src/styles/04-forms-tables.css?v=83">
   <link rel="stylesheet" href="src/styles/05-charts.css?v=176-recurring-review">
   <link rel="stylesheet" href="src/styles/06-features.css?v=193-calendar-outflow">
@@ -20,15 +20,17 @@
   <link rel="stylesheet" href="src/styles/08-themes.css?v=185-theme-refresh">
   <link rel="stylesheet" href="assets/tabler/tabler-icons.min.css?v=135-subcategory-icons">
   <link rel="stylesheet" href="src/styles/09-production-ui.css?v=193-calendar-outflow">
-  <link rel="stylesheet" href="src/styles/10-analysis.css?v=175-monthly-close-r3">
+  <link rel="stylesheet" href="src/styles/10-analysis.css?v=202-personal-agent">
   <link rel="stylesheet" href="src/styles/11-summary-insights.css?v=188-pattern-readability">
   <link rel="stylesheet" href="src/styles/12-rosso-ink.css?v=169-corsa-themes">
   <link rel="stylesheet" href="src/styles/13-goals.css?v=190-budget-check">
-  <link rel="stylesheet" href="src/styles/14-board-overview.css?v=185-theme-refresh">
+  <link rel="stylesheet" href="src/styles/14-board-overview.css?v=202-personal-agent">
   <link rel="stylesheet" href="src/styles/16-backup.css?v=187-backup-restore">
   <link rel="stylesheet" href="src/styles/17-spending-budget.css?v=191-budget-templates">
   <link rel="stylesheet" href="src/styles/18-numeric-input.css?v=191-budget-templates">
   <link rel="stylesheet" href="src/styles/19-products.css?v=191-products-quick-entry">
+  <link rel="stylesheet" href="src/styles/20-family.css?v=202-personal-agent">
+  <link rel="stylesheet" href="src/styles/21-agent.css?v=202-personal-agent">
   <link rel="stylesheet" href="src/styles/20-responsive-devices.css?v=191-responsive">
 </head>
 <body data-app-name="소비 분석">
@@ -38,6 +40,7 @@
       <p>카드, 이체, 직접 입력 기록을 바탕으로 지출 흐름과 소비 패턴을 분석합니다.</p>
     </div>
     <div class="header-actions">
+      <button id="ledgerAgentButton" class="ledger-agent-open" type="button" aria-haspopup="dialog" aria-controls="ledgerAgentDialog">가계부 에이전트</button>
       <label class="file-button primary-upload">
         <input id="fileInput" type="file" accept=".xlsx,.xls,.xlsm" aria-label="카드/이체 엑셀 불러오기">
         <i class="ti ti-file-spreadsheet" aria-hidden="true"></i>
@@ -179,6 +182,7 @@
               <div class="admin-menu-section admin-quick-nav-section">
                 <span class="admin-menu-label">빠른 이동</span>
                 <div class="admin-nav-grid">
+                  <button type="button" data-family-settings><i class="ti ti-users" aria-hidden="true"></i><span>가족 입금·송금인 설정</span></button>
                   <button type="button" data-admin-view="income"><i class="ti ti-cash" aria-hidden="true"></i><span>수입 입력</span></button>
                   <button type="button" data-admin-view="recurring"><i class="ti ti-repeat" aria-hidden="true"></i><span>고정 지출</span></button>
                   <button type="button" data-admin-view="rules"><i class="ti ti-adjustments" aria-hidden="true"></i><span>분류 규칙</span></button>
@@ -203,12 +207,13 @@
                     <label><input type="checkbox" data-data-scope="importedExcelTransactions" checked> 엑셀 업로드 거래</label>
                     <label><input type="checkbox" data-data-scope="pastBulkTransactions" checked> 과거 거래 입력</label>
                     <label><input type="checkbox" data-data-scope="directManualTransactions" checked> 직접 추가 거래</label>
-                    <label><input type="checkbox" data-data-scope="incomeInput" checked> 수입 입력</label>
+                    <label><input type="checkbox" data-data-scope="incomeInput" checked> 수입·가족 입금 입력</label>
                     <label><input type="checkbox" data-data-scope="recurringDefinitions" checked> 고정 지출 원본</label>
                     <label><input type="checkbox" data-data-scope="recurringPostedTransactions" checked> 고정 지출 실제 반영</label>
                     <label><input type="checkbox" data-data-scope="rulesAndLearning" checked> 분류 규칙/추천</label>
                     <label><input type="checkbox" data-data-scope="products" checked> 소모품 사용</label>
                     <label><input type="checkbox" data-data-scope="ipoRecords" checked> 공모주 기록</label>
+                    <label><input type="checkbox" data-data-scope="familyAdjustments" checked> 가족 정산 조정</label>
                     <label><input type="checkbox" data-data-scope="calendarMemos" checked> 달력 메모</label>
                     <label><input type="checkbox" data-data-scope="goalPlan" checked> 자산 목표 플랜</label>
                     <label><input type="checkbox" data-data-scope="settings" checked> 설정/테마</label>
@@ -246,12 +251,13 @@
                     <label><input type="checkbox" data-clear-scope="importedExcelTransactions" checked> 엑셀 업로드 거래</label>
                     <label><input type="checkbox" data-clear-scope="pastBulkTransactions"> 과거 거래 입력</label>
                     <label><input type="checkbox" data-clear-scope="directManualTransactions"> 직접 추가 거래</label>
-                    <label><input type="checkbox" data-clear-scope="incomeInput"> 수입 입력</label>
+                    <label><input type="checkbox" data-clear-scope="incomeInput"> 수입·가족 입금 입력</label>
                     <label><input type="checkbox" data-clear-scope="recurringDefinitions"> 고정 지출 원본</label>
                     <label><input type="checkbox" data-clear-scope="recurringPostedTransactions"> 고정 지출 실제 반영</label>
                     <label><input type="checkbox" data-clear-scope="rulesAndLearning"> 분류 규칙/추천</label>
                     <label><input type="checkbox" data-clear-scope="products"> 소모품 사용</label>
                     <label><input type="checkbox" data-clear-scope="ipoRecords"> 공모주 기록</label>
+                    <label><input type="checkbox" data-clear-scope="familyAdjustments"> 가족 정산 조정</label>
                     <label><input type="checkbox" data-clear-scope="calendarMemos"> 달력 메모</label>
                     <label><input type="checkbox" data-clear-scope="goalPlan"> 자산 목표 플랜</label>
                     <label><input type="checkbox" data-clear-scope="settings"> 설정/테마</label>
@@ -323,12 +329,13 @@
             <h2>대시보드</h2>
             <p>얼마나 썼는지, 카드값은 얼마인지, 어디에 많이 썼는지 확인하세요.</p>
           </div>
-          <div class="ledger-controls">
+          <div class="ledger-controls board-head-actions">
             <div class="month-control-group">
               <button id="boardPrevMonth" type="button" class="month-step-button" title="이전 월" aria-label="이전 월"><i class="ti ti-chevron-left" aria-hidden="true"></i></button>
               <label>월<select id="boardMonth"></select></label>
               <button id="boardNextMonth" type="button" class="month-step-button" title="다음 월" aria-label="다음 월"><i class="ti ti-chevron-right" aria-hidden="true"></i></button>
             </div>
+            <button type="button" data-family-add><i class="ti ti-users" aria-hidden="true"></i> 가족 입금 추가</button>
           </div>
         </div>
         <div id="boardMetrics" class="board-metric-grid"></div>
@@ -337,6 +344,7 @@
           <div id="boardSectorSummary" class="board-sector-summary"></div>
           <div id="boardGrid" class="ledger-board"></div>
         </div>
+        <section id="familyDashboardCard" class="family-dashboard-card" aria-label="이번 달 가족 정산"></section>
         <div class="board-filter-legacy-controls" hidden>
           <select id="boardFilterSector"><option value="all">전체</option></select>
           <input id="boardFilterSearch" type="text">
@@ -732,9 +740,9 @@
               <fieldset id="loanSupportFields" class="loan-support-fields wide-field" hidden>
                 <legend>가족 분담 기본값</legend>
                 <label>부담자 이름<input id="loanSupporterName" type="text" placeholder="예: 가족"></label>
-                <label>추적 시작 시 가족 부담 원금<input id="loanSupportOpeningBalance" data-number-kind="money" step="1" type="text" inputmode="numeric" placeholder="예: 20000000"></label>
-                <label>월 가족 부담 원금<input id="loanSupportPrincipalAmount" data-number-kind="money" step="1" type="text" inputmode="numeric" placeholder="예: 555000"></label>
-                <label>월 가족 부담 이자<input id="loanSupportInterestAmount" data-number-kind="money" step="1" type="text" inputmode="numeric" placeholder="예: 273014"></label>
+                <label>추적 시작 시 가족 부담 원금<input id="loanSupportOpeningBalance" data-number-kind="money" step="1" type="text" inputmode="numeric" placeholder="가족 부담 원금 입력"></label>
+                <label>월 가족 부담 원금<input id="loanSupportPrincipalAmount" data-number-kind="money" step="1" type="text" inputmode="numeric" placeholder="월 가족 부담 원금 입력"></label>
+                <label>월 가족 부담 이자<input id="loanSupportInterestAmount" data-number-kind="money" step="1" type="text" inputmode="numeric" placeholder="월 가족 부담 이자 입력"></label>
                 <small>가족 입금은 일반 수입에서 제외하며, 실제 상환 때 금액과 입금일을 확인합니다.</small>
               </fieldset>
               <label>추적 시작 월<input id="loanStartMonth" type="month" required></label>
@@ -1214,6 +1222,7 @@
               <span class="calendar-control-label">이전</span>
             </button>
             <label>월<select id="calendarMonth"></select></label>
+            <button type="button" data-family-add><i class="ti ti-users" aria-hidden="true"></i> 가족 입금 추가</button>
             <button id="calendarNextMonth" type="button" aria-label="다음 달">
               <span class="calendar-control-label">다음</span>
               <i class="ti ti-chevron-right" aria-hidden="true"></i>
@@ -1437,7 +1446,7 @@
         <div><span>해당 월 말 법적 잔액</span><strong id="loanPaymentRemaining">0원</strong></div>
         <div><span>전체 반영 후 법적 잔액</span><strong id="loanPaymentFinalRemaining">0원</strong></div>
         <div><span>본인 부담 원금 잔액</span><strong id="loanPaymentPersonalRemaining">0원</strong></div>
-        <div><span>가족 누적 정산</span><strong id="loanPaymentSettlementBalance">0원</strong></div>
+        <div><span>이 대출의 기존 정산</span><strong id="loanPaymentSettlementBalance">0원</strong></div>
       </div>
       <p class="loan-payment-rule"><i class="ti ti-check" aria-hidden="true"></i> 가족 분담금은 일반 수입이 아니며, 본인 부담 이자만 소비지출에 반영됩니다.</p>
       <div class="loan-payment-actions">
@@ -1515,7 +1524,7 @@
   </dialog>
 
   <script src="src/utils/excel-loader.js?v=192-maintenance"></script>
-<script src="src/data/constants.js?v=194-import-save-performance"></script>
+<script src="src/data/constants.js?v=202-personal-agent"></script>
   <script src="src/data/categories.js?v=136-mineral-layers"></script>
   <script src="src/data/rules.js?v=93"></script>
   <script src="src/data/board-sections.js?v=151-loan-repayments"></script>
@@ -1524,7 +1533,7 @@
   <script src="src/features/goals/goals-core.js?v=170-goal-planner"></script>
   <script src="src/features/budget/spending-budget-core.js?v=191-budget-templates"></script>
 
-  <script src="src/features/app/state.js?v=190-budget-check"></script>
+  <script src="src/features/app/state.js?v=202-personal-agent"></script>
 
   <script src="src/utils/format.js?v=80"></script>
   <script src="src/utils/date.js?v=192-maintenance"></script>
@@ -1532,26 +1541,27 @@
   <script src="src/utils/dom.js?v=61"></script>
   <script src="src/features/recurring/recurring-review-core.js?v=176-recurring-review"></script>
   <script src="src/utils/food-occasion.js?v=174-food-occasions"></script>
-  <script src="src/utils/normalize.js?v=192-maintenance"></script>
-  <script src="src/utils/grouping.js?v=192-maintenance"></script>
-  <script src="src/utils/storage.js?v=190-budget-check"></script>
-  <script src="src/utils/backup-merge.js?v=187-backup-restore"></script>
-  <script src="src/utils/backup.js?v=192-maintenance"></script>
-  <script src="src/features/app/backup-review.js?v=187-backup-restore"></script>
+  <script src="src/utils/normalize.js?v=202-personal-agent"></script>
+  <script src="src/utils/grouping.js?v=202-personal-agent"></script>
+  <script src="src/features/family/family-core.js?v=202-personal-agent"></script>
+  <script src="src/utils/storage.js?v=202-personal-agent"></script>
+  <script src="src/utils/backup-merge.js?v=202-personal-agent"></script>
+  <script src="src/utils/backup.js?v=202-personal-agent"></script>
+  <script src="src/features/app/backup-review.js?v=202-personal-agent"></script>
 
   <script src="src/components/chips.js?v=174-food-occasions"></script>
   <script src="src/components/tables.js?v=61"></script>
   <script src="src/components/metrics.js?v=131-yearly"></script>
   <script src="src/components/quick-add.js?v=192-maintenance"></script>
 
-  <script src="src/features/import/excel-import.js?v=194-import-save-performance"></script>
+  <script src="src/features/import/excel-import.js?v=202-personal-agent"></script>
   <script src="src/features/import/transaction-parser.js?v=77"></script>
-  <script src="src/features/classification/classifier.js?v=194-import-save-performance"></script>
+  <script src="src/features/classification/classifier.js?v=202-personal-agent"></script>
   <script src="src/features/classification/smart-suggestions.js?v=173-food-calendar-r2"></script>
   <script src="src/features/classification/rules-manager.js?v=194-import-save-performance"></script>
 
-  <script src="src/features/board/board-view.js?v=192-maintenance"></script>
-  <script src="src/features/budget/spending-budget-view.js?v=191-budget-templates"></script>
+  <script src="src/features/board/board-view.js?v=202-personal-agent"></script>
+  <script src="src/features/budget/spending-budget-view.js?v=202-personal-agent"></script>
   <script src="src/features/budget/spending-budget-targets.js?v=191-budget-templates"></script>
   <script src="src/features/board/board-summary.js?v=192-maintenance"></script>
   <script src="src/features/board/board-overview.js?v=185-theme-refresh"></script>
@@ -1566,17 +1576,17 @@
   <script src="src/features/summary/summary-period.js?v=165-summary-insights-r2"></script>
   <script src="src/features/summary/summary-view.js?v=190-budget-check"></script>
   <script src="src/features/summary/summary-chart.js?v=165-summary-insights-r2"></script>
-  <script src="src/features/monthly/monthly-flow.js?v=194-import-save-performance"></script>
+  <script src="src/features/monthly/monthly-flow.js?v=202-personal-agent"></script>
   <script src="src/features/monthly/monthly-chart.js?v=156-loan-sharing"></script>
   <script src="src/features/income/income-entry.js?v=191-budget-templates"></script>
   <script src="src/features/income/income-bulk.js?v=191-budget-templates"></script>
-  <script src="src/features/income/income-list.js?v=191-budget-templates"></script>
-  <script src="src/features/recurring/recurring-view.js?v=192-maintenance"></script>
+  <script src="src/features/income/income-list.js?v=202-personal-agent"></script>
+  <script src="src/features/recurring/recurring-view.js?v=202-personal-agent"></script>
   <script src="src/features/calendar/calendar-cashflow.js?v=193-calendar-outflow"></script>
-  <script src="src/features/calendar/calendar-view.js?v=193-calendar-outflow"></script>
-  <script src="src/features/analysis/analysis-core.js?v=156-loan-sharing"></script>
-  <script src="src/features/analysis/monthly-analysis-core.js?v=175-monthly-close-r2"></script>
-  <script src="src/features/analysis/monthly-analysis-view.js?v=175-monthly-close-r2"></script>
+  <script src="src/features/calendar/calendar-view.js?v=202-personal-agent"></script>
+  <script src="src/features/analysis/analysis-core.js?v=202-personal-agent"></script>
+  <script src="src/features/analysis/monthly-analysis-core.js?v=202-personal-agent"></script>
+  <script src="src/features/analysis/monthly-analysis-view.js?v=202-personal-agent"></script>
   <script src="src/features/analysis/spending-structure-view.js?v=191-budget-templates"></script>
   <script src="src/features/products/products-view.js?v=191-budget-templates"></script>
   <script src="src/features/ipo/ipo-view.js?v=191-budget-templates"></script>
@@ -1587,7 +1597,11 @@
 
   <script src="src/features/app/navigation.js?v=112"></script>
   <script src="src/features/app/appearance.js?v=141-garden-analysis"></script>
-  <script src="src/features/app/render-all.js?v=194-import-save-performance"></script>
-  <script src="src/features/app/init.js?v=187-backup-restore"></script>
+  <script src="src/features/family/family-view.js?v=202-personal-agent"></script>
+  <script src="src/features/agent/ledger-agent-tools.js?v=202-personal-agent"></script>
+  <script src="src/features/agent/ledger-agent-transport.js?v=202-personal-agent"></script>
+  <script src="src/features/agent/ledger-agent-view.js?v=202-personal-agent"></script>
+  <script src="src/features/app/render-all.js?v=202-personal-agent"></script>
+  <script src="src/features/app/init.js?v=202-personal-agent"></script>
 </body>
 </html>

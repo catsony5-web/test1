@@ -49,7 +49,7 @@ function setup() {
     buildSmartSuggestionModel: () => ({}), suggestCategory: () => null,
     saveRules: async () => true, createAutoSnapshot: async () => ({}), safeSaveMany: async () => true,
     mergeTransactions: (current, incoming) => ({ records: [...current, ...incoming], added: incoming.length, skipped: 0 }),
-    alert() {}, renderIncomeBulkPreview() {}
+    alert() {}, renderIncomeBulkPreview() {}, renderFamilySupport() {}
   });
   for (const file of ["src/features/app/render-all.js", "src/features/app/appearance.js",
     "src/features/classification/classifier.js", "src/features/transactions/transactions-view.js"]) load(c, file);

@@ -100,6 +100,7 @@ const DATA_SCOPE_META = [
   { key: "incomeInput", label: "수입 입력" },
   { key: "recurringDefinitions", label: "고정 지출 원본" },
   { key: "recurringPostedTransactions", label: "고정 지출 실제 반영" },
+  { key: "familyAdjustments", label: "가족지원 조정" },
   { key: "rulesAndLearning", label: "분류 규칙/추천" },
   { key: "products", label: "소모품 사용" },
   { key: "ipoRecords", label: "공모주 기록" },
@@ -278,6 +279,7 @@ async function buildBackupPayload(scopes) {
   if (sections.products) payload.products = sections.products.products || [];
   if (sections.ipoRecords) payload.ipoRecords = sections.ipoRecords.ipoRecords || [];
   if (sections.recurringDefinitions) payload.recurringExpenses = sections.recurringDefinitions.recurringExpenses || [];
+  if (sections.familyAdjustments) payload.familyAdjustments = sections.familyAdjustments.familyAdjustments || [];
   if (sections.calendarMemos) payload.calendarMemos = sections.calendarMemos.calendarMemos || {};
   if (sections.goalPlan) payload.goalPlan = sections.goalPlan.goalPlan || {};
   if (sections.settings) payload.settings = sections.settings.settings || {};
@@ -297,6 +299,7 @@ function buildBackupSection(scope) {
     return section;
   }
   if (scope === "recurringDefinitions") return { recurringExpenses: recurringExpenses.map(normalizeRecurringExpense) };
+  if (scope === "familyAdjustments") return { familyAdjustments: normalizeFamilyAdjustments(familyAdjustments) };
   if (scope === "rulesAndLearning") return { rules };
   if (scope === "products") return { products: products.map(normalizeProduct) };
   if (scope === "ipoRecords") return { ipoRecords: ipoRecords.map(normalizeIpoRecord) };
@@ -347,6 +350,7 @@ function normalizeBackupPayload(payload) {
   }
   if (!sections.rulesAndLearning && Array.isArray(payload?.rules)) sections.rulesAndLearning = { rules: payload.rules };
   if (!sections.recurringDefinitions && Array.isArray(payload?.recurringExpenses)) sections.recurringDefinitions = { recurringExpenses: payload.recurringExpenses };
+  if (!sections.familyAdjustments && Object.hasOwn(payload || {}, "familyAdjustments")) sections.familyAdjustments = { familyAdjustments: normalizeFamilyAdjustments(payload.familyAdjustments) };
   if (!sections.products && Array.isArray(payload?.products)) sections.products = { products: payload.products };
   if (!sections.ipoRecords && Array.isArray(payload?.ipoRecords)) sections.ipoRecords = { ipoRecords: payload.ipoRecords };
   if (!sections.calendarMemos && payload?.calendarMemos) sections.calendarMemos = { calendarMemos: payload.calendarMemos };
@@ -391,6 +395,7 @@ function normalizeBackupSection(scope, raw) {
     return section;
   }
   if (scope === "recurringDefinitions") return { recurringExpenses: Array.isArray(raw.recurringExpenses) ? raw.recurringExpenses.map(normalizeRecurringExpense) : [] };
+  if (scope === "familyAdjustments") return { familyAdjustments: normalizeFamilyAdjustments(raw.familyAdjustments) };
   if (scope === "rulesAndLearning") return { rules: Array.isArray(raw.rules) ? raw.rules : [] };
   if (scope === "products") return { products: Array.isArray(raw.products) ? raw.products.map(normalizeProduct) : [] };
   if (scope === "ipoRecords") return { ipoRecords: Array.isArray(raw.ipoRecords) ? raw.ipoRecords.map(normalizeIpoRecord) : [] };
@@ -403,6 +408,7 @@ function normalizeBackupSection(scope, raw) {
 function emptyBackupSection(scope) {
   if (TRANSACTION_DATA_SCOPES.has(scope)) return { records: [], reimbursements: {} };
   if (scope === "recurringDefinitions") return { recurringExpenses: [] };
+  if (scope === "familyAdjustments") return { familyAdjustments: [] };
   if (scope === "rulesAndLearning") return { rules: [] };
   if (scope === "products") return { products: [] };
   if (scope === "ipoRecords") return { ipoRecords: [] };
@@ -423,6 +429,7 @@ function countBackupSections(sections) {
   Object.entries(sections || {}).forEach(([scope, section]) => {
     if (TRANSACTION_DATA_SCOPES.has(scope)) counts[scope] = Array.isArray(section.records) ? section.records.length : 0;
     else if (scope === "recurringDefinitions") counts[scope] = Array.isArray(section.recurringExpenses) ? section.recurringExpenses.length : 0;
+    else if (scope === "familyAdjustments") counts[scope] = Array.isArray(section.familyAdjustments) ? section.familyAdjustments.length : 0;
     else if (scope === "rulesAndLearning") counts[scope] = Array.isArray(section.rules) ? section.rules.length : 0;
     else if (scope === "products") counts[scope] = Array.isArray(section.products) ? section.products.length : 0;
     else if (scope === "ipoRecords") counts[scope] = Array.isArray(section.ipoRecords) ? section.ipoRecords.length : 0;
@@ -477,6 +484,7 @@ function applyClearScopes(scopes) {
   }
   if (selected.includes("incomeInput")) monthlyIncome = {};
   if (selected.includes("recurringDefinitions")) recurringExpenses = [];
+  if (selected.includes("familyAdjustments")) familyAdjustments = [];
   if (selected.includes("rulesAndLearning")) rules = structuredClone(defaultRules);
   if (selected.includes("products")) products = [];
   if (selected.includes("ipoRecords")) ipoRecords = [];
@@ -506,6 +514,8 @@ function applyRestorePayload(payload, scopes, options = {}) {
       reimbursements = merged.reimbursements;
     }
     if (selected.includes("incomeInput")) monthlyIncome = merged.monthlyIncome;
+    if (selected.includes("familyAdjustments")) familyAdjustments = merged.familyAdjustments;
+    if (selected.includes("recurringDefinitions")) recurringExpenses = merged.recurringExpenses;
   } else {
     restoreTransactionSections(bundle, selected, mode);
   }
@@ -516,11 +526,14 @@ function applyRestorePayload(payload, scopes, options = {}) {
       : {};
     monthlyIncome = incomingIncome;
   }
-  if (selected.includes("recurringDefinitions")) {
+  if (selected.includes("familyAdjustments") && mode !== "merge") {
+    familyAdjustments = normalizeFamilyAdjustments(bundle.sections.familyAdjustments?.familyAdjustments);
+  }
+  if (selected.includes("recurringDefinitions") && mode !== "merge") {
     const incoming = Array.isArray(bundle.sections.recurringDefinitions?.recurringExpenses)
       ? bundle.sections.recurringDefinitions.recurringExpenses.map(normalizeRecurringExpense)
       : [];
-    recurringExpenses = mode === "merge" ? mergeRecurringDefinitions(recurringExpenses, incoming) : incoming;
+    recurringExpenses = incoming;
   }
   if (selected.includes("rulesAndLearning")) {
     const incoming = Array.isArray(bundle.sections.rulesAndLearning?.rules) ? bundle.sections.rulesAndLearning.rules : [];
@@ -581,10 +594,10 @@ async function persistDataScopeChange(scopes, applyChange, snapshotReason) {
 
 function captureDataState() {
   // 복원/초기화는 배열과 객체를 교체하므로 원본 참조로 정확히 되돌릴 수 있다.
-  const previous = { transactions, reimbursements, importMeta, currentFileName, monthlyIncome,
+  const previous = { transactions, reimbursements, familyAdjustments, importMeta, currentFileName, monthlyIncome,
     recurringExpenses, rules, products, ipoRecords, calendarMemos, goalPlan, appSettings };
   return () => {
-    ({ transactions, reimbursements, importMeta, currentFileName, monthlyIncome,
+    ({ transactions, reimbursements, familyAdjustments, importMeta, currentFileName, monthlyIncome,
       recurringExpenses, rules, products, ipoRecords, calendarMemos, goalPlan, appSettings } = previous);
     applyAppSettings();
   };
@@ -604,6 +617,7 @@ function saveSelectedScopes(scopes, options = {}) {
   if (selected.includes("products")) writes.push({ key: PRODUCT_STORAGE_KEY, data: products.map(normalizeProduct) });
   if (selected.includes("ipoRecords")) writes.push({ key: IPO_STORAGE_KEY, data: ipoRecords.map(normalizeIpoRecord) });
   if (selected.includes("recurringDefinitions")) writes.push({ key: RECURRING_STORAGE_KEY, data: recurringExpenses.map(normalizeRecurringExpense) });
+  if (selected.includes("familyAdjustments")) writes.push({ key: FAMILY_ADJUSTMENTS_STORAGE_KEY, data: normalizeFamilyAdjustments(familyAdjustments) });
   if (selected.includes("calendarMemos")) writes.push({ key: CALENDAR_MEMO_STORAGE_KEY, data: normalizeCalendarMemos(calendarMemos) });
   if (selected.includes("goalPlan")) writes.push({ key: GOAL_PLAN_STORAGE_KEY, data: GoalPlannerCore.normalizePlan(goalPlan) });
   if (selected.includes("settings")) writes.push({ key: SETTINGS_STORAGE_KEY, data: appSettings });
@@ -679,18 +693,6 @@ function transactionRestoreSignature(item) {
     normalized.cardNumber,
     normalized.cancel
   ].join("|");
-}
-
-function mergeRecurringDefinitions(current, incoming) {
-  const result = current.map(normalizeRecurringExpense);
-  const seen = new Set(result.map(recurringDefinitionSignature));
-  incoming.map(normalizeRecurringExpense).forEach((item) => {
-    const signature = recurringDefinitionSignature(item);
-    if (seen.has(signature)) return;
-    seen.add(signature);
-    result.push(item);
-  });
-  return result;
 }
 
 function recurringDefinitionSignature(item) {

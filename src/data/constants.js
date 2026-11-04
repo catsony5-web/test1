@@ -1,10 +1,11 @@
-const APP_VERSION = "v194";
+const APP_VERSION = "v202";
 const STORAGE_KEYS = {
   rules: "monthly-card-budget-rules-v1",
   monthlyIncome: "monthly-card-budget-income-v1",
   records: "monthly-card-budget-records-v1",
   importMeta: "monthly-card-budget-import-meta-v1",
   reimbursements: "monthly-card-budget-reimbursements-v1",
+  familyAdjustments: "monthly-card-budget-family-adjustments-v1",
   products: "monthly-card-budget-products-v1",
   ipoRecords: "monthly-card-budget-ipo-v1",
   recurringExpenses: "monthly-card-budget-recurring-expenses-v1",
@@ -26,6 +27,7 @@ const INCOME_STORAGE_KEY = STORAGE_KEYS.monthlyIncome;
 const RECORD_STORAGE_KEY = STORAGE_KEYS.records;
 const IMPORT_META_STORAGE_KEY = STORAGE_KEYS.importMeta;
 const REIMBURSEMENT_STORAGE_KEY = STORAGE_KEYS.reimbursements;
+const FAMILY_ADJUSTMENTS_STORAGE_KEY = STORAGE_KEYS.familyAdjustments;
 const PRODUCT_STORAGE_KEY = STORAGE_KEYS.products;
 const IPO_STORAGE_KEY = STORAGE_KEYS.ipoRecords;
 const RECURRING_STORAGE_KEY = STORAGE_KEYS.recurringExpenses;

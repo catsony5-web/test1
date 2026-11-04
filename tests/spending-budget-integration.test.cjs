@@ -44,7 +44,7 @@ function setup({ rows = [], income = {}, occurrences = [], settings = {}, reimbu
       setItem: (key, value) => local.set(key, value), removeItem: (key) => local.delete(key)
     },
     classified: rows, transactions: rows, monthlyIncome: income, reimbursements,
-    importMeta: {}, recurringExpenses: [], rules: [], products: [], ipoRecords: [], calendarMemos: {}, goalPlan: {},
+    importMeta: {}, recurringExpenses: [], familyAdjustments: [], rules: [], products: [], ipoRecords: [], calendarMemos: {}, goalPlan: {},
     currentFileName: "", defaultRules: [], appSettings: {},
     recurringOccurrencesForMonth: () => occurrences,
     recurringReviewIncomeKnown: (month) => Object.hasOwn(income, month)
@@ -54,7 +54,7 @@ function setup({ rows = [], income = {}, occurrences = [], settings = {}, reimbu
   vm.runInContext(read("src/features/app/state.js").split("\nconst els =")[0], context);
   for (const file of [
     "src/data/constants.js", "src/data/categories.js", "src/utils/format.js", "src/utils/date.js", "src/utils/dom.js",
-    "src/utils/food-occasion.js", "src/utils/normalize.js", "src/utils/grouping.js", "src/components/chips.js",
+    "src/utils/food-occasion.js", "src/utils/normalize.js", "src/utils/grouping.js", "src/features/family/family-core.js", "src/components/chips.js",
     "src/features/board/board-view.js", "src/features/monthly/monthly-flow.js", "src/features/analysis/analysis-core.js",
     "src/features/summary/summary-food-core.js", "src/features/budget/spending-budget-core.js",
     "src/utils/storage.js", "src/utils/backup.js", "src/features/budget/spending-budget-view.js",
@@ -167,6 +167,17 @@ test("installment rows use the selected-month allocation and date, not the origi
 test("missing income stays unknown while a recorded zero income is known", () => {
   assert.equal(model(setup().context).incomeSupport, null);
   assert.equal(model(setup({ income: { "2026-09": 0 } }).context).incomeSupport, 0);
+});
+
+test("family support alone does not establish recorded income while explicit ordinary zero income remains known", () => {
+  const family = expense("synthetic-family", 600, undefined, { flow: "income", incomeKind: "familySupport", sector: "가족 지원" });
+  const familyOnly = model(setup({ rows: [family] }).context);
+  assert.equal(familyOnly.referenceIncome, null);
+  assert.equal(familyOnly.incomeSupport, null);
+  assert.equal(familyOnly.recommendationRecords.income, null);
+  const zeroIncome = expense("synthetic-zero-income", 0, undefined, { flow: "income", sector: "수입" });
+  assert.equal(model(setup({ rows: [family, zeroIncome] }).context).referenceIncome, 0);
+  assert.equal(model(setup({ rows: [family], income: { "2026-09": 0 } }).context).referenceIncome, 0);
 });
 
 test("recommendation record sources separate housing, other fixed spending and own principal without counting posted occurrences twice", () => {

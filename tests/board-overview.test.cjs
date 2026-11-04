@@ -132,7 +132,7 @@ test("실제 renderBoard는 소비·섹터·결제·하단 상세 영역을 모�
   Object.assign(c, {
     recurringExpenses: [], appMonthOptions: () => ["2026-08", "2026-09"],
     getSharedSelectedMonth: () => "2026-09", canViewDriveSharedMonth: () => false,
-    attachBoardSummaryHandlers() {}, attachBoardTopCategoryHandlers() {},
+    attachBoardSummaryHandlers() {}, attachBoardTopCategoryHandlers() {}, renderFamilyDashboard() {},
     document: { querySelectorAll: () => [] }
   });
   c.renderBoard();

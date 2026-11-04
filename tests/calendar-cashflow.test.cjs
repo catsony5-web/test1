@@ -17,7 +17,7 @@ function setup(rows = [], definitions = [], settings = {}) {
   });
   for (const file of [
     "src/data/categories.js", "src/utils/date.js", "src/utils/food-occasion.js",
-    "src/utils/normalize.js", "src/utils/grouping.js", "src/utils/storage.js",
+    "src/utils/normalize.js", "src/utils/grouping.js", "src/utils/storage.js", "src/features/family/family-core.js",
     "src/components/chips.js", "src/features/board/board-view.js",
     "src/features/recurring/recurring-view.js", "src/features/calendar/calendar-view.js",
     "src/features/calendar/calendar-cashflow.js"

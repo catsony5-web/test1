@@ -10,6 +10,7 @@ function renderBoard() {
 
   els.boardMonth.innerHTML = availableMonths.map((month) => `<option value="${escapeHtml(month)}">${escapeHtml(month)}</option>`).join("");
   els.boardMonth.value = selectedMonth;
+  renderFamilyDashboard(selectedMonth);
 
   if (isBoardAppEmpty()) {
     renderBoardEmptyWorkspace(selectedMonth);

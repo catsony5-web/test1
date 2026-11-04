@@ -91,3 +91,101 @@ function buildMonthlyAnalysisModel(month, mode = "previous", today = defaultDate
     balanceDrivers
   };
 }
+
+function monthlySettlementCardValue(item) {
+  const number = String(item.cardNumber || "").replace(/[\s-]/g, "");
+  return number ? `card:${number}` : "unknown";
+}
+
+function buildMonthlyCardSettlementModel(month, selectedCard = "all") {
+  if (!isValidMonthKey(month)) return null;
+  const source = typeof transactions === "undefined" ? classified : transactions;
+  const cardRows = source.filter((item) => item.flow !== "income"
+    && !item.isInstallmentOccurrence && !item.installmentSourceRecordKey
+    && (item.sourceType === "card" || (!item.sourceType && String(item.cardNumber || "").trim())));
+  const cardValues = [...new Set(cardRows.map(monthlySettlementCardValue))].sort();
+  const labels = new Map();
+  const labelCounts = new Map();
+  cardValues.forEach((value) => {
+    const suffix = value.match(/(\d{4})$/)?.[1];
+    const label = suffix ? `카드 · ${suffix}` : "카드번호 미입력";
+    const index = (labelCounts.get(label) || 0) + 1;
+    labelCounts.set(label, index);
+    labels.set(value, index > 1 ? `${label} (${index})` : label);
+  });
+  const cards = [{ value: "all", label: "전체 카드" }, ...cardValues.map((value) => ({ value, label: labels.get(value) }))];
+  if (!cards.some((card) => card.value === selectedCard)) selectedCard = "all";
+  const warnings = new Map();
+  const addWarning = (code, amount = 0) => {
+    const warning = warnings.get(code) || { code, count: 0, amount: 0 };
+    warning.count += 1;
+    warning.amount += amount;
+    warnings.set(code, warning);
+  };
+  const uniqueRows = new Map();
+  let duplicateCount = 0;
+  cardRows.forEach((item) => {
+    const card = monthlySettlementCardValue(item);
+    if ((selectedCard !== "all" && card !== selectedCard) || !monthlyAnalysisDate(item, month)) return;
+    const amount = Number(item.amount);
+    if (!Number.isFinite(amount) || amount === 0) return;
+    const key = JSON.stringify([card, item.recordKey || item.transactionId || createRecordKey(item)]);
+    const previous = uniqueRows.get(key);
+    if (previous) {
+      duplicateCount += 1;
+      if (Number(previous.amount) !== amount || monthlyAnalysisDate(previous, month) !== monthlyAnalysisDate(item, month)
+        || String(previous.cancel || "") !== String(item.cancel || "")) addWarning("conflicting-duplicate");
+      return;
+    }
+    uniqueRows.set(key, item);
+  });
+  const rows = [...uniqueRows.values()].sort((a, b) =>
+    monthlyAnalysisDate(b, month).localeCompare(monthlyAnalysisDate(a, month))
+    || String(b.approvalTime || "").localeCompare(String(a.approvalTime || "")));
+  const cancellationKey = (item) => item.approvalNo
+    ? JSON.stringify([monthlySettlementCardValue(item), String(item.approvalNo).trim(), normalizeKeyText(item.merchant || "")]) : "";
+  const canceledApprovals = new Set(cardRows.filter((item) => Number(item.amount) < 0).map(cancellationKey).filter(Boolean));
+  const settledRows = [];
+  let grossAmount = 0;
+  let cancelAmount = 0;
+  let approvalCount = 0;
+  let cancelCount = 0;
+  rows.forEach((item) => {
+    const amount = Number(item.amount);
+    const storedReimbursement = Math.max(0, toNumber(reimbursements[item.recordKey]));
+    if (amount < 0) {
+      cancelAmount -= amount;
+      cancelCount += 1;
+      if (storedReimbursement > 0) addWarning("reimbursement-on-canceled", storedReimbursement);
+      return;
+    }
+    grossAmount += amount;
+    approvalCount += 1;
+    if (isCanceled(item.cancel)) addWarning("positive-cancellation", amount);
+    const reimbursement = reimbursementFor(item);
+    if (storedReimbursement > reimbursement) addWarning("reimbursement-clamped", storedReimbursement - reimbursement);
+    if (reimbursement <= 0) return;
+    if (isCanceled(item.cancel) || canceledApprovals.has(cancellationKey(item))) {
+      addWarning("reimbursement-on-canceled", reimbursement);
+    }
+    settledRows.push({
+      item,
+      date: monthlyAnalysisDate(item, month),
+      cardLabel: labels.get(monthlySettlementCardValue(item)),
+      amount,
+      reimbursement,
+      ownAmount: amount - reimbursement
+    });
+  });
+  const netAmount = grossAmount - cancelAmount;
+  const reimbursementAmount = settledRows.reduce((total, row) => total + row.reimbursement, 0);
+  const ownAmount = netAmount - reimbursementAmount;
+  if (reimbursementAmount > Math.max(0, netAmount)) addWarning("reimbursement-exceeds-net", reimbursementAmount - Math.max(0, netAmount));
+  return {
+    month, cards, selectedCard, rows, settledRows,
+    grossAmount, cancelAmount, netAmount, reimbursementAmount, ownAmount,
+    reimbursementRate: netAmount > 0 ? reimbursementAmount / netAmount * 100 : null,
+    approvalCount, cancelCount, duplicateCount,
+    warnings: [...warnings.values()]
+  };
+}

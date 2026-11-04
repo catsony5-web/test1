@@ -8,8 +8,9 @@ function loadContext(rows = []) {
   const cardBilling = { startDay: 1, endDay: 31, paymentDay: 25, weekendRule: "none" };
   const context = vm.createContext({
     console,
+    familyAdjustments: [],
     classified: rows,
-    transactions: [],
+    transactions: rows,
     recurringExpenses: [],
     recurringOccurrencesForMonth: () => [],
     reimbursements: {},
@@ -26,6 +27,7 @@ function loadContext(rows = []) {
     "src/utils/food-occasion.js",
     "src/utils/normalize.js",
     "src/utils/grouping.js",
+    "src/features/family/family-core.js",
     "src/utils/storage.js",
     "src/components/chips.js",
     "src/features/board/board-view.js",
@@ -363,4 +365,26 @@ test("대출 상세는 총 상환액과 소비에 포함되는 이자를 함께 
   assert.match(html, /총 상환 550,000원 중 소비지출에는 이자 50,000원만 반영/);
   assert.match(html, /소비 포함/);
   assert.match(html, /소비 제외/);
+});
+
+test("가족 지원만 있는 날도 수입·소비와 구분해 표시하고 할부 결제 안내를 유지한다", () => {
+  const context = loadContext();
+  const receipts = [{ name: "합성 지원 입금", amount: 1400, targetMonth: "2026-07" }];
+  const obligations = [{ name: "합성 보험료", amount: 900, posted: false }];
+  const installments = [{ amount: 2000 }];
+  const label = context.calendarCellAriaLabel("2026-08-03", 0, [], [], installments, null, receipts, obligations);
+  assert.match(label, /소비지출 없음/);
+  assert.match(label, /할부 결제 2,000원, 정산금 차감 전/);
+  assert.match(label, /가족 지원 입금 1,400원/);
+  assert.match(label, /가족 부담 출금 900원/);
+  context.els = { selectedDayTitle: { textContent: "" }, selectedDayTimeline: { innerHTML: "" } };
+  context.renderCalendarEditFeedback = () => "";
+  context.attachCalendarTimelineHandlers = () => {};
+  context.attachRecurringHandlers = () => {};
+  context.renderDayTimeline("2026-08-03", [], [], [], receipts, obligations);
+  const html = context.els.selectedDayTimeline.innerHTML;
+  assert.doesNotMatch(html, /이 날짜의 소비 내역이 없습니다/);
+  assert.match(html, /정산 대상 2026-07 · 수입 제외/);
+  assert.match(html, /가족 부담 · 출금 예정/);
+  assert.match(html, /data-family-open="2026-07"/);
 });

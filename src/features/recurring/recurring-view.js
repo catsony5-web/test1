@@ -88,6 +88,78 @@ function fillRecurringCategorySelects(preferred = { sector: "고정 주거비", 
   updateSubcategorySelect(els.recurringSector, els.recurringSubcategory, preferred.subcategory);
 }
 
+function setupRecurringFamilyBurdenControls() {
+  if (els.recurringForm && !els.recurringForm.querySelector("[name=familyBurdenEnabled]")) {
+    const fields = document.createElement("fieldset");
+    fields.className = "recurring-family-fields wide-field";
+    fields.innerHTML = `<legend>가족 부담</legend><label class="check-line family-wide"><input name="familyBurdenEnabled" type="checkbox"> 가족이 부담하는 지출</label><label>가족 부담 예정액<input name="familyBurdenAmount" type="text" inputmode="numeric" disabled></label><label>적용 시작 월<input name="familyBurdenFromMonth" type="month" value="${escapeHtml(currentMonthKey())}"></label><button type="button" data-family-burden-full>전체 금액으로 설정</button><p class="family-help">가족 부담액을 뺀 금액이 내 소비입니다. 적용 시작 월 이전의 부담액과 이미 기록한 출금은 유지됩니다.</p>`;
+    els.recurringForm.insertBefore(fields, els.saveRecurringButton);
+    const enabled = fields.querySelector("[name=familyBurdenEnabled]");
+    const amount = fields.querySelector("[name=familyBurdenAmount]");
+    enabled.addEventListener("change", () => {
+      amount.disabled = !enabled.checked;
+      if (enabled.checked && !amount.value) amount.value = els.recurringAmount.value;
+    });
+    fields.querySelector("[data-family-burden-full]").addEventListener("click", () => {
+      enabled.checked = true;
+      amount.disabled = false;
+      amount.value = els.recurringAmount.value;
+    });
+    els.recurringStartMonth.addEventListener("change", () => {
+      if (!els.recurringId.value) fields.querySelector("[name=familyBurdenFromMonth]").value = els.recurringStartMonth.value;
+    });
+  }
+  if (els.loanSupportFields && !els.loanForm.querySelector("[name=loanSupportEffectiveMonth]")) {
+    const label = document.createElement("label");
+    label.innerHTML = `분담액 적용 시작 월<input name="loanSupportEffectiveMonth" type="month" value="${escapeHtml(currentMonthKey())}"><small>변경 전 월의 가족 분담 기본값을 보존합니다.</small>`;
+    els.loanSupportFields.append(label);
+    els.loanStartMonth.addEventListener("change", () => {
+      if (!els.loanId.value) label.querySelector("input").value = els.loanStartMonth.value;
+    });
+  }
+}
+
+function syncRecurringFamilyBurdenForm(item = null) {
+  const enabled = els.recurringForm?.querySelector?.("[name=familyBurdenEnabled]");
+  if (!enabled) return;
+  const month = item ? (item.startMonth > currentMonthKey() ? item.startMonth : currentMonthKey()) : els.recurringStartMonth.value || currentMonthKey();
+  const revision = item?.familyBurdenHistory?.length ? familyHistoryAtMonth(item.familyBurdenHistory, month) : null;
+  enabled.checked = Number(revision?.amount || 0) > 0;
+  const amount = els.recurringForm.querySelector("[name=familyBurdenAmount]");
+  amount.value = revision ? formatPlainNumber(revision.amount) : "";
+  amount.disabled = !enabled.checked;
+  els.recurringForm.querySelector("[name=familyBurdenFromMonth]").value = month;
+}
+
+function recurringFamilyBurdenHistoryForSave(original, startMonth, totalAmount) {
+  const enabled = els.recurringForm?.querySelector?.("[name=familyBurdenEnabled]");
+  if (!enabled) return original?.familyBurdenHistory || [];
+  if (!enabled.checked && !original?.familyBurdenHistory?.length) return [];
+  const fromMonth = els.recurringForm.querySelector("[name=familyBurdenFromMonth]").value || startMonth;
+  const amount = enabled.checked ? toNumber(els.recurringForm.querySelector("[name=familyBurdenAmount]").value) : 0;
+  if (!isValidMonthKey(fromMonth) || fromMonth < startMonth || amount < 0 || amount > totalAmount || (enabled.checked && amount === 0)) {
+    alert("가족 부담액은 총 금액 이내의 양수로, 적용 월은 시작 월 이후로 입력해주세요.");
+    return null;
+  }
+  return normalizeFamilyBurdenHistory([...(original?.familyBurdenHistory || []).filter((entry) => entry.fromMonth !== fromMonth), { fromMonth, amount }]);
+}
+
+function loanSupportHistoryForSave(original, startMonth, principal, interest) {
+  const control = els.loanForm?.querySelector?.("[name=loanSupportEffectiveMonth]");
+  if (!control) return original?.loanSupportHistory || [];
+  if (!original?.loanSupportEnabled && !original?.loanSupportHistory?.length && !principal && !interest) return [];
+  const fromMonth = control.value || startMonth;
+  if (!isValidMonthKey(fromMonth) || fromMonth < startMonth) { alert("가족 분담액의 적용 월은 추적 시작 월 이후로 입력해주세요."); return null; }
+  const history = [...(original?.loanSupportHistory || [])];
+  if (!history.length && original?.startMonth) history.push({ fromMonth: original.startMonth, principal: original.loanSupportEnabled ? Number(original.loanSupportPrincipalAmount || 0) : 0, interest: original.loanSupportEnabled ? Number(original.loanSupportInterestAmount || 0) : 0 });
+  return normalizeLoanSupportHistory([...history.filter((entry) => entry.fromMonth !== fromMonth), { fromMonth, principal, interest }]);
+}
+
+function recurringLoanSupportForMonth(item, month) {
+  if (!item.loanSupportHistory?.length) return { principal: Number(item.loanSupportPrincipalAmount || 0), interest: Number(item.loanSupportInterestAmount || 0) };
+  return familyHistoryAtMonth(item.loanSupportHistory, month) || { principal: 0, interest: 0 };
+}
+
 async function handleRecurringSubmit(event) {
   event.preventDefault();
   const name = els.recurringName.value.trim();
@@ -106,6 +178,8 @@ async function handleRecurringSubmit(event) {
 
   const now = new Date().toISOString();
   const original = recurringExpenses.find((item) => item.id === els.recurringId.value);
+  const familyBurdenHistory = recurringFamilyBurdenHistoryForSave(original, startMonth, amount);
+  if (!familyBurdenHistory) return;
   const amountMode = els.recurringAmountMode?.value === "variable" ? "variable" : "fixed";
   const autoPost = amountMode === "fixed" && els.recurringAutoPost.checked;
   await createAutoSnapshot(original ? "고정 지출 수정 전" : "고정 지출 저장 전");
@@ -124,6 +198,7 @@ async function handleRecurringSubmit(event) {
     memo: els.recurringMemo.value.trim(),
     showOnCalendar: els.recurringShowOnCalendar.checked,
     amountMode,
+    familyBurdenHistory,
     autoPost,
     autoPostStartDate: autoPost ? defaultDateForMonth() : "",
     paused: original?.paused || false,
@@ -460,6 +535,7 @@ function resetRecurringForm() {
   if (els.recurringAmountMode) els.recurringAmountMode.value = "fixed";
   syncRecurringAutoPostFields();
   fillRecurringCategorySelects();
+  syncRecurringFamilyBurdenForm();
   els.saveRecurringButton.textContent = "고정 지출 저장";
   els.cancelRecurringEditButton.hidden = true;
   NumericInput.refresh(els.recurringForm, { resetEditing: true });
@@ -482,6 +558,8 @@ function resetLoanForm() {
   els.loanMaturityMonth.value = "";
   els.loanShowOnCalendar.checked = true;
   els.loanSupportEnabled.checked = false;
+  const effectiveMonth = els.loanForm?.querySelector?.("[name=loanSupportEffectiveMonth]");
+  if (effectiveMonth) effectiveMonth.value = els.loanStartMonth.value;
   syncLoanSupportFields();
   els.saveLoanButton.textContent = "대출 상환 저장";
   els.cancelLoanEditButton.hidden = true;
@@ -540,6 +618,9 @@ async function handleLoanSubmit(event) {
     return;
   }
 
+  const loanSupportHistory = loanSupportHistoryForSave(original, startMonth, loanSupportPrincipalAmount, loanSupportInterestAmount);
+  if (!loanSupportHistory) return;
+
   const now = new Date().toISOString();
   await createAutoSnapshot(original ? "대출 상환 수정 전" : "대출 상환 저장 전");
   const item = normalizeRecurringExpense({
@@ -565,6 +646,7 @@ async function handleLoanSubmit(event) {
     loanSupportOpeningBalance,
     loanSupportPrincipalAmount,
     loanSupportInterestAmount,
+    loanSupportHistory,
     loanMaturityMonth: endMonth,
     createdAt: original?.createdAt || now,
     updatedAt: now
@@ -602,8 +684,12 @@ function editLoanRepayment(id, options = {}) {
   els.loanSupportEnabled.checked = item.loanSupportEnabled === true;
   els.loanSupporterName.value = item.loanSupporterName || "";
   els.loanSupportOpeningBalance.value = formatPlainNumber(item.loanSupportOpeningBalance || 0);
-  els.loanSupportPrincipalAmount.value = formatPlainNumber(item.loanSupportPrincipalAmount || 0);
-  els.loanSupportInterestAmount.value = formatPlainNumber(item.loanSupportInterestAmount || 0);
+  const supportMonth = item.startMonth > currentMonthKey() ? item.startMonth : currentMonthKey();
+  const supportRevision = recurringLoanSupportForMonth(item, supportMonth);
+  els.loanSupportPrincipalAmount.value = formatPlainNumber(supportRevision.principal);
+  els.loanSupportInterestAmount.value = formatPlainNumber(supportRevision.interest);
+  const effectiveMonth = els.loanForm?.querySelector?.("[name=loanSupportEffectiveMonth]");
+  if (effectiveMonth) effectiveMonth.value = supportMonth;
   syncLoanSupportFields();
   els.loanStartMonth.value = item.startMonth;
   els.loanMaturityMonth.value = item.loanMaturityMonth || item.endMonth || "";
@@ -639,6 +725,7 @@ function editRecurringExpense(id, options = {}) {
   els.recurringShowOnCalendar.checked = item.showOnCalendar !== false;
   els.recurringAutoPost.checked = item.autoPost === true;
   if (els.recurringAmountMode) els.recurringAmountMode.value = item.amountMode || "fixed";
+  syncRecurringFamilyBurdenForm(item);
   syncRecurringAutoPostFields();
   els.saveRecurringButton.textContent = "수정 저장";
   els.cancelRecurringEditButton.hidden = false;
@@ -680,6 +767,7 @@ async function toggleRecurringPaused(id) {
 function buildRecurringTransaction(item, targetMonth, options = {}) {
   const approvalDate = getRecurringDateForMonth(targetMonth, item.dayOfMonth);
   const isLoan = item.recurringType === "loan";
+  const supportRevision = isLoan ? recurringLoanSupportForMonth(item, targetMonth) : null;
   const loanPrincipalAmount = isLoan
     ? Math.max(0, toNumber(options.loanPrincipalAmount ?? item.loanPrincipalAmount))
     : 0;
@@ -687,10 +775,10 @@ function buildRecurringTransaction(item, targetMonth, options = {}) {
     ? Math.max(0, toNumber(options.loanInterestAmount ?? item.loanInterestAmount))
     : 0;
   const loanSupportPrincipalAmount = isLoan && item.loanSupportEnabled
-    ? Math.min(loanPrincipalAmount, Math.max(0, toNumber(options.loanSupportPrincipalAmount ?? item.loanSupportPrincipalAmount)))
+    ? Math.min(loanPrincipalAmount, Math.max(0, toNumber(options.loanSupportPrincipalAmount ?? supportRevision.principal)))
     : 0;
   const loanSupportInterestAmount = isLoan && item.loanSupportEnabled
-    ? Math.min(loanInterestAmount, Math.max(0, toNumber(options.loanSupportInterestAmount ?? item.loanSupportInterestAmount)))
+    ? Math.min(loanInterestAmount, Math.max(0, toNumber(options.loanSupportInterestAmount ?? supportRevision.interest)))
     : 0;
   const transaction = {
     sourceType: "recurring",
@@ -712,6 +800,7 @@ function buildRecurringTransaction(item, targetMonth, options = {}) {
     recurringId: item.id,
     recurringPostMethod: options.autoPost === true ? "auto" : "manual",
     recurringType: item.recurringType,
+    familyBurdenAmount: isLoan ? null : Math.min(Number(item.amount || 0), Math.max(0, Number((item.familyBurdenHistory?.length ? familyHistoryAtMonth(item.familyBurdenHistory, targetMonth) : null)?.amount || 0))),
     loanType: isLoan ? item.loanType : "",
     loanPrincipalAmount,
     loanInterestAmount,
@@ -800,7 +889,7 @@ function loanPaidSupportPrincipal(recurringId, options = {}) {
     .filter((record) => record.recurringId === recurringId && record.recurringType === "loan")
     .filter((record) => !isCanceled(record.cancel) && (!throughMonth || record.month <= throughMonth))
     .filter((record) => !excludedRecordKey || record.recordKey !== excludedRecordKey)
-    .reduce((total, record) => total + loanSupportPrincipalAmount(record), 0);
+    .reduce((total, record) => total + loanSupportPrincipalAmount(record) + familyLoanReserveUsed(record), 0);
 }
 
 function loanSupportRemainingPrincipal(item, throughMonth, options = {}) {
@@ -879,6 +968,7 @@ function loanScheduledAmountsForMonth(item, month) {
     return { principal: 0, interest: 0, supportPrincipal: 0, supportInterest: 0, supportAmount: 0, personalAmount: 0, amount: 0 };
   }
   const monthAvailable = loanPrincipalAtStartOfMonth(item, month);
+  const supportRevision = recurringLoanSupportForMonth(item, month);
   const globallyAvailable = loanAvailablePrincipal(item);
   const principal = Math.min(
     Math.max(0, Number(item.loanPrincipalAmount || 0)),
@@ -900,10 +990,10 @@ function loanScheduledAmountsForMonth(item, month) {
   );
   const minimumSupportPrincipal = Math.max(0, principal - personalAvailable);
   const supportPrincipal = item.loanSupportEnabled
-    ? Math.min(principal, supportAvailable, Math.max(minimumSupportPrincipal, Number(item.loanSupportPrincipalAmount || 0)))
+    ? Math.min(principal, supportAvailable, Math.max(minimumSupportPrincipal, supportRevision.principal))
     : 0;
   const supportInterest = item.loanSupportEnabled && supportAvailable > 0
-    ? Math.min(interest, Math.max(0, Number(item.loanSupportInterestAmount || 0)))
+    ? Math.min(interest, Math.max(0, supportRevision.interest))
     : 0;
   const supportAmount = supportPrincipal + supportInterest;
   return { principal, interest, supportPrincipal, supportInterest, supportAmount, personalAmount: principal + interest - supportAmount, amount: principal + interest };
@@ -1460,6 +1550,7 @@ async function linkRecurringImportedTransaction(recurringId, month, transactionI
       recurringType: "expense",
       recurringPostMethod: "manual",
       recurringLinkedExisting: true,
+      familyBurdenAmount: Math.min(Number(record.amount || 0), Math.max(0, Number((item.familyBurdenHistory?.length ? familyHistoryAtMonth(item.familyBurdenHistory, targetMonth) : null)?.amount || 0))),
       updatedAt: new Date().toISOString()
     }) : record);
   if (!await safeSave(RECORD_STORAGE_KEY, nextTransactions, { protectIncomeRecords: true })) return false;
@@ -1787,7 +1878,7 @@ function renderLoanCard(item, month) {
         <div><span>${escapeHtml(supportName)} 부담 예정</span><strong>${formatWon(supportDue)}</strong></div>
         <div><span>내 부담</span><strong>${formatWon(personalTotal)}</strong></div>
         <div><span>입금 확인</span><strong>${formatWon(supportReceived)}</strong></div>
-        <div><span>누적 정산 차이</span><strong class="${settlementBalance < 0 ? "negative" : ""}">${formatSignedWon(settlementBalance)}</strong></div>
+        <div><span>이 대출의 기존 정산</span><strong class="${settlementBalance < 0 ? "negative" : ""}">${formatSignedWon(settlementBalance)}</strong></div>
       </section>
     ` : "";
   return `
@@ -2002,7 +2093,7 @@ function scheduledPersonalTotalForMonth(month) {
     .reduce((total, item) => total + (
       item.recurringType === "loan"
         ? loanPrincipalActualAmount(item) + loanInterestActualAmount(item)
-        : Number(item.amount || 0)
+        : Math.max(0, Number(item.amount || 0) - familyExpenseBurden(item))
     ), 0);
 }
 

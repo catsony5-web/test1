@@ -139,7 +139,7 @@ function loanSupportReceivedMonth(item) {
 
 function loanPrincipalActualAmount(item) {
   if (!isLoanRepaymentTransaction(item)) return 0;
-  return Math.max(0, loanGrossPrincipalAmount(item) - loanSupportPrincipalAmount(item));
+  return Math.max(0, loanGrossPrincipalAmount(item) - loanSupportPrincipalAmount(item) - familyLoanReserveUsed(item));
 }
 
 function loanInterestActualAmount(item) {
@@ -160,15 +160,7 @@ function loanSupportLinkedIncomeAmount(transactionId, options = {}) {
 
 function incomeReportingAmount(item) {
   if (item?.flow !== "income") return Math.max(0, Number(item?.amount || 0));
-  return Math.max(0, Number(item.amount || 0) - loanSupportLinkedIncomeAmount(item.transactionId || item.recordKey));
-}
-
-function loanSupportSettlementDeltaForMonth(items, month) {
-  const due = items
-    .filter((item) => item?.month === month)
-    .reduce((total, item) => total + loanSupportDueAmount(item), 0);
-  const received = loanSupportReceivedForMonth(items, month);
-  return received - due;
+  return Math.max(0, Number(item.amount || 0) - familySupportIncomeExcluded(item));
 }
 
 function loanSupportReceivedForMonth(items, month) {
@@ -178,7 +170,9 @@ function loanSupportReceivedForMonth(items, month) {
 }
 
 function consumptionAmount(item) {
-  return isLoanRepaymentTransaction(item) ? loanInterestActualAmount(item) : actualAmount(item);
+  return isLoanRepaymentTransaction(item)
+    ? loanInterestActualAmount(item)
+    : Math.max(0, actualAmount(item) - familyExpenseBurden(item));
 }
 
 function sumConsumption(items) {

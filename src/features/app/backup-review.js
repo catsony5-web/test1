@@ -2,8 +2,27 @@ function backupDifferenceRows(conflict) {
   if (conflict.kind === "monthly-income") {
     return [{ label: "월 수입", current: formatWon(Number(conflict.current)), backup: formatWon(Number(conflict.incoming)) }];
   }
+  if (conflict.kind === "family-adjustment") {
+    const purposes = { loan_payment: "대출 상환에 사용", return: "부모님께 반환", other: "기타" };
+    return [
+      ["날짜", "date"], ["금액", "amount"], ["용도", "purpose"], ["메모", "memo"], ["연결 상환", "linkedLoanTransactionId"]
+    ].filter(([, key]) => conflict.current[key] !== conflict.incoming[key]).map(([label, key]) => {
+      const display = (record) => key === "amount" ? formatSignedWon(record[key])
+        : key === "purpose" ? purposes[record[key]] || record[key] : record[key] || "없음";
+      return { label, current: display(conflict.current), backup: display(conflict.incoming) };
+    });
+  }
+  if (conflict.kind === "recurring-family-burden") {
+    const display = (record) => (record.familyBurdenHistory || []).map((entry) => `${entry.fromMonth}부터 ${formatWon(entry.amount)}`).join(" / ") || "설정 없음";
+    const loans = (record) => (record.loanSupportHistory || []).map((entry) => `${entry.fromMonth}부터 원금 ${formatWon(entry.principal)} / 이자 ${formatWon(entry.interest)}`).join(" / ") || "설정 없음";
+    return [
+      { label: "가족 부담 적용 이력", current: display(conflict.current), backup: display(conflict.incoming) },
+      { label: "대출 분담 적용 이력", current: loans(conflict.current), backup: loans(conflict.incoming) }
+    ];
+  }
   const names = {
     amount: "금액", merchant: "사용처 / 수입 내용", approvalDate: "날짜", approvalTime: "시간", month: "해당 월",
+    incomeKind: "수입 / 가족 지원", incomeKindSource: "가족 분류 방식", familyTargetMonth: "정산 대상월", familySender: "보낸 사람", familyBurdenAmount: "가족 부담액",
     memo: "메모", manualSector: "분류", manualSubcategory: "세부 분류", foodOccasion: "식사 상황",
     classificationScope: "분류 적용 범위", flow: "수입 / 지출", sourceType: "거래 유형", cancel: "취소 여부",
     installment: "할부", installmentEnabled: "할부 적용", installmentMonths: "할부 개월", installmentStartMonth: "할부 시작 월",

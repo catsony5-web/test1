@@ -1878,7 +1878,8 @@ button.board-long-term-item:focus-visible {
 
 #boardMetrics.is-empty-workspace .board-empty-steps {
   display: grid;
-  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
   margin: 0;
   padding: 0 28px 28px;
   list-style: none;
@@ -1886,23 +1887,24 @@ button.board-long-term-item:focus-visible {
 
 #boardMetrics.is-empty-workspace .board-empty-step {
   display: grid;
-  grid-template-columns: 34px 42px minmax(0, 1fr) auto;
-  gap: 14px;
-  align-items: center;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
   min-width: 0;
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 18px;
+  padding: 20px;
   background: var(--surface);
 }
 
 #boardMetrics.is-empty-workspace .board-empty-step.is-primary {
-  border-color: color-mix(in srgb, var(--accent-blue) 42%, var(--border));
+  grid-column: 1 / -1;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  align-items: center;
   background: color-mix(in srgb, var(--accent-blue) 4%, var(--surface));
 }
 
-#boardMetrics.is-empty-workspace .board-empty-step-number,
-#boardMetrics.is-empty-workspace .board-empty-step-icon {
+#boardMetrics.is-empty-workspace .board-empty-step-number {
   display: inline-grid;
   place-items: center;
   flex: 0 0 auto;
@@ -1912,8 +1914,8 @@ button.board-long-term-item:focus-visible {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--text-sub) 25%, var(--surface));
-  color: var(--text-main);
+  background: var(--surface-raised);
+  color: var(--text-sub);
   font-family: var(--font-number);
   font-size: 14px;
   font-weight: 900;
@@ -1925,13 +1927,7 @@ button.board-long-term-item:focus-visible {
 }
 
 #boardMetrics.is-empty-workspace .board-empty-step-icon {
-  width: 40px;
-  height: 40px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface-raised);
-  color: var(--text-sub);
-  font-size: 21px;
+  display: none;
 }
 
 #boardMetrics.is-empty-workspace .board-empty-step-copy {
@@ -1954,11 +1950,18 @@ button.board-long-term-item:focus-visible {
 }
 
 #boardMetrics.is-empty-workspace .board-empty-step-actions {
+  grid-column: 2;
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  align-self: end;
+  justify-content: flex-start;
   gap: 8px;
-  max-width: 290px;
+  min-width: 0;
+}
+
+#boardMetrics.is-empty-workspace .is-primary .board-empty-step-actions {
+  grid-column: 3;
+  align-self: center;
 }
 
 #boardMetrics.is-empty-workspace .board-empty-step-actions button,
@@ -1968,10 +1971,10 @@ button.board-long-term-item:focus-visible {
   justify-content: center;
   gap: 7px;
   min-width: 0;
-  min-height: 40px;
+  min-height: 44px;
   border-radius: 8px;
   padding: 9px 12px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 800;
   line-height: 1.3;
   white-space: normal;
@@ -2028,14 +2031,12 @@ button.board-long-term-item:focus-visible {
 
 #boardMetrics.is-empty-workspace .board-empty-overview-grid dd {
   margin: 7px 0 4px;
-  overflow: hidden;
   color: var(--primary-navy);
   font-family: var(--font-number);
   font-size: 24px;
   font-weight: 900;
   font-variant-numeric: tabular-nums;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 #boardMetrics.is-empty-workspace .board-empty-overview-grid dd.positive {
@@ -2061,12 +2062,14 @@ button.board-long-term-item:focus-visible {
   }
 
   #boardMetrics.is-empty-workspace .board-empty-steps {
+    grid-template-columns: minmax(0, 1fr);
     gap: 10px;
     padding: 0 16px 22px;
   }
 
-  #boardMetrics.is-empty-workspace .board-empty-step {
-    grid-template-columns: 30px 36px minmax(0, 1fr);
+  #boardMetrics.is-empty-workspace .board-empty-step,
+  #boardMetrics.is-empty-workspace .board-empty-step.is-primary {
+    grid-template-columns: 28px minmax(0, 1fr);
     gap: 10px;
     padding: 15px 12px;
   }
@@ -2077,17 +2080,12 @@ button.board-long-term-item:focus-visible {
     font-size: 13px;
   }
 
-  #boardMetrics.is-empty-workspace .board-empty-step-icon {
-    width: 36px;
-    height: 36px;
-    font-size: 19px;
-  }
-
   #boardMetrics.is-empty-workspace .board-empty-step-copy strong {
     font-size: 15px;
   }
 
-  #boardMetrics.is-empty-workspace .board-empty-step-actions {
+  #boardMetrics.is-empty-workspace .board-empty-step-actions,
+  #boardMetrics.is-empty-workspace .is-primary .board-empty-step-actions {
     grid-column: 2 / -1;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2128,15 +2126,8 @@ button.board-long-term-item:focus-visible {
 }
 
 @media (max-width: 380px) {
-  #boardMetrics.is-empty-workspace .board-empty-step {
-    grid-template-columns: 28px minmax(0, 1fr);
-  }
-
-  #boardMetrics.is-empty-workspace .board-empty-step-icon {
-    display: none;
-  }
-
-  #boardMetrics.is-empty-workspace .board-empty-step-actions {
+  #boardMetrics.is-empty-workspace .board-empty-step-actions,
+  #boardMetrics.is-empty-workspace .is-primary .board-empty-step-actions {
     grid-column: 2;
     grid-template-columns: minmax(0, 1fr);
   }

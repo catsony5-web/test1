@@ -14,7 +14,7 @@ function buildSpendingBudgetModel(month, today = defaultDateForMonth("")) {
   if (!isValidMonthKey(month)) return null;
   const snapshot = buildAnalysisMonthSnapshot(month);
   const activeIncome = classified.filter((item) => item.month === month && item.flow === "income"
-    && item.status !== "취소/제외" && !isCanceled(item.cancel));
+    && item.incomeKind !== "familySupport" && item.status !== "취소/제외" && !isCanceled(item.cancel));
   const hasManualIncome = Object.prototype.hasOwnProperty.call(monthlyIncome, month)
     && monthlyIncome[month] !== null && monthlyIncome[month] !== "" && Number.isFinite(Number(monthlyIncome[month]));
   const referenceIncome = hasManualIncome || activeIncome.length

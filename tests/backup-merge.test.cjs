@@ -9,7 +9,7 @@ const copy = (value) => JSON.parse(JSON.stringify(value));
 function setup() {
   const context = vm.createContext({
     structuredClone, console: { error() {}, warn() {} }, window: {},
-    transactions: [], reimbursements: {}, monthlyIncome: {}, importMeta: {}, currentFileName: "",
+    transactions: [], familyAdjustments: [], reimbursements: {}, monthlyIncome: {}, importMeta: {}, currentFileName: "",
     appSettings: {}, products: [], recurringExpenses: [], rules: [], ipoRecords: [], calendarMemos: {}, goalPlan: {},
     applyAppSettings() {}, normalizeProduct: (value) => ({ ...value }),
     createAutoSnapshot() { throw new Error("Planning must never create snapshots"); },

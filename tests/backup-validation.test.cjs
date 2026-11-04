@@ -10,7 +10,7 @@ function setup(mode = "merge") {
   const writes = [], alerts = [], snapshots = [];
   const context = vm.createContext({
     structuredClone, console: { error() {}, warn() {} }, window: {},
-    transactions: [], reimbursements: {}, monthlyIncome: {}, importMeta: {}, currentFileName: "",
+    transactions: [], familyAdjustments: [], reimbursements: {}, monthlyIncome: {}, importMeta: {}, currentFileName: "",
     recurringExpenses: [], rules: [], products: [], ipoRecords: [], calendarMemos: {}, goalPlan: {}, appSettings: {},
     alert: (message) => alerts.push(message), confirm: () => true,
     els: { dataScopeControls: [{ checked: true, dataset: { dataScope: scope } }],

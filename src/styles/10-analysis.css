@@ -81,11 +81,46 @@
 #monthlyAnalysisView .monthly-evidence-empty { margin: 0; padding: 16px 10px; color: var(--text-sub); font-size: 11px; line-height: 1.7; }
 #monthlyAnalysisView .monthly-analysis-evidence > .monthly-change-help { padding: 10px 0 0; }
 
+#monthlyAnalysisView .monthly-settlement-heading { flex-wrap: wrap; }
+#monthlyAnalysisView .monthly-settlement-card { display: grid; gap: 5px; color: var(--text-sub); font-size: 11px; font-weight: 700; }
+#monthlyAnalysisView .monthly-settlement-card select { width: 180px; min-height: 40px; }
+#monthlyAnalysisView .monthly-settlement-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; border-block: 1px solid var(--border); background: var(--surface-soft); }
+#monthlyAnalysisView .monthly-settlement-metrics > div { display: grid; align-content: start; gap: 7px; min-width: 0; padding: 18px; border-right: 1px solid var(--border); }
+#monthlyAnalysisView .monthly-settlement-metrics > div:last-child { border-right: 0; }
+#monthlyAnalysisView .monthly-settlement-metrics dt { color: var(--text-sub); font-size: 12px; font-weight: 700; }
+#monthlyAnalysisView .monthly-settlement-metrics dd { margin: 0; color: var(--text-main); font-family: var(--font-number); font-size: 25px; font-weight: 800; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+#monthlyAnalysisView .monthly-settlement-metrics small { color: var(--text-sub); font-size: 11px; line-height: 1.6; }
+#monthlyAnalysisView .monthly-settlement-received dd { color: var(--green); }
+#monthlyAnalysisView .monthly-settlement-basis { padding-top: 0; }
+#monthlyAnalysisView .monthly-settlement-details { margin-top: 4px; border-top: 1px solid var(--border); }
+#monthlyAnalysisView .monthly-settlement-details summary { padding: 14px; color: var(--text-main); font-size: 13px; font-weight: 750; cursor: pointer; }
+#monthlyAnalysisView .monthly-settlement-details summary span { margin-left: 8px; color: var(--text-sub); font-size: 11px; font-weight: 500; }
+#monthlyAnalysisView .monthly-settlement-details summary:focus-visible,
+#monthlyAnalysisView .monthly-settlement-card select:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: -2px; }
+#monthlyAnalysisView .monthly-settlement-list { max-height: 380px; overflow-y: auto; overscroll-behavior-block: contain; padding: 0 14px; }
+#monthlyAnalysisView .monthly-settlement-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(330px, 1fr); align-items: center; gap: 14px; padding: 14px 0; border-top: 1px solid var(--border); }
+#monthlyAnalysisView .monthly-settlement-row > div { min-width: 0; }
+#monthlyAnalysisView .monthly-settlement-row strong { display: block; font-size: 13px; overflow-wrap: anywhere; }
+#monthlyAnalysisView .monthly-settlement-row small { display: block; margin-top: 6px; color: var(--text-sub); font-size: 11px; line-height: 1.6; }
+#monthlyAnalysisView .monthly-settlement-row dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0; text-align: right; }
+#monthlyAnalysisView .monthly-settlement-row dt { margin-bottom: 5px; color: var(--text-sub); font-size: 10px; }
+#monthlyAnalysisView .monthly-settlement-row dd { margin: 0; color: var(--text-main); font-family: var(--font-number); font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+#monthlyAnalysisView .monthly-settlement-empty { margin: 0; padding: 18px 14px; border-top: 1px solid var(--border); color: var(--text-sub); font-size: 12px; line-height: 1.7; }
+
 @media (max-width: 1200px) {
   #monthlyAnalysisView .monthly-analysis-main { grid-template-columns: minmax(0, 1fr); }
 }
 
 @media (max-width: 680px) {
+  #monthlyAnalysisView .monthly-settlement-card { width: 100%; }
+  #monthlyAnalysisView .monthly-settlement-card select { width: 100%; }
+  #monthlyAnalysisView .monthly-settlement-metrics { grid-template-columns: minmax(0, 1fr); }
+  #monthlyAnalysisView .monthly-settlement-metrics > div { grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 4px 12px; padding: 12px 14px; border-right: 0; border-bottom: 1px solid var(--border); }
+  #monthlyAnalysisView .monthly-settlement-metrics > div:last-child { border-bottom: 0; }
+  #monthlyAnalysisView .monthly-settlement-metrics dd { font-size: 22px; }
+  #monthlyAnalysisView .monthly-settlement-metrics small { grid-column: 1 / -1; }
+  #monthlyAnalysisView .monthly-settlement-row { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  #monthlyAnalysisView .monthly-settlement-row dl { text-align: left; }
   #monthlyAnalysisView .monthly-analysis-brief { grid-template-columns: minmax(0, 1fr); padding: 14px; }
   #monthlyAnalysisView .monthly-analysis-brief strong { font-size: 18px; }
   #monthlyAnalysisView .monthly-analysis-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }

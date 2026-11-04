@@ -3,6 +3,7 @@ function renderAll() {
   els.exportButton.disabled = classified.length === 0 || workbookExportInProgress;
   const viewName = document.querySelector(".view.active")?.id?.replace(/View$/, "");
   renderView(viewName);
+  renderFamilySupport();
 }
 
 function renderView(viewName) {

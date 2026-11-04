@@ -23,6 +23,9 @@ function backupMergeCurrentState() {
   return backupMergeClone({
     transactions: transactions.map(normalizeStoredTransaction),
     reimbursements: normalizeReimbursements(reimbursements),
+    familyAdjustments: normalizeFamilyAdjustments(familyAdjustments),
+    recurringExpenses: recurringExpenses.map((item) => ({ ...item,
+      familyBurdenHistory: normalizeFamilyBurdenHistory(item.familyBurdenHistory), loanSupportHistory: normalizeLoanSupportHistory(item.loanSupportHistory) })),
     monthlyIncome: monthlyIncome || {}
   });
 }
@@ -157,11 +160,55 @@ function buildBackupMergePlan(bundle, scopes) {
       incomeRows.push(row);
     }
   }
+  const adjustmentRows = [];
+  if (selected.includes("familyAdjustments")) {
+    const currentIndexes = new Map(baseline.familyAdjustments.map((item, index) => [item.id, index]));
+    for (const incoming of normalizeFamilyAdjustments(bundle.sections.familyAdjustments?.familyAdjustments)) {
+      const reference = incoming.linkedLoanTransactionId;
+      const transactionTarget = transactionAliases.get(reference);
+      const recordTarget = recordReferenceAliases.get(reference);
+      if (transactionTarget && recordTarget && transactionTarget !== recordTarget) throw new Error("가족지원 조정의 대출 연결이 서로 다른 거래를 가리킵니다.");
+      incoming.linkedLoanTransactionId = transactionTarget || recordTarget || reference;
+      const index = currentIndexes.get(incoming.id);
+      const current = index === undefined ? null : baseline.familyAdjustments[index];
+      const row = { index, current, incoming };
+      if (current && ["date", "amount", "purpose", "memo", "linkedLoanTransactionId"].some((key) => current[key] !== incoming[key])) {
+        row.conflictId = `family-adjustment:${incoming.id}`;
+        conflicts.push({ id: row.conflictId, scope: "familyAdjustments", kind: "family-adjustment",
+          label: `${incoming.date} · 가족지원 조정`, current: backupMergeClone(current), incoming: backupMergeClone(incoming) });
+      }
+      adjustmentRows.push(row);
+    }
+  }
+  const recurringRows = [];
+  if (selected.includes("recurringDefinitions")) {
+    const currentIndexes = new Map(baseline.recurringExpenses.map((item, index) => [recurringDefinitionSignature(item), index]));
+    const seenHistory = new Map();
+    for (const raw of bundle.sections.recurringDefinitions?.recurringExpenses || []) {
+      const incoming = normalizeRecurringExpense(raw);
+      const signature = recurringDefinitionSignature(incoming);
+      const history = backupMergeCanonical([incoming.familyBurdenHistory, incoming.loanSupportHistory]);
+      if (seenHistory.has(signature)) {
+        if (seenHistory.get(signature) !== history) throw new Error("백업의 같은 고정 지출에 서로 다른 가족 부담액 이력이 있습니다.");
+        continue;
+      }
+      seenHistory.set(signature, history);
+      const index = currentIndexes.get(signature);
+      const current = index === undefined ? null : baseline.recurringExpenses[index];
+      const row = { index, current, incoming };
+      if (current && backupMergeCanonical([current.familyBurdenHistory, current.loanSupportHistory]) !== history) {
+        row.conflictId = `recurring-family-burden:${signature}`;
+        conflicts.push({ id: row.conflictId, scope: "recurringDefinitions", kind: "recurring-family-burden",
+          label: `${current.name || incoming.name} · 가족 부담액`, current: backupMergeClone(current), incoming: backupMergeClone(incoming) });
+      }
+      recurringRows.push(row);
+    }
+  }
   const plan = backupMergeFreeze({ version: 1, scopes: [...selected], conflicts,
     summary: { addedTransactions, unchangedTransactions, conflicts: conflicts.length } });
   backupMergePlans.set(plan, {
     baseline, baselineFingerprint: backupMergeCanonical(baseline),
-    request: backupMergeRequest(bundle, selected), transactionScopes, incomingRows, incomeRows
+    request: backupMergeRequest(bundle, selected), transactionScopes, incomingRows, incomeRows, adjustmentRows, recurringRows
   });
   return plan;
 }
@@ -201,6 +248,17 @@ function resolveBackupMergePlan(plan, choices = {}, bundle, scopes) {
   }
   for (const row of prepared.incomeRows) {
     if (!row.conflictId || choices[row.conflictId] === "backup") result.monthlyIncome[row.month] = row.amount;
+  }
+  for (const row of prepared.adjustmentRows) {
+    if (!row.current) result.familyAdjustments.push(backupMergeClone(row.incoming));
+    else if (row.conflictId && choices[row.conflictId] === "backup") result.familyAdjustments[row.index] = backupMergeClone(row.incoming);
+  }
+  for (const row of prepared.recurringRows) {
+    if (!row.current) result.recurringExpenses.push(backupMergeClone(row.incoming));
+    else if (row.conflictId && choices[row.conflictId] === "backup") {
+      result.recurringExpenses[row.index] = { ...result.recurringExpenses[row.index],
+        familyBurdenHistory: backupMergeClone(row.incoming.familyBurdenHistory), loanSupportHistory: backupMergeClone(row.incoming.loanSupportHistory) };
+    }
   }
   if (prepared.transactionScopes.length) result.transactions.sort((a, b) =>
     `${a.approvalDate} ${a.approvalTime} ${a.merchant}`.localeCompare(`${b.approvalDate} ${b.approvalTime} ${b.merchant}`, "ko-KR"));
