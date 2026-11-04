@@ -1499,16 +1499,17 @@ function recurringImportCandidates(item, month, records = transactions) {
 
 function recurringLinkCandidates(month, records = transactions) {
   const today = defaultDateForMonth();
-  return records.map(normalizeStoredTransaction).filter((record) =>
-    ["card", "transfer"].includes(record.sourceType)
-    && record.flow === "expense"
-    && !record.recurringId
-    && record.month === month
-    && monthKey(record.approvalDate) === month
-    && record.approvalDate <= today
-    && Number(record.amount) > 0
-    && !isCanceled(record.cancel)
-  );
+  return records.map(normalizeStoredTransaction).filter((record) => {
+    const date = normalizeInputDate(record.approvalDate);
+    return ["card", "transfer"].includes(record.sourceType)
+      && record.flow === "expense"
+      && !record.recurringId
+      && record.month === month
+      && monthKey(date) === month
+      && date <= today
+      && Number(record.amount) > 0
+      && !isCanceled(record.cancel);
+  });
 }
 
 async function linkRecurringImportedTransaction(recurringId, month, transactionId) {

@@ -240,6 +240,53 @@ function imported(id, extra = {}) {
   };
 }
 
+test("연결 후보는 날짜 구분자와 자릿수에 관계없이 같은 월의 도래한 출금만 포함한다", () => {
+  const { c } = setup();
+  c.transactions = [
+    imported("hyphen"),
+    imported("dots", { sourceType: "card", approvalDate: "2026.09.16" }),
+    imported("slashes", { sourceType: "card", approvalDate: "2026/9/15" }),
+    imported("future-dots", { approvalDate: "2026.09.17" }),
+    imported("future-slashes", { approvalDate: "2026/9/17" }),
+    imported("other-month", { approvalDate: "2026.08.16", month: "2026-08" }),
+    imported("mismatched-month", { approvalDate: "2026.08.16" }),
+    imported("income", { approvalDate: "2026.09.16", flow: "income" }),
+    imported("canceled", { approvalDate: "2026/9/16", cancel: "취소" }),
+    imported("linked", { approvalDate: "2026.09.16", recurringId: "existing" }),
+    imported("missing-date", { approvalDate: "" })
+  ];
+  const before = JSON.stringify(c.transactions);
+  assert.deepEqual(Array.from(c.recurringLinkCandidates("2026-09"), (record) => record.transactionId), ["hyphen", "dots", "slashes"]);
+  assert.equal(JSON.stringify(c.transactions), before);
+});
+
+test("점·슬래시 날짜 카드 출금은 자동 중복 기록 없이 연결되고 원본 값을 보존한다", async () => {
+  for (const approvalDate of ["2026.09.16", "2026/9/16"]) {
+    const { c } = setup();
+    c.recurringExpenses = [fixed("insurance", {
+      amount: 49000, familyBurdenHistory: [{ fromMonth: "2026-09", amount: 20000 }]
+    })];
+    const original = imported("actual", { sourceType: "card", approvalDate });
+    c.transactions = [original];
+    c.confirm = () => true;
+    c.RECORD_STORAGE_KEY = "records";
+    c.safeSave = async () => true;
+
+    assert.equal((await c.ensureAutoPostedRecurringExpenses()).added, 0);
+    assert.equal(c.transactions.length, 1);
+    assert.equal(await c.linkRecurringImportedTransaction("insurance", "2026-09", "actual"), true);
+    const linked = c.transactions[0];
+    for (const key of ["recordKey", "transactionId", "sourceType", "approvalDate", "amount", "manualSector", "manualSubcategory", "memo", "sourceFile"]) {
+      assert.equal(linked[key], original[key]);
+    }
+    assert.equal(linked.familyBurdenAmount, 20000);
+    assert.equal(linked.recurringLinkedExisting, true);
+    assert.equal((await c.ensureAutoPostedRecurringExpenses()).added, 0);
+    assert.equal(c.transactions.length, 1);
+    assert.equal(c.recurringLinkCandidates("2026-09").length, 0);
+  }
+});
+
 test("명시적으로 선택한 가져온 출금을 연결하며 금액·날짜·분류·식별자는 보존한다", async () => {
   const { c } = setup();
   c.recurringExpenses = [fixed("rent", { autoPost: false })];

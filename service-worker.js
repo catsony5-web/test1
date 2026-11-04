@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "monthly-card-budget-";
-const CACHE_NAME = `${CACHE_PREFIX}v203-agent-management`;
+const CACHE_NAME = `${CACHE_PREFIX}v204-recurring-date`;
 importScripts("./src/features/goals/goals-insights.js?v=189-budget-planning");
 const APP_FILES = [
   "./data/hobby-insights.json",
@@ -111,7 +111,7 @@ const APP_FILES = [
   "./assets/tabler/icons/x.svg",
   "./assets/tabler/LICENSE",
   "./data/ipo-calendar.json",
-  "./src/data/constants.js?v=203-agent-management",
+  "./src/data/constants.js?v=204-recurring-date",
   "./src/data/categories.js?v=136-mineral-layers",
   "./src/data/rules.js?v=93",
   "./src/data/board-sections.js?v=151-loan-repayments",
@@ -156,7 +156,7 @@ const APP_FILES = [
   "./src/features/income/income-entry.js?v=191-budget-templates",
   "./src/features/income/income-bulk.js?v=191-budget-templates",
   "./src/features/income/income-list.js?v=202-personal-agent",
-  "./src/features/recurring/recurring-view.js?v=202-personal-agent",
+  "./src/features/recurring/recurring-view.js?v=204-recurring-date",
   "./src/features/calendar/calendar-view.js?v=202-personal-agent",
   "./src/features/analysis/analysis-core.js?v=202-personal-agent",
   "./src/features/analysis/monthly-analysis-core.js?v=202-personal-agent",
