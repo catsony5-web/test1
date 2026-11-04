@@ -151,7 +151,7 @@ function connectionHarness(route, { popupBlocked = false, tools = {}, baseURI = 
   let timerId = 0, clears = 0;
   class Node {
     constructor(tag) {
-      this.tag = tag; this.children = []; this.events = {}; this.dataset = {}; this.value = ""; this.hidden = false; this.disabled = false; this.open = false;
+      this.tag = tag; this.children = []; this.events = {}; this.dataset = {}; this.style = {}; this.value = ""; this.hidden = false; this.disabled = false; this.open = false;
       this.classList = { toggle() {} }; this._text = ""; nodes.push(this);
     }
     set textContent(value) { this._text = value; this.children = []; }
@@ -528,4 +528,151 @@ test("a failed PC connection remains retryable and never enables sending", async
   assert.equal(h.labeled('가계부에 물어보기').disabled, true);
   assert.equal(h.find('button', '이 PC의 구독 연결').disabled, false);
   assert.ok(h.nodes.some(node => node.textContent.includes('PC 연결 서버를 켜 주세요.')));
+});
+
+const syntheticEntry = { ref: "synthetic-added-ref", date: "2035-03-04", merchant: "합성 상점", amount: 840,
+  flow: "expense", sourceType: "cash", sector: "식비", subcategory: "합성 식사", consumption: 840, reimbursement: 0 };
+function addedPlan(after = syntheticEntry) {
+  return { planId: "synthetic-add-plan", status: "pending", addedCount: 1, updatedCount: 0,
+    changes: [{ operation: "add", before: null, after, fields: Object.keys(after) }] };
+}
+function descendants(node) { return node.children.flatMap((child) => [child, ...descendants(child)]); }
+
+test("natural-language additions show no previous record and remain unsaved until a trusted approval", async () => {
+  const plan = addedPlan({ ...syntheticEntry, merchant: '<img src=x onerror="alert(1)">' });
+  const responses = [call("propose_entries", { entries: [{ kind: "expense", amount: 840 }] }), answer("합성 추가안 준비")];
+  let applied = 0;
+  const h = connectionHarness((name) => name === "status" ? connectionStatus({ account: "a", model: "synthetic-model" }) : responses.shift(), {
+    tools: { definitions: [{ type: "function", name: "propose_entries" }], async execute() { return plan; },
+      getPlan() { return plan; }, async applyPlan() { applied++; return { changedCount: 1 }; } }
+  });
+  await h.open(); h.labeled("가계부에 물어보기").value = "합성 지출 추가";
+  await h.nodes.find((node) => node.className === "agent-chat").fire("submit"); await h.flush();
+  const card = h.nodes.find((node) => node.className === "agent-plan");
+  assert.ok(card.textContent.includes("기록 없음 · 새로 추가"));
+  assert.ok(card.textContent.includes("추가할 기록"));
+  assert.ok(card.textContent.includes("추가 1건 · 수정 0건"));
+  assert.ok(card.textContent.includes('<img src=x onerror="alert(1)">'));
+  assert.equal(h.nodes.some((node) => node.tag === "img"), false);
+  assert.equal(applied, 0);
+  await h.find("button", "확인한 변경 적용").fire("click", { isTrusted: false }); assert.equal(applied, 0);
+  await h.click("확인한 변경 적용"); assert.equal(applied, 1);
+});
+
+test("direct expense entry submits payment, category and actual reimbursement only as an addition preview", async () => {
+  const executed = [], plan = addedPlan();
+  const h = connectionHarness(() => connectionStatus(), { tools: {
+    context: () => ({ categories: { 식비: ["합성 식사"] }, cards: [{ ref: "synthetic-card", label: "카드 1" }] }),
+    async execute(name, args) { executed.push({ name, args: clone(args) }); return plan; }, getPlan: () => plan
+  } });
+  await h.open(); await h.click("지출 추가");
+  h.labeled("기록 날짜").value = "2035-03-04"; h.labeled("거래처·내용").value = "합성 상점";
+  h.labeled("추가할 금액").value = "840"; h.labeled("추가 메모").value = "합성 메모";
+  await h.change(h.labeled("결제 수단"), "card");
+  h.labeled("기존 카드 연결 (선택)").value = "synthetic-card";
+  await h.change(h.labeled("분류"), "식비"); h.labeled("세부 분류").value = "합성 식사";
+  h.labeled("이미 받은 정산금").value = "120";
+  await h.nodes.find((node) => node.className === "agent-entry-form agent-edit-form").fire("submit"); await h.flush();
+  assert.deepEqual(executed, [{ name: "propose_entries", args: { entries: [{ kind: "expense", date: "2035-03-04", merchant: "합성 상점", amount: 840,
+    memo: "합성 메모", sourceType: "card", sector: "식비", subcategory: "합성 식사", reimbursement: 120, cardRef: "synthetic-card" }] } }]);
+  assert.ok(h.find("button", "확인한 변경 적용"));
+});
+
+test("family direct entry follows the receipt month until the user explicitly chooses a target month", async () => {
+  const executed = [], plan = addedPlan({ ...syntheticEntry, flow: "income", incomeKind: "familySupport" });
+  const h = connectionHarness(() => connectionStatus(), { tools: {
+    async execute(name, args) { executed.push({ name, args: clone(args) }); return plan; }, getPlan: () => plan
+  } });
+  await h.open(); await h.click("가족 입금 추가");
+  await h.change(h.labeled("기록 날짜"), "2035-04-02"); assert.equal(h.labeled("정산 대상월").value, "2035-04");
+  await h.change(h.labeled("정산 대상월"), "2035-03"); await h.change(h.labeled("기록 날짜"), "2035-05-02");
+  assert.equal(h.labeled("정산 대상월").value, "2035-03");
+  h.labeled("입금 내용").value = "합성 가족 지원"; h.labeled("추가할 금액").value = "600"; h.labeled("보낸 사람").value = "합성 보내는이";
+  await h.nodes.find((node) => node.className === "agent-entry-form agent-edit-form").fire("submit"); await h.flush();
+  assert.deepEqual(executed[0], { name: "propose_entries", args: { entries: [{ kind: "familySupport", date: "2035-05-02", merchant: "합성 가족 지원", amount: 600,
+    memo: "", sourceType: "transfer", familySender: "합성 보내는이", familyTargetMonth: "2035-03" }] } });
+});
+
+test("ordinary income addition omits expense-only fields and displays duplicate warnings before approval", async () => {
+  let proposed;
+  const plan = addedPlan({ ...syntheticEntry, flow: "income", incomeKind: "normal", sourceType: "transfer", income: 840 });
+  plan.warnings = [{ code: "POSSIBLE_DUPLICATE", entryNumber: 1, existingCount: 1, proposedCount: 0, message: "합성 유사 입금입니다. 별개의 기록인지 확인해주세요." }];
+  const h = connectionHarness(() => connectionStatus(), { tools: {
+    async execute(name, args) { proposed = { name, args: clone(args) }; return plan; }, getPlan: () => plan
+  } });
+  await h.open(); await h.click("수입 추가");
+  h.labeled("기록 날짜").value = "2035-03-06"; h.labeled("입금 내용").value = "합성 수입"; h.labeled("추가할 금액").value = "840";
+  await h.nodes.find((node) => node.className === "agent-entry-form agent-edit-form").fire("submit"); await h.flush();
+  assert.deepEqual(proposed, { name: "propose_entries", args: { entries: [{ kind: "income", date: "2035-03-06", merchant: "합성 수입", amount: 840, memo: "", sourceType: "transfer" }] } });
+  const card = h.nodes.find((node) => node.className === "agent-plan");
+  assert.ok(card.textContent.includes("기존 유사 기록")); assert.ok(card.textContent.includes("별개의 기록인지 확인"));
+  assert.equal(h.find("button", "확인한 변경 적용").disabled, false);
+});
+
+test("search table sorts only the current page, retains query on pagination and proposes selected categories", async () => {
+  const executed = [];
+  const entries = [{ ...syntheticEntry, ref: "synthetic-first", merchant: "가상 가게", amount: 900, date: "2035-03-04" },
+    { ...syntheticEntry, ref: "synthetic-second", merchant: "나무 합성", amount: 300, date: "2035-03-05" }];
+  const plan = { planId: "synthetic-bulk", changes: [{ fields: ["sector"], before: { sector: "이전 합성" }, after: { sector: "식비" } }] };
+  const h = connectionHarness(() => connectionStatus(), { tools: {
+    context: () => ({ categories: { 식비: ["합성 식사"] }, cards: [] }), getPlan: () => plan,
+    async execute(name, args) {
+      executed.push({ name, args: clone(args) });
+      return name === "search_transactions" ? { items: args.offset ? [entries[0]] : entries, total: 26, offset: args.offset || 0, limit: 25, hasMore: !args.offset, warnings: [] } : plan;
+    }
+  } });
+  await h.open(); h.labeled("거래 검색어").value = "합성"; await h.click("거래 검색");
+  const table = h.nodes.find((node) => node.className === "agent-table agent-search-table");
+  const body = table.children.find((node) => node.tag === "tbody");
+  assert.equal(body.children[0].children[2].textContent, "나무 합성");
+  assert.ok(h.find("p", "전체 26건 · 1~2건 표시 · 현재 페이지 정렬"));
+  await h.click("금액 정렬"); assert.equal(body.children[0].children[4].textContent, "300원");
+  await h.click("금액 정렬"); assert.equal(body.children[0].children[4].textContent, "900원");
+  const check = body.children[0].children[0].children[0]; check.checked = true; await check.fire("change");
+  await h.change(h.labeled("분류"), "식비"); h.labeled("세부 분류").value = "합성 식사";
+  await h.nodes.find((node) => node.className === "agent-bulk-form").fire("submit"); await h.flush();
+  assert.deepEqual(executed.at(-1), { name: "propose_changes", args: { changes: [{ ref: "synthetic-first", sector: "식비", subcategory: "합성 식사" }] } });
+  await h.click("다음 검색 페이지");
+  assert.deepEqual(executed.at(-1), { name: "search_transactions", args: { month: "2035-03", query: "합성", limit: 25, offset: 25 } });
+  assert.equal(h.find("button", "선택 거래 변경 미리보기").disabled, true);
+  assert.ok(h.find("p", "전체 26건 · 26~26건 표시 · 현재 페이지 정렬"));
+});
+
+test("bulk selection caps at 50, skips canceled rows and preserves the core's linked-record error", async () => {
+  const entries = Array.from({ length: 52 }, (_, i) => ({ ...syntheticEntry, ref: `synthetic-${i}`, canceled: i === 51 }));
+  let attempts = 0;
+  const h = connectionHarness(() => connectionStatus(), { tools: {
+    async execute(name) { if (name === "propose_changes") { attempts++; throw new Error("연결 거래는 전용 화면에서 수정해 주세요."); }
+      return { items: entries, total: 52, offset: 0, limit: 100, hasMore: false }; }
+  } });
+  await h.open(); await h.click("거래 검색");
+  const root = h.nodes.find((node) => node.className === "agent-search-results"), checks = descendants(root).filter((node) => node.tag === "input" && node.type === "checkbox");
+  checks[0].checked = true; await checks[0].fire("change"); assert.equal(checks[0].checked, false);
+  for (const check of checks.slice(1, 52)) { check.checked = true; await check.fire("change"); }
+  assert.equal(checks[51].checked, false); assert.equal(checks[52].disabled, true);
+  h.labeled("거래별로 지정할 정산금 (선택)").value = "10";
+  await h.nodes.find((node) => node.className === "agent-bulk-form").fire("submit"); await h.flush();
+  assert.equal(attempts, 1); assert.ok(root.textContent.includes("연결 거래는 전용 화면에서 수정해 주세요."));
+  assert.equal(h.nodes.some((node) => node.className === "agent-plan"), false);
+});
+
+test("comparison uses exact tool totals and bounded groups, supports grouping and zero/absent data", async () => {
+  const result = { month: "2035-03", comparisonMonth: "2035-02", cutoffDay: 12, currentAmount: 777, comparisonAmount: 0, delta: 777,
+    percentageChange: null, currentCount: 2, comparisonCount: 0, countBasis: "합성 보고 행 기준",
+    sectors: [{ label: '<script>합성 분류</script>', currentAmount: 120, comparisonAmount: 0, delta: 120 }],
+    subcategories: [{ label: "합성 영점", currentAmount: 0, comparisonAmount: 0, delta: 0 }], merchants: [],
+    evidence: { current: [], comparison: [], limitPerPeriod: 20 }, warnings: [] };
+  const h = connectionHarness(() => connectionStatus(), { tools: { async execute() { return result; } } });
+  await h.open(); await h.click("월 비교");
+  const root = h.nodes.find((node) => node.className === "agent-comparison-result");
+  assert.ok(root.textContent.includes("777원")); assert.ok(root.textContent.includes("120원"));
+  assert.ok(root.textContent.includes("최대 30개")); assert.ok(root.textContent.includes("위 전체 합계와 다를 수"));
+  assert.ok(root.textContent.includes("기간별 최대 20건")); assert.ok(root.textContent.includes("<script>합성 분류</script>"));
+  assert.equal(h.nodes.some((node) => node.tag === "script"), false);
+  assert.equal(h.nodes.find((node) => node.className === "agent-chart-bar").style.width, "100%");
+  await h.change(h.labeled("비교 묶음"), "subcategories");
+  const currentBars = descendants(root).filter((node) => node.className?.startsWith("agent-chart-bar"));
+  assert.deepEqual(currentBars.map((bar) => bar.style.width), ["0%", "0%"]);
+  await h.change(h.labeled("비교 묶음"), "merchants"); assert.ok(root.textContent.includes("비교할 소비 기록이 없습니다."));
+  assert.ok(!root.textContent.includes("NaN") && !root.textContent.includes("Infinity"));
 });

@@ -44,8 +44,10 @@ function setup(rows = [row("synthetic-a")], options = {}) {
     "src/data/constants.js", "src/data/categories.js", "src/utils/format.js", "src/utils/date.js",
     "src/utils/food-occasion.js", "src/utils/normalize.js", "src/utils/grouping.js",
     "src/components/chips.js", "src/features/board/board-view.js", "src/features/family/family-core.js",
-    "src/features/monthly/monthly-flow.js", "src/features/classification/classifier.js", "src/features/agent/ledger-agent-tools.js"
+    "src/features/monthly/monthly-flow.js", "src/features/classification/classifier.js",
+    "src/features/transactions/transactions-view.js", "src/features/agent/ledger-agent-tools.js"
   ]) vm.runInContext(fs.readFileSync(path.join(__dirname, "..", file), "utf8"), c, { filename: file });
+  c.runManualTransactionSave = async (operation) => state.busy ? undefined : operation();
   c.reclassify = () => { state.renders++; c.classified = c.classifyTransactions(c.transactions); };
   c.transactions = c.transactions.map(c.normalizeStoredTransaction);
   const keys = vm.runInContext("STORAGE_KEYS", c);
@@ -384,4 +386,145 @@ test("family summary returns every projected scalar and separates settlement mon
     assert.ok(Object.hasOwn(current, field), field);
     assert.equal(current[field], value, field);
   }
+});
+
+function expenseEntry(extra = {}) {
+  return { kind: "expense", date: "2044-02-12", merchant: "가상 신규 식사", amount: 90,
+    sourceType: "cash", sector: "식비", subcategory: "외식-혼자", ...extra };
+}
+
+test("new expense, income and family entries preview without new refs and save through the existing batch once", async () => {
+  const { c, tools, state, stored, keys } = setup([row("synthetic-existing", 100, { cardNumber: "9999000000009900" })]);
+  const cardRef = tools.context().cards[0].ref;
+  const beforeRecords = JSON.stringify(c.transactions), beforeSearch = clone(await tools.execute("search_transactions", {}));
+  const plan = await tools.execute("propose_entries", { entries: [
+    expenseEntry({ sourceType: "card", cardRef, reimbursement: 30, memo: "가상 식사 메모" }),
+    { kind: "income", date: "2044-02-12", merchant: "가상 일반 수입", amount: 300, memo: "가상 수입 메모" },
+    { kind: "familySupport", date: "2044-02-12", merchant: "가상 가족 입금", amount: 200, familySender: "가상 보낸 사람" }
+  ] });
+  assert.equal(plan.addedCount, 3); assert.equal(plan.updatedCount, 0); assert.equal(state.saves, 0);
+  assert.equal(JSON.stringify(c.transactions), beforeRecords);
+  assert.deepEqual(clone(await tools.execute("search_transactions", {})), beforeSearch);
+  assert.ok(plan.changes.every((change) => change.operation === "add" && change.before === null && !Object.hasOwn(change.after, "ref")));
+  assert.equal(plan.changes[0].after.sourceType, "card"); assert.equal(plan.changes[0].after.cardRef, cardRef);
+  assert.equal(plan.changes[0].after.consumption, 60); assert.equal(plan.changes[1].after.income, 300);
+  assert.equal(plan.changes[2].after.income, 0); assert.equal(plan.changes[2].after.familyTargetMonth, "2044-02");
+  for (const secret of ["9999000000009900", '"recordKey"', '"transactionId"', '"approvalNo"']) assert.equal(JSON.stringify(plan).includes(secret), false);
+  plan.changes[0].after.amount = 999;
+  const applied = await tools.applyPlan(plan.planId);
+  assert.equal(applied.changedCount, 3); assert.equal(applied.addedCount, 3); assert.equal(applied.updatedCount, 0);
+  assert.equal(state.saves, 1); assert.equal(state.entries.length, 2); assert.ok(state.entries.every((entry) => typeof entry.expectedJson === "string"));
+  const added = c.transactions.filter((item) => item.recordKey !== "synthetic-existing");
+  assert.equal(added.length, 3);
+  assert.equal(new Set(added.map((item) => item.transactionId)).size, 3);
+  assert.ok(added.every((item) => item.approvalNo.startsWith("manual-") && item.sourceFile === "직접입력"));
+  const expense = added.find((item) => item.flow === "expense"), family = added.find((item) => item.incomeKind === "familySupport");
+  assert.equal(expense.amount, 90); assert.equal(c.reimbursements[expense.recordKey], 30);
+  assert.equal(family.sourceType, "transfer"); assert.equal(family.incomeKindSource, "manual");
+  assert.equal((await tools.execute("monthly_metrics", { month: "2044-02" })).income, 300);
+  assert.equal((await tools.execute("monthly_metrics", { month: "2044-02" })).consumptionSpend, 160);
+  assert.equal((await tools.execute("family_settlement", { month: "2044-02" })).received, 200);
+  assert.deepEqual(clone(c.transactions), stored.get(keys.records));
+  await assert.rejects(tools.applyPlan(plan.planId), /이미 적용/); assert.equal(state.saves, 1);
+});
+
+test("family entry target months and split payments use normal family settlement accounting", async () => {
+  const { c, tools } = setup([]);
+  const plan = await tools.execute("propose_entries", { entries: [
+    { kind: "familySupport", date: "2044-03-02", merchant: "가상 분할 입금 하나", amount: 40, familySender: "가상 가족", familyTargetMonth: "2044-02" },
+    { kind: "familySupport", date: "2044-03-04", merchant: "가상 분할 입금 둘", amount: 60, familySender: "가상 가족", familyTargetMonth: "2044-02" }
+  ] });
+  await tools.applyPlan(plan.planId);
+  assert.equal((await tools.execute("family_settlement", { month: "2044-02" })).received, 100);
+  assert.equal((await tools.execute("family_settlement", { month: "2044-03" })).received, 0);
+  assert.equal((await tools.execute("monthly_metrics", { month: "2044-03" })).income, 0);
+  assert.ok(c.transactions.every((item) => item.month === "2044-03" && item.familyTargetMonth === "2044-02"));
+});
+
+test("entry validation rejects ambiguous payments, unsupported identities and incomplete batches without saving", async () => {
+  const { c, tools, state } = setup();
+  const before = JSON.stringify(c.transactions);
+  const invalid = [
+    expenseEntry({ sourceType: undefined }), expenseEntry({ sourceType: "manual" }),
+    expenseEntry({ sector: undefined }), expenseEntry({ subcategory: "가상 없는 분류" }),
+    expenseEntry({ amount: 0 }), expenseEntry({ amount: -1 }), expenseEntry({ amount: 1.5 }),
+    expenseEntry({ amount: Number.MAX_SAFE_INTEGER + 1 }), expenseEntry({ date: "2043-02-29" }), expenseEntry({ merchant: " " }),
+    expenseEntry({ reimbursement: 91 }), expenseEntry({ reimbursement: -1 }),
+    expenseEntry({ cardRef: "missing" }), expenseEntry({ sourceType: "card", cardRef: "missing" }),
+    expenseEntry({ cardNumber: "9999" }), expenseEntry({ recordKey: "synthetic-override" }),
+    expenseEntry({ transactionId: "synthetic-override" }), expenseEntry({ recurringId: "synthetic-recurring" }),
+    expenseEntry({ installmentEnabled: true }), expenseEntry({ familySender: "가상 가족" }),
+    { kind: "income", date: "2044-02-12", merchant: "가상 수입", amount: 30, sourceType: "cash" },
+    { kind: "income", date: "2044-02-12", merchant: "가상 수입", amount: 30, reimbursement: 0 },
+    { kind: "familySupport", date: "2044-02-12", merchant: "가상 가족", amount: 30 },
+    { kind: "familySupport", date: "2044-02-12", merchant: "가상 가족", amount: 30, familySender: " ", familyTargetMonth: "2044-99" }
+  ];
+  for (const entry of invalid) await assert.rejects(tools.execute("propose_entries", { entries: [expenseEntry(), entry] }));
+  await assert.rejects(tools.execute("propose_entries", { entries: [] }));
+  await assert.rejects(tools.execute("propose_entries", { entries: Array.from({ length: 51 }, () => expenseEntry()) }), /50/);
+  assert.equal(tools.getPlans().length, 0); assert.equal(state.saves, 0); assert.equal(JSON.stringify(c.transactions), before);
+});
+
+test("possible duplicate entries warn but distinct approved records retain their own identities", async () => {
+  const entry = expenseEntry({ date: "2044-02-10", merchant: "가상 중복 식사" });
+  const { c, tools } = setup([row("synthetic-existing", 90, { merchant: entry.merchant })]);
+  const plan = await tools.execute("propose_entries", { entries: [entry, { ...entry, merchant: " 가상  중복 식사 " }] });
+  assert.equal(plan.warnings.length, 2);
+  assert.equal(plan.warnings[0].existingCount, 1); assert.equal(plan.warnings[0].proposedCount, 0);
+  assert.equal(plan.warnings[1].existingCount, 1); assert.equal(plan.warnings[1].proposedCount, 1);
+  assert.equal(plan.addedCount, 2); await tools.applyPlan(plan.planId);
+  assert.equal(c.transactions.length, 3); assert.equal(new Set(c.transactions.map((item) => item.transactionId)).size, 3);
+});
+
+test("pending entry plans reject stale data, changed vaults, busy saves and failed compare-and-swap", async () => {
+  for (const mutation of ["memory", "stored", "vault", "save", "cas", "busy", "cleared"]) {
+    const { c, tools, state, stored, keys } = setup();
+    const plan = await tools.execute("propose_entries", { entries: [expenseEntry({ reimbursement: 20 })] });
+    const before = JSON.stringify(c.transactions);
+    if (mutation === "memory") c.transactions[0].memo = "가상 다른 화면 수정";
+    if (mutation === "stored") stored.get(keys.records)[0].memo = "가상 다른 탭 수정";
+    if (mutation === "vault") c.BudgetCloud = { generation: () => "synthetic-other-vault" };
+    if (mutation === "save") state.failSave = true;
+    if (mutation === "cas") state.beforeSave = () => { stored.get(keys.records)[0].memo = "가상 저장 경합"; };
+    if (mutation === "busy") state.busy = true;
+    if (mutation === "cleared") tools.clearSession();
+    await assert.rejects(tools.applyPlan(plan.planId), undefined, mutation);
+    assert.equal(state.saves, 0); assert.equal(c.transactions.length, 1); assert.deepEqual(clone(c.reimbursements), {});
+    if (mutation !== "memory") assert.equal(JSON.stringify(c.transactions), before);
+  }
+});
+
+test("a stale proposal baseline or generated ID collision cannot silently drop new entries", async () => {
+  const { c, tools, stored, keys } = setup();
+  stored.get(keys.records)[0].amount = 150;
+  await assert.rejects(tools.execute("propose_entries", { entries: [expenseEntry()] }), /저장된 기록과 화면/);
+  stored.set(keys.records, clone(c.transactions));
+  const build = c.buildManualTransaction;
+  c.buildManualTransaction = (entry) => ({ ...build(entry), recordKey: "synthetic-collision", transactionId: "synthetic-collision" });
+  await assert.rejects(tools.execute("propose_entries", { entries: [expenseEntry(), expenseEntry()] }), /식별자가 겹칩니다/);
+  assert.equal(tools.getPlans().length, 0);
+});
+
+test("fifty reviewed entries save once and cannot be added again after a rendering failure", async () => {
+  const { c, tools, state } = setup([]);
+  const plan = await tools.execute("propose_entries", { entries: Array.from({ length: 50 }, (_, index) => expenseEntry({ merchant: `가상 추가 ${index}` })) });
+  assert.equal(plan.addedCount, 50); assert.equal(plan.changes.length, 50);
+  c.reclassify = () => { throw new Error("synthetic render failure"); };
+  const applied = await tools.applyPlan(plan.planId);
+  assert.equal(applied.addedCount, 50); assert.equal(c.transactions.length, 50); assert.equal(state.saves, 1);
+  assert.match(applied.message, /화면을 새로/);
+  await assert.rejects(tools.applyPlan(plan.planId)); assert.equal(c.transactions.length, 50);
+});
+
+test("bulk classification and reimbursement cleanup retains update counts and the fifty-record bound", async () => {
+  const { c, tools } = setup(Array.from({ length: 50 }, (_, index) => row(`synthetic-bulk-${index}`, 100)));
+  const entries = (await tools.execute("search_transactions", { limit: 100 })).items;
+  const changes = entries.map((item) => ({ ref: item.ref, sector: "쇼핑", subcategory: "화장품", reimbursement: 20, memo: "가상 일괄 정리" }));
+  await assert.rejects(tools.createPlan({ changes: [...changes, changes[0]] }), /50/);
+  const plan = await tools.createPlan({ changes });
+  assert.equal(plan.updatedCount, 50); assert.equal(plan.addedCount, 0);
+  assert.ok(plan.changes.every((change) => change.operation === "update" && change.after.consumption === 80));
+  const applied = await tools.applyPlan(plan.planId);
+  assert.equal(applied.updatedCount, 50); assert.equal(applied.addedCount, 0);
+  assert.ok(c.classified.every((item) => item.sector === "쇼핑" && item.subcategory === "화장품" && c.consumptionAmount(item) === 80));
 });

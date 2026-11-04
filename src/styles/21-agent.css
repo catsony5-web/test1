@@ -62,6 +62,30 @@
 .agent-chat .agent-actions { justify-content: flex-end; }
 .agent-chat .agent-feedback { margin: 0; }
 .agent-local { margin-top: 24px; }
+.agent-plan-count { margin: 12px 0; font-size: 14px; font-weight: 700; }
+.agent-table-scroll { max-width: 100%; overflow-x: auto; margin: 14px 0; border: 1px solid var(--border-subtle); border-radius: 8px; }
+.agent-table-scroll:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 3px; }
+.agent-table { width: 100%; border-collapse: collapse; font-size: 12px; line-height: 1.6; }
+.agent-table caption { padding: 12px; text-align: left; color: var(--text-secondary); }
+.agent-table th, .agent-table td { padding: 10px; border-top: 1px solid var(--border-subtle); vertical-align: top; text-align: left; overflow-wrap: anywhere; }
+.agent-table th { color: var(--text-secondary); font-weight: 650; }
+.agent-table thead th { background: var(--bg-muted); white-space: nowrap; }
+.agent-table th button { padding: 4px; border: 0; background: transparent; color: inherit; font: inherit; }
+.agent-table th[aria-sort="ascending"] button::after { content: " ↑"; }
+.agent-table th[aria-sort="descending"] button::after { content: " ↓"; }
+.agent-table .agent-number { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.agent-search-table { min-width: 620px; }
+.agent-search-table td:nth-child(2) { white-space: nowrap; }
+.agent-search-table td:nth-child(3) { min-width: 120px; max-width: 220px; }
+.agent-search-table input[type="checkbox"] { width: 18px; height: 18px; margin: 8px 2px; }
+.agent-bulk-form { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-subtle); }
+.agent-comparison-result > .agent-field { max-width: 260px; margin-top: 16px; }
+.agent-comparison-table { min-width: 420px; table-layout: fixed; }
+.agent-comparison-table th:first-child { width: 30%; }
+.agent-chart-track { display: block; height: 7px; margin-top: 7px; overflow: hidden; border-radius: 4px; background: var(--bg-muted); }
+.agent-chart-bar { display: block; height: 100%; border-radius: inherit; background: var(--accent-primary); }
+.agent-chart-bar.is-comparison { background: var(--text-secondary); }
+.agent-comparison-evidence { margin-top: 16px; }
 @media (max-width: 600px) {
   .ledger-agent-dialog { width: calc(100vw - 16px); max-height: calc(100dvh - 16px); border-radius: 12px; }
   .agent-body { padding: 14px; }

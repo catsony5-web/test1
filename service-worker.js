@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "monthly-card-budget-";
-const CACHE_NAME = `${CACHE_PREFIX}v202-personal-agent`;
+const CACHE_NAME = `${CACHE_PREFIX}v203-agent-management`;
 importScripts("./src/features/goals/goals-insights.js?v=189-budget-planning");
 const APP_FILES = [
   "./data/hobby-insights.json",
@@ -111,7 +111,7 @@ const APP_FILES = [
   "./assets/tabler/icons/x.svg",
   "./assets/tabler/LICENSE",
   "./data/ipo-calendar.json",
-  "./src/data/constants.js?v=202-personal-agent",
+  "./src/data/constants.js?v=203-agent-management",
   "./src/data/categories.js?v=136-mineral-layers",
   "./src/data/rules.js?v=93",
   "./src/data/board-sections.js?v=151-loan-repayments",
@@ -188,12 +188,12 @@ const APP_FILES = [
   "./src/utils/excel-loader.js?v=192-maintenance",
   "./src/features/calendar/calendar-cashflow.js?v=193-calendar-outflow",
   "./src/styles/20-family.css?v=202-personal-agent",
-  "./src/styles/21-agent.css?v=202-personal-agent",
+  "./src/styles/21-agent.css?v=203-agent-management",
   "./src/features/family/family-core.js?v=202-personal-agent",
   "./src/features/family/family-view.js?v=202-personal-agent",
-  "./src/features/agent/ledger-agent-tools.js?v=202-personal-agent",
+  "./src/features/agent/ledger-agent-tools.js?v=203-agent-management",
   "./src/features/agent/ledger-agent-transport.js?v=202-personal-agent",
-  "./src/features/agent/ledger-agent-view.js?v=202-personal-agent"
+  "./src/features/agent/ledger-agent-view.js?v=203-agent-management"
 ];
 
 const PUBLIC_PATHS = new Set(APP_FILES.map((file) => new URL(file, self.location.href).pathname));

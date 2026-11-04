@@ -19,6 +19,13 @@
     incomeKind: { type: "string", enum: ["normal", "familySupport"] },
     familyTargetMonth: monthSchema, familySender: string
   };
+  const entryProperties = {
+    kind: { type: "string", enum: ["expense", "income", "familySupport"] },
+    date: dateSchema, merchant: string, amount: { ...amountSchema, minimum: 1 },
+    sourceType: { type: "string", enum: ["card", "transfer", "cash"] }, cardRef: string,
+    sector: string, subcategory: string, memo: string, reimbursement: amountSchema,
+    familyTargetMonth: monthSchema, familySender: string
+  };
   const definitions = [
     definition("ledger_context", "가계부에서 조회 가능한 월, 분류, 카드 별칭, 계산 기준을 확인합니다. 기록을 수정하지 않습니다.", {}),
     definition("search_transactions", "현재 가계부에서 거래를 검색합니다. ref는 현재 대화에서만 유효합니다. 반환한 total은 전체 검색 건수이며 items는 한 페이지입니다.", {
@@ -38,7 +45,12 @@
       changes: { type: "array", minItems: 1, maxItems: MAX_CHANGES, items: {
         type: "object", properties: editProperties, required: ["ref"], additionalProperties: false
       } }
-    }, ["changes"])
+    }, ["changes"]),
+    definition("propose_entries", "일반 지출·수입·가족 입금의 추가 미리보기만 만듭니다. 사용자가 적용 버튼을 눌러야 저장됩니다. 지출은 사용자가 알려준 결제수단(sourceType)과 기존 분류·세부분류가 필수이며 추측하지 마세요. 수입과 가족 입금은 이체입니다. 가족 입금은 보낸 사람 필수, 대상월 기본값은 입금월입니다. cardRef는 기존 카드 별칭만 허용합니다. 대출·고정지출·할부는 전용 화면에서 입력하세요.", {
+      entries: { type: "array", minItems: 1, maxItems: MAX_CHANGES, items: {
+        type: "object", properties: entryProperties, required: ["kind", "date", "merchant", "amount"], additionalProperties: false
+      } }
+    }, ["entries"])
   ];
 
   function definition(name, description, properties, required = []) {
@@ -107,16 +119,16 @@
     return ref;
   }
   function canceled(item) { return isCanceled(item.cancel) || item.status === "취소/제외" || Number(item.amount) < 0; }
-  function projected(item, reimbursementValue) {
+  function projected(item, reimbursementValue, includeReference = true) {
     const isIncome = item.flow === "income";
     const result = {
-      ref: reference(item), date: normalizeInputDate(item.approvalDate) || "", month: item.month || "",
+      ...(includeReference ? { ref: reference(item) } : {}), date: normalizeInputDate(item.approvalDate) || "", month: item.month || "",
       merchant: String(item.merchant || ""), memo: String(item.memo || ""), amount: Number(item.amount || 0),
       reimbursement: reimbursementValue === undefined ? Math.max(0, reimbursementFor(item)) : reimbursementValue,
       consumption: isIncome ? 0 : consumptionAmount(item), income: isIncome ? incomeReportingAmount(item) : 0,
       sector: item.sector || item.manualSector || "미분류", subcategory: item.subcategory || item.manualSubcategory || "미분류",
       classificationMode: item.manualSector && item.manualSubcategory ? "manual" : "automatic",
-      flow: isIncome ? "income" : "expense", incomeKind: item.incomeKind || "normal",
+      flow: isIncome ? "income" : "expense", incomeKind: item.incomeKind || "normal", sourceType: item.sourceType || "card",
       cardRef: cardReference(item), canceled: canceled(item), installment: Boolean(item.isInstallmentOccurrence || item.installmentEnabled)
     };
     if (item.incomeKind === "familySupport") {
@@ -328,15 +340,73 @@
       if (JSON.stringify(before) === JSON.stringify(after)) continue;
       updated.updatedAt = new Date().toISOString();
       for (const field of ["sector", "subcategory", "classificationMode"]) if (before[field] !== after[field] && !fields.includes(field)) fields.push(field);
-      changes.push({ ref, before, after, fields });
+      changes.push({ operation: "update", ref, before, after, fields });
     }
     if (!changes.length) fail("변경할 내용이 없습니다.");
     return { next, nextReimbursements, changes };
   }
-  async function createPlan(args) {
+  function entryPlan(args) {
+    object(args, ["entries"]);
+    if (!Array.isArray(args.entries) || !args.entries.length || args.entries.length > MAX_CHANGES) fail(`한 번에 1~${MAX_CHANGES}개의 거래를 추가할 수 있습니다.`);
+    const records = sourceRecords(), incoming = [], nextReimbursements = { ...reimbursements }, duplicateWarnings = [];
+    const signature = (item) => JSON.stringify([normalizeInputDate(item.approvalDate),
+      item.flow === "income" ? item.incomeKind || "normal" : "expense", Number(item.amount), normalizeKeyText(item.merchant)]);
+    const existingCounts = new Map(), proposedCounts = new Map();
+    for (const item of records.filter((record) => !canceled(record))) {
+      const key = signature(item); existingCounts.set(key, (existingCounts.get(key) || 0) + 1);
+    }
+    for (const [index, entry] of args.entries.entries()) {
+      object(entry, Object.keys(entryProperties));
+      if (!["expense", "income", "familySupport"].includes(entry.kind)) fail("추가할 거래 종류를 확인해주세요.");
+      const isIncome = entry.kind !== "expense", isFamily = entry.kind === "familySupport";
+      const day = date(entry.date), merchant = text(entry.merchant, "거래처", 500, false).trim(), amount = money(entry.amount, "금액", 1);
+      const sourceType = isIncome ? "transfer" : entry.sourceType;
+      if (isIncome && entry.sourceType !== undefined && entry.sourceType !== "transfer") fail("수입과 가족 입금은 이체로 입력해주세요.");
+      if (!isIncome && !["card", "transfer", "cash"].includes(sourceType)) fail("지출 결제수단을 카드·이체·현금 중에서 확인해주세요. 임의로 지정하지 않습니다.");
+      if (!isIncome && (typeof entry.sector !== "string" || typeof entry.subcategory !== "string" || entry.sector === "수입"
+        || !Object.hasOwn(categories, entry.sector) || !categories[entry.sector].includes(entry.subcategory))) fail("기존 지출 분류와 세부항목을 함께 지정해주세요.");
+      if (isIncome && ["sector", "subcategory", "reimbursement", "cardRef"].some((field) => Object.hasOwn(entry, field))) fail("수입과 가족 입금에는 지출 분류·N빵 정산금·카드를 지정할 수 없습니다.");
+      if (!isFamily && ["familyTargetMonth", "familySender"].some((field) => Object.hasOwn(entry, field))) fail("보낸 사람과 정산 대상월은 가족 입금에만 지정해주세요.");
+      let cardNumber = "";
+      if (entry.cardRef !== undefined) {
+        text(entry.cardRef, "카드 별칭", 500, false);
+        if (sourceType !== "card" || !cards.has(entry.cardRef)) fail("카드 지출에는 현재 가계부의 카드 별칭만 지정할 수 있습니다. 먼저 카드를 조회해주세요.");
+        cardNumber = cards.get(entry.cardRef);
+      }
+      const reimbursement = entry.reimbursement === undefined ? 0 : money(entry.reimbursement, "정산금액");
+      if (reimbursement > amount) fail("정산받은 금액은 지출 금액보다 클 수 없습니다.");
+      const memo = entry.memo === undefined ? "" : text(entry.memo, "메모", 10000).trim();
+      const familySender = isFamily ? text(entry.familySender, "보낸 사람", 500, false).trim() : "";
+      const familyTargetMonth = isFamily ? month(entry.familyTargetMonth ?? day.slice(0, 7)) : "";
+      const base = buildManualTransaction({ sourceType, flow: isIncome ? "income" : "expense", date: day, time: "", merchant, amount,
+        sector: isIncome ? "수입" : entry.sector, subcategory: isIncome ? "이체입금" : entry.subcategory });
+      if (!base) fail("추가할 날짜·거래처·금액을 확인해주세요.");
+      const item = normalizeStoredTransaction({ ...base, cardNumber, memo, classificationScope: "transaction",
+        incomeKind: isFamily ? "familySupport" : "normal", incomeKindSource: isIncome ? "manual" : "", familySender, familyTargetMonth });
+      const key = signature(item), existingCount = existingCounts.get(key) || 0, proposedCount = proposedCounts.get(key) || 0;
+      if (existingCount || proposedCount) duplicateWarnings.push({ code: "POSSIBLE_DUPLICATE", entryNumber: index + 1, existingCount, proposedCount,
+        message: `${index + 1}번째 추가 항목과 날짜·종류·금액·내용이 같은 기록이 있습니다. 별개의 거래인지 확인해주세요.` });
+      proposedCounts.set(key, proposedCount + 1);
+      incoming.push(item);
+      if (reimbursement) nextReimbursements[item.recordKey] = reimbursement;
+    }
+    const merged = mergeTransactions(records, incoming);
+    if (merged.added !== incoming.length || merged.skipped) fail("새 거래의 식별자가 겹칩니다. 추가안을 다시 만들어주세요.");
+    const proposedClassified = new Map(classifyTransactions(merged.records).map((item) => [item.recordKey, item]));
+    const changes = incoming.map((item) => {
+      const reimbursement = Number(nextReimbursements[item.recordKey] || 0);
+      const after = projected(proposedClassified.get(item.recordKey), reimbursement, false);
+      after.consumption = item.flow === "income" ? 0 : item.amount - reimbursement;
+      return { operation: "add", before: null, after, fields: Object.keys(after) };
+    });
+    return { next: merged.records, nextReimbursements, changes, warnings: duplicateWarnings };
+  }
+  function createPlan(args) { return preparePlan(() => editPlan(args)); }
+  function createEntryPlan(args) { return preparePlan(() => entryPlan(args)); }
+  async function preparePlan(build) {
     ensureSession();
     const snapshot = stateSnapshot(), identity = storageIdentity(), epoch = sessionId;
-    const proposed = editPlan(args);
+    const proposed = build();
     const persisted = await persistedState();
     ensureSession();
     if (epoch !== sessionId || snapshot !== stateSnapshot()) fail("미리보기 중 기록이 바뀌었습니다. 다시 조회해주세요.");
@@ -350,6 +420,8 @@
       expectedRecordsJson: JSON.stringify(persisted.values[0] ?? null),
       expectedReimbursementsJson: JSON.stringify(persisted.values[1] ?? null),
       preview: { planId, status: "pending", changes: proposed.changes,
+        addedCount: proposed.changes.filter((change) => change.operation === "add").length,
+        updatedCount: proposed.changes.filter((change) => change.operation === "update").length, warnings: proposed.warnings || [],
         message: "변경 전후를 확인한 뒤 적용 버튼을 눌러주세요. 아직 저장하지 않았습니다." } });
     return getPlan(planId);
   }
@@ -379,7 +451,8 @@
         plan.preview.message = "변경을 저장했습니다.";
         // A rendering error cannot turn a committed save into an apparent retryable failure.
         try { reclassify(); } catch { plan.preview.message = "변경은 저장했습니다. 화면을 새로 열어 확인해주세요."; }
-        return { planId: id, status: "applied", changedCount: plan.changes.length, message: plan.preview.message };
+        return { planId: id, status: "applied", changedCount: plan.changes.length,
+          addedCount: plan.preview.addedCount, updatedCount: plan.preview.updatedCount, message: plan.preview.message };
       });
       if (!result) fail("다른 입력을 저장 중입니다. 잠시 후 적용해주세요.");
       return result;
@@ -393,7 +466,7 @@
     ensureSession();
     const handlers = { ledger_context: (input) => { object(input, []); return context(); },
       search_transactions: search, monthly_metrics: metrics, compare_spending: compare,
-      family_settlement: family, propose_changes: createPlan };
+      family_settlement: family, propose_changes: createPlan, propose_entries: createEntryPlan };
     if (!Object.hasOwn(handlers, name)) fail("지원하지 않는 가계부 도구입니다.");
     return handlers[name](args);
   }

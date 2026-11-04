@@ -87,6 +87,33 @@ test('hosted subscription remains unavailable and never calls a provider implici
   assert.equal(f.calls.length, 0);
 });
 
+test('entry proposals and their tool history pass through without exposing save operations', async (t) => {
+  const proposal = { type: 'function_call', namespace: 'ledger', name: 'propose_entries',
+    call_id: 'synthetic-entry-call', arguments: '{"entries":[]}' };
+  let replies = 0;
+  const f = await fixture(t, { fetchImpl: (url) => Response.json(url.endsWith('/models')
+    ? { data: [{ id: MODEL }] }
+    : ++replies === 1 ? { status: 'completed', output: [proposal] } : COMPLETED) });
+  const client = await f.connect();
+  const entryTool = { type: 'function', name: 'propose_entries',
+    parameters: { type: 'object', properties: { entries: { type: 'array' } } } };
+  const first = await client.respond({ tools: [TOOL, entryTool] });
+  assert.equal(first.status, 200);
+  assert.deepEqual(first.json.output, [proposal]);
+  const second = await client.respond({ tools: [TOOL, entryTool], input: [
+    { role: 'user', content: '가상 기록 추가안' }, proposal,
+    { type: 'function_call_output', call_id: proposal.call_id, output: '{"status":"pending"}' }
+  ] });
+  assert.equal(second.status, 200);
+  assert.deepEqual(second.json.output, COMPLETED.output);
+  for (const name of ['apply_entries', 'delete_transactions']) {
+    const rejected = await client.respond({ tools: [{ ...entryTool, name }] });
+    assert.equal(rejected.status, 400);
+    assert.equal(rejected.json.error.code, 'invalid_tool');
+  }
+  assert.equal(replies, 2);
+});
+
 test('API connection requires explicit billing consent and valid synthetic key shape', async (t) => {
   const f = await fixture(t);
   for (const billingConsent of [undefined, false, 'true', 1]) {

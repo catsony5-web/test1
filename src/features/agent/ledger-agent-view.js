@@ -8,7 +8,7 @@
     month: "대상월", comparisonMonth: "비교월", from: "시작일", to: "종료일", date: "날짜",
     merchant: "거래처", memo: "메모", amount: "금액", reimbursement: "받은 정산금",
     consumption: "내 소비", income: "수입", sector: "분류", subcategory: "세부 분류",
-    flow: "거래 종류", incomeKind: "입금 종류", classificationMode: "분류 방식", cardRef: "카드", canceled: "취소 여부",
+    flow: "거래 종류", sourceType: "결제 수단", incomeKind: "입금 종류", classificationMode: "분류 방식", cardRef: "카드", canceled: "취소 여부",
     total: "검색 건수", count: "건수", transactionCount: "거래 건수", totalCount: "전체 건수",
     need: "가족 부담 필요액", received: "가족 입금", difference: "차액", settlementBalance: "누적 정산",
     repaymentReserve: "상환 예정 보관액", cashBalance: "현금 잔액", cashHeld: "보관 중인 현금",
@@ -34,7 +34,8 @@
     firstRecordedDate: "첫 기록일", limitPerPeriod: "기간별 표시 건수", basis: "계산 기준",
     cumulativeNeed: "누적 가족 필요액", cumulativeReceived: "누적 가족 입금", adjustmentTotal: "누적 조정액",
     cashAdjustment: "현금 조정액", receiptCount: "입금 건수", obligationCount: "부담 항목 수",
-    today: "오늘", months: "기록이 있는 월", cards: "카드 구분", accounting: "집계 기준", changes: "변경 안내", installment: "할부 여부"
+    today: "오늘", months: "기록이 있는 월", cards: "카드 구분", accounting: "집계 기준", changes: "변경 안내", installment: "할부 여부",
+    entryNumber: "추가 항목 순서", existingCount: "기존 유사 기록", proposedCount: "추가안 내 유사 기록"
   };
   const omitted = new Set(["ref", "refs", "code", "planId", "recordKey", "transactionId", "offset", "limit", "hasMore", "fields"]);
   const moneyKeys = new Set(["amount", "reimbursement", "consumption", "income", "need", "received", "difference",
@@ -55,6 +56,7 @@
       return moneyKeys.has(key) || /Amount$|Balance$|Reserve$/.test(key) ? `${number}원` : number;
     }
     if (key === "flow") return { income: "입금", expense: "지출" }[value] || String(value);
+    if (key === "sourceType") return { card: "카드", transfer: "계좌 이체", cash: "현금" }[value] || String(value);
     if (key === "incomeKind") return { normal: "일반 수입", familySupport: "가족 지원" }[value] || String(value);
     if (key === "classificationMode") return { automatic: "자동", manual: "직접 지정" }[value] || String(value);
     return String(value);
@@ -66,6 +68,7 @@
     const fields = [...new Set([...(change.fields || []), ...Object.keys(before), ...Object.keys(after)])]
       .filter((key) => !omitted.has(key) && JSON.stringify(before[key]) !== JSON.stringify(after[key]));
     return {
+      operation: change.operation === "add" ? "add" : "update",
       title: [before.merchant || after.merchant || "거래", before.date || after.date, valueText(before.amount ?? after.amount, "amount")].filter(Boolean).join(" · "),
       before: Object.fromEntries(fields.map((key) => [key, before[key]])),
       after: Object.fromEntries(fields.map((key) => [key, after[key]]))
@@ -130,7 +133,7 @@
                 if (!args || typeof args !== "object" || Array.isArray(args)) throw new Error("작업 조건을 다시 확인해 주세요.");
                 result = await tools.execute(call.name, args);
                 assertActive();
-                onTool(call.name, result);
+                onTool(call.name, result, args);
               } catch (error) {
                 assertActive();
                 result = { error: error.message || "가계부 작업을 처리하지 못했습니다." };
@@ -180,6 +183,13 @@
       const wrapper = el("label", "agent-field", label);
       const input = el("input"); input.type = type; input.value = value;
       wrapper.append(input); return { wrapper, input };
+    };
+    const selectField = (label, options, value = "") => {
+      const wrapper = el("label", "agent-field", label), input = el("select");
+      for (const [key, text] of options) {
+        const option = el("option", "", text); option.value = key; input.append(option);
+      }
+      input.value = value; wrapper.append(input); return { wrapper, input };
     };
     const dialog = el("dialog", "ledger-agent-dialog"); dialog.id = "ledgerAgentDialog";
     dialog.setAttribute("aria-labelledby", "ledgerAgentTitle");
@@ -236,7 +246,7 @@
     connection.append(connectionSummary, connectionContent);
 
     const local = el("details", "agent-local");
-    local.append(el("summary", "", "바로 확인 · AI 연결 없이 조회"), el("p", "agent-note", "현재 기기의 가계부에서 계산합니다. 조회할 월을 선택하세요."));
+    local.append(el("summary", "", "바로 확인 · 조회와 기록 추가"), el("p", "agent-note", "AI 연결 없이 현재 가계부에서 계산합니다. 새 기록과 수정안은 전후 확인을 거쳐 직접 적용합니다."));
     const today = typeof currentMonthKey === "function" ? currentMonthKey() : new Date().toISOString().slice(0, 7);
     const previous = typeof shiftMonthKey === "function" ? shiftMonthKey(today, -1) : today;
     const month = field("대상월", "month", today);
@@ -248,14 +258,17 @@
       button("월 지표", () => void runLocal("monthly_metrics", { month: month.input.value })),
       button("월 비교", () => void runLocal("compare_spending", { month: month.input.value, comparisonMonth: comparison.input.value })),
       button("가족 정산", () => void runLocal("family_settlement", { month: month.input.value })),
-      button("거래 검색", () => void runLocal("search_transactions", { month: month.input.value, query: query.input.value, limit: 25 }))
+      button("거래 검색", () => void runLocal("search_transactions", { month: month.input.value, query: query.input.value, limit: 25 })),
+      button("지출 추가", () => showEntryForm("expense")),
+      button("수입 추가", () => showEntryForm("income")),
+      button("가족 입금 추가", () => showEntryForm("familySupport"))
     ];
     localActions.append(...localButtons); local.append(localFields, localActions);
     const feedback = el("p", "agent-feedback"); feedback.setAttribute("role", "status");
     const results = el("div", "agent-results");
     const messages = el("div", "agent-messages"); messages.setAttribute("role", "log"); messages.setAttribute("aria-label", "에이전트 대화");
     const empty = el("div", "agent-empty");
-    empty.append(el("h3", "", "가계부에서 무엇을 확인할까요?"), el("p", "agent-note", "월별 소비 비교, 거래 검색, 가족 정산을 물어보세요."));
+    empty.append(el("h3", "", "가계부에서 무엇을 확인할까요?"), el("p", "agent-note", "월별 소비 비교, 거래 검색, 가족 정산을 물어보거나 새 수입·지출을 기록해 달라고 요청하세요."));
     const conversationPanel = el("section", "agent-conversation"); conversationPanel.setAttribute("aria-label", "가계부 질문과 답변");
     const chat = el("form", "agent-chat");
     const promptLabel = el("label", "agent-field", "가계부에 물어보기");
@@ -524,12 +537,230 @@
       }
       return list;
     }
-    function showResult(name, result, fromConversation = false) {
+    function categoryFields() {
+      const categories = tools.context().categories || {};
+      const sector = selectField("분류", [["", "분류 선택"], ...Object.keys(categories)
+        .filter((key) => !["수입", "가족 지원"].includes(key)).map((key) => [key, key])]);
+      const subcategory = selectField("세부 분류", [["", "세부 분류 선택"]]);
+      sector.input.addEventListener("change", () => {
+        subcategory.input.replaceChildren();
+        for (const name of ["", ...(categories[sector.input.value] || [])]) {
+          const option = el("option", "", name || "세부 분류 선택"); option.value = name; subcategory.input.append(option);
+        }
+        subcategory.input.value = "";
+      });
+      return { sector, subcategory };
+    }
+    async function proposeFromForm(name, args, form, note) {
+      if (busy) return;
+      busy = true; refreshControls();
+      try {
+        checkScope(); showPlan(await tools.execute(name, args));
+        if (form) form.remove();
+        if (note) note.textContent = "변경 전후 확인을 준비했습니다. 아직 저장하지 않았습니다.";
+        setFeedback("변경 전후를 확인한 뒤 직접 적용해 주세요. 아직 저장하지 않았습니다.");
+      } catch (error) {
+        if (note) note.textContent = error.message;
+        setFeedback(error.message, true);
+      } finally { busy = false; refreshControls(); }
+    }
+    function showEntryForm(kind) {
+      if (busy) return;
+      checkScope();
+      const form = el("form", "agent-entry-form agent-edit-form");
+      const kindLabel = { expense: "지출", income: "수입", familySupport: "가족 입금" }[kind];
+      form.append(el("h3", "", `${kindLabel} 추가안 만들기`), el("p", "agent-note", "입력 후 추가할 기록을 먼저 확인합니다. 적용 버튼을 누르기 전에는 저장하지 않습니다."));
+      const selectedMonth = month.input.value || today;
+      const dateValue = selectedMonth === today ? new Date().toLocaleDateString("sv-SE") : `${selectedMonth}-01`;
+      const fields = {
+        date: field("기록 날짜", "date", dateValue), merchant: field(kind === "expense" ? "거래처·내용" : "입금 내용", "text"),
+        amount: field("추가할 금액", "number"), memo: field("추가 메모", "text")
+      };
+      for (const key of ["date", "merchant", "amount"]) fields[key].input.required = true;
+      fields.amount.input.min = "1"; fields.amount.input.step = "1";
+      fields.merchant.input.maxLength = 500; fields.memo.input.maxLength = 10000;
+      const grid = el("div", "agent-fields"); Object.values(fields).forEach((item) => grid.append(item.wrapper));
+      let source, card, category, reimbursement, sender, target;
+      if (kind === "expense") {
+        source = selectField("결제 수단", [["", "결제 수단 선택"], ["card", "카드"], ["transfer", "계좌 이체"], ["cash", "현금"]]);
+        source.input.required = true;
+        card = selectField("기존 카드 연결 (선택)", [["", "카드 지정 안 함"], ...(tools.context().cards || []).map((item) => [item.ref, item.label])]);
+        card.wrapper.hidden = true;
+        source.input.addEventListener("change", () => { card.wrapper.hidden = source.input.value !== "card"; if (card.wrapper.hidden) card.input.value = ""; });
+        category = categoryFields(); category.sector.input.required = true; category.subcategory.input.required = true;
+        reimbursement = field("이미 받은 정산금", "number", "0"); reimbursement.input.min = "0"; reimbursement.input.step = "1";
+        grid.append(source.wrapper, card.wrapper, category.sector.wrapper, category.subcategory.wrapper, reimbursement.wrapper);
+      } else if (kind === "familySupport") {
+        sender = field("보낸 사람", "text"); sender.input.required = true; sender.input.maxLength = 500;
+        target = field("정산 대상월", "month", selectedMonth); target.input.required = true;
+        target.input.addEventListener("change", () => { target.input.dataset.edited = "true"; });
+        fields.date.input.addEventListener("change", () => { if (!target.input.dataset.edited) target.input.value = fields.date.input.value.slice(0, 7); });
+        grid.append(sender.wrapper, target.wrapper);
+      }
+      const note = el("p", "agent-note"); note.setAttribute("role", "status");
+      const submit = el("button", "primary-action", "추가 전후 미리보기"); submit.type = "submit";
+      const actions = el("div", "agent-actions"); actions.append(submit, button("추가안 닫기", () => form.remove()));
+      form.append(grid, note, actions);
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault(); if (busy) return;
+        const entry = { kind, date: fields.date.input.value, merchant: fields.merchant.input.value.trim(), amount: Number(fields.amount.input.value), memo: fields.memo.input.value };
+        if (kind === "expense") {
+          Object.assign(entry, { sourceType: source.input.value, sector: category.sector.input.value, subcategory: category.subcategory.input.value, reimbursement: Number(reimbursement.input.value) });
+          if (source.input.value === "card" && card.input.value) entry.cardRef = card.input.value;
+        } else {
+          entry.sourceType = "transfer";
+          if (kind === "familySupport") Object.assign(entry, { familySender: sender.input.value.trim(), familyTargetMonth: target.input.value });
+        }
+        await proposeFromForm("propose_entries", { entries: [entry] }, form, note);
+      });
+      results.prepend(form); fields.date.input.focus();
+    }
+    function tableRegion(label) {
+      const wrapper = el("div", "agent-table-scroll"); wrapper.tabIndex = 0;
+      wrapper.setAttribute("role", "region"); wrapper.setAttribute("aria-label", label);
+      return wrapper;
+    }
+    function renderSearchTable(initial, args) {
+      const root = el("section", "agent-search-results");
+      let result = initial, sortKey = "date", ascending = false;
+      const selected = new Set();
+      const range = el("p", "agent-note"); range.setAttribute("role", "status");
+      const selectionNote = el("p", "agent-note"); selectionNote.setAttribute("role", "status");
+      const selectAll = el("input"); selectAll.type = "checkbox";
+      const selectLabel = el("label", "agent-check"); selectLabel.append(selectAll, document.createTextNode("현재 페이지 모두 선택 (최대 50건)"));
+      const wrapper = tableRegion("검색 결과 표 · 가로로 스크롤할 수 있습니다");
+      const table = el("table", "agent-table agent-search-table");
+      const caption = el("caption", "", "현재 페이지의 거래 · 날짜·거래처·금액 제목을 눌러 정렬");
+      const head = el("thead"), header = el("tr"), body = el("tbody"), sortHeaders = new Map();
+      for (const [key, label] of [["select", "선택"], ["date", "날짜"], ["merchant", "거래처"], ["sector", "분류"], ["amount", "금액"], ["reimbursement", "정산금"], ["action", "수정"]]) {
+        const th = el("th"); th.scope = "col";
+        if (["date", "merchant", "amount"].includes(key)) {
+          th.append(button(`${label} 정렬`, () => { ascending = sortKey === key ? !ascending : key !== "date"; sortKey = key; drawRows(); })); sortHeaders.set(key, th);
+        } else th.textContent = label;
+        header.append(th);
+      }
+      head.append(header); table.append(caption, head, body); wrapper.append(table);
+      const bulk = el("form", "agent-bulk-form");
+      bulk.append(el("h4", "", "선택한 거래 일괄 수정안"), el("p", "agent-note", "선택한 모든 거래에 같은 분류 또는 같은 정산금액을 지정합니다. 날짜와 결제액은 바꾸지 않습니다. 연결된 거래는 전용 화면 안내가 표시될 수 있습니다."));
+      const category = categoryFields(), reimbursement = field("거래별로 지정할 정산금 (선택)", "number");
+      reimbursement.input.min = "0"; reimbursement.input.step = "1";
+      const bulkFields = el("div", "agent-fields"); bulkFields.append(category.sector.wrapper, category.subcategory.wrapper, reimbursement.wrapper);
+      const submit = el("button", "", "선택 거래 변경 미리보기"); submit.type = "submit"; submit.disabled = true;
+      bulk.append(bulkFields, selectionNote, submit);
+      bulk.addEventListener("submit", async (event) => {
+        event.preventDefault(); if (busy) return;
+        const patch = {};
+        if (category.sector.input.value || category.subcategory.input.value) {
+          if (!category.sector.input.value || !category.subcategory.input.value) { selectionNote.textContent = "분류와 세부 분류를 함께 선택해 주세요."; return; }
+          Object.assign(patch, { sector: category.sector.input.value, subcategory: category.subcategory.input.value });
+        }
+        if (reimbursement.input.value !== "") patch.reimbursement = Number(reimbursement.input.value);
+        if (!selected.size || selected.size > 50 || !Object.keys(patch).length) { selectionNote.textContent = "1~50건을 선택하고 변경할 분류 또는 정산금을 입력해 주세요."; return; }
+        await proposeFromForm("propose_changes", { changes: [...selected].map((ref) => ({ ref, ...patch })) }, null, selectionNote);
+      });
+      const navigation = el("div", "agent-actions");
+      const previousPage = button("이전 검색 페이지", () => void loadPage(Math.max(0, Number(result.offset || 0) - Number(result.limit || 25))));
+      const nextPage = button("다음 검색 페이지", () => void loadPage(Number(result.offset || 0) + Number(result.limit || 25)));
+      navigation.append(previousPage, nextPage);
+      const metadata = el("div");
+      root.append(range, selectLabel, wrapper, navigation, bulk, metadata);
+      function updateSelection() {
+        const selectable = (result.items || []).filter((item) => item.ref && !item.canceled);
+        selectAll.checked = selectable.length > 0 && selectable.every((item) => selected.has(item.ref));
+        selectAll.indeterminate = selected.size > 0 && !selectAll.checked;
+        selectionNote.textContent = `${selected.size}건 선택 · 페이지를 바꾸면 선택을 해제합니다.`;
+        submit.disabled = selected.size === 0;
+      }
+      function drawRows() {
+        body.replaceChildren();
+        for (const [key, th] of sortHeaders) th.setAttribute("aria-sort", key === sortKey ? (ascending ? "ascending" : "descending") : "none");
+        const items = [...(result.items || [])].sort((a, b) => {
+          const delta = sortKey === "amount" ? Number(a.amount) - Number(b.amount) : String(a[sortKey] || "").localeCompare(String(b[sortKey] || ""), "ko-KR");
+          return ascending ? delta : -delta;
+        });
+        for (const item of items) {
+          const row = el("tr"), cell = el("td"), check = el("input"); check.type = "checkbox";
+          check.checked = selected.has(item.ref); check.disabled = !item.ref || item.canceled;
+          check.setAttribute("aria-label", `${item.date || "날짜 없음"} ${item.merchant || "거래"} 선택`);
+          check.addEventListener("change", () => {
+            if (check.checked && selected.size >= 50) { check.checked = false; selectionNote.textContent = "한 번에 최대 50건만 선택할 수 있습니다."; return; }
+            if (check.checked) selected.add(item.ref); else selected.delete(item.ref); updateSelection();
+          });
+          cell.append(check); row.append(cell);
+          for (const [key, value] of [["date", item.date], ["merchant", item.merchant], ["sector", [item.sector, item.subcategory].filter(Boolean).join(" · ")], ["amount", item.amount], ["reimbursement", item.reimbursement]]) {
+            row.append(el("td", ["amount", "reimbursement"].includes(key) ? "agent-number" : "", valueText(value, key)));
+          }
+          const actions = el("td"); if (!item.canceled) actions.append(button("수정 검토", () => showEditForm(item))); row.append(actions); body.append(row);
+        }
+        if (!items.length) { const row = el("tr"), cell = el("td", "agent-note", "조건에 맞는 거래가 없습니다."); cell.colSpan = 7; row.append(cell); body.append(row); }
+        const offset = Number(result.offset || 0), total = Number(result.total || 0);
+        range.textContent = `전체 ${total.toLocaleString("ko-KR")}건 · ${items.length ? `${offset + 1}~${offset + items.length}건 표시` : "표시할 거래 없음"} · 현재 페이지 정렬`;
+        previousPage.disabled = offset <= 0; nextPage.disabled = !result.hasMore;
+        selectAll.disabled = !items.some((item) => item.ref && !item.canceled);
+        metadata.replaceChildren(); if (result.warnings?.length) metadata.append(renderData(result.warnings, "warnings"));
+        updateSelection();
+      }
+      selectAll.addEventListener("change", () => {
+        const items = (result.items || []).filter((item) => item.ref && !item.canceled);
+        if (selectAll.checked && items.length > 50) { selectAll.checked = false; selectionNote.textContent = "이 페이지에는 50건이 넘습니다. 필요한 거래를 개별 선택해 주세요."; return; }
+        selected.clear(); if (selectAll.checked) items.forEach((item) => selected.add(item.ref)); drawRows();
+      });
+      async function loadPage(offset) {
+        if (busy) return;
+        busy = true; refreshControls(); previousPage.disabled = true; nextPage.disabled = true;
+        try {
+          checkScope(); result = await tools.execute("search_transactions", { ...args, offset, limit: result.limit || 25 });
+          selected.clear(); drawRows(); range.focus?.();
+        } catch (error) { setFeedback(error.message, true); selectionNote.textContent = error.message; }
+        finally { busy = false; refreshControls(); previousPage.disabled = Number(result.offset || 0) <= 0; nextPage.disabled = !result.hasMore; }
+      }
+      drawRows(); return root;
+    }
+    function renderComparison(result) {
+      const root = el("section", "agent-comparison-result");
+      root.append(renderData(Object.fromEntries(["month", "comparisonMonth", "cutoffDay", "sector", "subcategory", "currentAmount", "comparisonAmount", "delta", "percentageChange", "currentCount", "comparisonCount"]
+        .map((key) => [key, result[key]]))));
+      root.append(el("p", "agent-note", "본인 소비 기준 · 받은 정산금·가족 부담을 차감하고 저축·대출 원금은 제외합니다. 월 전체 또는 두 달의 같은 비교 종료일까지 계산한 앱의 금액입니다."));
+      const grouping = selectField("비교 묶음", [["sectors", "분류별"], ["subcategories", "세부 분류별"], ["merchants", "거래처별"]], "sectors");
+      root.append(grouping.wrapper, el("p", "agent-note", "아래 표와 막대는 증감 절대값이 큰 항목을 최대 30개 표시합니다. 표시 항목의 합은 위 전체 합계와 다를 수 있습니다. 막대는 두 달에 같은 축을 사용합니다."));
+      const chart = el("div", "agent-comparison-chart"); root.append(chart);
+      function draw() {
+        chart.replaceChildren();
+        const groups = Array.isArray(result[grouping.input.value]) ? result[grouping.input.value] : [];
+        if (!groups.length) { chart.append(el("p", "agent-note", "선택한 묶음에 비교할 소비 기록이 없습니다.")); return; }
+        const maximum = Math.max(1, ...groups.flatMap((item) => [item.currentAmount, item.comparisonAmount]).filter(Number.isFinite));
+        const wrapper = tableRegion("월별 소비 비교 표와 막대 · 가로로 스크롤할 수 있습니다"), table = el("table", "agent-table agent-comparison-table");
+        table.append(el("caption", "", `${result.month || "대상월"} / ${result.comparisonMonth || "비교월"} · ${groups.length}개 항목`));
+        const head = el("thead"), header = el("tr"), body = el("tbody");
+        for (const text of ["항목", result.month || "대상월", result.comparisonMonth || "비교월", "증감"]) { const cell = el("th", "", text); cell.scope = "col"; header.append(cell); }
+        head.append(header);
+        for (const item of groups) {
+          const row = el("tr"), label = el("th", "", String(item.label || "미분류")); label.scope = "row"; row.append(label);
+          for (const key of ["currentAmount", "comparisonAmount"]) {
+            const cell = el("td", "agent-number"); cell.append(el("span", "", valueText(item[key], key)));
+            const track = el("span", "agent-chart-track"), bar = el("span", `agent-chart-bar${key === "comparisonAmount" ? " is-comparison" : ""}`);
+            track.setAttribute("aria-hidden", "true");
+            bar.style.width = `${Number.isFinite(item[key]) ? Math.max(0, Math.min(100, item[key] / maximum * 100)) : 0}%`;
+            track.append(bar); cell.append(track); row.append(cell);
+          }
+          row.append(el("td", "agent-number", valueText(item.delta, "delta"))); body.append(row);
+        }
+        table.append(head, body); wrapper.append(table); chart.append(wrapper);
+      }
+      grouping.input.addEventListener("change", draw); draw();
+      const evidence = el("details", "agent-comparison-evidence");
+      evidence.append(el("summary", "", `근거 거래 · 기간별 최대 ${result.evidence?.limitPerPeriod || 20}건`), renderData({ countBasis: result.countBasis, coverage: result.coverage, evidence: result.evidence }));
+      root.append(evidence); if (result.warnings?.length) root.append(renderData(result.warnings, "warnings"));
+      return root;
+    }
+    function showResult(name, result, fromConversation = false, args = {}) {
       cardNames = new Map((tools.context().cards || []).map((card) => [card.ref, card.label]));
       const titleText = { monthly_metrics: "월별 지표", compare_spending: "월별 소비 비교", family_settlement: "가족 정산", search_transactions: "거래 검색", ledger_context: "가계부 범위" }[name] || "조회 결과";
-      if (name === "propose_changes") { showPlan(result, fromConversation ? messages : results); return; }
+      if (["propose_changes", "propose_entries"].includes(name)) { showPlan(result, fromConversation ? messages : results); return; }
       const details = el("details", "agent-result"); details.open = !fromConversation;
-      details.append(el("summary", "", fromConversation ? `조회 근거 · ${titleText}` : titleText), renderData(result));
+      details.append(el("summary", "", fromConversation ? `조회 근거 · ${titleText}` : titleText),
+        name === "search_transactions" ? renderSearchTable(result, args)
+          : name === "compare_spending" ? renderComparison(result) : renderData(result));
       if (fromConversation) messages.append(details);
       else results.prepend(details);
       while (results.children.length > 12) results.lastElementChild.remove();
@@ -540,12 +771,18 @@
       if (!plan) throw new Error("수정 제안을 찾을 수 없습니다. 다시 요청해 주세요.");
       const card = el("section", "agent-plan");
       card.append(el("h3", "", "변경 전후 확인"), el("p", "agent-note", "아래 내용을 확인한 뒤 적용해 주세요. 아직 가계부는 바뀌지 않았습니다."));
+      const added = plan.changes.filter((change) => change.operation === "add").length;
+      card.append(el("p", "agent-plan-count", `추가 ${added}건 · 수정 ${plan.changes.length - added}건`));
+      if (plan.warnings?.length || result.warnings?.length) card.append(renderData(plan.warnings || result.warnings, "warnings"));
       for (const change of plan.changes) {
         const preview = previewChange(change);
         card.append(el("h4", "agent-plan-title", preview.title));
         const comparisonRow = el("div", "agent-plan-comparison");
         for (const [key, titleText] of [["before", "변경 전"], ["after", "변경 후"]]) {
-          const side = el("div"); side.append(el("strong", "agent-plan-side", titleText), renderData(preview[key])); comparisonRow.append(side);
+          const side = el("div");
+          side.append(el("strong", "agent-plan-side", preview.operation === "add" && key === "after" ? "추가할 기록" : titleText),
+            preview.operation === "add" && key === "before" ? el("p", "agent-note", "기록 없음 · 새로 추가") : renderData(preview[key]));
+          comparisonRow.append(side);
         }
         card.append(comparisonRow);
       }
@@ -602,7 +839,7 @@
     async function runLocal(name, args) {
       if (busy) return;
       busy = true; refreshControls();
-      try { checkScope(); showResult(name, await tools.execute(name, args)); setFeedback("현재 가계부에서 계산했습니다. AI로 데이터를 보내지 않았습니다."); }
+      try { checkScope(); showResult(name, await tools.execute(name, args), false, args); setFeedback("현재 가계부에서 계산했습니다. AI로 데이터를 보내지 않았습니다."); }
       catch (error) { setFeedback(error.message, true); }
       finally { busy = false; refreshControls(); }
     }
@@ -612,7 +849,7 @@
         checkScope();
         return response;
       },
-      onText: (text) => message("assistant", text), onTool: (name, result) => showResult(name, result, true)
+      onText: (text) => message("assistant", text), onTool: (name, result, args) => showResult(name, result, true, args)
     });
     apiForm.addEventListener("submit", async (event) => {
       event.preventDefault(); if (busy || loginAttempt) return;
