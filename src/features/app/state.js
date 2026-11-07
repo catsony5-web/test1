@@ -109,6 +109,7 @@ const els = {
   boardSideSummary: document.querySelector("#boardSideSummary"),
   boardMapTopButton: document.querySelector("#boardMapTopButton"),
   boardSummary: document.querySelector("#boardSummary"),
+  boardHistory: document.querySelector("#boardHistory"),
   goalPlannerRoot: document.querySelector("#goalPlannerRoot"),
   monthlyAnalysisMonth: document.querySelector("#monthlyAnalysisMonth"),
   monthlyAnalysisPrevMonth: document.querySelector("#monthlyAnalysisPrevMonth"),

@@ -24,7 +24,7 @@
   <link rel="stylesheet" href="src/styles/11-summary-insights.css?v=188-pattern-readability">
   <link rel="stylesheet" href="src/styles/12-rosso-ink.css?v=169-corsa-themes">
   <link rel="stylesheet" href="src/styles/13-goals.css?v=190-budget-check">
-  <link rel="stylesheet" href="src/styles/14-board-overview.css?v=202-personal-agent">
+  <link rel="stylesheet" href="src/styles/14-board-overview.css?v=205-dashboard-tabs">
   <link rel="stylesheet" href="src/styles/16-backup.css?v=187-backup-restore">
   <link rel="stylesheet" href="src/styles/17-spending-budget.css?v=191-budget-templates">
   <link rel="stylesheet" href="src/styles/18-numeric-input.css?v=191-budget-templates">
@@ -338,13 +338,28 @@
             <button type="button" data-family-add><i class="ti ti-users" aria-hidden="true"></i> 가족 입금 추가</button>
           </div>
         </div>
-        <div id="boardMetrics" class="board-metric-grid"></div>
-        <div id="boardSectorMap" class="sector-map-panel" hidden></div>
-        <div class="board-overview-columns">
-          <div id="boardSectorSummary" class="board-sector-summary"></div>
-          <div id="boardGrid" class="ledger-board"></div>
+        <div id="boardTabList" role="tablist" aria-label="대시보드 보기">
+          <button id="boardTabSummary" type="button" role="tab" data-board-tab="summary" aria-selected="true" aria-controls="boardSummaryPanel" tabindex="0">월 요약</button>
+          <button id="boardTabFamily" type="button" role="tab" data-board-tab="family" aria-selected="false" aria-controls="familyDashboardCard" tabindex="-1">가족 정산</button>
+          <button id="boardTabHistory" type="button" role="tab" data-board-tab="history" aria-selected="false" aria-controls="boardHistory" tabindex="-1">최근 3개월 소비</button>
         </div>
-        <section id="familyDashboardCard" class="family-dashboard-card" aria-label="이번 달 가족 정산"></section>
+        <div id="boardSummaryPanel" role="tabpanel" data-board-panel="summary" aria-labelledby="boardTabSummary" tabindex="0">
+          <div id="boardMetrics" class="board-metric-grid"></div>
+          <div id="boardSectorMap" class="sector-map-panel" hidden></div>
+          <div class="board-overview-columns">
+            <div id="boardSectorSummary" class="board-sector-summary"></div>
+            <div id="boardGrid" class="ledger-board"></div>
+          </div>
+          <div class="board-detail-layout">
+            <div class="board-main-stack">
+              <div id="boardSummary" class="ledger-summary"></div>
+            </div>
+            <aside id="boardSideSummary" class="board-side-summary"></aside>
+          </div>
+          <button id="boardMapTopButton" class="board-map-top-button" type="button" hidden>소비 맵</button>
+        </div>
+        <section id="familyDashboardCard" class="family-dashboard-card" role="tabpanel" data-board-panel="family" aria-labelledby="boardTabFamily" tabindex="0" hidden></section>
+        <section id="boardHistory" role="tabpanel" data-board-panel="history" aria-labelledby="boardTabHistory" tabindex="0" hidden></section>
         <div class="board-filter-legacy-controls" hidden>
           <select id="boardFilterSector"><option value="all">전체</option></select>
           <input id="boardFilterSearch" type="text">
@@ -355,13 +370,6 @@
           <button id="boardExpandAllButton" type="button">상세 내역 열기</button>
           <button id="boardCollapseAllButton" type="button">필터 초기화</button>
         </div>
-        <div class="board-detail-layout">
-          <div class="board-main-stack">
-            <div id="boardSummary" class="ledger-summary"></div>
-          </div>
-          <aside id="boardSideSummary" class="board-side-summary"></aside>
-        </div>
-        <button id="boardMapTopButton" class="board-map-top-button" type="button" hidden>소비 맵</button>
       </section>
 
       <section id="monthlyAnalysisView" class="view analysis-view">
@@ -1563,7 +1571,7 @@
   </dialog>
 
   <script src="src/utils/excel-loader.js?v=192-maintenance"></script>
-<script src="src/data/constants.js?v=204-recurring-date"></script>
+<script src="src/data/constants.js?v=205-dashboard-tabs"></script>
   <script src="src/data/categories.js?v=136-mineral-layers"></script>
   <script src="src/data/rules.js?v=93"></script>
   <script src="src/data/board-sections.js?v=151-loan-repayments"></script>
@@ -1572,7 +1580,7 @@
   <script src="src/features/goals/goals-core.js?v=170-goal-planner"></script>
   <script src="src/features/budget/spending-budget-core.js?v=191-budget-templates"></script>
 
-  <script src="src/features/app/state.js?v=202-personal-agent"></script>
+  <script src="src/features/app/state.js?v=205-dashboard-tabs"></script>
 
   <script src="src/utils/format.js?v=80"></script>
   <script src="src/utils/date.js?v=192-maintenance"></script>
@@ -1599,13 +1607,13 @@
   <script src="src/features/classification/smart-suggestions.js?v=173-food-calendar-r2"></script>
   <script src="src/features/classification/rules-manager.js?v=194-import-save-performance"></script>
 
-  <script src="src/features/board/board-view.js?v=202-personal-agent"></script>
+  <script src="src/features/board/board-view.js?v=205-dashboard-tabs"></script>
   <script src="src/features/budget/spending-budget-view.js?v=202-personal-agent"></script>
   <script src="src/features/budget/spending-budget-targets.js?v=191-budget-templates"></script>
   <script src="src/features/board/board-summary.js?v=192-maintenance"></script>
-  <script src="src/features/board/board-overview.js?v=202-personal-agent"></script>
-  <script src="src/features/board/board-cards.js?v=202-personal-agent"></script>
-  <script src="src/features/details/details-view.js?v=202-personal-agent"></script>
+  <script src="src/features/board/board-overview.js?v=205-dashboard-tabs"></script>
+  <script src="src/features/board/board-cards.js?v=205-dashboard-tabs"></script>
+  <script src="src/features/details/details-view.js?v=205-dashboard-tabs"></script>
   <script src="src/features/summary/comparison-analysis.js?v=171-calendar-split-summary"></script>
   <script src="src/features/summary/summary-priority.js?v=165-summary-insights-r2"></script>
   <script src="src/features/summary/summary-food-core.js?v=190-budget-check"></script>
@@ -1622,7 +1630,7 @@
   <script src="src/features/income/income-list.js?v=202-personal-agent"></script>
   <script src="src/features/recurring/recurring-view.js?v=204-recurring-date"></script>
   <script src="src/features/calendar/calendar-cashflow.js?v=193-calendar-outflow"></script>
-  <script src="src/features/calendar/calendar-view.js?v=202-personal-agent"></script>
+  <script src="src/features/calendar/calendar-view.js?v=205-dashboard-tabs"></script>
   <script src="src/features/analysis/analysis-core.js?v=202-personal-agent"></script>
   <script src="src/features/analysis/monthly-analysis-core.js?v=202-personal-agent"></script>
   <script src="src/features/analysis/monthly-analysis-view.js?v=202-personal-agent"></script>
@@ -1641,6 +1649,6 @@
   <script src="src/features/agent/ledger-agent-transport.js?v=202-personal-agent"></script>
   <script src="src/features/agent/ledger-agent-view.js?v=203-agent-management"></script>
   <script src="src/features/app/render-all.js?v=202-personal-agent"></script>
-  <script src="src/features/app/init.js?v=202-personal-agent"></script>
+  <script src="src/features/app/init.js?v=205-dashboard-tabs"></script>
 </body>
 </html>

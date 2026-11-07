@@ -1,3 +1,32 @@
+function setupBoardTabs() {
+  const tabs = [...document.querySelectorAll("#boardTabList [data-board-tab]")];
+
+  function selectTab(selected) {
+    for (const tab of tabs) {
+      const active = tab === selected;
+      tab.setAttribute("aria-selected", String(active));
+      tab.tabIndex = active ? 0 : -1;
+      document.getElementById(tab.getAttribute("aria-controls")).hidden = !active;
+    }
+    selected.focus();
+  }
+
+  tabs.forEach((tab, index) => {
+    tab.addEventListener("click", () => selectTab(tab));
+    tab.addEventListener("keydown", (event) => {
+      const nextIndex = {
+        ArrowLeft: (index - 1 + tabs.length) % tabs.length,
+        ArrowRight: (index + 1) % tabs.length,
+        Home: 0,
+        End: tabs.length - 1
+      }[event.key];
+      if (!Number.isInteger(nextIndex)) return;
+      event.preventDefault();
+      selectTab(tabs[nextIndex]);
+    });
+  });
+}
+
 function renderBoard() {
   const active = reportingExpenseRows(classified);
   const months = appMonthOptions([
@@ -29,6 +58,7 @@ function renderBoard() {
   attachBoardMetricHandlers();
   attachBoardSummaryHandlers();
   els.boardSummary.innerHTML = renderBoardOverviewFooter(overview);
+  els.boardHistory.innerHTML = renderBoardOverviewHistory(overview);
   attachBoardTopCategoryHandlers();
   attachBoardOverviewHandlers(selectedMonth);
   updateBoardMapTopButton();
@@ -162,6 +192,7 @@ function renderBoardEmptyWorkspace(selectedMonth) {
   els.boardSideSummary.innerHTML = "";
   els.boardSideSummary.hidden = true;
   els.boardSummary.innerHTML = "";
+  els.boardHistory.innerHTML = '<p class="board-overview-empty">최근 3개월에 기록된 소비 내역이 없습니다.</p>';
   updateBoardMapTopButton();
   attachBoardEmptyWorkspaceHandlers();
 }

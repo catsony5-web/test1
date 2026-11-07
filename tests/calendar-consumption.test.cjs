@@ -82,6 +82,38 @@ function metric(html, key) {
   return match[1].replace(/<[^>]*>/g, " ").replace(/\s+/g, " ");
 }
 
+test("미분류는 0원 정산 거래도 분류할 수 있고, 취소·수입·다른 달만 있으면 빈 상태다", () => {
+  const unknown = { sector: "미분류", subcategory: "미분류", status: "미분류" };
+  const rows = [
+    expense("cancel", 500, 1, { ...unknown, status: "취소/제외" }),
+    expense("income", 700, 2, { ...unknown, flow: "income" }),
+    expense("other", 900, 3, { ...unknown, month: "2026-07", approvalDate: "2026-07-03" })
+  ];
+  const c = loadContext(rows);
+  const empty = monthSummary(c);
+  assert.match(metric(empty, "unknown"), /0원 분류 필요 항목 없음/);
+  assert.doesNotMatch(empty, /data-calendar-summary-action="unknown"/);
+  rows.push(expense("refunded", 1000, 4, unknown));
+  c.reimbursements.refunded = 1000;
+  const html = monthSummary(c);
+  assert.match(metric(html, "unknown"), /0원 1건 분류하기/);
+  assert.match(html, /<button[^>]*data-calendar-summary-action="unknown"[^>]*>/);
+  assert.doesNotMatch(html.match(/<button[^>]*data-calendar-summary-action="unknown"[^>]*>/)[0], /aria-expanded/);
+  let click;
+  c.els = { calendarMonthSummary: {
+    querySelectorAll: () => [],
+    querySelector: () => ({ addEventListener: (type, handler) => { click = handler; } })
+  } };
+  let opened;
+  c.openDetailView = (options) => { opened = options; };
+  c.attachCalendarSummaryHandlers("2026-08");
+  click();
+  assert.equal(opened.month, "2026-08");
+  assert.equal(opened.sector, "미분류");
+  assert.equal(opened.hideZero, false);
+  assert.equal(opened.sourceView, "calendar");
+});
+
 test("소비·원금·저축을 분리하고 자유 잔액은 월간 분석과 일치한다", () => {
   const rows = previewRows();
   const before = JSON.stringify(rows);

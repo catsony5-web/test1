@@ -216,7 +216,7 @@ function renderCalendarCurrentMonthLabel(month, installmentRows = []) {
     </div>
     ${renderCalendarHeatLegend()}
     <div class="calendar-current-month-actions">
-      ${calendarDetailReturnState ? `<button type="button" class="calendar-detail-return-button" data-calendar-return-detail>← 상세내역으로 돌아가기</button>` : ""}
+      ${calendarDetailReturnState ? `<button type="button" class="calendar-detail-return-button" data-calendar-return-detail>← ${calendarDetailReturnState.filters?.calendarUnknownList ? "미분류 목록" : "상세내역"}으로 돌아가기</button>` : ""}
       ${installmentCount ? `<em>할부 결제 ${installmentCount.toLocaleString("ko-KR")}건 · ${formatWon(installmentTotal)} · 정산 전</em>` : `<em>이번 달 카드 결제일에 청구되는 할부금이 없습니다.</em>`}
     </div>
   `;
@@ -578,7 +578,8 @@ function renderCalendarMonthSummary(month, monthRows, byDate, installmentRows = 
   const spendDayCount = dailyTotals.length;
   const avgSpend = spendDayCount ? Math.round(totalSpend / spendDayCount) : 0;
   const topDay = dailyTotals[0] || { date: "-", amount: 0, count: 0 };
-  const unknownAmount = calendarExpenseTotals(monthRows.filter((item) => item.sector === "미분류")).consumption;
+  const unknownRows = monthRows.filter((item) => item.sector === "미분류");
+  const unknownAmount = calendarExpenseTotals(unknownRows).consumption;
   const coreMetrics = [
     renderCalendarMetric("소비지출", formatWon(totalSpend), "정산 후 내 보험료·대출 이자 포함 · 원금 제외", "spend", { priority: "core", key: "spend" }),
     ...(showIncome ? [
@@ -597,7 +598,7 @@ function renderCalendarMonthSummary(month, monthRows, byDate, installmentRows = 
     renderCalendarMetric("이번 달 할부금", formatWon(installmentTotal), `${installmentRows.length.toLocaleString("ko-KR")}건 · 정산 전 · 출금액에 포함`, "scheduled", { priority: "support", key: "installment" }),
     renderCalendarMetric("하루 평균 소비", formatWon(avgSpend), spendDayCount ? `소비 발생 ${spendDayCount.toLocaleString("ko-KR")}일 기준` : "소비지출 없음", "average", { priority: "support", key: "average" }),
     renderCalendarMetric("가장 많이 쓴 날", topDay.date, `${formatWon(topDay.amount)} · ${topDay.count.toLocaleString("ko-KR")}건`, topDay.amount > 0 ? "topday" : "neutral", { priority: "support", key: "top-day" }),
-    renderCalendarMetric("미분류", formatWon(unknownAmount), unknownAmount > 0 ? "분류 확인 필요" : "분류 필요 항목 없음", unknownAmount > 0 ? "unknown" : "neutral", { priority: "support", key: "unknown" })
+    renderCalendarMetric("미분류", formatWon(unknownAmount), unknownRows.length ? `${unknownRows.length.toLocaleString("ko-KR")}건 분류하기` : "분류 필요 항목 없음", unknownRows.length ? "unknown" : "neutral", { priority: "support", key: "unknown", action: unknownRows.length ? "unknown" : "" })
   ];
   return `
     <div class="calendar-summary-row core" aria-label="소비 달력 핵심 요약">
@@ -635,7 +636,7 @@ function renderCalendarMetric(label, value, hint, tone, options = {}) {
   const metricAttr = options.key ? ` data-calendar-metric="${escapeHtml(options.key)}"` : "";
   const priorityClass = options.priority ? ` is-${escapeHtml(options.priority)}` : "";
   const isButton = Boolean(options.incomeMonth || options.action);
-  const expandedAttr = options.action ? ` aria-expanded="${options.expanded ? "true" : "false"}"` : "";
+  const expandedAttr = typeof options.expanded === "boolean" ? ` aria-expanded="${options.expanded}"` : "";
   const tagOpen = isButton
     ? `<button type="button" class="calendar-summary-card ${escapeHtml(tone)}${priorityClass}"${attrs}${actionAttr}${metricAttr}${expandedAttr}>`
     : `<article class="calendar-summary-card ${escapeHtml(tone)}${priorityClass}"${metricAttr}>`;
@@ -650,6 +651,9 @@ function renderCalendarMetric(label, value, hint, tone, options = {}) {
 }
 
 function attachCalendarSummaryHandlers(selectedMonth) {
+  els.calendarMonthSummary.querySelector('[data-calendar-summary-action="unknown"]')?.addEventListener("click", () => {
+    openDetailView({ sourceView: "calendar", month: selectedMonth, sector: "미분류", hideZero: false, calendarUnknownList: true });
+  });
   els.calendarMonthSummary.querySelectorAll("[data-open-income-month]").forEach((button) => {
     button.addEventListener("click", () => {
       openIncomeView({
@@ -1022,8 +1026,9 @@ function attachCalendarTimelineHandlers(root) {
   });
 
   root.querySelectorAll("[data-calendar-apply-suggestion]").forEach((button) => {
-    button.addEventListener("click", () => {
-      applyCalendarSuggestion(button.dataset.calendarApplySuggestion, button.dataset.sector, button.dataset.subcategory);
+    button.addEventListener("click", async () => {
+      const key = button.dataset.calendarApplySuggestion;
+      if (await applyCalendarSuggestion(key, button.dataset.sector, button.dataset.subcategory)) returnToUnknownListAfterEdit(key);
     });
   });
 
@@ -1079,9 +1084,10 @@ function attachCalendarTimelineHandlers(root) {
     form.elements.installmentMonths?.addEventListener("input", updateInstallmentPreview);
     form.elements.installmentEnabled?.addEventListener("change", syncInstallmentFields);
     syncInstallmentFields();
-    form.addEventListener("submit", (event) => {
+    form.addEventListener("submit", async (event) => {
       event.preventDefault();
-      saveCalendarTransactionEdit(form.dataset.calendarEditForm, form);
+      const key = form.dataset.calendarEditForm;
+      if (await saveCalendarTransactionEdit(key, form)) returnToUnknownListAfterEdit(key);
     });
   });
 }
@@ -1095,6 +1101,12 @@ function updateCalendarActualPreview(form) {
   const amount = toNumber(form.elements.amount.value);
   const reimbursement = toNumber(form.elements.reimbursement.value);
   if (preview) preview.value = formatWon(Math.max(0, amount - reimbursement));
+}
+
+function returnToUnknownListAfterEdit(recordKey) {
+  if (calendarDetailReturnState?.recordKey === recordKey && calendarDetailReturnState.filters.calendarUnknownList) {
+    returnToDetailFromCalendar();
+  }
 }
 
 function syncCalendarFoodOccasion(form) {
@@ -1340,6 +1352,7 @@ async function applyCalendarSuggestion(recordKey, sector, subcategory) {
   setSharedSelectedMonth(item.month, { syncControls: false });
   selectedCalendarDate = normalizeInputDate(item.approvalDate) || selectedCalendarDate;
   reclassify();
+  return true;
 }
 
 async function saveCalendarTransactionEdit(recordKey, form) {
@@ -1442,6 +1455,7 @@ async function saveCalendarTransactionEdit(recordKey, form) {
   };
 
   reclassify();
+  return true;
 }
 
 function addCalendarRuleFromTransaction(merchant, sector, subcategory, targetRules = rules) {

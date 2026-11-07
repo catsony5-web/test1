@@ -10,7 +10,7 @@ function buildBoardSectionStat(section, rows) {
 }
 
 function attachBoardTopCategoryHandlers() {
-  els.boardSummary.querySelectorAll("[data-open-detail-month]").forEach((button) => {
+  document.querySelectorAll("#boardView [data-open-detail-month]").forEach((button) => {
     button.addEventListener("click", () => openDetailView(boardDetailOptions({ month: button.dataset.openDetailMonth || els.boardMonth.value })));
   });
   els.boardSummary.querySelectorAll("[data-board-top-sector]").forEach((button) => {

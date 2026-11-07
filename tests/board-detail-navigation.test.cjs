@@ -137,3 +137,57 @@ test("섹터 전체 상세에서 돌아오면 원래 대시보드 월과 필터�
   assert.equal(c.els.boardFilterSector.value, "all");
   assert.equal(c.detailSelectedSectionKey, "");
 });
+
+test("달력의 미분류 목록은 해당 월 할부 회차와 모든 거래를 열고 분류 저장 후 남은 항목으로 복귀한다", async () => {
+  const unknown = { merchant: "같은 합성 상점", sector: "미분류", subcategory: "미분류", status: "미분류" };
+  const rows = Array.from({ length: 9 }, (_, i) => expense("pending-" + i, 100, "2026-09-03", unknown));
+  rows.push(
+    expense("installment", 3000, "2026-08-04", { ...unknown, installmentEnabled: true, installmentMonths: 2 }),
+    expense("other-month", 900, "2026-08-03", unknown),
+    expense("refunded", 100, "2026-09-05", unknown)
+  );
+  const c = detailContext(rows);
+  c.reimbursements.refunded = 100;
+  let view = "calendar";
+  let sharedMonth = "2026-09";
+  let saved = false;
+  Object.assign(c, {
+    window: { scrollY: 25 }, document: { querySelector: () => null }, requestAnimationFrame: (fn) => fn(),
+    switchView: (next) => { view = next; if (next === "details") c.renderDetailView(); },
+    getSharedSelectedMonth: () => sharedMonth, setSharedSelectedMonth: (month) => { sharedMonth = month; },
+    canViewDriveSharedMonth: () => true, syncDetailFilterControls() {}, attachRecurringHandlers() {},
+    attachReimbursementHandlers() {}, attachBoardQuickAddHandlers() {},
+    createAutoSnapshot: async () => {}, safeSaveMany: async () => saved, RECORD_STORAGE_KEY: "records",
+    reclassify: () => { c.classified = c.transactions.map(row => row.manualSector
+      ? { ...row, sector: row.manualSector, subcategory: row.manualSubcategory } : row); }
+  });
+  Object.assign(c.els, { detailMetrics: {}, detailGrid: { querySelector: () => null, querySelectorAll: () => [] },
+    detailBackToBoardButton: { focus() {} } });
+  c.openDetailView({ sourceView: "calendar", month: "2026-09", sector: "미분류", hideZero: false, calendarUnknownList: true });
+  assert.match(c.els.detailMetrics.innerHTML, /2,400원/);
+  assert.match(c.els.detailMetrics.innerHTML, /11건/);
+  assert.equal((c.els.detailGrid.innerHTML.match(/data-detail-open-calendar=/g) || []).length, 11);
+  assert.match(c.els.detailGrid.innerHTML, /data-detail-open-calendar="installment"/);
+  assert.match(c.els.detailGrid.innerHTML, /data-detail-open-calendar="refunded"/);
+  assert.doesNotMatch(c.els.detailGrid.innerHTML, /data-detail-open-calendar="other-month"/);
+  c.openCalendarTransactionFromDetail("installment", { date: "2026-09-04", month: "2026-09" });
+  assert.equal(c.calendarEditingRecordKey, "installment");
+  assert.equal(c.selectedCalendarDate, "2026-09-04");
+  let apply;
+  const button = { dataset: { calendarApplySuggestion: "installment", sector: "교통비", subcategory: "대중교통" },
+    addEventListener: (_, handler) => { apply = handler; } };
+  c.attachCalendarTimelineHandlers({ querySelectorAll: selector => selector === "[data-calendar-apply-suggestion]" ? [button] : [] });
+  await apply();
+  assert.equal(view, "calendar");
+  assert.equal(c.calendarEditingRecordKey, "installment");
+  saved = true;
+  await apply();
+  assert.equal(view, "details");
+  assert.equal(sharedMonth, "2026-09");
+  assert.equal(c.detailFocusRecordKey, "");
+  assert.match(c.els.detailMetrics.innerHTML, /10건/);
+  assert.doesNotMatch(c.els.detailGrid.innerHTML, /data-detail-open-calendar="installment"/);
+  assert.equal(c.transactions.find(row => row.recordKey === "installment").manualSector, "교통비");
+  assert.equal(c.transactions.find(row => row.recordKey === "other-month").manualSector, undefined);
+  assert.equal(c.detailReturnState.calendar.month, "2026-09");
+});

@@ -31,7 +31,6 @@ function boardOverviewComparison(analysis) {
 function renderBoardOverviewMetrics(model) {
   const { month, snapshot, analysis } = model;
   const incomeKnown = analysis.currentIncomeKnown;
-  const trend = renderBoardOverviewTrend(model);
   const comparisonTone = analysis.canCompareConsumption && analysis.consumptionDelta !== 0
     ? (analysis.consumptionDelta > 0 ? "is-increase" : "is-decrease") : "";
   const periodHint = analysis.isCurrentMonth ? "진행 중 · 선택 월에 등록된 전체 내역" : analysis.isFutureMonth ? "미래 월에 등록된 내역" : "선택 월 전체 내역";
@@ -58,12 +57,7 @@ function renderBoardOverviewMetrics(model) {
           <p class="board-overview-balance-note">통장 잔액이나 앞으로 써도 되는 예산은 아닙니다. 미반영 예정 지출은 아직 차감하지 않았습니다.</p>
         </article>
       </div>
-    </section>
-    ${trend ? `<section class="board-overview-trend-panel" aria-label="전월과 소비 비교">
-      <div class="board-overview-trend-copy"><h3>전월과 소비 비교</h3><p>${escapeHtml(boardOverviewComparison(analysis))}</p>
-      ${analysis.cutoffDay ? `<small>비교 금액 ${formatWon(analysis.currentPeriod.amount)} / 전월 ${formatWon(analysis.previousPeriod.amount)}${analysis.currentPeriod.undatedCount + analysis.previousPeriod.undatedCount > 0 ? " · 날짜 미확인 거래는 비교에서 제외" : ""}</small>` : ""}</div>
-      ${trend}
-    </section>` : ""}`;
+    </section>`;
 }
 
 function buildBoardDailySeries(rows, month, dayCount) {
@@ -80,32 +74,6 @@ function buildBoardDailySeries(rows, month, dayCount) {
   });
   for (let index = 1; index < values.length; index += 1) values[index] += values[index - 1];
   return { values, undatedCount };
-}
-
-function renderBoardOverviewTrend(model) {
-  const { analysis } = model;
-  if (!analysis.canCompareConsumption) return "";
-  const days = analysis.cutoffDay || 31;
-  const current = buildBoardDailySeries(analysis.currentPeriod.rows, model.month, days);
-  const previous = buildBoardDailySeries(analysis.previousPeriod.rows, analysis.comparisonMonth, days);
-  if (!analysis.currentPeriod.rows.some((row) => monthlyAnalysisDate(row, model.month))
-    || !analysis.previousPeriod.rows.some((row) => monthlyAnalysisDate(row, analysis.comparisonMonth))) {
-    return `<div class="board-overview-trend board-overview-trend-empty"><p>날짜가 확인된 거래가 부족해 추이를 표시하지 않습니다.</p></div>`;
-  }
-  const maximum = Math.max(1, ...current.values, ...previous.values);
-  const length = Math.max(current.values.length, previous.values.length);
-  const points = (values) => [0, ...values].map((amount, index) => `${8 + index / length * 264},${144 - amount / maximum * 128}`).join(" ");
-  const undated = current.undatedCount + previous.undatedCount;
-  return `<figure class="board-overview-trend">
-    <figcaption class="board-overview-chart-legend"><span class="is-previous">전월${analysis.cutoffDay ? " 같은 기간" : ""}</span><span class="is-current">선택 월</span></figcaption>
-    <svg class="board-overview-line-chart" viewBox="0 0 280 154" role="img" aria-label="날짜별 누적 소비지출: 선택 월 ${formatWon(current.values.at(-1) || 0)}, 전월 ${formatWon(previous.values.at(-1) || 0)}">
-      <line class="board-overview-line-baseline" x1="8" y1="144" x2="272" y2="144" />
-      <polyline class="board-overview-line-previous" points="${points(previous.values)}" fill="none" />
-      <polyline class="board-overview-line-current" points="${points(current.values)}" fill="none" />
-    </svg>
-    <div class="board-overview-chart-range"><span>1일</span><span>누적 소비 · ${length}일</span></div>
-    ${undated ? `<small>날짜 미확인 ${undated}건은 추이에서 제외</small>` : ""}
-  </figure>`;
 }
 
 function buildBoardSectorShares(model) {
@@ -195,14 +163,17 @@ function renderBoardHistoryMonth(point, maximum) {
   return `<button type="button" class="board-overview-history-month" data-open-detail-month="${escapeHtml(point.month)}"><span class="board-overview-history-value"><span>${escapeHtml(analysisMonthDisplay(point.month))}</span><strong>${point.hasData ? formatWon(point.amount) : "자료 없음"}</strong></span>${bars}</button>`;
 }
 
-function renderBoardOverviewFooter(model) {
-  const { snapshot } = model;
+function renderBoardOverviewHistory(model) {
   const points = buildBoardHistoryPoints(model);
   const maximum = Math.max(1, ...points.flatMap((point) => point.dailySeries.values.map((value, index, values) => value - (values[index - 1] || 0))));
   return `<section class="board-overview-history-panel"><header class="board-overview-panel-head"><div><h3>최근 완료된 3개월 소비</h3><p>진행 중인 달 제외 · 막대는 날짜별 소비</p></div></header>
     <div class="board-overview-history"><div class="board-overview-history-pair">${points.slice(0, 2).map((point) => renderBoardHistoryMonth(point, maximum)).join("")}</div>${renderBoardHistoryMonth(points[2], maximum)}</div>
-  </section>
-  <details class="board-overview-top-details"><summary>많이 쓴 항목 TOP 5 <span>자세히 보기</span></summary>${renderBoardOverviewTop(model)}</details>
+  </section>`;
+}
+
+function renderBoardOverviewFooter(model) {
+  const { snapshot } = model;
+  return `<details class="board-overview-top-details"><summary>많이 쓴 항목 TOP 5 <span>자세히 보기</span></summary>${renderBoardOverviewTop(model)}</details>
   <details class="board-overview-extras"><summary>정산·저축·대출 원금 및 계산 기준 <span>소비와 따로 보기</span></summary>
     <dl><div><dt>정산받은 금액</dt><dd>${formatWon(snapshot.reimbursement)}</dd></div><div><dt>적금·예금</dt><dd>${formatWon(snapshot.actualSavings)}</dd></div><div><dt>내 대출 원금 부담</dt><dd>${formatWon(snapshot.debtRepayment)}</dd></div><div><dt>가족 정산 조정</dt><dd>${formatSignedWon(snapshot.loanSettlementDelta)}</dd></div></dl>
     <p>남은 돈 = 수입 − 소비지출 − 적금·예금 − 내 대출 원금 부담 + 가족 정산 조정. 월세·보험·식비·대출 이자는 소비에 포함됩니다. 카드 결제 예정액은 별도 청구 기준이므로 다시 차감하지 않습니다.</p>

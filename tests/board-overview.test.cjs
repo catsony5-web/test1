@@ -44,8 +44,8 @@ test("진행 월은 전월 동일 날짜까지만 비교하며 월 총액과 비
   assert.equal(m.snapshot.consumptionSpend, 320000);
   assert.equal(m.analysis.consumptionDelta, -20000);
   const html = c.renderBoardOverviewMetrics(m);
-  assert.match(html, /전월과 같은 1~5일/);
-  assert.match(html, /비교 금액 20,000원 \/ 전월 40,000원/);
+  assert.match(html, /320,000원/);
+  assert.match(html, /전월과 같은 1~5일 비교 · 20,000원 덜 사용/);
 });
 
 test("짧은 달·연도 경계와 미래 월의 비교 상태를 보존한다", () => {
@@ -97,8 +97,8 @@ test("빈 선택 월·누락된 과거 자료·긴 항목명과 HTML 입력을 �
   assert.doesNotMatch(c.renderBoardOverviewTop(m), /<script>/);
   const empty = c.buildBoardOverviewModel("2026-07");
   assert.match(c.renderBoardOverviewSectors(empty), /소비지출이 없습니다/);
-  assert.match(c.renderBoardOverviewFooter(empty), /자료 없음/);
-  assert.doesNotMatch(c.renderBoardOverviewFooter(empty), /<svg/);
+  assert.match(c.renderBoardOverviewHistory(empty), /자료 없음/);
+  assert.doesNotMatch(c.renderBoardOverviewHistory(empty), /<svg/);
 });
 
 test("대시보드에서 선택 월과 카드 상세 열림 상태를 유지해 이동한다", () => {
@@ -123,18 +123,38 @@ test("운영 HTML은 새 대시보드를 연결하고 기존 월 이동 버튼�
   assert.match(html, /id="boardNextMonth"/);
   assert.match(html, /src\/features\/board\/board-overview.js/);
   assert.match(html, /src\/styles\/14-board-overview.css/);
+  const tabs = html.match(/<button\b[^>]*\bdata-board-tab="[^"]+"[^>]*>/g) || [];
+  const panels = html.match(/<[^>]+\bdata-board-panel="[^"]+"[^>]*>/g) || [];
+  assert.equal(tabs.length, 3);
+  assert.equal(panels.length, 3);
+  for (const name of ["summary", "family", "history"]) {
+    const tab = tabs.find((tag) => tag.includes(`data-board-tab="${name}"`));
+    const panel = panels.find((tag) => tag.includes(`data-board-panel="${name}"`));
+    assert.match(tab, /role="tab"/);
+    assert.match(panel, /role="tabpanel"/);
+    assert.ok(panel.includes(`id="${tab.match(/aria-controls="([^"]+)"/)[1]}"`));
+    assert.ok(tab.includes(`id="${panel.match(/aria-labelledby="([^"]+)"/)[1]}"`));
+    assert.equal(tab.includes('aria-selected="true"'), name === "summary");
+    assert.equal(/\shidden\b/.test(panel), name !== "summary");
+  }
 });
 
-test("실제 renderBoard는 소비·섹터·결제·하단 상세 영역을 모두 갱신한다", () => {
-  const c = loadContext([expense("food", 30000)]);
-  const element = () => ({ innerHTML: "", value: "2026-09", classList: { remove() {} }, querySelectorAll: () => [] });
-  c.els = Object.fromEntries(["boardMonth", "boardMetrics", "boardSectorMap", "boardSectorSummary", "boardGrid", "boardSideSummary", "boardSummary", "boardMapTopButton"].map((key) => [key, element()]));
+function mountBoard(c) {
+  let selectedMonth = "2026-09";
+  const element = () => ({ innerHTML: "", value: "2026-09", classList: { add() {}, remove() {} }, querySelector: () => null, querySelectorAll: () => [] });
+  c.els = Object.fromEntries(["boardMonth", "boardMetrics", "boardSectorMap", "boardSectorSummary", "boardGrid", "boardSideSummary", "boardSummary", "boardHistory", "boardMapTopButton"].map((key) => [key, element()]));
   Object.assign(c, {
     recurringExpenses: [], appMonthOptions: () => ["2026-08", "2026-09"],
-    getSharedSelectedMonth: () => "2026-09", canViewDriveSharedMonth: () => false,
+    getSharedSelectedMonth: () => selectedMonth, setSharedSelectedMonth: (month) => { selectedMonth = month; },
+    canViewDriveSharedMonth: () => false, defaultDateForMonth: () => "2026-10-05",
     attachBoardSummaryHandlers() {}, attachBoardTopCategoryHandlers() {}, renderFamilyDashboard() {},
     document: { querySelectorAll: () => [] }
   });
+}
+
+test("대시보드는 선택 월의 요약과 최근 3개월을 각 영역에 표시한다", () => {
+  const c = loadContext([expense("food", 30000)]);
+  mountBoard(c);
   c.renderBoard();
   assert.match(c.els.boardMetrics.innerHTML, /소비지출/);
   assert.match(c.els.boardMetrics.innerHTML, /계산 대기/);
@@ -146,7 +166,57 @@ test("실제 renderBoard는 소비·섹터·결제·하단 상세 영역을 모�
   assert.doesNotMatch(c.els.boardGrid.innerHTML, /TOP 5/);
   assert.match(c.els.boardSummary.innerHTML, /TOP 5/);
   assert.match(c.els.boardSummary.innerHTML, /소비와 따로 보기/);
+  assert.doesNotMatch(c.els.boardSummary.innerHTML, /최근 완료된 3개월 소비/);
+  assert.match(c.els.boardHistory.innerHTML, /최근 완료된 3개월 소비/);
+  assert.match(c.els.boardHistory.innerHTML, /data-open-detail-month="/);
+  assert.doesNotMatch(c.els.boardHistory.innerHTML, /TOP 5/);
   assert.doesNotMatch(c.els.boardMetrics.innerHTML, /현금 유출/);
+  c.transactions = c.classified = [];
+  c.renderBoard();
+  assert.match(c.els.boardMetrics.innerHTML, /소비 시작하기/);
+  assert.doesNotMatch(c.els.boardHistory.innerHTML, /data-open-detail-month="/);
+  assert.match(c.els.boardHistory.innerHTML, /없습니다/);
+});
+
+test("탭 클릭·키보드의 선택과 초점은 월을 바꿔 다시 표시한 뒤에도 유지된다", () => {
+  const c = loadContext([expense("food", 30000)]);
+  mountBoard(c);
+  let focused;
+  const panels = { summary: {}, family: {}, history: c.els.boardHistory };
+  const tabs = ["summary", "family", "history"].map((name) => {
+    panels[name].hidden = name !== "summary";
+    const attributes = { "aria-controls": name, "aria-selected": String(name === "summary") };
+    return Object.assign(new EventTarget(), {
+      tabIndex: name === "summary" ? 0 : -1,
+      focus() { focused = this; },
+      getAttribute: (key) => attributes[key],
+      setAttribute: (key, value) => { attributes[key] = value; }
+    });
+  });
+  c.document.querySelectorAll = (selector) => selector.includes("[data-board-tab]") ? tabs : [];
+  c.document.getElementById = (id) => panels[id];
+  c.setupBoardTabs();
+  function check(index) {
+    assert.equal(focused, tabs[index]);
+    assert.deepEqual(Object.values(panels).map((p) => p.hidden), tabs.map((_, i) => i !== index));
+    assert.deepEqual(tabs.map((t) => t.getAttribute("aria-selected")), tabs.map((_, i) => String(i === index)));
+    assert.deepEqual(tabs.map((t) => t.tabIndex), tabs.map((_, i) => i === index ? 0 : -1));
+  }
+  tabs[1].dispatchEvent(new Event("click"));
+  check(1);
+  for (const [key, destination] of [["ArrowRight", 2], ["ArrowRight", 0], ["ArrowLeft", 2], ["Home", 0], ["End", 2], ["Tab", 2]]) {
+    const event = Object.assign(new Event("keydown", { cancelable: true }), { key });
+    focused.dispatchEvent(event);
+    assert.equal(event.defaultPrevented, key !== "Tab");
+    check(destination);
+  }
+  c.renderBoard();
+  assert.match(c.els.boardHistory.innerHTML, /data-open-detail-month="2026-09"/);
+  c.moveBoardMonth(-1);
+  assert.equal(c.els.boardMonth.value, "2026-08");
+  assert.match(c.els.boardHistory.innerHTML, /data-open-detail-month="2026-08"/);
+  assert.doesNotMatch(c.els.boardHistory.innerHTML, /data-open-detail-month="2026-09"/);
+  check(2);
 });
 
 test("거래가 없어도 명시적인 수입 0원 기록은 미입력 안내로 바꾸지 않는다", () => {
@@ -183,18 +253,15 @@ test("누적 소비 곡선은 다른 달의 거래를 선택 월 금액에 섞�
   assert.deepEqual(Array.from(series.values), [0, 1000, 1000]);
 });
 
-test("비교 그래프는 실제 두 달의 기록이 있을 때만 SVG를 표시한다", () => {
+test("월 요약에는 전월 대비 증감 문구가 한 번 표시되고 비교 그래프는 표시되지 않는다", () => {
   const c = loadContext([
     expense("current", 20000, "2026-09-03"),
     expense("previous", 30000, "2026-08-02")
   ]);
-  const html = c.renderBoardOverviewTrend(c.buildBoardOverviewModel("2026-09", "2026-09-05"));
-  assert.match(html, /<svg/);
-  assert.match(html, /role="img"/);
-  assert.doesNotMatch(html, /NaN|Infinity/);
-  assert.doesNotMatch(c.renderBoardOverviewTrend(c.buildBoardOverviewModel("2026-10", "2026-09-05")), /<svg/);
-  const missing = loadContext([expense("only", 1000)]);
-  assert.doesNotMatch(missing.renderBoardOverviewTrend(missing.buildBoardOverviewModel("2026-09", "2026-09-05")), /<svg/);
+  const html = c.renderBoardOverviewMetrics(c.buildBoardOverviewModel("2026-09", "2026-09-05"));
+  assert.equal((html.match(/10,000원 덜 사용/g) || []).length, 1);
+  assert.doesNotMatch(html, /board-overview-line-chart|전월과 소비 비교/);
+  assert.match(c.renderBoardOverviewMetrics(c.buildBoardOverviewModel("2026-10", "2026-09-05")), /미래 월/);
 });
 
 test("결제 패널은 기존 청구 금액과 날짜 및 미분류·고정지출 이동을 보존한다", () => {
@@ -305,7 +372,7 @@ test("최근 3개월은 완료된 달만 선택하고 자료 없음·명시적 0
   assert.deepEqual(Array.from(past, (item) => item.dailySeries.values.length), [31, 28, 31]);
 });
 
-test("하단으로 옮긴 TOP 5와 섹터 항목에서 선택 월의 상세 내역을 연다", () => {
+test("최근 3개월에서는 누른 월, TOP 5와 섹터에서는 선택 월의 상세 내역을 연다", () => {
   const c = loadContext();
   const button = (dataset) => ({ dataset, addEventListener(type, handler) { this.click = handler; } });
   const all = button({ openDetailMonth: "2026-07" });
@@ -316,7 +383,7 @@ test("하단으로 옮긴 TOP 5와 섹터 항목에서 선택 월의 상세 내�
       : selector.includes("data-board-summary-sector") ? [sector] : [];
   c.els = {
     boardMonth: { value: "2026-08" },
-    boardSummary: { querySelectorAll: select },
+    boardSummary: { querySelectorAll: (selector) => selector.includes("data-board-top-sector") ? [top] : [] },
     boardSectorSummary: { querySelectorAll: select },
     boardGrid: { querySelectorAll: () => [] }
   };

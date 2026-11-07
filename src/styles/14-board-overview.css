@@ -1,5 +1,10 @@
 /* Shared columns align spending categories, billing, and completed-month history. */
 #boardView { --board-columns: minmax(0, 2fr) minmax(0, 1.05fr); --board-gap: 20px; }
+#boardTabList { display: inline-flex; flex-wrap: wrap; max-width: 100%; gap: 4px; margin-bottom: 16px; padding: 4px; border: 1px solid var(--border-subtle); border-radius: var(--radius-control, 8px); background: var(--bg-muted); }
+#boardTabList button { min-height: 44px; padding: 6px 12px; border: 1px solid transparent; background: transparent; color: var(--text-secondary); font-weight: 600; }
+#boardTabList button[aria-selected="true"] { border-color: var(--border-subtle); background: var(--bg-card); color: var(--accent-primary); }
+#boardView [data-board-panel][hidden] { display: none; }
+#boardView [data-board-panel]:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
 #boardView > .ledger-head .board-head-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; min-width: 0; }
 #boardView > .ledger-head .month-control-group { min-width: 0; }
 :root:is([data-theme="mineral-blue"], [data-theme="offwhite-olive"], [data-theme="graphite-studio"]) #boardView { --board-card-radius: 16px; }
@@ -19,24 +24,6 @@
 #boardView .board-overview-hero-footer > span { color: var(--text-secondary); font-size: 12px; line-height: 1.6; }
 #boardView .board-overview-hero-footer button { min-height: 36px; padding: 5px 0; border: 0; border-radius: 0; background: transparent; color: var(--accent-primary); font-size: 13px; font-weight: 700; }
 #boardView .board-overview-hero-footer button:hover { text-decoration: underline; text-underline-offset: 4px; }
-#boardView .board-overview-trend-panel { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 360px); align-items: center; gap: 24px; margin-top: 16px; padding: 20px 26px; border: 1px solid var(--border-subtle); border-radius: var(--board-card-radius, var(--radius-card, 14px)); background: var(--bg-card); }
-#boardView .board-overview-trend-copy h3 { margin: 0 0 10px; font-size: 16px; }
-#boardView .board-overview-trend-copy p { margin: 0 0 8px; color: var(--text-primary); font-size: 14px; line-height: 1.65; }
-#boardView .board-overview-trend-copy small { color: var(--text-secondary); font-size: 12px; line-height: 1.6; }
-#boardView .board-overview-trend { width: 100%; min-width: 0; margin: 0; align-self: center; color: var(--text-secondary); }
-#boardView .board-overview-chart-legend { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.5; }
-#boardView .board-overview-chart-legend span { display: inline-flex; align-items: center; gap: 7px; }
-#boardView .board-overview-chart-legend span::before { content: ""; width: 22px; border-top: 2px solid var(--accent-primary); }
-#boardView .board-overview-chart-legend .is-previous::before { border-top: 1.5px dashed var(--text-secondary); }
-#boardView .board-overview-line-chart { display: block; width: 100%; height: auto; overflow: visible; }
-#boardView .board-overview-line-baseline { stroke: var(--border-subtle); stroke-opacity: .4; stroke-width: 1; }
-#boardView .board-overview-line-current { stroke: var(--accent-primary); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
-#boardView .board-overview-line-previous { stroke: var(--text-secondary); stroke-width: 1.6; stroke-dasharray: 4 5; stroke-linecap: round; stroke-linejoin: round; }
-#boardView .board-overview-chart-range { display: flex; justify-content: space-between; gap: 8px; margin-top: 6px; font-size: 10px; }
-#boardView .board-overview-trend > small { display: block; margin-top: 7px; font-size: 10px; line-height: 1.5; }
-#boardView .board-overview-trend-empty { display: grid; align-content: center; justify-items: center; gap: 10px; min-height: 140px; padding: 18px; border: 1px dashed color-mix(in srgb, var(--border-subtle) 40%, transparent); border-radius: var(--radius-control, 8px); text-align: center; }
-#boardView .board-overview-trend-empty i { font-size: 24px; }
-#boardView .board-overview-trend-empty p { margin: 0; font-size: 12px; line-height: 1.8; }
 #boardView .board-overview-money-row { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; min-width: 0; width: 100%; margin: 0; padding: 26px; border: 0; border-left: 1px solid var(--border-subtle); border-radius: 0; background: transparent; box-shadow: none; text-align: left; }
 #boardView .board-overview-money-row > b { display: flex; justify-content: space-between; gap: 12px; width: 100%; color: var(--text-primary); font-size: 16px; font-weight: 700; line-height: 1.5; }
 #boardView .board-overview-money-row > b > span { color: var(--text-secondary); }
@@ -143,8 +130,6 @@
   #boardView .board-overview-money-row > strong { min-height: 48px; font-size: clamp(23px, 2.4vw, 32px); }
   #boardView .board-overview-sector-panel { padding: 20px; }
   #boardView { --board-gap: 16px; }
-  #boardView .board-overview-line-chart { max-height: 135px; }
-  #boardView .board-overview-chart-legend { margin-bottom: 5px; }
   #boardView .board-overview-sector-layout { gap: 12px; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); }
   #boardView .board-overview-sector { padding-inline: 7px; column-gap: 7px; }
   #boardView .board-overview-sector-name,
@@ -197,10 +182,7 @@
   #boardView .board-overview-money-row { border-left: 0; }
   #boardView .board-overview-total { font-size: clamp(32px, 10vw, 46px); }
   #boardView .board-overview-money-row > strong { font-size: 30px; }
-  #boardView .board-overview-trend-panel { grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 20px 18px; }
   #boardView .board-overview-sector-panel { padding: 20px 18px; }
-  #boardView .board-overview-trend { width: 100%; }
-  #boardView .board-overview-line-chart { max-height: 148px; }
   #boardView .board-overview-sector-panel .board-overview-panel-head h3 { font-size: 21px; }
   #boardView .board-overview-sector-layout { grid-template-columns: minmax(0, 1fr); gap: 8px; }
   #boardView .board-overview-donut-wrap { max-width: 280px; }

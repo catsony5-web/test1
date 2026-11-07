@@ -9,6 +9,7 @@ function openDetailView(options = {}) {
   switchView("details");
   renderDetailView();
   document.querySelector("#detailsView")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  if (detailFilters.calendarUnknownList) focusCalendarUnknownList();
 }
 
 function currentDetailSourceView() {
@@ -93,6 +94,7 @@ function applyDetailNavigationFilters(options, sourceView = "board") {
   detailFilters.month = has("month") ? options.month || "all" : fallbackMonth || "all";
   if (detailFilters.month !== "all") setSharedSelectedMonth(detailFilters.month, { syncControls: false });
   detailFilters.sector = sector;
+  detailFilters.calendarUnknownList = sourceView === "calendar" && Boolean(options.calendarUnknownList);
   detailFilters.sectorOverview = sourceView === "board" && Boolean(options.showSectorOverview);
   detailFilters.subcategory = sector === "all" ? "all" : has("subcategory") ? options.subcategory || "all" : "all";
   detailFilters.search = search || "";
@@ -247,15 +249,21 @@ function returnToDetailFromCalendar() {
   const state = calendarDetailReturnState;
   if (!state?.recordKey) return;
 
-  const item = classified.find((row) => row.recordKey === state.recordKey);
-  const section = item
-    ? boardSections.find((candidate) => candidate.match(item)) || boardSections.at(-1)
-    : boardSections.find((candidate) => candidate.key === state.expandedSectionKey);
   const filters = state.filters || {};
   calendarDetailReturnState = null;
   calendarEditingRecordKey = "";
   calendarEditFeedback = null;
 
+  if (filters.calendarUnknownList) {
+    applyDetailNavigationFilters(filters, "calendar");
+    switchView("details");
+    focusCalendarUnknownList();
+    return;
+  }
+  const item = classified.find((row) => row.recordKey === state.recordKey);
+  const section = item
+    ? boardSections.find((candidate) => candidate.match(item)) || boardSections.at(-1)
+    : boardSections.find((candidate) => candidate.key === state.expandedSectionKey);
   detailFilters.month = item?.month || filters.month || "all";
   if (detailFilters.month !== "all") setSharedSelectedMonth(detailFilters.month, { syncControls: false });
   detailFilters.sector = section?.sector || item?.sector || filters.sector || "all";
@@ -282,6 +290,10 @@ function returnToDetailFromCalendar() {
       inline: "nearest"
     });
   });
+}
+
+function focusCalendarUnknownList() {
+  (els.detailGrid?.querySelector("[data-detail-open-calendar]") || els.detailBackToBoardButton)?.focus();
 }
 
 function detailMonthOptions() {
@@ -327,13 +339,14 @@ function resetDetailFilters() {
   detailFilters.sort = "amount-desc";
   detailFilters.entryType = "actual";
   detailFilters.unknownOnly = false;
+  detailFilters.calendarUnknownList = false;
   detailFilters.reimbursedOnly = false;
   detailFilters.hideZero = true;
   renderDetailView();
 }
 
 function renderDetailView() {
-  const active = expenseRows(classified);
+  const active = detailFilters.calendarUnknownList ? reportingExpenseRows(classified) : expenseRows(classified);
   const months = unique(active.map((item) => item.month).filter(Boolean)).sort();
   if (detailFilters.month !== "all") {
     detailFilters.month = getSharedSelectedMonth(detailFilters.month || els.boardMonth.value || selectedSummaryMonth || selectedCalendarMonth || months.at(-1) || currentMonthKey());
@@ -1360,6 +1373,7 @@ function readDetailFilterControls() {
   detailFilters.sort = els.detailSort.value || "amount-desc";
   detailFilters.entryType = els.detailEntryType.value || "actual";
   detailFilters.unknownOnly = els.detailUnknownOnly.checked;
+  if (!detailFilters.unknownOnly) detailFilters.calendarUnknownList = false;
   detailFilters.reimbursedOnly = els.detailReimbursedOnly.checked;
   detailFilters.hideZero = els.detailHideZero.checked;
   if (detailFilters.unknownOnly) {
@@ -1442,16 +1456,17 @@ function renderDetailMetric(label, value, hint, tone, options = {}) {
 function renderDetailGrid(rows, selectedMonth) {
   const sectionStats = buildDetailSectionStats(rows);
   const filterText = detailFilterSummaryText(rows.length);
+  const panelTitle = detailFilters.calendarUnknownList ? "미분류 거래" : "거래 상세 카드";
   if (!sectionStats.length) {
     return `
       <section class="detail-results-panel">
         <div class="panel-head">
           <div>
-            <h3>거래 상세 카드</h3>
+            <h3>${panelTitle}</h3>
             <p>${escapeHtml(filterText)}</p>
           </div>
         </div>
-        <div class="empty">현재 조건에 맞는 거래가 없습니다. 섹터와 세부항목을 선택하면 빈 카드에서도 바로 입력할 수 있습니다.</div>
+        <div class="empty">${detailFilters.calendarUnknownList ? "현재 조건에 맞는 미분류 거래가 없습니다." : "현재 조건에 맞는 거래가 없습니다. 섹터와 세부항목을 선택하면 빈 카드에서도 바로 입력할 수 있습니다."}</div>
       </section>
     `;
   }
@@ -1470,13 +1485,14 @@ function renderDetailGrid(rows, selectedMonth) {
   const selectedStat = resolveDetailSelectedStat(sectionStats, rows);
   const sectorGroups = buildDetailSectorGroups(sectionStats);
   const filteredActualTotal = sumConsumption(rows);
-  const limit = detailFocusRecordKey || selectedStat.isSectorOverview ? 0 : 8;
+  const showAllRows = selectedStat.isSectorOverview || detailFilters.calendarUnknownList;
+  const limit = detailFocusRecordKey || showAllRows ? 0 : 8;
   return `
     <section class="detail-results-panel">
       <div class="panel-head">
         <div>
-          <h3>거래 상세 카드</h3>
-          <p>${escapeHtml(filterText)} · 섹터별 카드에서 내역을 훑어보고, 전체 보기에서 정산금과 할부 정보를 수정합니다.</p>
+          <h3>${panelTitle}</h3>
+          <p>${escapeHtml(filterText)}${detailFilters.calendarUnknownList ? "" : " · 섹터별 카드에서 내역을 훑어보고, 전체 보기에서 정산금과 할부 정보를 수정합니다."}</p>
         </div>
       </div>
       <div class="detail-master-detail">
@@ -1486,12 +1502,14 @@ function renderDetailGrid(rows, selectedMonth) {
         <div class="detail-master-pane" aria-live="polite">
           ${renderLedgerSection(selectedStat.section, selectedStat.rows, selectedMonth, detailFilters.sort, {
           limit,
-          fullViewButton: !selectedStat.isSectorOverview,
-          hideQuickAdd: Boolean(selectedStat.isSectorOverview),
+          fullViewButton: !showAllRows,
+          hideQuickAdd: Boolean(showAllRows),
           calendarLinks: true,
           masterDetail: true,
           contextLabel: selectedStat.section.sector,
-          reimbursementHint: reimbursementEditMode
+          reimbursementHint: detailFilters.calendarUnknownList
+            ? "거래를 누르면 분류를 수정할 수 있습니다."
+            : reimbursementEditMode
             ? "정산받은 금액을 입력하면 변경 내용이 바로 저장됩니다."
             : selectedStat.isSectorOverview
               ? "거래를 누르면 소비 달력에서 수정할 수 있습니다. 정산금은 세부항목의 전체 보기에서 수정하세요."
