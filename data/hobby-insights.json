@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-06T02:40:46.612Z",
-  "attemptedAt": "2026-11-06T02:40:46.612Z",
+  "updatedAt": "2026-11-07T02:08:13.941Z",
+  "attemptedAt": "2026-11-07T02:08:13.941Z",
   "refreshStatus": "ok",
   "sources": {
     "youtube": {
@@ -15,6 +15,13 @@
     }
   },
   "items": [
+    {
+      "sourceId": "shopify",
+      "title": "Faster POS checkout",
+      "url": "https://changelog.shopify.com/posts/faster-pos-checkout",
+      "publishedAt": "2026-11-06T20:30:00.000Z",
+      "topicId": "product"
+    },
     {
       "sourceId": "wordpress",
       "title": "WordPress.com Changelog: Manage Your Site and Build a Store with AI",
