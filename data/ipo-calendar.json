@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-11-09T02:10:30.378Z",
+  "updatedAt": "2026-11-09T12:29:40.274Z",
   "checkedDate": "2026-11-09",
   "coverage": {
-    "kindCount": 163,
-    "dartCount": 180,
+    "kindCount": 164,
+    "dartCount": 181,
     "dartCheckedCompanies": 190,
     "unresolved": [
       {
@@ -14,15 +14,11 @@
       {
         "company": "데이원컴퍼니",
         "receipt": "20250120000324"
-      },
-      {
-        "company": "하나에어로다이내믹스",
-        "receipt": "20261109000050"
       }
     ],
     "refreshStatus": {
       "state": "ok",
-      "attemptedAt": "2026-11-09T02:10:30.378Z",
+      "attemptedAt": "2026-11-09T12:29:40.274Z",
       "sources": {
         "kind": {
           "state": "ok"
@@ -1700,33 +1696,39 @@
     {
       "sourceId": "dart-00960234",
       "company": "영광와이케이엠씨",
-      "market": "상장시장 확인 필요",
-      "filingDate": "2026-10-30",
-      "bookbuildingStart": "",
-      "bookbuildingEnd": "",
+      "market": "코스닥",
+      "filingDate": "2026-10-08",
+      "bookbuildingStart": "2026-10-27",
+      "bookbuildingEnd": "2026-11-02",
       "subscriptionStart": "2026-11-04",
       "subscriptionEnd": "2026-11-05",
       "paymentDate": "2026-11-09",
-      "offerPrice": 0,
-      "offeringAmountMillions": 0,
-      "listingDate": "",
+      "offerPrice": 11000,
+      "offeringAmountMillions": 25300,
+      "listingDate": "2026-11-16",
       "broker": "대신증권",
-      "priceStatus": "pending",
+      "priceStatus": "confirmed",
       "status": "scheduled",
-      "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103000312",
-      "sourceUpdatedAt": "2026-11-03T11:35:41.369Z",
+      "sourceName": "KRX KIND + DART",
+      "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260330000099",
+      "sourceUpdatedAt": "2026-11-09T12:29:40.274Z",
       "missingSince": "",
       "corpCode": "00960234",
       "aliases": [
+        "20260330000099",
         "dart-00960234"
       ],
       "sources": [
         {
+          "name": "KRX KIND",
+          "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260330000099",
+          "checkedDate": "2026-11-09"
+        },
+        {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103000312",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109000183",
           "checkedDate": "2026-11-09",
-          "reportDate": "20261103"
+          "reportDate": "20261109"
         }
       ],
       "conflicts": [],
@@ -1736,9 +1738,46 @@
       "reportedOfferPrice": 9400,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "12eefc862fc3e852287a",
-      "changeStatus": "unchanged",
-      "changes": []
+      "fingerprint": "cca4b364d0da69154bf7",
+      "changeStatus": "changed",
+      "changes": [
+        {
+          "field": "market",
+          "label": "시장",
+          "before": "상장시장 확인 필요",
+          "after": "코스닥"
+        },
+        {
+          "field": "bookbuildingStart",
+          "label": "수요예측 시작",
+          "before": "",
+          "after": "2026-10-27"
+        },
+        {
+          "field": "bookbuildingEnd",
+          "label": "수요예측 종료",
+          "before": "",
+          "after": "2026-11-02"
+        },
+        {
+          "field": "offerPrice",
+          "label": "확정 공모가",
+          "before": 0,
+          "after": 11000
+        },
+        {
+          "field": "offeringAmountMillions",
+          "label": "공모금액",
+          "before": 0,
+          "after": 25300
+        },
+        {
+          "field": "listingDate",
+          "label": "상장 예정일",
+          "before": "",
+          "after": "2026-11-16"
+        }
+      ]
     },
     {
       "sourceId": "dart-01658035",
@@ -1870,27 +1909,14 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "0e31ef97c00517408fbf",
-      "changeStatus": "changed",
-      "changes": [
-        {
-          "field": "offerPrice",
-          "label": "확정 공모가",
-          "before": 0,
-          "after": 17600
-        },
-        {
-          "field": "offeringAmountMillions",
-          "label": "공모금액",
-          "before": 0,
-          "after": 42240
-        }
-      ]
+      "changeStatus": "unchanged",
+      "changes": []
     },
     {
       "sourceId": "dart-01025617",
       "company": "하나에어로다이내믹스",
       "market": "상장시장 확인 필요",
-      "filingDate": "2026-10-16",
+      "filingDate": "2026-11-09",
       "bookbuildingStart": "",
       "bookbuildingEnd": "",
       "subscriptionStart": "2026-11-10",
@@ -1901,11 +1927,11 @@
       "listingDate": "",
       "broker": "IBK투자증권",
       "priceStatus": "pending",
-      "status": "unavailable",
+      "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261019000085",
-      "sourceUpdatedAt": "2026-10-19T09:33:57.659Z",
-      "missingSince": "2026-11-09T02:10:30.378Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109000166",
+      "sourceUpdatedAt": "2026-11-09T12:29:40.274Z",
+      "missingSince": "",
       "corpCode": "01025617",
       "aliases": [
         "dart-01025617"
@@ -1913,9 +1939,9 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261019000085",
-          "checkedDate": "2026-11-08",
-          "reportDate": "20261019"
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109000166",
+          "checkedDate": "2026-11-09",
+          "reportDate": "20261109"
         }
       ],
       "conflicts": [],
@@ -1925,8 +1951,8 @@
       "reportedOfferPrice": 4700,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "df6518523cf3b77da25a",
-      "changeStatus": "review",
+      "fingerprint": "ff01f498ba5a0f06ed57",
+      "changeStatus": "unchanged",
       "changes": []
     },
     {
@@ -2478,7 +2504,7 @@
       "sourceId": "dart-01783687",
       "company": "이노보테라퓨틱스",
       "market": "상장시장 확인 필요",
-      "filingDate": "2026-10-21",
+      "filingDate": "2026-11-09",
       "bookbuildingStart": "",
       "bookbuildingEnd": "",
       "subscriptionStart": "2026-12-07",
@@ -2491,8 +2517,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261021000153",
-      "sourceUpdatedAt": "2026-10-21T09:05:41.731Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109000160",
+      "sourceUpdatedAt": "2026-11-09T12:29:40.274Z",
       "missingSince": "",
       "corpCode": "01783687",
       "aliases": [
@@ -2501,9 +2527,9 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261021000153",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109000160",
           "checkedDate": "2026-11-09",
-          "reportDate": "20261021"
+          "reportDate": "20261109"
         }
       ],
       "conflicts": [],
@@ -2511,7 +2537,7 @@
       "reportedOfferPrice": 20000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "3b28ff1db84ce2621880",
+      "fingerprint": "39dc933a3d1f800ce1b8",
       "changeStatus": "unchanged",
       "changes": []
     },
