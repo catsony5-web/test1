@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-11-09T12:29:40.274Z",
+  "updatedAt": "2026-11-09T20:23:48.528Z",
   "checkedDate": "2026-11-09",
   "coverage": {
     "kindCount": 164,
@@ -18,7 +18,7 @@
     ],
     "refreshStatus": {
       "state": "ok",
-      "attemptedAt": "2026-11-09T12:29:40.274Z",
+      "attemptedAt": "2026-11-09T20:23:48.528Z",
       "sources": {
         "kind": {
           "state": "ok"
@@ -1739,45 +1739,8 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "cca4b364d0da69154bf7",
-      "changeStatus": "changed",
-      "changes": [
-        {
-          "field": "market",
-          "label": "시장",
-          "before": "상장시장 확인 필요",
-          "after": "코스닥"
-        },
-        {
-          "field": "bookbuildingStart",
-          "label": "수요예측 시작",
-          "before": "",
-          "after": "2026-10-27"
-        },
-        {
-          "field": "bookbuildingEnd",
-          "label": "수요예측 종료",
-          "before": "",
-          "after": "2026-11-02"
-        },
-        {
-          "field": "offerPrice",
-          "label": "확정 공모가",
-          "before": 0,
-          "after": 11000
-        },
-        {
-          "field": "offeringAmountMillions",
-          "label": "공모금액",
-          "before": 0,
-          "after": 25300
-        },
-        {
-          "field": "listingDate",
-          "label": "상장 예정일",
-          "before": "",
-          "after": "2026-11-16"
-        }
-      ]
+      "changeStatus": "unchanged",
+      "changes": []
     },
     {
       "sourceId": "dart-01658035",
