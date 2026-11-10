@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-09T01:49:13.706Z",
-  "attemptedAt": "2026-11-09T01:49:13.706Z",
+  "updatedAt": "2026-11-10T04:13:51.061Z",
+  "attemptedAt": "2026-11-10T04:13:51.061Z",
   "refreshStatus": "ok",
   "sources": {
     "youtube": {
@@ -15,6 +15,13 @@
     }
   },
   "items": [
+    {
+      "sourceId": "wordpress",
+      "title": "Your Content, Your Terms: New AI Controls and SEO Tools",
+      "url": "https://wordpress.com/blog/2026/11/10/seo-tools-search-ai/",
+      "publishedAt": "2026-11-10T00:38:53.000Z",
+      "topicId": "audience"
+    },
     {
       "sourceId": "shopify",
       "title": "Faster POS checkout",
