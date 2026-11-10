@@ -1,11 +1,11 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-11-10T04:23:42.165Z",
+  "updatedAt": "2026-11-10T12:03:45.746Z",
   "checkedDate": "2026-11-10",
   "coverage": {
-    "kindCount": 164,
-    "dartCount": 181,
-    "dartCheckedCompanies": 190,
+    "kindCount": 165,
+    "dartCount": 182,
+    "dartCheckedCompanies": 191,
     "unresolved": [
       {
         "company": "렉스필드컨트리클럽",
@@ -18,7 +18,7 @@
     ],
     "refreshStatus": {
       "state": "ok",
-      "attemptedAt": "2026-11-10T04:23:42.165Z",
+      "attemptedAt": "2026-11-10T12:03:45.746Z",
       "sources": {
         "kind": {
           "state": "ok"
@@ -39,7 +39,7 @@
     "to": "2027-11-30",
     "label": "최근 3개월 · 향후 12개월"
   },
-  "itemCount": 57,
+  "itemCount": 58,
   "items": [
     {
       "sourceId": "20250923000002",
@@ -1745,33 +1745,39 @@
     {
       "sourceId": "dart-01658035",
       "company": "옵토닉스",
-      "market": "상장시장 확인 필요",
-      "filingDate": "2026-10-21",
-      "bookbuildingStart": "",
-      "bookbuildingEnd": "",
+      "market": "코스닥",
+      "filingDate": "2026-09-29",
+      "bookbuildingStart": "2026-10-21",
+      "bookbuildingEnd": "2026-10-27",
       "subscriptionStart": "2026-11-05",
       "subscriptionEnd": "2026-11-06",
       "paymentDate": "2026-11-10",
-      "offerPrice": 0,
-      "offeringAmountMillions": 0,
-      "listingDate": "",
+      "offerPrice": 12000,
+      "offeringAmountMillions": 26400,
+      "listingDate": "2026-11-17",
       "broker": "한국투자증권",
-      "priceStatus": "pending",
+      "priceStatus": "confirmed",
       "status": "scheduled",
-      "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029000524",
-      "sourceUpdatedAt": "2026-10-29T10:41:40.830Z",
+      "sourceName": "KRX KIND + DART",
+      "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260304000284",
+      "sourceUpdatedAt": "2026-11-10T12:03:45.746Z",
       "missingSince": "",
       "corpCode": "01658035",
       "aliases": [
+        "20260304000284",
         "dart-01658035"
       ],
       "sources": [
         {
+          "name": "KRX KIND",
+          "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260304000284",
+          "checkedDate": "2026-11-10"
+        },
+        {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029000524",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261110000258",
           "checkedDate": "2026-11-10",
-          "reportDate": "20261029"
+          "reportDate": "20261110"
         }
       ],
       "conflicts": [],
@@ -1781,9 +1787,46 @@
       "reportedOfferPrice": 10000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "5c158c94517c3069bc1e",
-      "changeStatus": "unchanged",
-      "changes": []
+      "fingerprint": "663b3d124c32dfc70642",
+      "changeStatus": "changed",
+      "changes": [
+        {
+          "field": "market",
+          "label": "시장",
+          "before": "상장시장 확인 필요",
+          "after": "코스닥"
+        },
+        {
+          "field": "bookbuildingStart",
+          "label": "수요예측 시작",
+          "before": "",
+          "after": "2026-10-21"
+        },
+        {
+          "field": "bookbuildingEnd",
+          "label": "수요예측 종료",
+          "before": "",
+          "after": "2026-10-27"
+        },
+        {
+          "field": "offerPrice",
+          "label": "확정 공모가",
+          "before": 0,
+          "after": 12000
+        },
+        {
+          "field": "offeringAmountMillions",
+          "label": "공모금액",
+          "before": 0,
+          "after": 26400
+        },
+        {
+          "field": "listingDate",
+          "label": "상장 예정일",
+          "before": "",
+          "after": "2026-11-17"
+        }
+      ]
     },
     {
       "sourceId": "dart-02038432",
@@ -1978,8 +2021,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106000070",
-      "sourceUpdatedAt": "2026-11-06T02:56:34.311Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261110000261",
+      "sourceUpdatedAt": "2026-11-10T12:03:45.746Z",
       "missingSince": "",
       "corpCode": "01705740",
       "aliases": [
@@ -1988,9 +2031,9 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106000070",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261110000261",
           "checkedDate": "2026-11-10",
-          "reportDate": "20261106"
+          "reportDate": "20261110"
         }
       ],
       "conflicts": [],
@@ -2000,7 +2043,7 @@
       "reportedOfferPrice": 9600,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "86337e5e0c4450317be9",
+      "fingerprint": "eb7848377a822f3493ee",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -2504,6 +2547,47 @@
       "offerPriceHigh": 0,
       "fingerprint": "39dc933a3d1f800ce1b8",
       "changeStatus": "unchanged",
+      "changes": []
+    },
+    {
+      "sourceId": "dart-01136597",
+      "company": "마더스제약",
+      "market": "상장시장 확인 필요",
+      "filingDate": "2026-11-10",
+      "bookbuildingStart": "",
+      "bookbuildingEnd": "",
+      "subscriptionStart": "2026-12-08",
+      "subscriptionEnd": "2026-12-09",
+      "paymentDate": "2026-12-11",
+      "offerPrice": 0,
+      "offeringAmountMillions": 0,
+      "listingDate": "",
+      "broker": "케이비증권, NH투자증권",
+      "priceStatus": "pending",
+      "status": "scheduled",
+      "sourceName": "DART",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261110000330",
+      "sourceUpdatedAt": "2026-11-10T12:03:45.746Z",
+      "missingSince": "",
+      "corpCode": "01136597",
+      "aliases": [
+        "dart-01136597"
+      ],
+      "sources": [
+        {
+          "name": "DART",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261110000330",
+          "checkedDate": "2026-11-10",
+          "reportDate": "20261110"
+        }
+      ],
+      "conflicts": [],
+      "reviewNotes": [],
+      "reportedOfferPrice": 11000,
+      "offerPriceLow": 0,
+      "offerPriceHigh": 0,
+      "fingerprint": "6420be2087e877e6e2bf",
+      "changeStatus": "new",
       "changes": []
     },
     {
