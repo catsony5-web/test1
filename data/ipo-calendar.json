@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-11-11T11:39:55.508Z",
+  "updatedAt": "2026-11-11T17:41:36.971Z",
   "checkedDate": "2026-11-11",
   "coverage": {
     "kindCount": 166,
@@ -18,7 +18,7 @@
     ],
     "refreshStatus": {
       "state": "ok",
-      "attemptedAt": "2026-11-11T11:39:55.508Z",
+      "attemptedAt": "2026-11-11T17:41:36.971Z",
       "sources": {
         "kind": {
           "state": "ok"
@@ -1927,33 +1927,8 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "4c87a73d80a1b3fdac00",
-      "changeStatus": "changed",
-      "changes": [
-        {
-          "field": "market",
-          "label": "시장",
-          "before": "상장시장 확인 필요",
-          "after": "코스닥"
-        },
-        {
-          "field": "bookbuildingStart",
-          "label": "수요예측 시작",
-          "before": "",
-          "after": "2026-11-02"
-        },
-        {
-          "field": "bookbuildingEnd",
-          "label": "수요예측 종료",
-          "before": "",
-          "after": "2026-11-06"
-        },
-        {
-          "field": "listingDate",
-          "label": "상장 예정일",
-          "before": "",
-          "after": "2026-11-20"
-        }
-      ]
+      "changeStatus": "unchanged",
+      "changes": []
     },
     {
       "sourceId": "dart-00618173",
@@ -2575,27 +2550,8 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "efda7e5729de7ba8fbb2",
-      "changeStatus": "changed",
-      "changes": [
-        {
-          "field": "subscriptionStart",
-          "label": "청약 시작",
-          "before": "2026-12-01",
-          "after": "2026-12-09"
-        },
-        {
-          "field": "subscriptionEnd",
-          "label": "청약 종료",
-          "before": "2026-12-02",
-          "after": "2026-12-10"
-        },
-        {
-          "field": "paymentDate",
-          "label": "납입일",
-          "before": "2026-12-04",
-          "after": "2026-12-14"
-        }
-      ]
+      "changeStatus": "unchanged",
+      "changes": []
     },
     {
       "sourceId": "dart-01860700",
