@@ -1,9 +1,9 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-11-11T02:20:16.527Z",
+  "updatedAt": "2026-11-11T11:39:55.508Z",
   "checkedDate": "2026-11-11",
   "coverage": {
-    "kindCount": 165,
+    "kindCount": 166,
     "dartCount": 182,
     "dartCheckedCompanies": 191,
     "unresolved": [
@@ -18,7 +18,7 @@
     ],
     "refreshStatus": {
       "state": "ok",
-      "attemptedAt": "2026-11-11T02:20:16.527Z",
+      "attemptedAt": "2026-11-11T11:39:55.508Z",
       "sources": {
         "kind": {
           "state": "ok"
@@ -1850,7 +1850,7 @@
       "status": "scheduled",
       "sourceName": "KRX KIND + DART",
       "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260130000218",
-      "sourceUpdatedAt": "2026-11-09T02:10:30.378Z",
+      "sourceUpdatedAt": "2026-11-11T11:39:55.508Z",
       "missingSince": "",
       "corpCode": "01797635",
       "aliases": [
@@ -1865,9 +1865,9 @@
         },
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104000315",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261111000281",
           "checkedDate": "2026-11-11",
-          "reportDate": "20261104"
+          "reportDate": "20261111"
         }
       ],
       "conflicts": [],
@@ -1877,35 +1877,41 @@
       "reportedOfferPrice": 15700,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "0e31ef97c00517408fbf",
+      "fingerprint": "ffa68a8fa1769c22bb6d",
       "changeStatus": "unchanged",
       "changes": []
     },
     {
       "sourceId": "dart-01025617",
       "company": "하나에어로다이내믹스",
-      "market": "상장시장 확인 필요",
-      "filingDate": "2026-11-09",
-      "bookbuildingStart": "",
-      "bookbuildingEnd": "",
+      "market": "코스닥",
+      "filingDate": "2026-09-21",
+      "bookbuildingStart": "2026-11-02",
+      "bookbuildingEnd": "2026-11-06",
       "subscriptionStart": "2026-11-10",
       "subscriptionEnd": "2026-11-11",
       "paymentDate": "2026-11-13",
       "offerPrice": 0,
       "offeringAmountMillions": 0,
-      "listingDate": "",
+      "listingDate": "2026-11-20",
       "broker": "IBK투자증권",
       "priceStatus": "pending",
       "status": "scheduled",
-      "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109000166",
-      "sourceUpdatedAt": "2026-11-09T12:29:40.274Z",
+      "sourceName": "KRX KIND + DART",
+      "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260114000254",
+      "sourceUpdatedAt": "2026-11-11T11:39:55.508Z",
       "missingSince": "",
       "corpCode": "01025617",
       "aliases": [
+        "20260114000254",
         "dart-01025617"
       ],
       "sources": [
+        {
+          "name": "KRX KIND",
+          "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260114000254",
+          "checkedDate": "2026-11-11"
+        },
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109000166",
@@ -1920,9 +1926,34 @@
       "reportedOfferPrice": 4700,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "ff01f498ba5a0f06ed57",
-      "changeStatus": "unchanged",
-      "changes": []
+      "fingerprint": "4c87a73d80a1b3fdac00",
+      "changeStatus": "changed",
+      "changes": [
+        {
+          "field": "market",
+          "label": "시장",
+          "before": "상장시장 확인 필요",
+          "after": "코스닥"
+        },
+        {
+          "field": "bookbuildingStart",
+          "label": "수요예측 시작",
+          "before": "",
+          "after": "2026-11-02"
+        },
+        {
+          "field": "bookbuildingEnd",
+          "label": "수요예측 종료",
+          "before": "",
+          "after": "2026-11-06"
+        },
+        {
+          "field": "listingDate",
+          "label": "상장 예정일",
+          "before": "",
+          "after": "2026-11-20"
+        }
+      ]
     },
     {
       "sourceId": "dart-00618173",
@@ -1939,10 +1970,10 @@
       "listingDate": "",
       "broker": "한국투자증권",
       "priceStatus": "pending",
-      "status": "scheduled",
+      "status": "cancelled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109000012",
-      "sourceUpdatedAt": "2026-11-09T02:10:30.378Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261111000246",
+      "sourceUpdatedAt": "2026-11-11T11:39:55.508Z",
       "missingSince": "",
       "corpCode": "00618173",
       "aliases": [
@@ -1951,19 +1982,17 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109000012",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261111000246",
           "checkedDate": "2026-11-11",
-          "reportDate": "20261109"
+          "reportDate": "20261111"
         }
       ],
       "conflicts": [],
-      "reviewNotes": [
-        "최신 공시와 구조화 자료의 접수번호가 다릅니다. 정정 내용을 확인하세요."
-      ],
+      "reviewNotes": [],
       "reportedOfferPrice": 10000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "c8da83b1b507e89d03f6",
+      "fingerprint": "a739d98b340f98bd8830",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -2025,10 +2054,10 @@
       "listingDate": "",
       "broker": "대신증권, NH투자증권",
       "priceStatus": "pending",
-      "status": "scheduled",
+      "status": "cancelled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109000006",
-      "sourceUpdatedAt": "2026-11-09T02:10:30.378Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261111000314",
+      "sourceUpdatedAt": "2026-11-11T11:39:55.508Z",
       "missingSince": "",
       "corpCode": "01403198",
       "aliases": [
@@ -2037,19 +2066,17 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109000006",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261111000314",
           "checkedDate": "2026-11-11",
-          "reportDate": "20261109"
+          "reportDate": "20261111"
         }
       ],
       "conflicts": [],
-      "reviewNotes": [
-        "최신 공시와 구조화 자료의 접수번호가 다릅니다. 정정 내용을 확인하세요."
-      ],
+      "reviewNotes": [],
       "reportedOfferPrice": 26400,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "98bbfd8c053553504230",
+      "fingerprint": "d791a37bbc7fdc25f05e",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -2141,7 +2168,7 @@
       "sourceId": "dart-01938746",
       "company": "아델",
       "market": "상장시장 확인 필요",
-      "filingDate": "2026-10-27",
+      "filingDate": "2026-11-11",
       "bookbuildingStart": "",
       "bookbuildingEnd": "",
       "subscriptionStart": "2026-11-23",
@@ -2154,8 +2181,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027000312",
-      "sourceUpdatedAt": "2026-10-27T09:34:21.089Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261111000327",
+      "sourceUpdatedAt": "2026-11-11T11:39:55.508Z",
       "missingSince": "",
       "corpCode": "01938746",
       "aliases": [
@@ -2164,9 +2191,9 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027000312",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261111000327",
           "checkedDate": "2026-11-11",
-          "reportDate": "20261027"
+          "reportDate": "20261111"
         }
       ],
       "conflicts": [],
@@ -2174,7 +2201,7 @@
       "reportedOfferPrice": 18000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "c4d9dfe96119e4e3c1cb",
+      "fingerprint": "748c9e6d8bbd8cf4afc7",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -2182,7 +2209,7 @@
       "sourceId": "dart-02041694",
       "company": "신영해피투모로우제12호기업인수목적",
       "market": "상장시장 확인 필요",
-      "filingDate": "2026-10-28",
+      "filingDate": "2026-11-11",
       "bookbuildingStart": "",
       "bookbuildingEnd": "",
       "subscriptionStart": "2026-11-24",
@@ -2195,8 +2222,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029000239",
-      "sourceUpdatedAt": "2026-10-29T10:41:40.830Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261111000235",
+      "sourceUpdatedAt": "2026-11-11T11:39:55.508Z",
       "missingSince": "",
       "corpCode": "02041694",
       "aliases": [
@@ -2205,19 +2232,17 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029000239",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261111000235",
           "checkedDate": "2026-11-11",
-          "reportDate": "20261029"
+          "reportDate": "20261111"
         }
       ],
       "conflicts": [],
-      "reviewNotes": [
-        "최신 공시와 구조화 자료의 접수번호가 다릅니다. 정정 내용을 확인하세요."
-      ],
+      "reviewNotes": [],
       "reportedOfferPrice": 2000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "1fedff41999b5d6319c7",
+      "fingerprint": "0769ad11911d29aee527",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -2345,47 +2370,6 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "2fa8ffd5ca8cd5f54fc6",
-      "changeStatus": "unchanged",
-      "changes": []
-    },
-    {
-      "sourceId": "dart-01706509",
-      "company": "다비오",
-      "market": "상장시장 확인 필요",
-      "filingDate": "2026-10-30",
-      "bookbuildingStart": "",
-      "bookbuildingEnd": "",
-      "subscriptionStart": "2026-12-01",
-      "subscriptionEnd": "2026-12-02",
-      "paymentDate": "2026-12-04",
-      "offerPrice": 0,
-      "offeringAmountMillions": 0,
-      "listingDate": "",
-      "broker": "대신증권",
-      "priceStatus": "pending",
-      "status": "scheduled",
-      "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030000682",
-      "sourceUpdatedAt": "2026-10-30T10:42:05.882Z",
-      "missingSince": "",
-      "corpCode": "01706509",
-      "aliases": [
-        "dart-01706509"
-      ],
-      "sources": [
-        {
-          "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030000682",
-          "checkedDate": "2026-11-11",
-          "reportDate": "20261030"
-        }
-      ],
-      "conflicts": [],
-      "reviewNotes": [],
-      "reportedOfferPrice": 12300,
-      "offerPriceLow": 0,
-      "offerPriceHigh": 0,
-      "fingerprint": "22fe2ebb7925e505590c",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -2554,10 +2538,70 @@
       "changes": []
     },
     {
+      "sourceId": "dart-01706509",
+      "company": "다비오",
+      "market": "상장시장 확인 필요",
+      "filingDate": "2026-11-11",
+      "bookbuildingStart": "",
+      "bookbuildingEnd": "",
+      "subscriptionStart": "2026-12-09",
+      "subscriptionEnd": "2026-12-10",
+      "paymentDate": "2026-12-14",
+      "offerPrice": 0,
+      "offeringAmountMillions": 0,
+      "listingDate": "",
+      "broker": "대신증권",
+      "priceStatus": "pending",
+      "status": "scheduled",
+      "sourceName": "DART",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261111000426",
+      "sourceUpdatedAt": "2026-11-11T11:39:55.508Z",
+      "missingSince": "",
+      "corpCode": "01706509",
+      "aliases": [
+        "dart-01706509"
+      ],
+      "sources": [
+        {
+          "name": "DART",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261111000426",
+          "checkedDate": "2026-11-11",
+          "reportDate": "20261111"
+        }
+      ],
+      "conflicts": [],
+      "reviewNotes": [],
+      "reportedOfferPrice": 12300,
+      "offerPriceLow": 0,
+      "offerPriceHigh": 0,
+      "fingerprint": "efda7e5729de7ba8fbb2",
+      "changeStatus": "changed",
+      "changes": [
+        {
+          "field": "subscriptionStart",
+          "label": "청약 시작",
+          "before": "2026-12-01",
+          "after": "2026-12-09"
+        },
+        {
+          "field": "subscriptionEnd",
+          "label": "청약 종료",
+          "before": "2026-12-02",
+          "after": "2026-12-10"
+        },
+        {
+          "field": "paymentDate",
+          "label": "납입일",
+          "before": "2026-12-04",
+          "after": "2026-12-14"
+        }
+      ]
+    },
+    {
       "sourceId": "dart-01860700",
       "company": "인터엑스",
       "market": "상장시장 확인 필요",
-      "filingDate": "2026-10-22",
+      "filingDate": "2026-11-11",
       "bookbuildingStart": "",
       "bookbuildingEnd": "",
       "subscriptionStart": "2026-12-09",
@@ -2570,8 +2614,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261022000478",
-      "sourceUpdatedAt": "2026-10-22T14:51:45.264Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261111000319",
+      "sourceUpdatedAt": "2026-11-11T11:39:55.508Z",
       "missingSince": "",
       "corpCode": "01860700",
       "aliases": [
@@ -2580,9 +2624,9 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261022000478",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261111000319",
           "checkedDate": "2026-11-11",
-          "reportDate": "20261022"
+          "reportDate": "20261111"
         }
       ],
       "conflicts": [],
@@ -2590,7 +2634,7 @@
       "reportedOfferPrice": 10000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "5f5129a2c4a126c2c53a",
+      "fingerprint": "31ee516cc2179862cac2",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -2612,7 +2656,7 @@
       "status": "scheduled",
       "sourceName": "KRX KIND + DART",
       "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260123000196",
-      "sourceUpdatedAt": "2026-11-05T11:50:11.937Z",
+      "sourceUpdatedAt": "2026-11-11T11:39:55.508Z",
       "missingSince": "",
       "corpCode": "01077540",
       "aliases": [
@@ -2627,9 +2671,9 @@
         },
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105000234",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261111000341",
           "checkedDate": "2026-11-11",
-          "reportDate": "20261105"
+          "reportDate": "20261111"
         }
       ],
       "conflicts": [],
@@ -2637,7 +2681,7 @@
       "reportedOfferPrice": 5400,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "427c70c34572f6ca189c",
+      "fingerprint": "58faf376075b3763e9a7",
       "changeStatus": "unchanged",
       "changes": []
     },
