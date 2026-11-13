@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-11-13T03:00:12.821Z",
+  "updatedAt": "2026-11-13T11:50:07.294Z",
   "checkedDate": "2026-11-13",
   "coverage": {
     "kindCount": 166,
-    "dartCount": 183,
+    "dartCount": 182,
     "dartCheckedCompanies": 192,
     "unresolved": [
       {
@@ -14,11 +14,15 @@
       {
         "company": "데이원컴퍼니",
         "receipt": "20250120000324"
+      },
+      {
+        "company": "제논",
+        "receipt": "20261113001531"
       }
     ],
     "refreshStatus": {
       "state": "ok",
-      "attemptedAt": "2026-11-13T03:00:12.821Z",
+      "attemptedAt": "2026-11-13T11:50:07.294Z",
       "sources": {
         "kind": {
           "state": "ok"
@@ -1899,7 +1903,7 @@
       "status": "scheduled",
       "sourceName": "KRX KIND + DART",
       "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260114000254",
-      "sourceUpdatedAt": "2026-11-12T03:27:57.293Z",
+      "sourceUpdatedAt": "2026-11-13T11:50:07.294Z",
       "missingSince": "",
       "corpCode": "01025617",
       "aliases": [
@@ -1914,9 +1918,9 @@
         },
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109000166",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261113000458",
           "checkedDate": "2026-11-13",
-          "reportDate": "20261109"
+          "reportDate": "20261113"
         }
       ],
       "conflicts": [],
@@ -1926,7 +1930,7 @@
       "reportedOfferPrice": 4700,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "7c5282334c907d22ce23",
+      "fingerprint": "230c957eaeac5d6420cb",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -2238,11 +2242,11 @@
       "listingDate": "",
       "broker": "삼성증권",
       "priceStatus": "pending",
-      "status": "scheduled",
+      "status": "unavailable",
       "sourceName": "DART",
       "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261026000367",
       "sourceUpdatedAt": "2026-10-26T09:39:41.105Z",
-      "missingSince": "",
+      "missingSince": "2026-11-13T11:50:07.294Z",
       "corpCode": "01950720",
       "aliases": [
         "dart-01950720"
@@ -2263,7 +2267,7 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "ad0be335b163b2e53ab2",
-      "changeStatus": "unchanged",
+      "changeStatus": "review",
       "changes": []
     },
     {
@@ -2367,8 +2371,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103000358",
-      "sourceUpdatedAt": "2026-11-03T11:35:41.369Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261113000615",
+      "sourceUpdatedAt": "2026-11-13T11:50:07.294Z",
       "missingSince": "",
       "corpCode": "01795859",
       "aliases": [
@@ -2377,17 +2381,19 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103000358",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261113000615",
           "checkedDate": "2026-11-13",
-          "reportDate": "20261103"
+          "reportDate": "20261113"
         }
       ],
       "conflicts": [],
-      "reviewNotes": [],
+      "reviewNotes": [
+        "최신 공시와 구조화 자료의 접수번호가 다릅니다. 정정 내용을 확인하세요."
+      ],
       "reportedOfferPrice": 13000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "5c0f8cd02acee1215ae4",
+      "fingerprint": "1aba90ec14ffdc34272c",
       "changeStatus": "unchanged",
       "changes": []
     },
