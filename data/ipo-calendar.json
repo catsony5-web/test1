@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-11-13T11:50:07.294Z",
+  "updatedAt": "2026-11-13T17:29:13.724Z",
   "checkedDate": "2026-11-13",
   "coverage": {
     "kindCount": 166,
-    "dartCount": 182,
+    "dartCount": 183,
     "dartCheckedCompanies": 192,
     "unresolved": [
       {
@@ -14,15 +14,11 @@
       {
         "company": "데이원컴퍼니",
         "receipt": "20250120000324"
-      },
-      {
-        "company": "제논",
-        "receipt": "20261113001531"
       }
     ],
     "refreshStatus": {
       "state": "ok",
-      "attemptedAt": "2026-11-13T11:50:07.294Z",
+      "attemptedAt": "2026-11-13T17:29:13.724Z",
       "sources": {
         "kind": {
           "state": "ok"
@@ -2228,49 +2224,6 @@
       "changes": []
     },
     {
-      "sourceId": "dart-01950720",
-      "company": "제논",
-      "market": "상장시장 확인 필요",
-      "filingDate": "2026-10-26",
-      "bookbuildingStart": "",
-      "bookbuildingEnd": "",
-      "subscriptionStart": "2026-11-24",
-      "subscriptionEnd": "2026-11-25",
-      "paymentDate": "2026-11-27",
-      "offerPrice": 0,
-      "offeringAmountMillions": 0,
-      "listingDate": "",
-      "broker": "삼성증권",
-      "priceStatus": "pending",
-      "status": "unavailable",
-      "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261026000367",
-      "sourceUpdatedAt": "2026-10-26T09:39:41.105Z",
-      "missingSince": "2026-11-13T11:50:07.294Z",
-      "corpCode": "01950720",
-      "aliases": [
-        "dart-01950720"
-      ],
-      "sources": [
-        {
-          "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261026000367",
-          "checkedDate": "2026-11-13",
-          "reportDate": "20261026"
-        }
-      ],
-      "conflicts": [],
-      "reviewNotes": [
-        "최신 공시와 구조화 자료의 접수번호가 다릅니다. 정정 내용을 확인하세요."
-      ],
-      "reportedOfferPrice": 9700,
-      "offerPriceLow": 0,
-      "offerPriceHigh": 0,
-      "fingerprint": "ad0be335b163b2e53ab2",
-      "changeStatus": "review",
-      "changes": []
-    },
-    {
       "sourceId": "dart-01880139",
       "company": "케이엠에프",
       "market": "상장시장 확인 필요",
@@ -2689,6 +2642,66 @@
       "fingerprint": "5ccda584de4f4a0c317b",
       "changeStatus": "unchanged",
       "changes": []
+    },
+    {
+      "sourceId": "dart-01950720",
+      "company": "제논",
+      "market": "상장시장 확인 필요",
+      "filingDate": "2026-11-13",
+      "bookbuildingStart": "",
+      "bookbuildingEnd": "",
+      "subscriptionStart": "2026-12-14",
+      "subscriptionEnd": "2026-12-15",
+      "paymentDate": "2026-12-17",
+      "offerPrice": 0,
+      "offeringAmountMillions": 0,
+      "listingDate": "",
+      "broker": "삼성증권",
+      "priceStatus": "pending",
+      "status": "scheduled",
+      "sourceName": "DART",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261113001531",
+      "sourceUpdatedAt": "2026-11-13T17:29:13.724Z",
+      "missingSince": "",
+      "corpCode": "01950720",
+      "aliases": [
+        "dart-01950720"
+      ],
+      "sources": [
+        {
+          "name": "DART",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261113001531",
+          "checkedDate": "2026-11-13",
+          "reportDate": "20261113"
+        }
+      ],
+      "conflicts": [],
+      "reviewNotes": [],
+      "reportedOfferPrice": 9700,
+      "offerPriceLow": 0,
+      "offerPriceHigh": 0,
+      "fingerprint": "3c9606d0832b2b55f4e1",
+      "changeStatus": "changed",
+      "changes": [
+        {
+          "field": "subscriptionStart",
+          "label": "청약 시작",
+          "before": "2026-11-24",
+          "after": "2026-12-14"
+        },
+        {
+          "field": "subscriptionEnd",
+          "label": "청약 종료",
+          "before": "2026-11-25",
+          "after": "2026-12-15"
+        },
+        {
+          "field": "paymentDate",
+          "label": "납입일",
+          "before": "2026-11-27",
+          "after": "2026-12-17"
+        }
+      ]
     },
     {
       "sourceId": "dart-01912128",
