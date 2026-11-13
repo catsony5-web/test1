@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-12T03:12:16.704Z",
-  "attemptedAt": "2026-11-12T03:12:16.704Z",
+  "updatedAt": "2026-11-13T02:45:02.145Z",
+  "attemptedAt": "2026-11-13T02:45:02.145Z",
   "refreshStatus": "ok",
   "sources": {
     "youtube": {
@@ -15,6 +15,20 @@
     }
   },
   "items": [
+    {
+      "sourceId": "shopify",
+      "title": "Customer accounts now show store credit and personalized product recommendations",
+      "url": "https://changelog.shopify.com/posts/customer-accounts-now-show-store-credit-and-personalized-product-recommendations",
+      "publishedAt": "2026-11-12T17:00:00.000Z",
+      "topicId": "product"
+    },
+    {
+      "sourceId": "wordpress",
+      "title": "Start a Newsletter with ChatGPT and Claude",
+      "url": "https://wordpress.com/blog/2026/11/12/start-newsletter-chatgpt-claude/",
+      "publishedAt": "2026-11-12T09:00:00.000Z",
+      "topicId": "writing"
+    },
     {
       "sourceId": "wordpress",
       "title": "Your Content, Your Terms: New AI Controls and SEO Tools",
