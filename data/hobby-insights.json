@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-13T02:45:02.145Z",
-  "attemptedAt": "2026-11-13T02:45:02.145Z",
+  "updatedAt": "2026-11-14T02:34:30.578Z",
+  "attemptedAt": "2026-11-14T02:34:30.578Z",
   "refreshStatus": "ok",
   "sources": {
     "youtube": {
@@ -15,6 +15,13 @@
     }
   },
   "items": [
+    {
+      "sourceId": "shopify",
+      "title": "Custom draft order discounts now use presentment currency",
+      "url": "https://changelog.shopify.com/posts/custom-draft-order-discounts-now-use-presentment-currency",
+      "publishedAt": "2026-11-13T17:00:00.000Z",
+      "topicId": "product"
+    },
     {
       "sourceId": "shopify",
       "title": "Customer accounts now show store credit and personalized product recommendations",
@@ -615,13 +622,6 @@
       "title": "Combine repeat bundle options",
       "url": "https://changelog.shopify.com/posts/combine-repeat-bundle-options",
       "publishedAt": "2025-12-10T14:30:00.000Z",
-      "topicId": "product"
-    },
-    {
-      "sourceId": "shopify",
-      "title": "Apple Pay available as a payment method in Shop Pay checkout",
-      "url": "https://changelog.shopify.com/posts/apple-pay-available-as-a-payment-method-in-shop-pay-checkout",
-      "publishedAt": "2025-11-13T17:00:00.000Z",
       "topicId": "product"
     }
   ]
