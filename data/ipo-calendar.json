@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-11-16T02:26:38.397Z",
+  "updatedAt": "2026-11-16T19:59:01.699Z",
   "checkedDate": "2026-11-16",
   "coverage": {
     "kindCount": 166,
-    "dartCount": 183,
+    "dartCount": 182,
     "dartCheckedCompanies": 192,
     "unresolved": [
       {
@@ -14,15 +14,18 @@
       {
         "company": "데이원컴퍼니",
         "receipt": "20250120000324"
+      },
+      {
+        "company": "데스틴파워",
+        "receipt": "20261116002253"
       }
     ],
     "refreshStatus": {
-      "state": "stale",
-      "attemptedAt": "2026-11-16T12:24:40.114Z",
+      "state": "ok",
+      "attemptedAt": "2026-11-16T19:59:01.699Z",
       "sources": {
         "kind": {
-          "state": "failed",
-          "reason": "HTTP 403"
+          "state": "ok"
         },
         "dart": {
           "state": "ok"
@@ -2618,11 +2621,11 @@
       "listingDate": "",
       "broker": "한국투자증권",
       "priceStatus": "pending",
-      "status": "scheduled",
+      "status": "unavailable",
       "sourceName": "DART",
       "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028000434",
       "sourceUpdatedAt": "2026-10-28T10:19:32.100Z",
-      "missingSince": "",
+      "missingSince": "2026-11-16T19:59:01.699Z",
       "corpCode": "01135039",
       "aliases": [
         "dart-01135039"
@@ -2641,7 +2644,7 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "5ccda584de4f4a0c317b",
-      "changeStatus": "unchanged",
+      "changeStatus": "review",
       "changes": []
     },
     {
