@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-16T02:18:10.748Z",
-  "attemptedAt": "2026-11-16T02:18:10.748Z",
+  "updatedAt": "2026-11-17T04:40:24.805Z",
+  "attemptedAt": "2026-11-17T04:40:24.805Z",
   "refreshStatus": "ok",
   "sources": {
     "youtube": {
@@ -15,6 +15,13 @@
     }
   },
   "items": [
+    {
+      "sourceId": "shopify",
+      "title": "Improved bot detection for cart and checkout activity",
+      "url": "https://changelog.shopify.com/posts/improved-bot-detection-for-cart-and-checkout-activity",
+      "publishedAt": "2026-11-16T14:00:00.000Z",
+      "topicId": "product"
+    },
     {
       "sourceId": "shopify",
       "title": "Custom draft order discounts now use presentment currency",
