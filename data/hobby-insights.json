@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-19T03:43:56.450Z",
-  "attemptedAt": "2026-11-19T03:43:56.450Z",
+  "updatedAt": "2026-11-20T03:37:40.071Z",
+  "attemptedAt": "2026-11-20T03:37:40.071Z",
   "refreshStatus": "ok",
   "sources": {
     "youtube": {
@@ -17,7 +17,7 @@
   "items": [
     {
       "sourceId": "wordpress",
-      "title": "Bring your own agents to WordPress Studio",
+      "title": "Bring Your Own Agents to WordPress Studio",
       "url": "https://wordpress.com/blog/2026/11/18/wordpress-studio-agents/",
       "publishedAt": "2026-11-18T23:02:07.000Z",
       "topicId": "service"
