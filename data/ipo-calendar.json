@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-11-21T03:36:56.591Z",
+  "updatedAt": "2026-11-21T17:05:24.616Z",
   "checkedDate": "2026-11-21",
   "coverage": {
     "kindCount": 168,
@@ -17,12 +17,11 @@
       }
     ],
     "refreshStatus": {
-      "state": "stale",
-      "attemptedAt": "2026-11-21T12:03:56.623Z",
+      "state": "ok",
+      "attemptedAt": "2026-11-21T17:05:24.616Z",
       "sources": {
         "kind": {
-          "state": "failed",
-          "reason": "HTTP 403"
+          "state": "ok"
         },
         "dart": {
           "state": "ok"
