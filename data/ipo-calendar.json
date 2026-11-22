@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-11-22T02:43:10.924Z",
+  "updatedAt": "2026-11-22T12:15:30.005Z",
   "checkedDate": "2026-11-22",
   "coverage": {
     "kindCount": 168,
@@ -18,7 +18,7 @@
     ],
     "refreshStatus": {
       "state": "ok",
-      "attemptedAt": "2026-11-22T02:43:10.924Z",
+      "attemptedAt": "2026-11-22T12:15:30.005Z",
       "sources": {
         "kind": {
           "state": "ok"
@@ -2112,15 +2112,15 @@
       "subscriptionStart": "2026-11-18",
       "subscriptionEnd": "2026-11-19",
       "paymentDate": "2026-11-23",
-      "offerPrice": 0,
-      "offeringAmountMillions": 0,
+      "offerPrice": 19000,
+      "offeringAmountMillions": 15200,
       "listingDate": "2026-11-30",
       "broker": "유진투자증권",
-      "priceStatus": "pending",
+      "priceStatus": "confirmed",
       "status": "scheduled",
       "sourceName": "KRX KIND + DART",
       "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260318000614",
-      "sourceUpdatedAt": "2026-11-17T12:44:51.333Z",
+      "sourceUpdatedAt": "2026-11-22T12:15:30.005Z",
       "missingSince": "",
       "corpCode": "01705573",
       "aliases": [
@@ -2147,9 +2147,22 @@
       "reportedOfferPrice": 19000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "87cc950eb419b9c68e97",
-      "changeStatus": "unchanged",
-      "changes": []
+      "fingerprint": "5a2bc4996ea84385e291",
+      "changeStatus": "changed",
+      "changes": [
+        {
+          "field": "offerPrice",
+          "label": "확정 공모가",
+          "before": 0,
+          "after": 19000
+        },
+        {
+          "field": "offeringAmountMillions",
+          "label": "공모금액",
+          "before": 0,
+          "after": 15200
+        }
+      ]
     },
     {
       "sourceId": "dart-01938746",
