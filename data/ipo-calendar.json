@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-11-22T12:15:30.005Z",
+  "updatedAt": "2026-11-22T17:36:26.149Z",
   "checkedDate": "2026-11-22",
   "coverage": {
     "kindCount": 168,
@@ -18,7 +18,7 @@
     ],
     "refreshStatus": {
       "state": "ok",
-      "attemptedAt": "2026-11-22T12:15:30.005Z",
+      "attemptedAt": "2026-11-22T17:36:26.149Z",
       "sources": {
         "kind": {
           "state": "ok"
@@ -2148,21 +2148,8 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "5a2bc4996ea84385e291",
-      "changeStatus": "changed",
-      "changes": [
-        {
-          "field": "offerPrice",
-          "label": "확정 공모가",
-          "before": 0,
-          "after": 19000
-        },
-        {
-          "field": "offeringAmountMillions",
-          "label": "공모금액",
-          "before": 0,
-          "after": 15200
-        }
-      ]
+      "changeStatus": "unchanged",
+      "changes": []
     },
     {
       "sourceId": "dart-01938746",
