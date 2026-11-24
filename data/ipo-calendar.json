@@ -1,11 +1,11 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-11-24T06:33:50.088Z",
+  "updatedAt": "2026-11-24T14:31:08.777Z",
   "checkedDate": "2026-11-24",
   "coverage": {
     "kindCount": 169,
-    "dartCount": 186,
-    "dartCheckedCompanies": 195,
+    "dartCount": 187,
+    "dartCheckedCompanies": 196,
     "unresolved": [
       {
         "company": "렉스필드컨트리클럽",
@@ -18,7 +18,7 @@
     ],
     "refreshStatus": {
       "state": "ok",
-      "attemptedAt": "2026-11-24T06:33:50.088Z",
+      "attemptedAt": "2026-11-24T14:31:08.777Z",
       "sources": {
         "kind": {
           "state": "ok"
@@ -39,7 +39,7 @@
     "to": "2027-11-30",
     "label": "최근 3개월 · 향후 12개월"
   },
-  "itemCount": 62,
+  "itemCount": 63,
   "items": [
     {
       "sourceId": "20250923000002",
@@ -2404,39 +2404,8 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "59518525ea93515e33e7",
-      "changeStatus": "changed",
-      "changes": [
-        {
-          "field": "company",
-          "label": "종목명",
-          "before": "우리투자제1호기업인수목적",
-          "after": "우리투자제1호스팩"
-        },
-        {
-          "field": "market",
-          "label": "시장",
-          "before": "상장시장 확인 필요",
-          "after": "코스닥"
-        },
-        {
-          "field": "bookbuildingStart",
-          "label": "수요예측 시작",
-          "before": "",
-          "after": "2026-11-25"
-        },
-        {
-          "field": "bookbuildingEnd",
-          "label": "수요예측 종료",
-          "before": "",
-          "after": "2026-11-26"
-        },
-        {
-          "field": "listingDate",
-          "label": "상장 예정일",
-          "before": "",
-          "after": "2026-12-14"
-        }
-      ]
+      "changeStatus": "unchanged",
+      "changes": []
     },
     {
       "sourceId": "dart-01783687",
@@ -2537,8 +2506,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261124000306",
-      "sourceUpdatedAt": "2026-11-24T06:33:50.088Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261124000432",
+      "sourceUpdatedAt": "2026-11-24T14:31:08.777Z",
       "missingSince": "",
       "corpCode": "01706509",
       "aliases": [
@@ -2547,17 +2516,19 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261124000306",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261124000432",
           "checkedDate": "2026-11-24",
           "reportDate": "20261124"
         }
       ],
       "conflicts": [],
-      "reviewNotes": [],
+      "reviewNotes": [
+        "최신 공시와 구조화 자료의 접수번호가 다릅니다. 정정 내용을 확인하세요."
+      ],
       "reportedOfferPrice": 12300,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "17c8513f68df1bfdce53",
+      "fingerprint": "204c8d0447e123a87d4a",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -2895,6 +2866,47 @@
       "offerPriceHigh": 0,
       "fingerprint": "ceb03c64ea2538a95593",
       "changeStatus": "unchanged",
+      "changes": []
+    },
+    {
+      "sourceId": "dart-01182790",
+      "company": "범한메카텍",
+      "market": "상장시장 확인 필요",
+      "filingDate": "2026-11-24",
+      "bookbuildingStart": "",
+      "bookbuildingEnd": "",
+      "subscriptionStart": "2026-12-17",
+      "subscriptionEnd": "2026-12-18",
+      "paymentDate": "2026-12-22",
+      "offerPrice": 0,
+      "offeringAmountMillions": 0,
+      "listingDate": "",
+      "broker": "NH투자증권, 유진증권, BNK투자증권",
+      "priceStatus": "pending",
+      "status": "scheduled",
+      "sourceName": "DART",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261124000540",
+      "sourceUpdatedAt": "2026-11-24T14:31:08.777Z",
+      "missingSince": "",
+      "corpCode": "01182790",
+      "aliases": [
+        "dart-01182790"
+      ],
+      "sources": [
+        {
+          "name": "DART",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261124000540",
+          "checkedDate": "2026-11-24",
+          "reportDate": "20261124"
+        }
+      ],
+      "conflicts": [],
+      "reviewNotes": [],
+      "reportedOfferPrice": 22800,
+      "offerPriceLow": 0,
+      "offerPriceHigh": 0,
+      "fingerprint": "efafb02873bd34767ea8",
+      "changeStatus": "new",
       "changes": []
     },
     {
