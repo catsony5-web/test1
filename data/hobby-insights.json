@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-23T02:56:48.845Z",
-  "attemptedAt": "2026-11-23T02:56:48.845Z",
+  "updatedAt": "2026-11-24T06:13:46.625Z",
+  "attemptedAt": "2026-11-24T06:13:46.625Z",
   "refreshStatus": "ok",
   "sources": {
     "youtube": {
@@ -15,6 +15,13 @@
     }
   },
   "items": [
+    {
+      "sourceId": "shopify",
+      "title": "Manage agentic checkout for ChatGPT",
+      "url": "https://changelog.shopify.com/posts/manage-whether-ai-agents-can-buy-your-products-for-shoppers-through-chatgpt",
+      "publishedAt": "2026-11-23T17:00:00.000Z",
+      "topicId": "product"
+    },
     {
       "sourceId": "wordpress",
       "title": "Bring Your Own Agents to WordPress Studio",
