@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-11-25T13:51:58.065Z",
+  "updatedAt": "2026-11-25T19:44:08.111Z",
   "checkedDate": "2026-11-25",
   "coverage": {
     "kindCount": 170,
@@ -18,7 +18,7 @@
     ],
     "refreshStatus": {
       "state": "ok",
-      "attemptedAt": "2026-11-25T13:51:58.065Z",
+      "attemptedAt": "2026-11-25T19:44:08.111Z",
       "sources": {
         "kind": {
           "state": "ok"
@@ -2455,33 +2455,8 @@
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
       "fingerprint": "775ff00bcdd737e2862a",
-      "changeStatus": "changed",
-      "changes": [
-        {
-          "field": "market",
-          "label": "시장",
-          "before": "상장시장 확인 필요",
-          "after": "코스닥"
-        },
-        {
-          "field": "bookbuildingStart",
-          "label": "수요예측 시작",
-          "before": "",
-          "after": "2026-11-26"
-        },
-        {
-          "field": "bookbuildingEnd",
-          "label": "수요예측 종료",
-          "before": "",
-          "after": "2026-12-02"
-        },
-        {
-          "field": "listingDate",
-          "label": "상장 예정일",
-          "before": "",
-          "after": "2026-12-16"
-        }
-      ]
+      "changeStatus": "unchanged",
+      "changes": []
     },
     {
       "sourceId": "dart-01136597",
