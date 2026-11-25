@@ -1,9 +1,9 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-11-25T05:07:31.678Z",
+  "updatedAt": "2026-11-25T13:51:58.065Z",
   "checkedDate": "2026-11-25",
   "coverage": {
-    "kindCount": 169,
+    "kindCount": 170,
     "dartCount": 187,
     "dartCheckedCompanies": 196,
     "unresolved": [
@@ -18,7 +18,7 @@
     ],
     "refreshStatus": {
       "state": "ok",
-      "attemptedAt": "2026-11-25T05:07:31.678Z",
+      "attemptedAt": "2026-11-25T13:51:58.065Z",
       "sources": {
         "kind": {
           "state": "ok"
@@ -2414,28 +2414,34 @@
     {
       "sourceId": "dart-01783687",
       "company": "이노보테라퓨틱스",
-      "market": "상장시장 확인 필요",
-      "filingDate": "2026-11-09",
-      "bookbuildingStart": "",
-      "bookbuildingEnd": "",
+      "market": "코스닥",
+      "filingDate": "2026-10-21",
+      "bookbuildingStart": "2026-11-26",
+      "bookbuildingEnd": "2026-12-02",
       "subscriptionStart": "2026-12-07",
       "subscriptionEnd": "2026-12-08",
       "paymentDate": "2026-12-10",
       "offerPrice": 0,
       "offeringAmountMillions": 0,
-      "listingDate": "",
+      "listingDate": "2026-12-16",
       "broker": "한국투자증권",
       "priceStatus": "pending",
       "status": "scheduled",
-      "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109000160",
-      "sourceUpdatedAt": "2026-11-09T12:29:40.274Z",
+      "sourceName": "KRX KIND + DART",
+      "sourceUrl": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260127000410",
+      "sourceUpdatedAt": "2026-11-25T13:51:58.065Z",
       "missingSince": "",
       "corpCode": "01783687",
       "aliases": [
+        "20260127000410",
         "dart-01783687"
       ],
       "sources": [
+        {
+          "name": "KRX KIND",
+          "url": "https://kind.krx.co.kr/listinvstg/pubofrprogcomdetail.do?method=searchProgComDetailMain&bzProcsNo=20260127000410",
+          "checkedDate": "2026-11-25"
+        },
         {
           "name": "DART",
           "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109000160",
@@ -2448,15 +2454,40 @@
       "reportedOfferPrice": 20000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "39dc933a3d1f800ce1b8",
-      "changeStatus": "unchanged",
-      "changes": []
+      "fingerprint": "775ff00bcdd737e2862a",
+      "changeStatus": "changed",
+      "changes": [
+        {
+          "field": "market",
+          "label": "시장",
+          "before": "상장시장 확인 필요",
+          "after": "코스닥"
+        },
+        {
+          "field": "bookbuildingStart",
+          "label": "수요예측 시작",
+          "before": "",
+          "after": "2026-11-26"
+        },
+        {
+          "field": "bookbuildingEnd",
+          "label": "수요예측 종료",
+          "before": "",
+          "after": "2026-12-02"
+        },
+        {
+          "field": "listingDate",
+          "label": "상장 예정일",
+          "before": "",
+          "after": "2026-12-16"
+        }
+      ]
     },
     {
       "sourceId": "dart-01136597",
       "company": "마더스제약",
       "market": "상장시장 확인 필요",
-      "filingDate": "2026-11-10",
+      "filingDate": "2026-11-25",
       "bookbuildingStart": "",
       "bookbuildingEnd": "",
       "subscriptionStart": "2026-12-08",
@@ -2469,8 +2500,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261110000330",
-      "sourceUpdatedAt": "2026-11-10T12:03:45.746Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261125000378",
+      "sourceUpdatedAt": "2026-11-25T13:51:58.065Z",
       "missingSince": "",
       "corpCode": "01136597",
       "aliases": [
@@ -2479,9 +2510,9 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261110000330",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261125000378",
           "checkedDate": "2026-11-25",
-          "reportDate": "20261110"
+          "reportDate": "20261125"
         }
       ],
       "conflicts": [],
@@ -2489,7 +2520,7 @@
       "reportedOfferPrice": 11000,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "6420be2087e877e6e2bf",
+      "fingerprint": "7f5fd679c075a34552da",
       "changeStatus": "unchanged",
       "changes": []
     },
@@ -2497,7 +2528,7 @@
       "sourceId": "dart-01706509",
       "company": "다비오",
       "market": "상장시장 확인 필요",
-      "filingDate": "2026-11-24",
+      "filingDate": "2026-11-25",
       "bookbuildingStart": "",
       "bookbuildingEnd": "",
       "subscriptionStart": "2026-12-09",
@@ -2510,8 +2541,8 @@
       "priceStatus": "pending",
       "status": "scheduled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261124000432",
-      "sourceUpdatedAt": "2026-11-24T14:31:08.777Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261125000586",
+      "sourceUpdatedAt": "2026-11-25T13:51:58.065Z",
       "missingSince": "",
       "corpCode": "01706509",
       "aliases": [
@@ -2520,19 +2551,17 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261124000432",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261125000586",
           "checkedDate": "2026-11-25",
-          "reportDate": "20261124"
+          "reportDate": "20261125"
         }
       ],
       "conflicts": [],
-      "reviewNotes": [
-        "최신 공시와 구조화 자료의 접수번호가 다릅니다. 정정 내용을 확인하세요."
-      ],
+      "reviewNotes": [],
       "reportedOfferPrice": 12300,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "204c8d0447e123a87d4a",
+      "fingerprint": "879bea8e56cc2fb3aff8",
       "changeStatus": "unchanged",
       "changes": []
     },
