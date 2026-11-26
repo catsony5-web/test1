@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-11-26T04:34:05.125Z",
+  "updatedAt": "2026-11-26T13:31:02.419Z",
   "checkedDate": "2026-11-26",
   "coverage": {
     "kindCount": 170,
@@ -18,7 +18,7 @@
     ],
     "refreshStatus": {
       "state": "ok",
-      "attemptedAt": "2026-11-26T04:34:05.125Z",
+      "attemptedAt": "2026-11-26T13:31:02.419Z",
       "sources": {
         "kind": {
           "state": "ok"
@@ -2291,10 +2291,10 @@
       "listingDate": "",
       "broker": "NH투자증권",
       "priceStatus": "pending",
-      "status": "scheduled",
+      "status": "cancelled",
       "sourceName": "DART",
-      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261125000251",
-      "sourceUpdatedAt": "2026-11-25T05:07:31.678Z",
+      "sourceUrl": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261126000470",
+      "sourceUpdatedAt": "2026-11-26T13:31:02.419Z",
       "missingSince": "",
       "corpCode": "01366675",
       "aliases": [
@@ -2303,19 +2303,17 @@
       "sources": [
         {
           "name": "DART",
-          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261125000251",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261126000470",
           "checkedDate": "2026-11-26",
-          "reportDate": "20261125"
+          "reportDate": "20261126"
         }
       ],
       "conflicts": [],
-      "reviewNotes": [
-        "최신 공시와 구조화 자료의 접수번호가 다릅니다. 정정 내용을 확인하세요."
-      ],
+      "reviewNotes": [],
       "reportedOfferPrice": 11200,
       "offerPriceLow": 0,
       "offerPriceHigh": 0,
-      "fingerprint": "073b91a1353c0839b1db",
+      "fingerprint": "56720f680a508b1e0461",
       "changeStatus": "unchanged",
       "changes": []
     },
