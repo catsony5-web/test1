@@ -17,11 +17,12 @@
       }
     ],
     "refreshStatus": {
-      "state": "ok",
-      "attemptedAt": "2026-11-27T04:38:00.006Z",
+      "state": "stale",
+      "attemptedAt": "2026-11-27T13:27:48.583Z",
       "sources": {
         "kind": {
-          "state": "ok"
+          "state": "failed",
+          "reason": "HTTP 403"
         },
         "dart": {
           "state": "ok"
